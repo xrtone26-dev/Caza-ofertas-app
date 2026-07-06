@@ -1,3 +1,25 @@
+import os
+from fastapi import FastAPI, APIRouter, HTTPException
+from typing import List
+from datetime import datetime
+from motor.motor_asyncio import AsyncIOMotorClient
+# Asegúrate de importar tus modelos, por ejemplo:
+# from models import Product, ProductCreate, ProductUpdate
+
+# 1. Configuración Inicial
+app = FastAPI()
+api_router = APIRouter()
+
+# Configuración de Base de Datos
+MONGO_URL = os.getenv("MONGO_URL")
+client = AsyncIOMotorClient(MONGO_URL)
+db = client.cazaofertas_db  # Asegúrate que el nombre de la DB coincida con tu Atlas
+
+# Contraseña Admin
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "LadyOfertas2025")
+
+# ========== TUS ENDPOINTS ORIGINALES ==========
+
 # Eliminar oferta (admin)
 @api_router.delete("/admin/offers/{offer_id}")
 async def delete_offer(offer_id: str, password: str):
@@ -106,3 +128,6 @@ async def delete_product(product_id: str, password: str):
         raise HTTPException(status_code=404, detail="Producto no encontrado")
     
     return {"success": True, "message": "Producto eliminado"}
+
+# 2. Conectar rutas a la app principal (¡CRUCIAL!)
+app.include_router(api_router)
