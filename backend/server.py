@@ -71,6 +71,22 @@ async def get_offers(type: Optional[str] = None):
     offers = await db.offers.find(query, {"_id": 0}).to_list(100)
     return offers
 
+# Obtener todas las ofertas (admin)
+@api_router.get("/admin/offers")
+async def get_all_offers(password: str):
+    if password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="No autorizado")
+    offers = await db.offers.find({}, {"_id": 0}).to_list(1000)
+    return offers
+
+# Crear nueva oferta (admin)
+@api_router.post("/admin/offers")
+async def create_offer(offer_data: dict, password: str):
+    if password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="No autorizado")
+    await db.offers.insert_one(offer_data)
+    return {"success": True, "message": "Oferta creada"}
+
 # Eliminar oferta (admin)
 @api_router.delete("/admin/offers/{offer_id}")
 async def delete_offer(offer_id: str, password: str):
