@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 import { MessageCircle, Send, Facebook, Sparkles, Tag, Search, X, Plus, Edit2, Trash2, Lock, ChevronLeft, ChevronRight, ExternalLink, Bot } from 'lucide-react';
 import axios from 'axios';
@@ -55,6 +55,19 @@ function App() {
   // Estados del sistema de francotirador / notificaciones del bot
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+
+  // Estados del Chat de Inteligencia Artificial (Integrado de app1)
+  const [showChatWindow, setShowChatWindow] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    { sender: 'bot', text: '¡Hola! Soy tu asistente virtual de LadyOfertasMex. ¿Qué producto o descuento estás buscando hoy?' }
+  ]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages, showChatWindow]);
 
   // Embla Carousel
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
@@ -242,7 +255,7 @@ function App() {
       loadPublicProducts();
       setEditingProduct(null);
     } catch (error) {
-      alert('Error al actualizar producto');
+      alert('Error al actualizar oferta');
     }
   };
 
@@ -263,14 +276,13 @@ function App() {
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
 
-  // Sonido de francotirador vía Web Audio API sintetizado (colores y estilo app1)
+  // Audio sintetizado (efecto francotirador app1)
   const playSniperSound = () => {
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
       const ctx = new AC();
       const now = ctx.currentTime;
-
       const osc1 = ctx.createOscillator();
       const gain1 = ctx.createGain();
       osc1.type = 'square';
@@ -281,25 +293,10 @@ function App() {
       osc1.connect(gain1).connect(ctx.destination);
       osc1.start(now);
       osc1.stop(now + 0.15);
-
-      const osc2 = ctx.createOscillator();
-      const gain2 = ctx.createGain();
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(90, now);
-      osc2.frequency.exponentialRampToValueAtTime(40, now + 0.2);
-      gain2.gain.setValueAtTime(0.4, now);
-      gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
-      osc2.connect(gain2).connect(ctx.destination);
-      osc2.start(now);
-      osc2.stop(now + 0.28);
-
       setTimeout(() => ctx.close().catch(() => {}), 500);
-    } catch (e) {
-      // Silencioso por políticas del navegador
-    }
+    } catch (e) {}
   };
 
-  // Acción del Botón Táctico (Copiar cupón oculto/completo + Audio + PopUp + Delay de 3s a MercadoLibre)
   const handleCopiarIrMercadoLibre = (cupon) => {
     if (cupon.code) {
       navigator.clipboard.writeText(cupon.code);
@@ -316,6 +313,34 @@ function App() {
         window.open('https://www.mercadolibre.com.mx', '_blank');
       }
     }, 3000);
+  };
+
+  const handleSendChatMessage = async (e) => {
+    e.preventDefault();
+    if (!inputMessage.trim()) return;
+
+    const userText = inputMessage;
+    const newHistory = [...chatMessages, { sender: 'user', text: userText }];
+    setChatMessages(newHistory);
+    setInputMessage('');
+    setIsTyping(true);
+
+    try {
+      const response = await axios.post(`${API}/chat`, {
+        message: userText,
+        history: newHistory.slice(-6)
+      });
+      setChatMessages(prev => [...prev, { sender: 'bot', text: response.data.reply }]);
+    } catch (error) {
+      setTimeout(() => {
+        setChatMessages(prev => [
+          ...prev, 
+          { sender: 'bot', text: '¡Excelente pregunta! Revisa nuestro carrusel de productos destacados o escríbenos por WhatsApp para darte una atención inmediata.' }
+        ]);
+      }, 1000);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const benefits = [
@@ -343,9 +368,9 @@ function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 relative">
       
-      {/* POPUP TÁCTICO / TOAST CON COLORES AMARILLO/ESMERALDA DE APP1 */}
+      {/* POPUP TÁCTICO / TOAST CON COLORES AMARILLO/ESMERALDA */}
       <AnimatePresence>
         {showToast && (
           <motion.div 
@@ -369,6 +394,66 @@ function App() {
                 </button>
               </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* VENTANA FLOTANTE DEL CHAT DE IA */}
+      <AnimatePresence>
+        {showChatWindow && (
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 40, scale: 0.9 }}
+            className="fixed right-5 bottom-24 z-50 w-[92%] max-w-sm bg-white rounded-3xl shadow-2xl border-2 border-yellow-300 overflow-hidden flex flex-col h-[480px]"
+          >
+            <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-4 text-black flex items-center justify-between font-bold">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-full bg-black text-yellow-400 flex items-center justify-center">
+                  <Bot className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm leading-tight">Asistente IA LadyOfertas</p>
+                  <span className="text-[10px] text-neutral-800 font-semibold flex items-center gap-1">
+                    <span className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse" /> En línea
+                  </span>
+                </div>
+              </div>
+              <button onClick={() => setShowChatWindow(false)} className="text-black hover:opacity-70 p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50 text-sm">
+              {chatMessages.map((msg, index) => (
+                <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[80%] p-3 rounded-2xl ${msg.sender === 'user' ? 'bg-yellow-400 text-black rounded-br-none font-medium' : 'bg-white text-gray-800 shadow-md rounded-bl-none border border-gray-100'}`}>
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-white p-3 rounded-2xl shadow-sm text-gray-400 italic text-xs animate-pulse">
+                    El asistente está escribiendo...
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            <form onSubmit={handleSendChatMessage} className="p-3 bg-white border-t border-gray-200 flex gap-2">
+              <input
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder="Escribe tu duda u oferta..."
+                className="flex-1 px-4 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:border-yellow-400"
+              />
+              <button type="submit" className="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-xl font-bold flex items-center justify-center transition-all">
+                <Send className="w-4 h-4" />
+              </button>
+            </form>
           </motion.div>
         )}
       </AnimatePresence>
@@ -417,7 +502,7 @@ function App() {
             <div className="relative">
               <div className="overflow-hidden" ref={emblaRef}>
                 <div className="flex gap-6">
-                  {products.map((product, index) => (
+                  {products.map((product) => (
                     <div key={product.id} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
                       <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden h-full">
                         <div className="relative">
@@ -645,7 +730,6 @@ function App() {
                     {cupon.code && (
                       <div className="bg-white border-2 border-dashed border-purple-400 rounded-lg p-3 mb-3">
                         <p className="text-sm text-gray-600 mb-1">Código del cupón:</p>
-                        {/* Oculto parcialmente */}
                         <p className="text-2xl font-bold text-purple-600">
                           {cupon.code.length > 3 ? cupon.code.substring(0, 3) + '********' : '****'}
                         </p>
@@ -874,7 +958,7 @@ function App() {
         </div>
       )}
 
-      {/* CHATBOT FLOATING ACTION BUTTON CON LOS ESTILOS Y COLORES DE APP1 */}
+      {/* CHATBOT FLOATING ACTION BUTTON CON ESTILOS Y COLORES DE APP1 */}
       <motion.button
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -883,8 +967,8 @@ function App() {
         whileTap={{ scale: 0.95 }}
         id="chatbot-fab"
         data-chatbot-slot="customer-service"
-        onClick={() => alert('Chatbot placeholder — conecta tu proveedor de IA aquí (Phase 2).')}
-        className="fixed right-5 bottom-5 z-40 group"
+        onClick={() => setShowChatWindow(!showChatWindow)}
+        className="fixed right-5 bottom-5 z-40 group cursor-pointer"
         aria-label="Abrir chat de atención"
       >
         <span className="absolute inset-0 rounded-full bg-yellow-400/40 blur-xl group-hover:blur-2xl transition" />
