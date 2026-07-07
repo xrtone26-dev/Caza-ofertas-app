@@ -4,8 +4,8 @@ import { MessageCircle, Send, Facebook, Sparkles, Tag, Search, X, Plus, Edit2, T
 import axios from 'axios';
 import useEmblaCarousel from 'embla-carousel-react';
 
-const BACKEND_URL = 'https://jsonplaceholder.typicode.com'; // Esto es solo un test
-const API = `${BACKEND_URL}/api`;
+const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com'; // Pagina Render
+const API = BACKEND_URL;
 
 function App() {
   const logoUrl = 'https://i.postimg.cc/RCXL4ZZ9/logo.png';
