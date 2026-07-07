@@ -37,7 +37,8 @@ function App() {
   const [allProducts, setAllProducts] = useState([]);
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [adminSection, setAdminSection] = useState('offers'); // 'offers' o 'products'
+  const [adminSection, setAdminSection] = useState('offers');
+  // 'offers' o 'products'
   const [newProduct, setNewProduct] = useState({
     title: '',
     description: '',
@@ -49,6 +50,10 @@ function App() {
     image_url: '',
     active: true
   });
+
+  // ========== NUEVOS ESTADOS PARA EL FRANCOTIRADOR ==========
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   // Embla Carousel
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
@@ -201,7 +206,8 @@ function App() {
         ...newProduct,
         original_price: parseFloat(newProduct.original_price),
         discount_price: parseFloat(newProduct.discount_price),
-        discount_percentage: newProduct.discount_percentage ? parseInt(newProduct.discount_percentage) : null
+        discount_percentage: newProduct.discount_percentage ?
+          parseInt(newProduct.discount_percentage) : null
       };
       await axios.post(`${API}/admin/products?password=${adminPassword}`, productData);
       setShowAddProductModal(false);
@@ -256,6 +262,30 @@ function App() {
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
 
+  // ========== NUEVA FUNCIÓN TÁCTICA: COPIAR, SONIDO Y REDIRECCIÓN ==========
+  const handleCopiarIrMercadoLibre = (cupon) => {
+    // 1. Misión furtiva: Copiamos el código completo sin que se den cuenta
+    if (cupon.code) {
+      navigator.clipboard.writeText(cupon.code);
+    }
+    
+    // 2. ¡Fuego! Efecto de sonido del rifle francotirador AWP
+    const sniperSound = new Audio('https://www.myinstants.com/media/sounds/awp_1.mp3');
+    sniperSound.play().catch(err => console.log('El silenciador falló (error de audio bloqueado por navegador):', err));
+    
+    // 3. Granada de humo: Lanzamos el popup
+    setToastMessage('¡Estás cerca de obtener un mejor precio por tus artículos! 🎯');
+    setShowToast(true);
+    
+    // 4. Retraso táctico: 3 segundos antes de la extracción a MercadoLibre
+    setTimeout(() => {
+      setShowToast(false);
+      if (cupon.link) {
+        window.open(cupon.link, '_blank');
+      }
+    }, 3000);
+  };
+
   const benefits = [
     {
       icon: Tag,
@@ -282,6 +312,15 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+      
+      {/* POPUP ANIMADO (TOAST) DE LA MISIÓN */}
+      {showToast && (
+        <div className="fixed top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-8 py-4 rounded-full shadow-2xl z-[100] flex items-center gap-3 animate-bounce border-2 border-green-500 transition-all">
+          <Sparkles className="w-6 h-6 text-yellow-400" />
+          <span className="font-bold text-lg md:text-xl text-center">{toastMessage}</span>
+        </div>
+      )}
+
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 pb-16">
         <div className="absolute inset-0 bg-black opacity-10"></div>
@@ -326,7 +365,7 @@ function App() {
             <div className="relative">
               <div className="overflow-hidden" ref={emblaRef}>
                 <div className="flex gap-6">
-                  {products.map((product, index) => (
+                  {products.map((product) => (
                     <div key={product.id} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
                       <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden h-full">
                         <div className="relative">
@@ -432,57 +471,12 @@ function App() {
       {/* CTA Section */}
       <div className="container mx-auto px-4 mb-16">
         <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-3xl shadow-xl p-12 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4" data-testid="cta-title">
-            ¡Únete a Nossa Comunidade!
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+            ¿Por qué unirte a nuestros canales?
           </h2>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto" data-testid="cta-description">
-            Elige tu plataforma favorita y comienza a recibir las mejores ofertas, cupones de descuento y promociones exclusivas
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            {socialLinks.map((social, index) => {
-              const Icon = social.icon;
-              return (
-                <a
-                  key={index}
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`group relative bg-gradient-to-r ${social.color} ${social.hoverColor} text-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer`}
-                  data-testid={`social-button-${social.name.toLowerCase()}`}
-                >
-                  <div className="flex flex-col items-center">
-                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-4 mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <Icon className="w-10 h-10" />
-                    </div>
-                    <h3 className="text-2xl font-bold mb-2">{social.name}</h3>
-                    <p className="text-white/90 text-sm">Únete al grupo</p>
-                  </div>
-                  
-                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 rounded-2xl transition-colors duration-300"></div>
-                </a>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Features Section */}
-      <div className="container mx-auto px-4 mb-16">
-        <div className="bg-white rounded-3xl shadow-xl p-12">
-          <h2 className="text-3xl font-bold text-center text-gray-800 mb-8" data-testid="features-title">
-            ¿Qué Encontrarás en Nuestros Grupos?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="flex items-start space-x-4" data-testid="feature-item-0">
-              <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center text-white font-bold">✓</div>
-              <div>
-                <h4 className="font-bold text-gray-800 mb-1">Ofertas Diarias</h4>
-                <p className="text-gray-600">Publicaciones constantes con los mejores descuentos del día</p>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8 text-left">
             <div className="flex items-start space-x-4" data-testid="feature-item-1">
-              <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center text-white font-bold">✓</div>
+              <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-500 rounded-lg flex items-center justify-center text-white font-bold">✓</div>
               <div>
                 <h4 className="font-bold text-gray-800 mb-1">Cupones Exclusivos</h4>
                 <p className="text-gray-600">Códigos de descuento que no encontrarás en otro lugar</p>
@@ -510,74 +504,67 @@ function App() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4 text-center">
           <div className="mb-6">
-            <img 
-              src={logoUrl} 
-              alt="LadyOfertasMex" 
-              className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-white/20"
-              data-testid="footer-logo"
-            />
+            <img src={logoUrl} alt="LadyOfertasMex" className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-white/20" data-testid="footer-logo" />
             <h3 className="text-2xl font-bold mb-2">LadyOfertasMex</h3>
             <p className="text-gray-400">Las mejores ofertas y descuentos para ti</p>
           </div>
-          
           <div className="flex justify-center space-x-6 mb-6">
             {socialLinks.map((social, index) => {
               const Icon = social.icon;
               return (
-                <a
-                  key={index}
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors duration-300"
-                  data-testid={`footer-social-${social.name.toLowerCase()}`}
-                >
+                <a key={index} href={social.url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-white/10 hover:bg-white/25 rounded-full flex items-center justify-center transition-all hover:scale-110">
                   <Icon className="w-6 h-6" />
                 </a>
               );
             })}
           </div>
-          
-          <div className="border-t border-gray-800 pt-6">
-            <p className="text-gray-500 text-sm">
-              © 2025 LadyOfertasMex. Sitio de afiliación - Los precios y disponibilidad pueden variar.
-            </p>
-            <button
-              onClick={() => setShowAdminLogin(true)}
-              className="mt-4 text-gray-600 hover:text-gray-400 text-xs"
-              data-testid="admin-button"
-            >
-              <Lock className="w-3 h-3 inline mr-1" />
-              Admin
-            </button>
-          </div>
+          <button onClick={() => setShowAdminLogin(true)} className="text-xs text-gray-500 hover:text-gray-400 flex items-center gap-1 mx-auto mt-4">
+            <Lock className="w-3 h-3" /> Panel Admin
+          </button>
         </div>
       </footer>
 
-      {/* Modal Descuentos */}
+      {showAdminLogin && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">🔐 Acceso Administrador</h2>
+              <button onClick={() => setShowAdminLogin(false)} className="text-gray-500 hover:text-gray-700">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <input 
+              type="password" 
+              value={adminPassword} 
+              onChange={(e) => setAdminPassword(e.target.value)}
+              placeholder="Contraseña de administrador"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg mb-4 focus:outline-none focus:border-purple-500"
+            />
+            <button onClick={handleAdminLogin} className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:shadow-lg">
+              Entrar
+            </button>
+          </div>
+        </div>
+      )}
+
       {showDescuentosModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowDescuentosModal(false)}>
-          <div className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()} data-testid="descuentos-modal">
+          <div className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-3xl font-bold text-gray-800">🏷️ Descuentos Exclusivos</h2>
               <button onClick={() => setShowDescuentosModal(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="w-6 h-6" />
               </button>
             </div>
-            
             {descuentos.length === 0 ? (
-              <p className="text-gray-600 text-center py-8">No hay descuentos disponibles en este momento. ¡Vuelve pronto!</p>
+              <p className="text-gray-600 text-center py-8">No hay descuentos disponibles en este momento.</p>
             ) : (
               <div className="space-y-4">
-                {descuentos.map((desc, index) => (
-                  <div key={desc.id} className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl p-6 border-2 border-pink-200">
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">{desc.title}</h3>
-                    <p className="text-gray-600 mb-3">{desc.description}</p>
-                    {desc.link && (
-                      <a href={desc.link} target="_blank" rel="noopener noreferrer" className="inline-block bg-gradient-to-r from-pink-500 to-rose-500 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all">
-                        Ver Oferta
-                      </a>
-                    )}
+                {descuentos.map((desc) => (
+                  <div key={desc.id} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <h3 className="text-xl font-bold text-gray-800">{desc.title}</h3>
+                    <p className="text-gray-600">{desc.description}</p>
+                    {desc.link && <a href={desc.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver oferta</a>}
                   </div>
                 ))}
               </div>
@@ -586,7 +573,6 @@ function App() {
         </div>
       )}
 
-      {/* Modal Cupones */}
       {showCuponesModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowCuponesModal(false)}>
           <div className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()} data-testid="cupones-modal">
@@ -596,7 +582,6 @@ function App() {
                 <X className="w-6 h-6" />
               </button>
             </div>
-            
             {cupones.length === 0 ? (
               <p className="text-gray-600 text-center py-8">No hay cupones disponibles en este momento. ¡Vuelve pronto!</p>
             ) : (
@@ -608,13 +593,19 @@ function App() {
                     {cupon.code && (
                       <div className="bg-white border-2 border-dashed border-purple-400 rounded-lg p-3 mb-3">
                         <p className="text-sm text-gray-600 mb-1">Código del cupón:</p>
-                        <p className="text-2xl font-bold text-purple-600">{cupon.code}</p>
+                        {/* Camuflaje: Mostramos una parte y ocultamos el resto para forzar el click */}
+                        <p className="text-2xl font-bold text-purple-600">
+                          {cupon.code.length > 3 ? cupon.code.substring(0, 3) + '********' : '****'}
+                        </p>
                       </div>
                     )}
                     {cupon.link && (
-                      <a href={cupon.link} target="_blank" rel="noopener noreferrer" className="inline-block bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all">
-                        Usar Cupón
-                      </a>
+                      <button 
+                        onClick={() => handleCopiarIrMercadoLibre(cupon)}
+                        className="w-full mt-2 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all font-bold"
+                      >
+                        <Tag className="w-5 h-5" /> Copiar e ir a MercadoLibre
+                      </button>
                     )}
                   </div>
                 ))}
@@ -624,75 +615,28 @@ function App() {
         </div>
       )}
 
-      {/* Modal Admin Login */}
-      {showAdminLogin && (
+      {showAdminPanel && isAuthenticated && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full">
+          <div className="bg-white rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">🔐 Acceso Administrador</h2>
-              <button onClick={() => setShowAdminLogin(false)} className="text-gray-500 hover:text-gray-700">
+              <h2 className="text-2xl font-bold text-gray-800">🛠️ Panel de Administración</h2>
+              <button onClick={() => setShowAdminPanel(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="w-6 h-6" />
               </button>
             </div>
-            <input
-              type="password"
-              value={adminPassword}
-              onChange={(e) => setAdminPassword(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleAdminLogin()}
-              placeholder="Contraseña"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg mb-4 focus:outline-none focus:border-purple-500"
-              data-testid="admin-password-input"
-            />
-            <button
-              onClick={handleAdminLogin}
-              className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"
-              data-testid="admin-login-button"
-            >
-              Iniciar Sesión
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Panel Admin */}
-      {showAdminPanel && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-3xl font-bold text-gray-800">Panel de Administración</h2>
-              <button onClick={() => { setShowAdminPanel(false); setIsAuthenticated(false); }} className="text-gray-500 hover:text-gray-700">
-                <X className="w-6 h-6" />
+            <div className="flex gap-4 mb-6">
+              <button onClick={() => setAdminSection('offers')} className={`px-4 py-2 rounded-lg font-bold ${adminSection === 'offers' ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-700'}`}>
+                Ofertas
+              </button>
+              <button onClick={() => setAdminSection('products')} className={`px-4 py-2 rounded-lg font-bold ${adminSection === 'products' ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-700'}`}>
+                Productos
               </button>
             </div>
-
-            {/* Tabs */}
-            <div className="flex gap-4 mb-6 border-b-2 border-gray-200">
-              <button
-                onClick={() => setAdminSection('offers')}
-                className={`px-6 py-3 font-bold transition-all ${adminSection === 'offers' ? 'border-b-4 border-purple-500 text-purple-600' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                📋 Ofertas y Cupones
-              </button>
-              <button
-                onClick={() => setAdminSection('products')}
-                className={`px-6 py-3 font-bold transition-all ${adminSection === 'products' ? 'border-b-4 border-purple-500 text-purple-600' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                🛍️ Productos
-              </button>
-            </div>
-
-            {/* Offers Section */}
             {adminSection === 'offers' && (
               <>
-                <button
-                  onClick={() => setShowAddOfferModal(true)}
-                  className="mb-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all flex items-center gap-2"
-                  data-testid="add-offer-button"
-                >
-                  <Plus className="w-5 h-5" />
-                  Agregar Nueva Oferta
+                <button onClick={() => setShowAddOfferModal(true)} className="mb-6 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all flex items-center gap-2">
+                  <Plus className="w-5 h-5" /> Nueva Oferta
                 </button>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {allOffers.map((offer) => (
                     <div key={offer.id} className={`border-2 rounded-xl p-6 ${offer.active ? 'border-green-300 bg-green-50' : 'border-gray-300 bg-gray-50'}`}>
@@ -701,16 +645,10 @@ function App() {
                           {offer.type === 'descuento' ? '🏷️ Descuento' : '✨ Cupón'}
                         </span>
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => setEditingOffer(offer)}
-                            className="text-blue-600 hover:text-blue-800"
-                          >
+                          <button onClick={() => setEditingOffer(offer)} className="text-blue-600 hover:text-blue-800">
                             <Edit2 className="w-5 h-5" />
                           </button>
-                          <button
-                            onClick={() => handleDeleteOffer(offer.id)}
-                            className="text-red-600 hover:text-red-800"
-                          >
+                          <button onClick={() => handleDeleteOffer(offer.id)} className="text-red-600 hover:text-red-800">
                             <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
@@ -725,55 +663,29 @@ function App() {
                 </div>
               </>
             )}
-
-            {/* Products Section */}
             {adminSection === 'products' && (
               <>
-                <button
-                  onClick={() => setShowAddProductModal(true)}
-                  className="mb-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all flex items-center gap-2"
-                  data-testid="add-product-button"
-                >
-                  <Plus className="w-5 h-5" />
-                  Agregar Nuevo Producto
+                <button onClick={() => setShowAddProductModal(true)} className="mb-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all flex items-center gap-2" data-testid="add-product-button">
+                  <Plus className="w-5 h-5" /> Nuevo Producto
                 </button>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {allProducts.map((product) => (
-                    <div key={product.id} className={`border-2 rounded-xl overflow-hidden ${product.active ? 'border-green-300' : 'border-gray-300'}`}>
-                      <img src={product.image_url} alt={product.title} className="w-full h-48 object-cover" />
-                      <div className="p-6">
-                        <div className="flex justify-between items-start mb-3">
-                          <span className={`px-3 py-1 rounded-full text-sm font-bold ${product.active ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-800'}`}>
-                            {product.active ? '✓ Activo' : '✗ Inactivo'}
-                          </span>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => setEditingProduct(product)}
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              <Edit2 className="w-5 h-5" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteProduct(product.id)}
-                              className="text-red-600 hover:text-red-800"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
-                          </div>
+                  {allProducts.map((prod) => (
+                    <div key={prod.id} className="border-2 rounded-xl p-6 border-gray-300 bg-gray-50">
+                      <div className="flex justify-between items-start mb-3">
+                        <span className="px-3 py-1 rounded-full text-sm font-bold bg-green-200 text-green-800">
+                          📦 Producto
+                        </span>
+                        <div className="flex gap-2">
+                          <button onClick={() => setEditingProduct(prod)} className="text-blue-600 hover:text-blue-800">
+                            <Edit2 className="w-5 h-5" />
+                          </button>
+                          <button onClick={() => handleDeleteProduct(prod.id)} className="text-red-600 hover:text-red-800">
+                            <Trash2 className="w-5 h-5" />
+                          </button>
                         </div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">{product.title}</h3>
-                        <p className="text-gray-600 mb-2 text-sm line-clamp-2">{product.description}</p>
-                        <div className="flex items-baseline gap-2 mb-2">
-                          <span className="text-2xl font-bold text-green-600">${product.discount_price}</span>
-                          <span className="text-lg text-gray-500 line-through">${product.original_price}</span>
-                          {product.discount_percentage && (
-                            <span className="text-sm font-bold text-red-600">-{product.discount_percentage}%</span>
-                          )}
-                        </div>
-                        {product.coupon && <p className="text-sm text-yellow-700">Cupón: <span className="font-bold">{product.coupon}</span></p>}
-                        <p className="text-xs text-blue-600 truncate mt-2">Link: {product.affiliate_link}</p>
                       </div>
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">{prod.title}</h3>
+                      <p className="text-gray-600 mb-2">${prod.discount_price} / ${prod.original_price}</p>
                     </div>
                   ))}
                 </div>
@@ -783,91 +695,62 @@ function App() {
         </div>
       )}
 
-      {/* Modal Agregar/Editar Oferta */}
-      {(showAddOfferModal || editingOffer) && (
+      {showAddOfferModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">
-                {editingOffer ? 'Editar Oferta' : 'Nueva Oferta'}
-              </h2>
-              <button onClick={() => { setShowAddOfferModal(false); setEditingOffer(null); }} className="text-gray-500 hover:text-gray-700">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Agregar Oferta</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-gray-700 font-bold mb-2">Tipo</label>
-                <select
-                  value={editingOffer ? editingOffer.type : newOffer.type}
-                  onChange={(e) => editingOffer 
-                    ? setEditingOffer({...editingOffer, type: e.target.value})
-                    : setNewOffer({...newOffer, type: e.target.value})
-                  }
+                <select 
+                  value={editingOffer ? editingOffer.type : newOffer.type} 
+                  onChange={(e) => editingOffer ? setEditingOffer({...editingOffer, type: e.target.value}) : setNewOffer({...newOffer, type: e.target.value})}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 >
                   <option value="descuento">🏷️ Descuento</option>
                   <option value="cupon">✨ Cupón</option>
                 </select>
               </div>
-
               <div>
                 <label className="block text-gray-700 font-bold mb-2">Título</label>
-                <input
-                  type="text"
-                  value={editingOffer ? editingOffer.title : newOffer.title}
-                  onChange={(e) => editingOffer
-                    ? setEditingOffer({...editingOffer, title: e.target.value})
-                    : setNewOffer({...newOffer, title: e.target.value})
-                  }
+                <input 
+                  type="text" 
+                  value={editingOffer ? editingOffer.title : newOffer.title} 
+                  onChange={(e) => editingOffer ? setEditingOffer({...editingOffer, title: e.target.value}) : setNewOffer({...newOffer, title: e.target.value})}
                   placeholder="Ej: 50% de descuento en laptops"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
-
               <div>
                 <label className="block text-gray-700 font-bold mb-2">Descripción</label>
-                <textarea
-                  value={editingOffer ? editingOffer.description : newOffer.description}
-                  onChange={(e) => editingOffer
-                    ? setEditingOffer({...editingOffer, description: e.target.value})
-                    : setNewOffer({...newOffer, description: e.target.value})
-                  }
+                <textarea 
+                  value={editingOffer ? editingOffer.description : newOffer.description} 
+                  onChange={(e) => editingOffer ? setEditingOffer({...editingOffer, description: e.target.value}) : setNewOffer({...newOffer, description: e.target.value})}
                   placeholder="Descripción detallada de la oferta"
                   rows="3"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
-
               <div>
                 <label className="block text-gray-700 font-bold mb-2">Código (opcional)</label>
-                <input
-                  type="text"
-                  value={editingOffer ? editingOffer.code : newOffer.code}
-                  onChange={(e) => editingOffer
-                    ? setEditingOffer({...editingOffer, code: e.target.value})
-                    : setNewOffer({...newOffer, code: e.target.value})
-                  }
+                <input 
+                  type="text" 
+                  value={editingOffer ? editingOffer.code : newOffer.code} 
+                  onChange={(e) => editingOffer ? setEditingOffer({...editingOffer, code: e.target.value}) : setNewOffer({...newOffer, code: e.target.value})}
                   placeholder="Ej: DESCUENTO50"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
-
               <div>
-                <label className="block text-gray-700 font-bold mb-2">Link (opcional)</label>
-                <input
-                  type="url"
-                  value={editingOffer ? editingOffer.link : newOffer.link}
-                  onChange={(e) => editingOffer
-                    ? setEditingOffer({...editingOffer, link: e.target.value})
-                    : setNewOffer({...newOffer, link: e.target.value})
-                  }
+                <label className="block text-gray-700 font-bold mb-2">Enlace de la oferta</label>
+                <input 
+                  type="text" 
+                  value={editingOffer ? editingOffer.link : newOffer.link} 
+                  onChange={(e) => editingOffer ? setEditingOffer({...editingOffer, link: e.target.value}) : setNewOffer({...newOffer, link: e.target.value})}
                   placeholder="https://..."
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
-
               <div className="flex items-center">
                 <input
                   type="checkbox"
@@ -878,151 +761,80 @@ function App() {
                   }
                   className="w-5 h-5 mr-3"
                 />
-                <label className="text-gray-700 font-bold">Activo (visible para usuarios)</label>
+                <label className="text-gray-700 font-bold">Activo</label>
               </div>
-
-              <button
-                onClick={() => {
-                  if (editingOffer) {
-                    handleUpdateOffer(editingOffer.id, editingOffer);
-                  } else {
-                    handleCreateOffer();
-                  }
-                }}
-                className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"
-              >
-                {editingOffer ? 'Actualizar Oferta' : 'Crear Oferta'}
-              </button>
+              <div className="flex gap-4">
+                <button onClick={() => setShowAddOfferModal(false)} className="w-1/2 bg-gray-300 text-gray-800 py-3 rounded-lg font-bold hover:bg-gray-400">Cancelar</button>
+                <button
+                  onClick={() => {
+                    if (editingOffer) {
+                      handleUpdateOffer(editingOffer.id, editingOffer);
+                    } else {
+                      handleCreateOffer();
+                    }
+                  }}
+                  className="w-1/2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"
+                >
+                  {editingOffer ? 'Actualizar Oferta' : 'Crear Oferta'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal Agregar/Editar Producto */}
-      {(showAddProductModal || editingProduct) && (
+      {showAddProductModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">
-                {editingProduct ? 'Editar Producto' : 'Nuevo Producto'}
-              </h2>
-              <button onClick={() => { setShowAddProductModal(false); setEditingProduct(null); }} className="text-gray-500 hover:text-gray-700">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Agregar Producto</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-gray-700 font-bold mb-2">Título del Producto</label>
-                <input
-                  type="text"
-                  value={editingProduct ? editingProduct.title : newProduct.title}
-                  onChange={(e) => editingProduct
-                    ? setEditingProduct({...editingProduct, title: e.target.value})
-                    : setNewProduct({...newProduct, title: e.target.value})
-                  }
-                  placeholder="Ej: Laptop HP 15.6 pulgadas"
+                <input 
+                  type="text" 
+                  value={editingProduct ? editingProduct.title : newProduct.title} 
+                  onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, title: e.target.value}) : setNewProduct({...newProduct, title: e.target.value})}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
-
               <div>
                 <label className="block text-gray-700 font-bold mb-2">Descripción</label>
-                <textarea
-                  value={editingProduct ? editingProduct.description : newProduct.description}
-                  onChange={(e) => editingProduct
-                    ? setEditingProduct({...editingProduct, description: e.target.value})
-                    : setNewProduct({...newProduct, description: e.target.value})
-                  }
+                <textarea 
+                  value={editingProduct ? editingProduct.description : newProduct.description} 
+                  onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, description: e.target.value}) : setNewProduct({...newProduct, description: e.target.value})}
                   placeholder="Descripción del producto, características, etc."
                   rows="3"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-gray-700 font-bold mb-2">Precio Original ($)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={editingProduct ? editingProduct.original_price : newProduct.original_price}
-                    onChange={(e) => editingProduct
-                      ? setEditingProduct({...editingProduct, original_price: e.target.value})
-                      : setNewProduct({...newProduct, original_price: e.target.value})
-                    }
-                    placeholder="999.99"
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    value={editingProduct ? editingProduct.original_price : newProduct.original_price} 
+                    onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, original_price: e.target.value}) : setNewProduct({...newProduct, original_price: e.target.value})}
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                   />
                 </div>
-
                 <div>
                   <label className="block text-gray-700 font-bold mb-2">Precio con Descuento ($)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={editingProduct ? editingProduct.discount_price : newProduct.discount_price}
-                    onChange={(e) => editingProduct
-                      ? setEditingProduct({...editingProduct, discount_price: e.target.value})
-                      : setNewProduct({...newProduct, discount_price: e.target.value})
-                    }
-                    placeholder="499.99"
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    value={editingProduct ? editingProduct.discount_price : newProduct.discount_price} 
+                    onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, discount_price: e.target.value}) : setNewProduct({...newProduct, discount_price: e.target.value})}
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                   />
                 </div>
               </div>
-
               <div>
-                <label className="block text-gray-700 font-bold mb-2">% Descuento (opcional, se calcula auto)</label>
-                <input
-                  type="number"
-                  value={editingProduct ? editingProduct.discount_percentage : newProduct.discount_percentage}
-                  onChange={(e) => editingProduct
-                    ? setEditingProduct({...editingProduct, discount_percentage: e.target.value})
-                    : setNewProduct({...newProduct, discount_percentage: e.target.value})
-                  }
-                  placeholder="50"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 font-bold mb-2">Cupón (opcional)</label>
-                <input
-                  type="text"
-                  value={editingProduct ? editingProduct.coupon : newProduct.coupon}
-                  onChange={(e) => editingProduct
-                    ? setEditingProduct({...editingProduct, coupon: e.target.value})
-                    : setNewProduct({...newProduct, coupon: e.target.value})
-                  }
-                  placeholder="AHORRA50"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 font-bold mb-2">Enlace de Afiliado</label>
-                <input
-                  type="url"
-                  value={editingProduct ? editingProduct.affiliate_link : newProduct.affiliate_link}
-                  onChange={(e) => editingProduct
-                    ? setEditingProduct({...editingProduct, affiliate_link: e.target.value})
-                    : setNewProduct({...newProduct, affiliate_link: e.target.value})
-                  }
-                  placeholder="https://amazon.com/..."
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 font-bold mb-2">URL de Imagen</label>
-                <input
-                  type="url"
-                  value={editingProduct ? editingProduct.image_url : newProduct.image_url}
-                  onChange={(e) => editingProduct
-                    ? setEditingProduct({...editingProduct, image_url: e.target.value})
-                    : setNewProduct({...newProduct, image_url: e.target.value})
-                  }
+                <label className="block text-gray-700 font-bold mb-2">Link Afiliado</label>
+                <input 
+                  type="text" 
+                  value={editingProduct ? editingProduct.affiliate_link : newProduct.affiliate_link} 
+                  onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, affiliate_link: e.target.value}) : setNewProduct({...newProduct, affiliate_link: e.target.value})}
                   placeholder="https://..."
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
