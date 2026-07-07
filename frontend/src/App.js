@@ -331,14 +331,14 @@ function App() {
             <div className="mb-6 transform hover:scale-105 transition-transform duration-300">
               <img 
                 src={logoUrl} 
-                alt="LadyOfertasMex Logo" 
+                alt="CazaOfertasML" 
                 className="w-48 h-48 md:w-56 md:h-56 rounded-full shadow-2xl ring-8 ring-white/50"
                 data-testid="logo-image"
               />
             </div>
             
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg" data-testid="main-title">
-              LadyOfertasMex
+              CazaOfertasML
             </h1>
             
             <p className="text-xl md:text-2xl text-white/90 mb-6 max-w-2xl" data-testid="hero-subtitle">
@@ -504,8 +504,8 @@ function App() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4 text-center">
           <div className="mb-6">
-            <img src={logoUrl} alt="LadyOfertasMex" className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-white/20" data-testid="footer-logo" />
-            <h3 className="text-2xl font-bold mb-2">LadyOfertasMex</h3>
+            <img src={logoUrl} alt="CazaOfertasML" className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-white/20" data-testid="footer-logo" />
+            <h3 className="text-2xl font-bold mb-2">CazaOfertasML</h3>
             <p className="text-gray-400">Las mejores ofertas y descuentos para ti</p>
           </div>
           <div className="flex justify-center space-x-6 mb-6">
@@ -871,6 +871,27 @@ function App() {
       )}
     </div>
   );
+
+      {/* CHATBOT FLOATING ACTION BUTTON (placeholder — ready for AI injection) */}
+      <motion.button
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1.2, type: 'spring' }}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.95 }}
+        id="chatbot-fab"
+        data-chatbot-slot="customer-service"
+        onClick={() => alert('Chatbot placeholder — conecta tu proveedor de IA aquí (Phase 2).')}
+        className="fixed right-5 bottom-5 z-40 group"
+        aria-label="Abrir chat de atención"
+      >
+        <span className="absolute inset-0 rounded-full bg-yellow-400/40 blur-xl group-hover:blur-2xl transition" />
+        <span className="relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 text-black shadow-2xl shadow-yellow-400/50 border-2 border-yellow-300">
+          <Bot className="w-6 h-6" strokeWidth={2.5} />
+          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-neutral-950" />
+        </span>
+      </motion.button>
+  
 }
 
 export default App;
