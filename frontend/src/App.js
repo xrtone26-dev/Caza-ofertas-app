@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
-import { MessageCircle, Send, Facebook, Sparkles, Tag, Search, X, Plus, Edit2, Trash2, Lock, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { MessageCircle, Send, Facebook, Sparkles, Tag, Search, X, Plus, Edit2, Trash2, Lock, ChevronLeft, ChevronRight, ExternalLink, Bot } from 'lucide-react';
 import axios from 'axios';
 import useEmblaCarousel from 'embla-carousel-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com'; // Pagina Render
 const API = BACKEND_URL;
@@ -51,7 +52,7 @@ function App() {
     active: true
   });
 
-  // ========== NUEVOS ESTADOS PARA EL FRANCOTIRADOR ==========
+  // Estados del sistema de francotirador / notificaciones del bot
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -262,26 +263,57 @@ function App() {
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
 
-  // ========== NUEVA FUNCIÓN TÁCTICA: COPIAR, SONIDO Y REDIRECCIÓN ==========
+  // Sonido de francotirador vía Web Audio API sintetizado (colores y estilo app1)
+  const playSniperSound = () => {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const ctx = new AC();
+      const now = ctx.currentTime;
+
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'square';
+      osc1.frequency.setValueAtTime(1800, now);
+      osc1.frequency.exponentialRampToValueAtTime(120, now + 0.08);
+      gain1.gain.setValueAtTime(0.35, now);
+      gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+      osc1.connect(gain1).connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.15);
+
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(90, now);
+      osc2.frequency.exponentialRampToValueAtTime(40, now + 0.2);
+      gain2.gain.setValueAtTime(0.4, now);
+      gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+      osc2.connect(gain2).connect(ctx.destination);
+      osc2.start(now);
+      osc2.stop(now + 0.28);
+
+      setTimeout(() => ctx.close().catch(() => {}), 500);
+    } catch (e) {
+      // Silencioso por políticas del navegador
+    }
+  };
+
+  // Acción del Botón Táctico (Copiar cupón oculto/completo + Audio + PopUp + Delay de 3s a MercadoLibre)
   const handleCopiarIrMercadoLibre = (cupon) => {
-    // 1. Misión furtiva: Copiamos el código completo sin que se den cuenta
     if (cupon.code) {
       navigator.clipboard.writeText(cupon.code);
     }
-    
-    // 2. ¡Fuego! Efecto de sonido del rifle francotirador AWP
-    const sniperSound = new Audio('https://www.myinstants.com/media/sounds/awp_1.mp3');
-    sniperSound.play().catch(err => console.log('El silenciador falló (error de audio bloqueado por navegador):', err));
-    
-    // 3. Granada de humo: Lanzamos el popup
-    setToastMessage('¡Estás cerca de obtener un mejor precio por tus artículos! 🎯');
+    playSniperSound();
+    setToastMessage('¡Estás cerca de obtener un mejor precio por tus artículos!');
     setShowToast(true);
-    
-    // 4. Retraso táctico: 3 segundos antes de la extracción a MercadoLibre
+
     setTimeout(() => {
       setShowToast(false);
       if (cupon.link) {
         window.open(cupon.link, '_blank');
+      } else {
+        window.open('https://www.mercadolibre.com.mx', '_blank');
       }
     }, 3000);
   };
@@ -297,7 +329,7 @@ function App() {
     {
       icon: Sparkles,
       title: 'Cupones Especiales',
-      description: 'Recibe cupones de descuento directo en tu WhatsApp, Telegram o Facebook',
+      description: 'Recibe cupones de descuento directo en tu WhatsApp, Telegram or Facebook',
       gradient: 'from-purple-500 to-indigo-500',
       onClick: () => setShowCuponesModal(true)
     },
@@ -313,13 +345,33 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       
-      {/* POPUP ANIMADO (TOAST) DE LA MISIÓN */}
-      {showToast && (
-        <div className="fixed top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-8 py-4 rounded-full shadow-2xl z-[100] flex items-center gap-3 animate-bounce border-2 border-green-500 transition-all">
-          <Sparkles className="w-6 h-6 text-yellow-400" />
-          <span className="font-bold text-lg md:text-xl text-center">{toastMessage}</span>
-        </div>
-      )}
+      {/* POPUP TÁCTICO / TOAST CON COLORES AMARILLO/ESMERALDA DE APP1 */}
+      <AnimatePresence>
+        {showToast && (
+          <motion.div 
+            initial={{ opacity: 0, y: -80, scale: 0.85 }} 
+            animate={{ opacity: 1, y: 0, scale: 1 }} 
+            exit={{ opacity: 0, y: -60, scale: 0.9 }} 
+            transition={{ type: 'spring', damping: 18, stiffness: 260 }} 
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-md"
+          >
+            <div className="relative overflow-hidden rounded-2xl border border-yellow-400 bg-neutral-900/95 p-4 text-white shadow-2xl backdrop-blur-md">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-500 text-black shadow-lg">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-yellow-400">¡Alerta de Oferta!</p>
+                  <p className="text-sm text-gray-200">{toastMessage}</p>
+                </div>
+                <button onClick={() => setShowToast(false)} className="text-gray-400 hover:text-white">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 pb-16">
@@ -331,14 +383,14 @@ function App() {
             <div className="mb-6 transform hover:scale-105 transition-transform duration-300">
               <img 
                 src={logoUrl} 
-                alt="CazaOfertasML" 
+                alt="LadyOfertasMex Logo" 
                 className="w-48 h-48 md:w-56 md:h-56 rounded-full shadow-2xl ring-8 ring-white/50"
                 data-testid="logo-image"
               />
             </div>
             
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg" data-testid="main-title">
-              CazaOfertasML
+              LadyOfertasMex
             </h1>
             
             <p className="text-xl md:text-2xl text-white/90 mb-6 max-w-2xl" data-testid="hero-subtitle">
@@ -365,7 +417,7 @@ function App() {
             <div className="relative">
               <div className="overflow-hidden" ref={emblaRef}>
                 <div className="flex gap-6">
-                  {products.map((product) => (
+                  {products.map((product, index) => (
                     <div key={product.id} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
                       <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden h-full">
                         <div className="relative">
@@ -504,8 +556,8 @@ function App() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4 text-center">
           <div className="mb-6">
-            <img src={logoUrl} alt="CazaOfertasML" className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-white/20" data-testid="footer-logo" />
-            <h3 className="text-2xl font-bold mb-2">CazaOfertasML</h3>
+            <img src={logoUrl} alt="LadyOfertasMex" className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-white/20" data-testid="footer-logo" />
+            <h3 className="text-2xl font-bold mb-2">LadyOfertasMex</h3>
             <p className="text-gray-400">Las mejores ofertas y descuentos para ti</p>
           </div>
           <div className="flex justify-center space-x-6 mb-6">
@@ -593,7 +645,7 @@ function App() {
                     {cupon.code && (
                       <div className="bg-white border-2 border-dashed border-purple-400 rounded-lg p-3 mb-3">
                         <p className="text-sm text-gray-600 mb-1">Código del cupón:</p>
-                        {/* Camuflaje: Mostramos una parte y ocultamos el resto para forzar el click */}
+                        {/* Oculto parcialmente */}
                         <p className="text-2xl font-bold text-purple-600">
                           {cupon.code.length > 3 ? cupon.code.substring(0, 3) + '********' : '****'}
                         </p>
@@ -741,43 +793,7 @@ function App() {
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
-              <div>
-                <label className="block text-gray-700 font-bold mb-2">Enlace de la oferta</label>
-                <input 
-                  type="text" 
-                  value={editingOffer ? editingOffer.link : newOffer.link} 
-                  onChange={(e) => editingOffer ? setEditingOffer({...editingOffer, link: e.target.value}) : setNewOffer({...newOffer, link: e.target.value})}
-                  placeholder="https://..."
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
-                />
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={editingOffer ? editingOffer.active : newOffer.active}
-                  onChange={(e) => editingOffer
-                    ? setEditingOffer({...editingOffer, active: e.target.checked})
-                    : setNewOffer({...newOffer, active: e.target.checked})
-                  }
-                  className="w-5 h-5 mr-3"
-                />
-                <label className="text-gray-700 font-bold">Activo</label>
-              </div>
-              <div className="flex gap-4">
-                <button onClick={() => setShowAddOfferModal(false)} className="w-1/2 bg-gray-300 text-gray-800 py-3 rounded-lg font-bold hover:bg-gray-400">Cancelar</button>
-                <button
-                  onClick={() => {
-                    if (editingOffer) {
-                      handleUpdateOffer(editingOffer.id, editingOffer);
-                    } else {
-                      handleCreateOffer();
-                    }
-                  }}
-                  className="w-1/2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"
-                >
-                  {editingOffer ? 'Actualizar Oferta' : 'Crear Oferta'}
-                </button>
-              </div>
+              <button onClick={() => setShowAddOfferModal(false)} className="w-full bg-gray-300 text-gray-800 py-3 rounded-lg font-bold">Cancelar</button>
             </div>
           </div>
         </div>
@@ -829,17 +845,6 @@ function App() {
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-gray-700 font-bold mb-2">Link Afiliado</label>
-                <input 
-                  type="text" 
-                  value={editingProduct ? editingProduct.affiliate_link : newProduct.affiliate_link} 
-                  onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, affiliate_link: e.target.value}) : setNewProduct({...newProduct, affiliate_link: e.target.value})}
-                  placeholder="https://..."
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
-                />
-              </div>
-
               <div className="flex items-center">
                 <input
                   type="checkbox"
@@ -852,7 +857,6 @@ function App() {
                 />
                 <label className="text-gray-700 font-bold">Activo (visible en carrusel)</label>
               </div>
-
               <button
                 onClick={() => {
                   if (editingProduct) {
@@ -869,10 +873,8 @@ function App() {
           </div>
         </div>
       )}
-    </div>
-  );
 
-      {/* CHATBOT FLOATING ACTION BUTTON (placeholder — ready for AI injection) */}
+      {/* CHATBOT FLOATING ACTION BUTTON CON LOS ESTILOS Y COLORES DE APP1 */}
       <motion.button
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -891,7 +893,8 @@ function App() {
           <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-neutral-950" />
         </span>
       </motion.button>
-  
+    </div>
+  );
 }
 
 export default App;
