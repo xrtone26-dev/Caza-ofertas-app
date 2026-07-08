@@ -57,7 +57,6 @@ function App() {
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [adminSection, setAdminSection] = useState('offers');
-  // 'offers' o 'products'
   const [newProduct, setNewProduct] = useState({
     title: '',
     description: '',
@@ -70,11 +69,9 @@ function App() {
     active: true,
   });
 
-  // Estados del sistema de francotirador / notificaciones del bot
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  // Estados del Chat de Inteligencia Artificial (Integrado de app1)
   const [showChatWindow, setShowChatWindow] = useState(false);
   const [chatMessages, setChatMessages] = useState([
     {
@@ -90,7 +87,6 @@ function App() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, showChatWindow]);
 
-  // Embla Carousel
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
 
   const scrollPrev = useCallback(() => {
@@ -122,23 +118,37 @@ function App() {
     },
   ];
 
-  // Helper directo y infalible para extraer IDs de cupones, ofertas o productos
+  // Helper RADICALMENTE MEJORADO para encontrar el ID
   const getSafeId = (item) => {
     if (!item) return null;
     if (typeof item === 'string' || typeof item === 'number') return String(item);
-    if (item.id !== undefined && item.id !== null) return String(item.id);
-    if (item._id !== undefined && item._id !== null) {
-      if (typeof item._id === 'string') return item._id;
-      if (item._id.$oid) return item._id.$oid;
-      if (typeof item._id.toString === 'function') {
-        const res = item._id.toString();
-        if (res !== '[object Object]') return res;
+    
+    // Lista de posibles nombres que el backend podría estar usando
+    const keysToTry = ['id', '_id', 'offer_id', 'product_id', 'Id', 'ID', 'uuid', 'key'];
+    
+    for (let key of keysToTry) {
+      if (item[key] !== undefined && item[key] !== null) {
+        const val = item[key];
+        if (typeof val === 'string' || typeof val === 'number') return String(val);
+        if (typeof val === 'object' && val.$oid) return String(val.$oid);
+        if (typeof val === 'object' && typeof val.toString === 'function') {
+          const res = val.toString();
+          if (res !== '[object Object]') return res;
+        }
       }
     }
+    
+    // Fallback extremo: buscar cualquier llave que contenga "id" (sin importar mayúsculas)
+    const anyIdKey = Object.keys(item).find(k => k.toLowerCase().includes('id'));
+    if (anyIdKey && item[anyIdKey] !== undefined && item[anyIdKey] !== null) {
+      const val = item[anyIdKey];
+      if (typeof val === 'string' || typeof val === 'number') return String(val);
+      if (typeof val === 'object' && val.$oid) return String(val.$oid);
+    }
+    
     return null;
   };
 
-  // Cargar ofertas y productos públicos
   useEffect(() => {
     loadPublicOffers();
     loadPublicProducts();
@@ -235,13 +245,13 @@ function App() {
     try {
       const offerId = getSafeId(offerOrId);
       if (!offerId) {
-        alert('Error: ID de oferta no válido');
+        // Alerta mejorada que muestra el objeto por si falla, así sabemos por qué
+        alert(`Error: ID de oferta no válido. Objeto recibido: ${JSON.stringify(offerOrId)}`);
         return;
       }
-      const { id, _id, ...cleanUpdates } = updates || offerOrId;
       await axios.patch(
         `${API}/admin/offers/${offerId}?password=${adminPassword}`,
-        cleanUpdates
+        updates
       );
       loadAllOffers();
       loadPublicOffers();
@@ -255,7 +265,7 @@ function App() {
   const handleDeleteOffer = async (offerOrId) => {
     const offerId = getSafeId(offerOrId);
     if (!offerId) {
-      alert('Error: No se pudo identificar el ID de la oferta');
+      alert(`Error: No se pudo identificar el ID para eliminar. Objeto recibido: ${JSON.stringify(offerOrId)}`);
       return;
     }
     if (window.confirm('¿Estás seguro de eliminar esta oferta?')) {
@@ -271,7 +281,6 @@ function App() {
     }
   };
 
-  // Funciones para productos
   const handleCreateProduct = async () => {
     try {
       const productData = {
@@ -311,10 +320,10 @@ function App() {
     try {
       const productId = getSafeId(productOrId);
       if (!productId) {
-        alert('Error: ID de producto no válido');
+        alert(`Error: ID de producto no válido. Objeto recibido: ${JSON.stringify(productOrId)}`);
         return;
       }
-      const updateData = { ...(updates || productOrId) };
+      const updateData = { ...updates };
       if (updateData.original_price !== '' && updateData.original_price != null)
         updateData.original_price = parseFloat(updateData.original_price);
       if (updateData.discount_price !== '' && updateData.discount_price != null)
@@ -322,11 +331,9 @@ function App() {
       if (updateData.discount_percentage !== '' && updateData.discount_percentage != null)
         updateData.discount_percentage = parseInt(updateData.discount_percentage);
 
-      const { id, _id, created_at, ...cleanProductUpdates } = updateData;
-
       await axios.patch(
         `${API}/admin/products/${productId}?password=${adminPassword}`,
-        cleanProductUpdates
+        updateData
       );
       loadAllProducts();
       loadPublicProducts();
@@ -340,7 +347,7 @@ function App() {
   const handleDeleteProduct = async (productOrId) => {
     const productId = getSafeId(productOrId);
     if (!productId) {
-      alert('Error: No se pudo identificar el ID del producto');
+      alert(`Error: No se pudo identificar el ID para eliminar. Objeto recibido: ${JSON.stringify(productOrId)}`);
       return;
     }
     if (window.confirm('¿Estás seguro de eliminar este producto?')) {
@@ -363,7 +370,6 @@ function App() {
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
 
-  // Audio sintetizado (efecto francotirador app1)
   const playSniperSound = () => {
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
@@ -440,7 +446,6 @@ function App() {
     }
   };
 
-  // Esto permite que los botones de sugerencia rápida ejecuten el envío directo
   useEffect(() => {
     if (
       inputMessage &&
@@ -1125,6 +1130,7 @@ function App() {
                           {offer.type === 'descuento' ? '🏷️ Desc' : '✨ Cupón'}
                         </span>
                         <div className="flex gap-2">
+                          {/* Aquí quitamos el getSafeId en el onClick y pasamos el objeto puro para que la función lo procese correctamente */}
                           <button
                             onClick={() => {
                               setEditingOffer(offer);
@@ -1135,7 +1141,7 @@ function App() {
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDeleteOffer(getSafeId(offer))}
+                            onClick={() => handleDeleteOffer(offer)}
                             className="text-neutral-400 hover:text-red-500 bg-neutral-800 p-1.5 rounded-lg transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -1194,7 +1200,7 @@ function App() {
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDeleteProduct(getSafeId(prod))}
+                            onClick={() => handleDeleteProduct(prod)}
                             className="text-neutral-400 hover:text-red-500 bg-neutral-800 p-1.5 rounded-lg transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -1337,8 +1343,11 @@ function App() {
                 <button
                   onClick={() => {
                     if (editingOffer) {
-                      const { id, _id, ...cleanUpdates } = editingOffer;
-                      handleUpdateOffer(getSafeId(editingOffer), cleanUpdates);
+                      // Limpiamos exhaustivamente las variables de identificador para que no colisionen al hacer PATCH
+                      const cleanUpdates = { ...editingOffer };
+                      const idKeys = ['id', '_id', 'offer_id', 'product_id', 'Id', 'ID', 'uuid'];
+                      idKeys.forEach(k => delete cleanUpdates[k]);
+                      handleUpdateOffer(editingOffer, cleanUpdates);
                     } else {
                       handleCreateOffer();
                     }
@@ -1503,8 +1512,10 @@ function App() {
               <button
                 onClick={() => {
                   if (editingProduct) {
-                    const { id, _id, created_at, ...cleanProductUpdates } = editingProduct;
-                    handleUpdateProduct(getSafeId(editingProduct), cleanProductUpdates);
+                    const cleanUpdates = { ...editingProduct };
+                    const idKeys = ['id', '_id', 'product_id', 'offer_id', 'Id', 'ID', 'uuid', 'created_at'];
+                    idKeys.forEach(k => delete cleanUpdates[k]);
+                    handleUpdateProduct(editingProduct, cleanUpdates);
                   } else {
                     handleCreateProduct();
                   }
