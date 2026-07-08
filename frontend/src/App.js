@@ -22,6 +22,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
+// Pagina Render
 const API = BACKEND_URL;
 
 function App() {
@@ -291,7 +292,7 @@ function App() {
         updateData.discount_percentage = parseInt(
           updateData.discount_percentage
         );
-      
+
       await axios.patch(
         `${API}/admin/products/${productId}?password=${adminPassword}`,
         updateData
@@ -351,7 +352,9 @@ function App() {
       navigator.clipboard.writeText(cupon.code);
     }
     playSniperSound();
-    setToastMessage('¡Estás cerca de obtener un mejor precio por tus artículos!');
+    setToastMessage(
+      '¡Estás cerca de obtener un mejor precio por tus artículos!'
+    );
     setShowToast(true);
 
     setTimeout(() => {
@@ -402,7 +405,13 @@ function App() {
 
   // Esto permite que los botones de sugerencia rápida ejecuten el envío directo
   useEffect(() => {
-    if (inputMessage && isTyping === false && inputMessage.match(/¿Cuál es el número de WhatsApp\?|Quiero ver cupones|Busco una oferta de pantalla/)) {
+    if (
+      inputMessage &&
+      isTyping === false &&
+      inputMessage.match(
+        /¿Cuál es el número de WhatsApp\?|Quiero ver cupones|Busco una oferta de pantalla/
+      )
+    ) {
       handleSendChatMessage({});
     }
   }, [inputMessage]);
@@ -452,7 +461,9 @@ function App() {
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-bold text-yellow-400">¡Alerta de Oferta!</p>
+                  <p className="font-bold text-yellow-400">
+                    ¡Alerta de Oferta!
+                  </p>
                   <p className="text-sm text-gray-200">{toastMessage}</p>
                 </div>
                 <button
@@ -530,21 +541,25 @@ function App() {
 
             {/* SUGERENCIAS RÁPIDAS / OPCIONES DE PREGUNTAS */}
             <div className="px-3 py-2 bg-yellow-50 border-b border-gray-200 flex flex-wrap gap-1.5 text-xs">
-              <span className="text-gray-500 font-semibold w-full mb-0.5">Preguntas frecuentes:</span>
-              <button 
-                onClick={() => setInputMessage('¿Cuál es el número de WhatsApp?')} 
+              <span className="text-gray-500 font-semibold w-full mb-0.5">
+                Preguntas frecuentes:
+              </span>
+              <button
+                onClick={() =>
+                  setInputMessage('¿Cuál es el número de WhatsApp?')
+                }
                 className="bg-white hover:bg-yellow-200 text-gray-800 px-2.5 py-1 rounded-full border border-yellow-300 transition-all font-medium"
               >
                 💬 ¿Número de WhatsApp?
               </button>
-              <button 
-                onClick={() => setInputMessage('Quiero ver cupones')} 
+              <button
+                onClick={() => setInputMessage('Quiero ver cupones')}
                 className="bg-white hover:bg-yellow-200 text-gray-800 px-2.5 py-1 rounded-full border border-yellow-300 transition-all font-medium"
               >
                 ✨ Ver cupones
               </button>
-              <button 
-                onClick={() => setInputMessage('Busco una oferta de pantalla')} 
+              <button
+                onClick={() => setInputMessage('Busco una oferta de pantalla')}
                 className="bg-white hover:bg-yellow-200 text-gray-800 px-2.5 py-1 rounded-full border border-yellow-300 transition-all font-medium"
               >
                 🔥 Buscar ofertas
@@ -1066,7 +1081,10 @@ function App() {
                         </span>
                         <div className="flex gap-2">
                           <button
-                            onClick={() => setEditingOffer(offer)}
+                            onClick={() => {
+                              setEditingOffer(offer);
+                              setShowAddOfferModal(true);
+                            }}
                             className="text-blue-600 hover:text-blue-800"
                           >
                             <Edit2 className="w-5 h-5" />
@@ -1087,7 +1105,8 @@ function App() {
                       <p className="text-gray-600 mb-2">{offer.description}</p>
                       {offer.code && (
                         <p className="text-sm text-gray-500">
-                          Código: <span className="font-bold">{offer.code}</span>
+                          Código:{' '}
+                          <span className="font-bold">{offer.code}</span>
                         </p>
                       )}
                       {offer.link && (
