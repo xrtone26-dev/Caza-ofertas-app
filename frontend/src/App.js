@@ -22,7 +22,6 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
-// Pagina Render
 const API = BACKEND_URL;
 
 function App() {
@@ -484,7 +483,7 @@ function App() {
                 </div>
                 <div>
                   <p className="text-sm leading-tight">
-                    Asistente IA LadyOfertas
+                    Asistente IA CazaOfertasML
                   </p>
                   <span className="text-[10px] text-neutral-800 font-semibold flex items-center gap-1">
                     <span className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse" />{' '}
@@ -594,7 +593,7 @@ function App() {
               className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg"
               data-testid="main-title"
             >
-              LadyOfertasMex
+              CazaOfertasML
             </h1>
 
             <p
@@ -817,11 +816,11 @@ function App() {
           <div className="mb-6">
             <img
               src={logoUrl}
-              alt="LadyOfertasMex"
+              alt="CazaOfertasML"
               className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-white/20"
               data-testid="footer-logo"
             />
-            <h3 className="text-2xl font-bold mb-2">LadyOfertasMex</h3>
+            <h3 className="text-2xl font-bold mb-2">CazaOfertasML</h3>
             <p className="text-gray-400">
               Las mejores ofertas y descuentos para ti
             </p>
@@ -1073,7 +1072,9 @@ function App() {
                             <Edit2 className="w-5 h-5" />
                           </button>
                           <button
-                            onClick={() => handleDeleteOffer(offer.id || offer._id)}
+                            onClick={() =>
+                              handleDeleteOffer(offer.id || offer._id)
+                            }
                             className="text-red-600 hover:text-red-800"
                           >
                             <Trash2 className="w-5 h-5" />
@@ -1123,7 +1124,10 @@ function App() {
                         </span>
                         <div className="flex gap-2">
                           <button
-                            onClick={() => setEditingProduct(prod)}
+                            onClick={() => {
+                              setEditingProduct(prod);
+                              setShowAddProductModal(true);
+                            }}
                             className="text-blue-600 hover:text-blue-800"
                           >
                             <Edit2 className="w-5 h-5" />
@@ -1264,7 +1268,10 @@ function App() {
               <button
                 onClick={() => {
                   if (editingOffer) {
-                    handleUpdateOffer(editingOffer.id || editingOffer._id, editingOffer);
+                    handleUpdateOffer(
+                      editingOffer.id || editingOffer._id,
+                      editingOffer
+                    );
                   } else {
                     handleCreateOffer();
                   }
@@ -1300,7 +1307,9 @@ function App() {
                 </label>
                 <input
                   type="text"
-                  value={editingProduct ? editingProduct.title : newProduct.title}
+                  value={
+                    editingProduct ? editingProduct.title : newProduct.title
+                  }
                   onChange={(e) =>
                     editingProduct
                       ? setEditingProduct({
@@ -1398,11 +1407,21 @@ function App() {
                 </label>
                 <input
                   type="text"
-                  value={editingProduct ? editingProduct.image_url : newProduct.image_url}
+                  value={
+                    editingProduct
+                      ? editingProduct.image_url
+                      : newProduct.image_url
+                  }
                   onChange={(e) =>
                     editingProduct
-                      ? setEditingProduct({ ...editingProduct, image_url: e.target.value })
-                      : setNewProduct({ ...newProduct, image_url: e.target.value })
+                      ? setEditingProduct({
+                          ...editingProduct,
+                          image_url: e.target.value,
+                        })
+                      : setNewProduct({
+                          ...newProduct,
+                          image_url: e.target.value,
+                        })
                   }
                   placeholder="https://..."
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
@@ -1414,11 +1433,21 @@ function App() {
                 </label>
                 <input
                   type="text"
-                  value={editingProduct ? editingProduct.affiliate_link : newProduct.affiliate_link}
+                  value={
+                    editingProduct
+                      ? editingProduct.affiliate_link
+                      : newProduct.affiliate_link
+                  }
                   onChange={(e) =>
                     editingProduct
-                      ? setEditingProduct({ ...editingProduct, affiliate_link: e.target.value })
-                      : setNewProduct({ ...newProduct, affiliate_link: e.target.value })
+                      ? setEditingProduct({
+                          ...editingProduct,
+                          affiliate_link: e.target.value,
+                        })
+                      : setNewProduct({
+                          ...newProduct,
+                          affiliate_link: e.target.value,
+                        })
                   }
                   placeholder="https://..."
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
