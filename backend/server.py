@@ -9,25 +9,37 @@ from motor.motor_asyncio import AsyncIOMotorClient
 # ========== MODELOS ==========
 class Product(BaseModel):
     id: str
-    name: str
+    title: str
+    description: Optional[str] = None
     original_price: float
     discount_price: float
     discount_percentage: Optional[int] = None
+    coupon: Optional[str] = None
+    affiliate_link: Optional[str] = None
+    image_url: Optional[str] = None
     active: bool
     created_at: datetime
 
 class ProductCreate(BaseModel):
     id: str
-    name: str
+    title: str
+    description: Optional[str] = None
     original_price: float
     discount_price: float
+    coupon: Optional[str] = None
+    affiliate_link: Optional[str] = None
+    image_url: Optional[str] = None
     active: bool
     created_at: datetime
 
 class ProductUpdate(BaseModel):
-    name: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
     original_price: Optional[float] = None
     discount_price: Optional[float] = None
+    coupon: Optional[str] = None
+    affiliate_link: Optional[str] = None
+    image_url: Optional[str] = None
     active: Optional[bool] = None
 
 class OfferUpdate(BaseModel):
@@ -49,7 +61,6 @@ class ChatRequest(BaseModel):
 # ========== CONFIGURACIÓN ==========
 app = FastAPI()
 
-# ¡AQUÍ ESTÁ LA LLAVE DE CORS QUE FALTABA!
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Permite peticiones desde cualquier frontend (StackBlitz, Vercel, etc.)
@@ -224,7 +235,7 @@ async def delete_product(product_id: str, password: str):
     
     result = await db.products.delete_one({"id": product_id})
     if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Oferta no encontrada")
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
     
     return {"success": True, "message": "Producto eliminado"}
 
