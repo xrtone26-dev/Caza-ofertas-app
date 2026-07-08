@@ -60,6 +60,10 @@ function App() {
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [adminSection, setAdminSection] = useState('offers');
+  
+  // NUEVO ESTADO: Buscador de productos
+  const [searchTerm, setSearchTerm] = useState('');
+
   const [newProduct, setNewProduct] = useState({
     title: '',
     description: '',
@@ -365,6 +369,16 @@ function App() {
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
 
+  // NUEVA FUNCIÓN: Redirección directa para buscar en Mercado Libre por afiliado/término
+  const handleSearchOnMercadoLibre = () => {
+    if (!searchTerm.trim()) {
+      window.open('https://www.mercadolibre.com.mx', '_blank');
+      return;
+    }
+    const encoded = encodeURIComponent(searchTerm.trim());
+    window.open(`https://listado.mercadolibre.com.mx/${encoded}`, '_blank');
+  };
+
   const playSniperSound = () => {
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
@@ -480,8 +494,14 @@ function App() {
     },
   ];
 
-  // Clases dinámicas según el tema seleccionado
+  // Filtrado de productos según el texto introducido en el buscador
   const isLight = themeMode === 'light';
+  const filteredProducts = products.filter(
+    (p) =>
+      p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
   const mainBgClass = isLight 
     ? 'min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-800 relative overflow-x-hidden font-sans'
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
@@ -590,7 +610,6 @@ function App() {
               <div ref={chatEndRef} />
             </div>
 
-            {/* SUGERENCIAS RÁPIDAS */}
             <div className={`px-3 py-2 border-b flex flex-wrap gap-1.5 text-xs ${isLight ? 'bg-yellow-50 border-gray-200' : 'bg-neutral-900 border-neutral-800'}`}>
               <span className="text-neutral-500 font-semibold w-full mb-0.5">
                 Preguntas frecuentes:
@@ -677,103 +696,138 @@ function App() {
         </div>
       </div>
 
-      {/* Products Carousel Section */}
+      {/* Products Carousel Section + BARRA DE BÚSQUEDA INTELIGENTE */}
       {products.length > 0 && (
         <div className="container mx-auto px-4 -mt-8 mb-16 relative z-10">
           <div className={`rounded-3xl shadow-xl p-8 backdrop-blur-xl border ${isLight ? 'bg-white border-gray-100' : 'bg-neutral-900/85 border-neutral-800'}`}>
             <h2
-              className={`text-3xl font-bold text-center mb-8 ${isLight ? 'text-gray-800' : 'text-neutral-100 font-black'}`}
+              className={`text-3xl font-bold text-center mb-6 ${isLight ? 'text-gray-800' : 'text-neutral-100 font-black'}`}
               data-testid="products-title"
             >
               🔥 Productos Destacados
             </h2>
 
-            <div className="relative">
-              <div className="overflow-hidden" ref={emblaRef}>
-                <div className="flex gap-6">
-                  {products.map((product) => (
-                    <div
-                      key={product.id}
-                      className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0"
-                    >
-                      <div className={`rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden h-full ${isLight ? 'bg-gradient-to-br from-gray-50 to-white' : 'bg-gradient-to-b from-neutral-900 to-neutral-950 border border-neutral-800'}`}>
-                        <div className="relative">
-                          <img
-                            src={product.image_url}
-                            alt={product.title}
-                            className="w-full h-64 object-cover"
-                          />
-                          {product.discount_percentage && (
-                            <div className="absolute top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-full font-bold text-lg shadow-lg">
-                              -{product.discount_percentage}%
-                            </div>
-                          )}
-                        </div>
+            {/* NUEVA BARRA DE BÚSQUEDA Y FILTRADO */}
+            <div className="max-w-xl mx-auto mb-8 flex gap-2">
+              <div className="relative flex-1">
+                <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 ${isLight ? 'text-gray-400' : 'text-neutral-500'}`} />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Busca un producto cargado aquí..."
+                  className={`w-full pl-11 pr-4 py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-sm ${isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-700 text-neutral-100'}`}
+                />
+              </div>
+              <button
+                onClick={handleSearchOnMercadoLibre}
+                className="bg-yellow-400 hover:bg-yellow-300 text-black px-5 py-3 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
+                title="Buscar en Mercado Libre"
+              >
+                Ir a ML <ExternalLink className="w-4 h-4" />
+              </button>
+            </div>
 
-                        <div className="p-6">
-                          <h3 className={`text-xl font-bold mb-2 line-clamp-2 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}>
-                            {product.title}
-                          </h3>
-                          <p className={`mb-4 line-clamp-3 text-sm ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-                            {product.description}
-                          </p>
-
-                          <div className="flex items-baseline gap-3 mb-4">
-                            <span className={`text-3xl font-bold ${isLight ? 'text-green-600' : 'text-yellow-400 font-black'}`}>
-                              ${product.discount_price.toFixed(2)}
-                            </span>
-                            <span className="text-lg text-neutral-500 line-through">
-                              ${product.original_price.toFixed(2)}
-                            </span>
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className={`text-base mb-4 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+                  No encontramos ningún producto local con ese nombre. ¿Quieres buscarlo directamente en Mercado Libre?
+                </p>
+                <button
+                  onClick={handleSearchOnMercadoLibre}
+                  className="bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 rounded-xl font-black text-sm uppercase transition-all shadow-lg"
+                >
+                  Buscar "{searchTerm}" en Mercado Libre 🚀
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <div className="overflow-hidden" ref={emblaRef}>
+                  <div className="flex gap-6">
+                    {filteredProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0"
+                      >
+                        <div className={`rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden h-full ${isLight ? 'bg-gradient-to-br from-gray-50 to-white' : 'bg-gradient-to-b from-neutral-900 to-neutral-950 border border-neutral-800'}`}>
+                          <div className="relative">
+                            <img
+                              src={product.image_url}
+                              alt={product.title}
+                              className="w-full h-64 object-cover"
+                            />
+                            {product.discount_percentage && (
+                              <div className="absolute top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-full font-bold text-lg shadow-lg">
+                                -{product.discount_percentage}%
+                              </div>
+                            )}
                           </div>
 
-                          {product.coupon && (
-                            <div className={`border-2 border-dashed rounded-lg p-3 mb-4 ${isLight ? 'bg-yellow-50 border-yellow-400' : 'bg-yellow-400/15 border-yellow-400/60'}`}>
-                              <p className={`text-xs mb-1 ${isLight ? 'text-gray-600' : 'text-neutral-400 font-bold'}`}>
-                                Cupón disponible:
-                              </p>
-                              <p className={`text-lg font-bold ${isLight ? 'text-yellow-700' : 'text-yellow-400'}`}>
-                                {product.coupon}
-                              </p>
-                            </div>
-                          )}
+                          <div className="p-6">
+                            <h3 className={`text-xl font-bold mb-2 line-clamp-2 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}>
+                              {product.title}
+                            </h3>
+                            <p className={`mb-4 line-clamp-3 text-sm ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+                              {product.description}
+                            </p>
 
-                          <a
-                            href={product.affiliate_link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`block w-full py-3 rounded-lg font-bold text-center transition-all flex items-center justify-center gap-2 ${isLight ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:shadow-lg' : 'bg-yellow-400 hover:bg-yellow-300 text-black font-black'}`}
-                          >
-                            Ver Producto
-                            <ExternalLink className="w-5 h-5" />
-                          </a>
+                            <div className="flex items-baseline gap-3 mb-4">
+                              <span className={`text-3xl font-bold ${isLight ? 'text-green-600' : 'text-yellow-400 font-black'}`}>
+                                ${product.discount_price.toFixed(2)}
+                              </span>
+                              <span className="text-lg text-neutral-500 line-through">
+                                ${product.original_price.toFixed(2)}
+                              </span>
+                            </div>
+
+                            {product.coupon && (
+                              <div className={`border-2 border-dashed rounded-lg p-3 mb-4 ${isLight ? 'bg-yellow-50 border-yellow-400' : 'bg-yellow-400/15 border-yellow-400/60'}`}>
+                                <p className={`text-xs mb-1 ${isLight ? 'text-gray-600' : 'text-neutral-400 font-bold'}`}>
+                                  Cupón disponible:
+                                </p>
+                                <p className={`text-lg font-bold ${isLight ? 'text-yellow-700' : 'text-yellow-400'}`}>
+                                  {product.coupon}
+                                </p>
+                              </div>
+                            )}
+
+                            <a
+                              href={product.affiliate_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`block w-full py-3 rounded-lg font-bold text-center transition-all flex items-center justify-center gap-2 ${isLight ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:shadow-lg' : 'bg-yellow-400 hover:bg-yellow-300 text-black font-black'}`}
+                            >
+                              Ver Producto
+                              <ExternalLink className="w-5 h-5" />
+                            </a>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Carousel Navigation Buttons */}
-              {products.length > 1 && (
-                <>
-                  <button
-                    onClick={scrollPrev}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800"
-                    data-testid="carousel-prev"
-                  >
-                    <ChevronLeft className="w-6 h-6" />
-                  </button>
-                  <button
-                    onClick={scrollNext}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800"
-                    data-testid="carousel-next"
-                  >
-                    <ChevronRight className="w-6 h-6" />
-                  </button>
-                </>
-              )}
-            </div>
+                {/* Carousel Navigation Buttons */}
+                {filteredProducts.length > 1 && (
+                  <>
+                    <button
+                      onClick={scrollPrev}
+                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800"
+                      data-testid="carousel-prev"
+                    >
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <button
+                      onClick={scrollNext}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800"
+                      data-testid="carousel-next"
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -872,7 +926,7 @@ function App() {
         </div>
       </div>
 
-      {/* Footer con el botón de Engrane en la esquina indicada */}
+      {/* Footer */}
       <footer className={`py-12 border-t ${isLight ? 'bg-gray-900 text-white border-transparent' : 'bg-neutral-950 border-neutral-900 text-neutral-400'}`}>
         <div className="container mx-auto px-4 text-center">
           <div className="mb-6">
@@ -911,7 +965,6 @@ function App() {
             >
               <Lock className="w-3 h-3" /> Panel Admin
             </button>
-            {/* NUEVO BOTÓN DE ENGRANE (AQUÍ ESTÁ TU AJUSTE DE TEMA) */}
             <button
               onClick={() => setShowThemeModal(true)}
               className="text-xs text-yellow-400 hover:text-yellow-300 flex items-center gap-1.5 font-bold cursor-pointer transition-transform hover:rotate-90 duration-300"
