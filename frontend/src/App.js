@@ -21,7 +21,8 @@ import axios from 'axios';
 import useEmblaCarousel from 'embla-carousel-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com'; // Pagina Render
+const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
+// Pagina Render
 const API = BACKEND_URL;
 
 function App() {
@@ -192,9 +193,13 @@ function App() {
 
   const handleCreateOffer = async () => {
     try {
+      const offerData = {
+        ...newOffer,
+        id: 'offer_' + Date.now(),
+      };
       await axios.post(
         `${API}/admin/offers?password=${adminPassword}`,
-        newOffer
+        offerData
       );
       setShowAddOfferModal(false);
       setNewOffer({
@@ -245,6 +250,8 @@ function App() {
     try {
       const productData = {
         ...newProduct,
+        id: 'prod_' + Date.now(),
+        created_at: new Date().toISOString(),
         original_price: parseFloat(newProduct.original_price),
         discount_price: parseFloat(newProduct.discount_price),
         discount_percentage: newProduct.discount_percentage
@@ -285,7 +292,7 @@ function App() {
         updateData.discount_percentage = parseInt(
           updateData.discount_percentage
         );
-
+      
       await axios.patch(
         `${API}/admin/products/${productId}?password=${adminPassword}`,
         updateData
@@ -345,9 +352,7 @@ function App() {
       navigator.clipboard.writeText(cupon.code);
     }
     playSniperSound();
-    setToastMessage(
-      '¡Estás cerca de obtener un mejor precio por tus artículos!'
-    );
+    setToastMessage('¡Estás cerca de obtener un mejor precio por tus artículos!');
     setShowToast(true);
 
     setTimeout(() => {
@@ -398,13 +403,7 @@ function App() {
 
   // Esto permite que los botones de sugerencia rápida ejecuten el envío directo
   useEffect(() => {
-    if (
-      inputMessage &&
-      isTyping === false &&
-      inputMessage.match(
-        /¿Cuál es el número de WhatsApp\?|Quiero ver cupones|Busco una oferta de pantalla/
-      )
-    ) {
+    if (inputMessage && isTyping === false && inputMessage.match(/¿Cuál es el número de WhatsApp\?|Quiero ver cupones|Busco una oferta de pantalla/)) {
       handleSendChatMessage({});
     }
   }, [inputMessage]);
@@ -454,9 +453,7 @@ function App() {
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-bold text-yellow-400">
-                    ¡Alerta de Oferta!
-                  </p>
+                  <p className="font-bold text-yellow-400">¡Alerta de Oferta!</p>
                   <p className="text-sm text-gray-200">{toastMessage}</p>
                 </div>
                 <button
@@ -487,7 +484,7 @@ function App() {
                 </div>
                 <div>
                   <p className="text-sm leading-tight">
-                    Asistente IA CazaOfertasML
+                    Asistente IA LadyOfertas
                   </p>
                   <span className="text-[10px] text-neutral-800 font-semibold flex items-center gap-1">
                     <span className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse" />{' '}
@@ -534,25 +531,21 @@ function App() {
 
             {/* SUGERENCIAS RÁPIDAS / OPCIONES DE PREGUNTAS */}
             <div className="px-3 py-2 bg-yellow-50 border-b border-gray-200 flex flex-wrap gap-1.5 text-xs">
-              <span className="text-gray-500 font-semibold w-full mb-0.5">
-                Preguntas frecuentes:
-              </span>
-              <button
-                onClick={() =>
-                  setInputMessage('¿Cuál es el número de WhatsApp?')
-                }
+              <span className="text-gray-500 font-semibold w-full mb-0.5">Preguntas frecuentes:</span>
+              <button 
+                onClick={() => setInputMessage('¿Cuál es el número de WhatsApp?')} 
                 className="bg-white hover:bg-yellow-200 text-gray-800 px-2.5 py-1 rounded-full border border-yellow-300 transition-all font-medium"
               >
                 💬 ¿Número de WhatsApp?
               </button>
-              <button
-                onClick={() => setInputMessage('Quiero ver cupones')}
+              <button 
+                onClick={() => setInputMessage('Quiero ver cupones')} 
                 className="bg-white hover:bg-yellow-200 text-gray-800 px-2.5 py-1 rounded-full border border-yellow-300 transition-all font-medium"
               >
                 ✨ Ver cupones
               </button>
-              <button
-                onClick={() => setInputMessage('Busco una oferta de pantalla')}
+              <button 
+                onClick={() => setInputMessage('Busco una oferta de pantalla')} 
                 className="bg-white hover:bg-yellow-200 text-gray-800 px-2.5 py-1 rounded-full border border-yellow-300 transition-all font-medium"
               >
                 🔥 Buscar ofertas
@@ -601,7 +594,7 @@ function App() {
               className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg"
               data-testid="main-title"
             >
-              CazaOfertasML
+              LadyOfertasMex
             </h1>
 
             <p
@@ -637,7 +630,7 @@ function App() {
             <div className="relative">
               <div className="overflow-hidden" ref={emblaRef}>
                 <div className="flex gap-6">
-                  {products.map((product, index) => (
+                  {products.map((product) => (
                     <div
                       key={product.id}
                       className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0"
@@ -824,11 +817,11 @@ function App() {
           <div className="mb-6">
             <img
               src={logoUrl}
-              alt="CazaOfertasML"
+              alt="LadyOfertasMex"
               className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-white/20"
               data-testid="footer-logo"
             />
-            <h3 className="text-2xl font-bold mb-2">CazaOfertasML</h3>
+            <h3 className="text-2xl font-bold mb-2">LadyOfertasMex</h3>
             <p className="text-gray-400">
               Las mejores ofertas y descuentos para ti
             </p>
@@ -1053,7 +1046,7 @@ function App() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {allOffers.map((offer) => (
                     <div
-                      key={offer.id}
+                      key={offer.id || offer._id}
                       className={`border-2 rounded-xl p-6 ${
                         offer.active
                           ? 'border-green-300 bg-green-50'
@@ -1080,7 +1073,7 @@ function App() {
                             <Edit2 className="w-5 h-5" />
                           </button>
                           <button
-                            onClick={() => handleDeleteOffer(offer.id)}
+                            onClick={() => handleDeleteOffer(offer.id || offer._id)}
                             className="text-red-600 hover:text-red-800"
                           >
                             <Trash2 className="w-5 h-5" />
@@ -1093,8 +1086,7 @@ function App() {
                       <p className="text-gray-600 mb-2">{offer.description}</p>
                       {offer.code && (
                         <p className="text-sm text-gray-500">
-                          Código:{' '}
-                          <span className="font-bold">{offer.code}</span>
+                          Código: <span className="font-bold">{offer.code}</span>
                         </p>
                       )}
                       {offer.link && (
@@ -1163,7 +1155,7 @@ function App() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              Agregar Oferta
+              {editingOffer ? 'Editar Oferta' : 'Agregar Oferta'}
             </h2>
             <div className="space-y-4">
               <div>
@@ -1250,8 +1242,42 @@ function App() {
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
+              <div>
+                <label className="block text-gray-700 font-bold mb-2">
+                  Enlace / Link (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={editingOffer ? editingOffer.link : newOffer.link}
+                  onChange={(e) =>
+                    editingOffer
+                      ? setEditingOffer({
+                          ...editingOffer,
+                          link: e.target.value,
+                        })
+                      : setNewOffer({ ...newOffer, link: e.target.value })
+                  }
+                  placeholder="https://..."
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                />
+              </div>
               <button
-                onClick={() => setShowAddOfferModal(false)}
+                onClick={() => {
+                  if (editingOffer) {
+                    handleUpdateOffer(editingOffer.id || editingOffer._id, editingOffer);
+                  } else {
+                    handleCreateOffer();
+                  }
+                }}
+                className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"
+              >
+                {editingOffer ? 'Actualizar Oferta' : 'Guardar Oferta'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowAddOfferModal(false);
+                  setEditingOffer(null);
+                }}
                 className="w-full bg-gray-300 text-gray-800 py-3 rounded-lg font-bold"
               >
                 Cancelar
@@ -1265,7 +1291,7 @@ function App() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              Agregar Producto
+              {editingProduct ? 'Editar Producto' : 'Agregar Producto'}
             </h2>
             <div className="space-y-4">
               <div>
@@ -1274,9 +1300,7 @@ function App() {
                 </label>
                 <input
                   type="text"
-                  value={
-                    editingProduct ? editingProduct.title : newProduct.title
-                  }
+                  value={editingProduct ? editingProduct.title : newProduct.title}
                   onChange={(e) =>
                     editingProduct
                       ? setEditingProduct({
@@ -1367,6 +1391,38 @@ function App() {
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block text-gray-700 font-bold mb-2">
+                  URL de la Imagen
+                </label>
+                <input
+                  type="text"
+                  value={editingProduct ? editingProduct.image_url : newProduct.image_url}
+                  onChange={(e) =>
+                    editingProduct
+                      ? setEditingProduct({ ...editingProduct, image_url: e.target.value })
+                      : setNewProduct({ ...newProduct, image_url: e.target.value })
+                  }
+                  placeholder="https://..."
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-bold mb-2">
+                  Enlace de Afiliado / Link del Producto
+                </label>
+                <input
+                  type="text"
+                  value={editingProduct ? editingProduct.affiliate_link : newProduct.affiliate_link}
+                  onChange={(e) =>
+                    editingProduct
+                      ? setEditingProduct({ ...editingProduct, affiliate_link: e.target.value })
+                      : setNewProduct({ ...newProduct, affiliate_link: e.target.value })
+                  }
+                  placeholder="https://..."
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                />
               </div>
               <div className="flex items-center">
                 <input
