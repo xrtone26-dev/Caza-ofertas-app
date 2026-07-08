@@ -124,17 +124,17 @@ function App() {
     },
   ];
 
-  // Helper totalmente blindado para extraer ID de cupones y ofertas sin fallos
+  // Helper directo y infalible para extraer IDs de cupones, ofertas o productos
   const getSafeId = (item) => {
     if (!item) return null;
     if (typeof item === 'string' || typeof item === 'number') return String(item);
-    if (item.id) return String(item.id);
-    if (item._id) {
+    if (item.id !== undefined && item.id !== null) return String(item.id);
+    if (item._id !== undefined && item._id !== null) {
       if (typeof item._id === 'string') return item._id;
       if (item._id.$oid) return item._id.$oid;
       if (typeof item._id.toString === 'function') {
-        const val = item._id.toString();
-        if (val !== '[object Object]') return val;
+        const res = item._id.toString();
+        if (res !== '[object Object]') return res;
       }
     }
     return null;
@@ -240,7 +240,7 @@ function App() {
         alert('Error: ID de oferta no válido');
         return;
       }
-      const { id, _id, ...cleanUpdates } = updates;
+      const { id, _id, ...cleanUpdates } = updates || offerOrId;
       await axios.patch(
         `${API}/admin/offers/${offerId}?password=${adminPassword}`,
         cleanUpdates
@@ -316,7 +316,7 @@ function App() {
         alert('Error: ID de producto no válido');
         return;
       }
-      const updateData = { ...updates };
+      const updateData = { ...(updates || productOrId) };
       if (updateData.original_price !== '' && updateData.original_price != null)
         updateData.original_price = parseFloat(updateData.original_price);
       if (updateData.discount_price !== '' && updateData.discount_price != null)
@@ -1129,7 +1129,7 @@ function App() {
                             <Edit2 className="w-5 h-5" />
                           </button>
                           <button
-                            onClick={() => handleDeleteOffer(offer)}
+                            onClick={() => handleDeleteOffer(getSafeId(offer))}
                             className="text-red-600 hover:text-red-800"
                           >
                             <Trash2 className="w-5 h-5" />
@@ -1325,7 +1325,7 @@ function App() {
                 onClick={() => {
                   if (editingOffer) {
                     const { id, _id, ...cleanUpdates } = editingOffer;
-                    handleUpdateOffer(editingOffer, cleanUpdates);
+                    handleUpdateOffer(getSafeId(editingOffer), cleanUpdates);
                   } else {
                     handleCreateOffer();
                   }
