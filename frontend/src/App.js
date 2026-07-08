@@ -16,6 +16,7 @@ import {
   ChevronRight,
   ExternalLink,
   Bot,
+  Settings,
   TrendingDown,
 } from 'lucide-react';
 import axios from 'axios';
@@ -35,6 +36,8 @@ function App() {
   const [showCuponesModal, setShowCuponesModal] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [showThemeModal, setShowThemeModal] = useState(false);
+  const [themeMode, setThemeMode] = useState('dark'); // 'dark' o 'light'
   const [adminPassword, setAdminPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [descuentos, setDescuentos] = useState([]);
@@ -118,14 +121,10 @@ function App() {
     },
   ];
 
-  // Helper RADICALMENTE MEJORADO para encontrar el ID
   const getSafeId = (item) => {
     if (!item) return null;
     if (typeof item === 'string' || typeof item === 'number') return String(item);
-    
-    // Lista de posibles nombres que el backend podría estar usando
     const keysToTry = ['id', '_id', 'offer_id', 'product_id', 'Id', 'ID', 'uuid', 'key'];
-    
     for (let key of keysToTry) {
       if (item[key] !== undefined && item[key] !== null) {
         const val = item[key];
@@ -137,15 +136,12 @@ function App() {
         }
       }
     }
-    
-    // Fallback extremo: buscar cualquier llave que contenga "id" (sin importar mayúsculas)
     const anyIdKey = Object.keys(item).find(k => k.toLowerCase().includes('id'));
     if (anyIdKey && item[anyIdKey] !== undefined && item[anyIdKey] !== null) {
       const val = item[anyIdKey];
       if (typeof val === 'string' || typeof val === 'number') return String(val);
       if (typeof val === 'object' && val.$oid) return String(val.$oid);
     }
-    
     return null;
   };
 
@@ -245,7 +241,6 @@ function App() {
     try {
       const offerId = getSafeId(offerOrId);
       if (!offerId) {
-        // Alerta mejorada que muestra el objeto por si falla, así sabemos por qué
         alert(`Error: ID de oferta no válido. Objeto recibido: ${JSON.stringify(offerOrId)}`);
         return;
       }
@@ -464,7 +459,7 @@ function App() {
       title: 'Descuentos Exclusivos',
       description:
         'Accede a las mejores ofertas y promociones de Amazon, Mercado Libre y más',
-      gradient: 'bg-yellow-400/10 text-yellow-400 border border-yellow-400/30',
+      gradient: themeMode === 'light' ? 'from-pink-500 to-rose-500' : 'bg-yellow-400/10 text-yellow-400 border border-yellow-400/30',
       onClick: () => setShowDescuentosModal(true),
     },
     {
@@ -472,7 +467,7 @@ function App() {
       title: 'Cupones Especiales',
       description:
         'Recibe cupones de descuento directo en tu WhatsApp, Telegram o Facebook',
-      gradient: 'bg-yellow-400/10 text-yellow-400 border border-yellow-400/30',
+      gradient: themeMode === 'light' ? 'from-purple-500 to-indigo-500' : 'bg-yellow-400/10 text-yellow-400 border border-yellow-400/30',
       onClick: () => setShowCuponesModal(true),
     },
     {
@@ -480,16 +475,26 @@ function App() {
       title: 'Búsqueda Personalizada',
       description:
         '¿Buscas algo específico? Te ayudamos a encontrar el mejor precio y oferta',
-      gradient: 'bg-yellow-400/10 text-yellow-400 border border-yellow-400/30',
+      gradient: themeMode === 'light' ? 'from-cyan-500 to-blue-500' : 'bg-yellow-400/10 text-yellow-400 border border-yellow-400/30',
       onClick: handleBusquedaPersonalizada,
     },
   ];
 
+  // Clases dinámicas según el tema seleccionado
+  const isLight = themeMode === 'light';
+  const mainBgClass = isLight 
+    ? 'min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-800 relative overflow-x-hidden font-sans'
+    : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
+
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans">
+    <div className={mainBgClass}>
       {/* Fondo Ambiental */}
-      <div className="fixed inset-0 bg-grid opacity-20 pointer-events-none" />
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-yellow-400/5 rounded-full blur-[150px] pointer-events-none" />
+      {!isLight && (
+        <>
+          <div className="fixed inset-0 bg-grid opacity-20 pointer-events-none" />
+          <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-yellow-400/5 rounded-full blur-[150px] pointer-events-none" />
+        </>
+      )}
 
       {/* POPUP TÁCTICO / TOAST */}
       <AnimatePresence>
@@ -501,7 +506,7 @@ function App() {
             transition={{ type: 'spring', damping: 18, stiffness: 260 }}
             className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-md"
           >
-            <div className="relative overflow-hidden rounded-2xl border border-yellow-400/40 bg-gradient-to-br from-neutral-900 to-black p-4 text-white shadow-2xl backdrop-blur-md">
+            <div className={`relative overflow-hidden rounded-2xl border p-4 shadow-2xl backdrop-blur-md ${isLight ? 'border-yellow-400 bg-neutral-900/95 text-white' : 'border-yellow-400/40 bg-gradient-to-br from-neutral-950 to-black text-white'}`}>
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-yellow-400 text-black shadow-lg">
                   <Sparkles className="h-5 w-5" />
@@ -531,7 +536,7 @@ function App() {
             initial={{ opacity: 0, y: 40, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.9 }}
-            className="fixed right-5 bottom-24 z-50 w-[92%] max-w-sm bg-neutral-900 rounded-3xl shadow-2xl border border-yellow-400/50 overflow-hidden flex flex-col h-[480px]"
+            className={`fixed right-5 bottom-24 z-50 w-[92%] max-w-sm rounded-3xl shadow-2xl border overflow-hidden flex flex-col h-[480px] ${isLight ? 'bg-white border-yellow-300 text-gray-800' : 'bg-neutral-900 border-yellow-400/50 text-neutral-100'}`}
           >
             <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-4 text-black flex items-center justify-between font-bold border-b border-yellow-300">
               <div className="flex items-center gap-2">
@@ -556,7 +561,7 @@ function App() {
               </button>
             </div>
 
-            <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-neutral-950 text-sm">
+            <div className={`flex-1 p-4 overflow-y-auto space-y-3 text-sm ${isLight ? 'bg-gray-50' : 'bg-neutral-950'}`}>
               {chatMessages.map((msg, index) => (
                 <div
                   key={index}
@@ -568,7 +573,7 @@ function App() {
                     className={`max-w-[80%] p-3 rounded-2xl ${
                       msg.sender === 'user'
                         ? 'bg-yellow-400 text-black rounded-br-none font-medium'
-                        : 'bg-neutral-800 text-neutral-100 shadow-md rounded-bl-none border border-neutral-700'
+                        : isLight ? 'bg-white text-gray-800 shadow-md rounded-bl-none border border-gray-100' : 'bg-neutral-800 text-neutral-100 shadow-md rounded-bl-none border border-neutral-700'
                     }`}
                   >
                     {msg.text}
@@ -577,7 +582,7 @@ function App() {
               ))}
               {isTyping && (
                 <div className="flex justify-start">
-                  <div className="bg-neutral-800 p-3 rounded-2xl border border-neutral-700 shadow-sm text-neutral-400 italic text-xs animate-pulse">
+                  <div className={`p-3 rounded-2xl shadow-sm italic text-xs animate-pulse ${isLight ? 'bg-white text-gray-400' : 'bg-neutral-800 text-neutral-400 border border-neutral-700'}`}>
                     El asistente está escribiendo...
                   </div>
                 </div>
@@ -585,28 +590,26 @@ function App() {
               <div ref={chatEndRef} />
             </div>
 
-            {/* SUGERENCIAS RÁPIDAS / OPCIONES DE PREGUNTAS */}
-            <div className="px-3 py-2 bg-neutral-900 border-b border-neutral-800 flex flex-wrap gap-1.5 text-xs">
+            {/* SUGERENCIAS RÁPIDAS */}
+            <div className={`px-3 py-2 border-b flex flex-wrap gap-1.5 text-xs ${isLight ? 'bg-yellow-50 border-gray-200' : 'bg-neutral-900 border-neutral-800'}`}>
               <span className="text-neutral-500 font-semibold w-full mb-0.5">
                 Preguntas frecuentes:
               </span>
               <button
-                onClick={() =>
-                  setInputMessage('¿Cuál es el número de WhatsApp?')
-                }
-                className="bg-neutral-800 hover:bg-yellow-400 hover:text-black text-neutral-300 px-2.5 py-1 rounded-full border border-neutral-700 transition-all font-medium"
+                onClick={() => setInputMessage('¿Cuál es el número de WhatsApp?')}
+                className={`px-2.5 py-1 rounded-full border transition-all font-medium ${isLight ? 'bg-white hover:bg-yellow-200 text-gray-800 border-yellow-300' : 'bg-neutral-800 hover:bg-yellow-400 hover:text-black text-neutral-300 border-neutral-700'}`}
               >
                 💬 ¿Número de WhatsApp?
               </button>
               <button
                 onClick={() => setInputMessage('Quiero ver cupones')}
-                className="bg-neutral-800 hover:bg-yellow-400 hover:text-black text-neutral-300 px-2.5 py-1 rounded-full border border-neutral-700 transition-all font-medium"
+                className={`px-2.5 py-1 rounded-full border transition-all font-medium ${isLight ? 'bg-white hover:bg-yellow-200 text-gray-800 border-yellow-300' : 'bg-neutral-800 hover:bg-yellow-400 hover:text-black text-neutral-300 border-neutral-700'}`}
               >
                 ✨ Ver cupones
               </button>
               <button
                 onClick={() => setInputMessage('Busco una oferta de pantalla')}
-                className="bg-neutral-800 hover:bg-yellow-400 hover:text-black text-neutral-300 px-2.5 py-1 rounded-full border border-neutral-700 transition-all font-medium"
+                className={`px-2.5 py-1 rounded-full border transition-all font-medium ${isLight ? 'bg-white hover:bg-yellow-200 text-gray-800 border-yellow-300' : 'bg-neutral-800 hover:bg-yellow-400 hover:text-black text-neutral-300 border-neutral-700'}`}
               >
                 🔥 Buscar ofertas
               </button>
@@ -614,14 +617,14 @@ function App() {
 
             <form
               onSubmit={handleSendChatMessage}
-              className="p-3 bg-neutral-900 border-t border-neutral-800 flex gap-2"
+              className={`p-3 border-t flex gap-2 ${isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'}`}
             >
               <input
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="Escribe tu duda u oferta..."
-                className="flex-1 px-4 py-2 text-sm bg-neutral-950 border border-neutral-700 text-neutral-100 rounded-xl focus:outline-none focus:border-yellow-400"
+                className={`flex-1 px-4 py-2 text-sm border rounded-xl focus:outline-none focus:border-yellow-400 ${isLight ? 'bg-white border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-700 text-neutral-100'}`}
               />
               <button
                 type="submit"
@@ -635,35 +638,36 @@ function App() {
       </AnimatePresence>
 
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-neutral-900 to-neutral-950 border-b border-neutral-800 pb-16">
+      <div className={`relative overflow-hidden border-b pb-16 ${isLight ? 'bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 border-transparent' : 'bg-gradient-to-b from-neutral-900 to-neutral-950 border-neutral-800'}`}>
+        {!isLight && <div className="absolute inset-0 bg-black opacity-10" />}
         <div className="relative container mx-auto px-4 pt-12 pb-8">
           <div className="flex flex-col items-center text-center">
             <div className="mb-6 transform hover:scale-105 transition-transform duration-300">
               <img
                 src={logoUrl}
                 alt="CazaOfertasML Logo"
-                className="w-48 h-48 md:w-56 md:h-56 rounded-full shadow-2xl shadow-yellow-400/20 ring-4 ring-neutral-800"
+                className={`w-48 h-48 md:w-56 md:h-56 rounded-full shadow-2xl ${isLight ? 'ring-8 ring-white/50' : 'shadow-yellow-400/20 ring-4 ring-neutral-800'}`}
                 data-testid="logo-image"
               />
             </div>
 
             <h1
-              className="text-4xl md:text-6xl font-black text-neutral-100 mb-4 tracking-tight"
+              className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg"
               data-testid="main-title"
             >
-              Caza<span className="text-yellow-400">Ofertas</span>ML
+              CazaOfertasML
             </h1>
 
             <p
-              className="text-xl md:text-2xl text-neutral-400 mb-6 max-w-2xl"
+              className="text-xl md:text-2xl text-white/90 mb-6 max-w-2xl"
               data-testid="hero-subtitle"
             >
               ¡Las Mejores Ofertas de Amazon, Mercado Libre, AliExpress y más!
             </p>
 
-            <div className="inline-block bg-yellow-400/10 border border-yellow-400/30 backdrop-blur-sm px-6 py-3 rounded-full">
+            <div className={`inline-block backdrop-blur-sm px-6 py-3 rounded-full ${isLight ? 'bg-white/20' : 'bg-yellow-400/10 border border-yellow-400/30'}`}>
               <p
-                className="text-yellow-400 font-bold text-lg"
+                className="text-white font-semibold text-lg"
                 data-testid="hero-tagline"
               >
                 🎁 Únete GRATIS y recibe ofertas diarias
@@ -676,12 +680,12 @@ function App() {
       {/* Products Carousel Section */}
       {products.length > 0 && (
         <div className="container mx-auto px-4 -mt-8 mb-16 relative z-10">
-          <div className="bg-neutral-900/80 backdrop-blur-xl border border-neutral-800 rounded-3xl shadow-2xl p-8">
+          <div className={`rounded-3xl shadow-xl p-8 backdrop-blur-xl border ${isLight ? 'bg-white border-gray-100' : 'bg-neutral-900/85 border-neutral-800'}`}>
             <h2
-              className="text-3xl font-black text-center text-neutral-100 mb-8"
+              className={`text-3xl font-bold text-center mb-8 ${isLight ? 'text-gray-800' : 'text-neutral-100 font-black'}`}
               data-testid="products-title"
             >
-              🔥 Productos <span className="text-yellow-400">Destacados</span>
+              🔥 Productos Destacados
             </h2>
 
             <div className="relative">
@@ -692,44 +696,43 @@ function App() {
                       key={product.id}
                       className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0"
                     >
-                      <div className="bg-gradient-to-b from-neutral-900 to-neutral-950 border border-neutral-800 hover:border-yellow-400/50 rounded-2xl shadow-lg hover:shadow-2xl hover:shadow-yellow-400/10 transition-all duration-300 overflow-hidden h-full group">
-                        <div className="relative overflow-hidden bg-neutral-800">
+                      <div className={`rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden h-full ${isLight ? 'bg-gradient-to-br from-gray-50 to-white' : 'bg-gradient-to-b from-neutral-900 to-neutral-950 border border-neutral-800'}`}>
+                        <div className="relative">
                           <img
                             src={product.image_url}
                             alt={product.title}
-                            className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+                            className="w-full h-64 object-cover"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                           {product.discount_percentage && (
-                            <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1.5 rounded-md font-bold text-sm shadow-lg">
+                            <div className="absolute top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-full font-bold text-lg shadow-lg">
                               -{product.discount_percentage}%
                             </div>
                           )}
                         </div>
 
                         <div className="p-6">
-                          <h3 className="text-lg font-semibold text-neutral-100 mb-2 line-clamp-2">
+                          <h3 className={`text-xl font-bold mb-2 line-clamp-2 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}>
                             {product.title}
                           </h3>
-                          <p className="text-neutral-400 mb-4 line-clamp-3 text-sm">
+                          <p className={`mb-4 line-clamp-3 text-sm ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
                             {product.description}
                           </p>
 
                           <div className="flex items-baseline gap-3 mb-4">
-                            <span className="text-3xl font-black text-yellow-400">
+                            <span className={`text-3xl font-bold ${isLight ? 'text-green-600' : 'text-yellow-400 font-black'}`}>
                               ${product.discount_price.toFixed(2)}
                             </span>
-                            <span className="text-sm text-neutral-500 line-through">
+                            <span className="text-lg text-neutral-500 line-through">
                               ${product.original_price.toFixed(2)}
                             </span>
                           </div>
 
                           {product.coupon && (
-                            <div className="bg-yellow-400/10 border border-yellow-400/30 rounded-lg p-3 mb-4">
-                              <p className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-1">
+                            <div className={`border-2 border-dashed rounded-lg p-3 mb-4 ${isLight ? 'bg-yellow-50 border-yellow-400' : 'bg-yellow-400/15 border-yellow-400/60'}`}>
+                              <p className={`text-xs mb-1 ${isLight ? 'text-gray-600' : 'text-neutral-400 font-bold'}`}>
                                 Cupón disponible:
                               </p>
-                              <p className="text-lg font-black text-yellow-400">
+                              <p className={`text-lg font-bold ${isLight ? 'text-yellow-700' : 'text-yellow-400'}`}>
                                 {product.coupon}
                               </p>
                             </div>
@@ -739,10 +742,10 @@ function App() {
                             href={product.affiliate_link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block w-full bg-yellow-400 hover:bg-yellow-300 text-black py-3 rounded-xl font-black text-center transition-all flex items-center justify-center gap-2"
+                            className={`block w-full py-3 rounded-lg font-bold text-center transition-all flex items-center justify-center gap-2 ${isLight ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:shadow-lg' : 'bg-yellow-400 hover:bg-yellow-300 text-black font-black'}`}
                           >
-                            VER PRODUCTO
-                            <ExternalLink className="w-4 h-4" />
+                            Ver Producto
+                            <ExternalLink className="w-5 h-5" />
                           </a>
                         </div>
                       </div>
@@ -756,17 +759,17 @@ function App() {
                 <>
                   <button
                     onClick={scrollPrev}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-neutral-800 border border-neutral-700 rounded-full p-3 shadow-xl hover:bg-neutral-700 hover:border-yellow-400/50 transition-all z-10"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800"
                     data-testid="carousel-prev"
                   >
-                    <ChevronLeft className="w-6 h-6 text-neutral-100" />
+                    <ChevronLeft className="w-6 h-6" />
                   </button>
                   <button
                     onClick={scrollNext}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-neutral-800 border border-neutral-700 rounded-full p-3 shadow-xl hover:bg-neutral-700 hover:border-yellow-400/50 transition-all z-10"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800"
                     data-testid="carousel-next"
                   >
-                    <ChevronRight className="w-6 h-6 text-neutral-100" />
+                    <ChevronRight className="w-6 h-6" />
                   </button>
                 </>
               )}
@@ -784,22 +787,22 @@ function App() {
               <div
                 key={index}
                 onClick={benefit.onClick}
-                className="bg-neutral-900/50 backdrop-blur border border-neutral-800 rounded-2xl shadow-xl p-8 hover:border-yellow-400/50 transition-all duration-300 hover:-translate-y-2 cursor-pointer group"
+                className={`rounded-2xl shadow-xl p-8 transition-all duration-300 hover:-translate-y-2 cursor-pointer ${isLight ? 'bg-white hover:shadow-2xl' : 'bg-neutral-950/80 backdrop-blur border border-neutral-800 hover:border-yellow-400/55'}`}
                 data-testid={`benefit-card-${index}`}
               >
                 <div
-                  className={`w-14 h-14 rounded-xl flex items-center justify-center mb-5 ${benefit.gradient} group-hover:scale-110 transition-transform`}
+                  className={`w-16 h-16 rounded-xl flex items-center justify-center mb-4 shadow-lg ${isLight ? `bg-gradient-to-br ${benefit.gradient}` : 'bg-yellow-400/10 text-yellow-400 border border-yellow-400/30'}`}
                 >
-                  <Icon className="w-7 h-7" />
+                  <Icon className="w-8 h-8 text-white" />
                 </div>
                 <h3
-                  className="text-xl font-bold text-neutral-100 mb-3"
+                  className={`text-xl font-bold mb-3 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}
                   data-testid={`benefit-title-${index}`}
                 >
                   {benefit.title}
                 </h3>
                 <p
-                  className="text-neutral-400 leading-relaxed text-sm"
+                  className={`leading-relaxed ${isLight ? 'text-gray-600' : 'text-neutral-400 text-sm'}`}
                   data-testid={`benefit-description-${index}`}
                 >
                   {benefit.description}
@@ -812,25 +815,23 @@ function App() {
 
       {/* CTA Section */}
       <div className="container mx-auto px-4 mb-16 relative z-10">
-        <div className="bg-gradient-to-br from-yellow-400/10 via-neutral-900 to-black border border-yellow-400/30 rounded-3xl shadow-2xl p-12 text-center overflow-hidden relative">
-          <div className="absolute -top-24 -right-24 w-64 h-64 bg-yellow-400/10 rounded-full blur-3xl pointer-events-none" />
-          
-          <h2 className="text-3xl md:text-4xl font-black text-neutral-100 mb-4">
+        <div className={`rounded-3xl shadow-xl p-12 text-center ${isLight ? 'bg-gradient-to-r from-pink-50 to-purple-50' : 'bg-gradient-to-br from-yellow-400/10 via-neutral-900 to-black border border-yellow-400/30'}`}>
+          <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isLight ? 'text-gray-800' : 'text-neutral-100 font-black'}`}>
             ¿Por qué unirte a nuestros canales?
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10 text-left relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8 text-left">
             <div
               className="flex items-start space-x-4"
               data-testid="feature-item-1"
             >
-              <div className="flex-shrink-0 w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center text-black font-black">
+              <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold ${isLight ? 'bg-gradient-to-br from-pink-500 to-purple-500 text-white' : 'bg-yellow-400 text-black font-black'}`}>
                 ✓
               </div>
               <div>
-                <h4 className="font-bold text-neutral-200 mb-1">
+                <h4 className={`font-bold mb-1 ${isLight ? 'text-gray-800' : 'text-neutral-200'}`}>
                   Cupones Exclusivos
                 </h4>
-                <p className="text-neutral-400 text-sm">
+                <p className={`text-sm ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
                   Códigos de descuento que no encontrarás en otro lugar
                 </p>
               </div>
@@ -839,14 +840,14 @@ function App() {
               className="flex items-start space-x-4"
               data-testid="feature-item-2"
             >
-              <div className="flex-shrink-0 w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center text-black font-black">
+              <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold ${isLight ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white' : 'bg-yellow-400 text-black font-black'}`}>
                 ✓
               </div>
               <div>
-                <h4 className="font-bold text-neutral-200 mb-1">
+                <h4 className={`font-bold mb-1 ${isLight ? 'text-gray-800' : 'text-neutral-200'}`}>
                   Productos Verificados
                 </h4>
-                <p className="text-neutral-400 text-sm">
+                <p className={`text-sm ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
                   Solo compartimos productos con buenas reseñas y calidad
                 </p>
               </div>
@@ -855,14 +856,14 @@ function App() {
               className="flex items-start space-x-4"
               data-testid="feature-item-3"
             >
-              <div className="flex-shrink-0 w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center text-black font-black">
+              <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold ${isLight ? 'bg-gradient-to-br from-orange-500 to-red-500 text-white' : 'bg-yellow-400 text-black font-black'}`}>
                 ✓
               </div>
               <div>
-                <h4 className="font-bold text-neutral-200 mb-1">
+                <h4 className={`font-bold mb-1 ${isLight ? 'text-gray-800' : 'text-neutral-200'}`}>
                   Atención Personalizada
                 </h4>
-                <p className="text-neutral-400 text-sm">
+                <p className={`text-sm ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
                   ¿Buscas algo específico? ¡Te ayudamos a encontrarlo!
                 </p>
               </div>
@@ -871,22 +872,22 @@ function App() {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-neutral-950 border-t border-neutral-900 text-neutral-400 py-12 relative z-10">
+      {/* Footer con el botón de Engrane en la esquina indicada */}
+      <footer className={`py-12 border-t ${isLight ? 'bg-gray-900 text-white border-transparent' : 'bg-neutral-950 border-neutral-900 text-neutral-400'}`}>
         <div className="container mx-auto px-4 text-center">
-          <div className="mb-8">
+          <div className="mb-6">
             <img
               src={logoUrl}
               alt="CazaOfertasML"
-              className="w-16 h-16 rounded-full mx-auto mb-4 ring-2 ring-neutral-800 grayscale hover:grayscale-0 transition-all"
+              className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-white/20"
               data-testid="footer-logo"
             />
-            <h3 className="text-xl font-black text-neutral-100 tracking-tight">Caza<span className="text-yellow-400">Ofertas</span>ML</h3>
-            <p className="text-neutral-500 text-sm mt-1">
+            <h3 className="text-2xl font-bold mb-2">CazaOfertasML</h3>
+            <p className="text-gray-400">
               Las mejores ofertas y descuentos para ti
             </p>
           </div>
-          <div className="flex justify-center space-x-4 mb-8">
+          <div className="flex justify-center space-x-6 mb-6">
             {socialLinks.map((social, index) => {
               const Icon = social.icon;
               return (
@@ -895,33 +896,82 @@ function App() {
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`w-12 h-12 bg-neutral-900 border border-neutral-800 rounded-full flex items-center justify-center transition-all hover:scale-110 hover:border-transparent ${social.color} hover:text-white`}
+                  className="w-12 h-12 bg-white/10 hover:bg-white/25 rounded-full flex items-center justify-center transition-all hover:scale-110 text-white"
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-6 h-6" />
                 </a>
               );
             })}
           </div>
-          <button
-            onClick={() => setShowAdminLogin(true)}
-            className="text-xs text-neutral-600 hover:text-neutral-400 flex items-center gap-1 mx-auto"
-          >
-            <Lock className="w-3 h-3" /> Panel Admin
-          </button>
+          
+          <div className="flex justify-center items-center gap-6 mt-6">
+            <button
+              onClick={() => setShowAdminLogin(true)}
+              className="text-xs text-gray-500 hover:text-gray-400 flex items-center gap-1"
+            >
+              <Lock className="w-3 h-3" /> Panel Admin
+            </button>
+            {/* NUEVO BOTÓN DE ENGRANE (AQUÍ ESTÁ TU AJUSTE DE TEMA) */}
+            <button
+              onClick={() => setShowThemeModal(true)}
+              className="text-xs text-yellow-400 hover:text-yellow-300 flex items-center gap-1.5 font-bold cursor-pointer transition-transform hover:rotate-90 duration-300"
+              title="Ajustar tema de la página"
+            >
+              <Settings className="w-4 h-4" /> Tema
+            </button>
+          </div>
         </div>
       </footer>
 
-      {/* MODALS */}
-      {showAdminLogin && (
+      {/* MODAL CONFIGURACIÓN DE TEMA */}
+      {showThemeModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 max-w-md w-full shadow-2xl">
+          <div className={`rounded-3xl p-8 max-w-sm w-full shadow-2xl border ${isLight ? 'bg-white text-gray-800 border-gray-200' : 'bg-neutral-900 text-neutral-100 border-neutral-800'}`}>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-black text-neutral-100">
+              <h2 className="text-xl font-bold">⚙️ Tema de fondo</h2>
+              <button
+                onClick={() => setShowThemeModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  setThemeMode('light');
+                  setShowThemeModal(false);
+                }}
+                className={`w-full py-3.5 px-4 rounded-xl font-bold flex items-center justify-between border transition-all ${themeMode === 'light' ? 'bg-purple-500 text-white border-purple-500 shadow-md' : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700'}`}
+              >
+                <span>☀️ Tema Claro</span>
+                {themeMode === 'light' && <span className="font-black">✓</span>}
+              </button>
+              <button
+                onClick={() => {
+                  setThemeMode('dark');
+                  setShowThemeModal(false);
+                }}
+                className={`w-full py-3.5 px-4 rounded-xl font-bold flex items-center justify-between border transition-all ${themeMode === 'dark' ? 'bg-yellow-400 text-black border-yellow-400 shadow-md' : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700'}`}
+              >
+                <span>🌙 Tema Oscuro</span>
+                {themeMode === 'dark' && <span className="font-black">✓</span>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAdminLogin && (
+        <div className="fixed inset-0 bg-black/55 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full text-gray-800">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">
                 🔐 Acceso Administrador
               </h2>
               <button
                 onClick={() => setShowAdminLogin(false)}
-                className="text-neutral-500 hover:text-white"
+                className="text-gray-500 hover:text-gray-700"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -931,11 +981,11 @@ function App() {
               value={adminPassword}
               onChange={(e) => setAdminPassword(e.target.value)}
               placeholder="Contraseña de administrador"
-              className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 text-neutral-100 rounded-lg mb-6 focus:outline-none focus:border-yellow-400"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg mb-4 text-gray-800 focus:outline-none focus:border-purple-500"
             />
             <button
               onClick={handleAdminLogin}
-              className="w-full bg-yellow-400 hover:bg-yellow-300 text-black py-3 rounded-xl font-black uppercase transition-all"
+              className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:shadow-lg"
             >
               Entrar
             </button>
@@ -945,26 +995,26 @@ function App() {
 
       {showDescuentosModal && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={() => setShowDescuentosModal(false)}
         >
           <div
-            className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl"
+            className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto text-gray-800"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl sm:text-3xl font-black text-neutral-100">
-                🏷️ Descuentos <span className="text-yellow-400">Exclusivos</span>
+              <h2 className="text-3xl font-bold">
+                🏷️ Descuentos Exclusivos
               </h2>
               <button
                 onClick={() => setShowDescuentosModal(false)}
-                className="text-neutral-500 hover:text-white"
+                className="text-gray-500 hover:text-gray-700"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
             {descuentos.length === 0 ? (
-              <p className="text-neutral-500 text-center py-8">
+              <p className="text-gray-600 text-center py-8">
                 No hay descuentos disponibles en este momento.
               </p>
             ) : (
@@ -972,20 +1022,18 @@ function App() {
                 {descuentos.map((desc) => (
                   <div
                     key={getSafeId(desc) || desc.title}
-                    className="bg-neutral-950 border border-neutral-800 rounded-xl p-5 hover:border-yellow-400/30 transition-colors"
+                    className="bg-gray-50 rounded-xl p-4 border border-gray-200"
                   >
-                    <h3 className="text-lg font-bold text-neutral-100 mb-2">
-                      {desc.title}
-                    </h3>
-                    <p className="text-neutral-400 text-sm mb-3">{desc.description}</p>
+                    <h3 className="text-xl font-bold">{desc.title}</h3>
+                    <p className="text-gray-600">{desc.description}</p>
                     {desc.link && (
                       <a
                         href={desc.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-yellow-400 hover:text-yellow-300 text-sm font-bold flex items-center gap-1"
+                        className="text-blue-600 underline"
                       >
-                        Ver oferta <ExternalLink className="w-3 h-3" />
+                        Ver oferta
                       </a>
                     )}
                   </div>
@@ -998,27 +1046,27 @@ function App() {
 
       {showCuponesModal && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={() => setShowCuponesModal(false)}
         >
           <div
-            className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl"
+            className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto text-gray-800"
             onClick={(e) => e.stopPropagation()}
             data-testid="cupones-modal"
           >
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl sm:text-3xl font-black text-neutral-100">
-                ✨ Cupones <span className="text-yellow-400">Especiales</span>
+              <h2 className="text-3xl font-bold">
+                ✨ Cupones Especiales
               </h2>
               <button
                 onClick={() => setShowCuponesModal(false)}
-                className="text-neutral-500 hover:text-white"
+                className="text-gray-500 hover:text-gray-700"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
             {cupones.length === 0 ? (
-              <p className="text-neutral-500 text-center py-8">
+              <p className="text-gray-600 text-center py-8">
                 No hay cupones disponibles en este momento. ¡Vuelve pronto!
               </p>
             ) : (
@@ -1026,19 +1074,18 @@ function App() {
                 {cupones.map((cupon) => (
                   <div
                     key={getSafeId(cupon) || cupon.title}
-                    className="bg-gradient-to-br from-neutral-900 to-neutral-950 border border-neutral-700 rounded-xl p-6 relative overflow-hidden"
+                    className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border-2 border-purple-200"
                   >
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/5 rounded-full blur-2xl" />
-                    <h3 className="text-xl font-bold text-neutral-100 mb-2 relative z-10">
+                    <h3 className="text-xl font-bold mb-2">
                       {cupon.title}
                     </h3>
-                    <p className="text-neutral-400 text-sm mb-4 relative z-10">{cupon.description}</p>
+                    <p className="text-gray-600 mb-3">{cupon.description}</p>
                     {cupon.code && (
-                      <div className="bg-neutral-950 border border-dashed border-yellow-400/50 rounded-lg p-3 mb-4 relative z-10">
-                        <p className="text-xs text-neutral-500 uppercase tracking-wider font-bold mb-1">
+                      <div className="bg-white border-2 border-dashed border-purple-400 rounded-lg p-3 mb-3">
+                        <p className="text-sm text-gray-600 mb-1">
                           Código del cupón:
                         </p>
-                        <p className="text-2xl font-black text-yellow-400">
+                        <p className="text-2xl font-bold text-purple-600">
                           {cupon.code.length > 3
                             ? cupon.code.substring(0, 3) + '********'
                             : '****'}
@@ -1048,9 +1095,9 @@ function App() {
                     {cupon.link && (
                       <button
                         onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                        className="w-full relative z-10 inline-flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 rounded-xl transition-all font-black"
+                        className="w-full mt-2 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all font-bold"
                       >
-                        <Tag className="w-4 h-4" /> COPIAR E IR A MERCADO LIBRE
+                        <Tag className="w-5 h-5" /> Copiar e ir a MercadoLibre
                       </button>
                     )}
                   </div>
@@ -1061,132 +1108,127 @@ function App() {
         </div>
       )}
 
-      {/* PANEL DE ADMINISTRADOR */}
       {showAdminPanel && isAuthenticated && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 sm:p-8 max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="flex justify-between items-center mb-6 pb-4 border-b border-neutral-800">
-              <h2 className="text-2xl font-black text-neutral-100 flex items-center gap-2">
-                <Lock className="w-5 h-5 text-yellow-400" /> Panel Táctico Admin
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto text-gray-800">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">
+                🛠️ Panel de Administración
               </h2>
               <button
                 onClick={() => setShowAdminPanel(false)}
-                className="text-neutral-500 hover:text-white bg-neutral-800 p-2 rounded-full"
+                className="text-gray-500 hover:text-gray-700"
               >
-                <X className="w-5 h-5" />
+                <X className="w-6 h-6" />
               </button>
             </div>
-            
-            <div className="flex gap-3 mb-8">
+            <div className="flex gap-4 mb-6">
               <button
                 onClick={() => setAdminSection('offers')}
-                className={`px-5 py-2.5 rounded-xl font-bold transition-colors ${
+                className={`px-4 py-2 rounded-lg font-bold ${
                   adminSection === 'offers'
-                    ? 'bg-yellow-400 text-black'
-                    : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white'
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-gray-200 text-gray-700'
                 }`}
               >
-                Ofertas & Cupones
+                Ofertas
               </button>
               <button
                 onClick={() => setAdminSection('products')}
-                className={`px-5 py-2.5 rounded-xl font-bold transition-colors ${
+                className={`px-4 py-2 rounded-lg font-bold ${
                   adminSection === 'products'
-                    ? 'bg-yellow-400 text-black'
-                    : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white'
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-gray-200 text-gray-700'
                 }`}
               >
-                Productos (Carrusel)
+                Productos
               </button>
             </div>
-
             {adminSection === 'offers' && (
               <>
                 <button
                   onClick={() => setShowAddOfferModal(true)}
-                  className="mb-6 bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 rounded-xl font-black transition-all flex items-center gap-2 shadow-lg shadow-yellow-400/20"
+                  className="mb-6 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all flex items-center gap-2"
                 >
-                  <Plus className="w-5 h-5" strokeWidth={3} /> NUEVA OFERTA
+                  <Plus className="w-5 h-5" /> Nueva Oferta
                 </button>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {allOffers.map((offer) => (
                     <div
                       key={getSafeId(offer) || offer.title}
-                      className={`border rounded-2xl p-5 relative overflow-hidden ${
+                      className={`border-2 rounded-xl p-6 ${
                         offer.active
-                          ? 'border-yellow-400/30 bg-neutral-900 hover:border-yellow-400/60'
-                          : 'border-neutral-800 bg-neutral-950 opacity-70'
+                          ? 'border-green-300 bg-green-50'
+                          : 'border-gray-300 bg-gray-50'
                       }`}
                     >
-                      {offer.active && <div className="absolute top-0 right-0 w-16 h-16 bg-yellow-400/5 rounded-full blur-xl pointer-events-none" />}
-                      <div className="flex justify-between items-start mb-4 relative z-10">
+                      <div className="flex justify-between items-start mb-3">
                         <span
-                          className={`px-3 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold border ${
+                          className={`px-3 py-1 rounded-full text-sm font-bold ${
                             offer.type === 'descuento'
-                              ? 'bg-neutral-800 text-neutral-300 border-neutral-700'
-                              : 'bg-yellow-400/10 text-yellow-400 border-yellow-400/30'
+                              ? 'bg-pink-200 text-pink-800'
+                              : 'bg-purple-200 text-purple-800'
                           }`}
                         >
-                          {offer.type === 'descuento' ? '🏷️ Desc' : '✨ Cupón'}
+                          {offer.type === 'descuento'
+                            ? '🏷️ Descuento'
+                            : '✨ Cupón'}
                         </span>
                         <div className="flex gap-2">
-                          {/* Aquí quitamos el getSafeId en el onClick y pasamos el objeto puro para que la función lo procese correctamente */}
                           <button
                             onClick={() => {
                               setEditingOffer(offer);
                               setShowAddOfferModal(true);
                             }}
-                            className="text-neutral-400 hover:text-yellow-400 bg-neutral-800 p-1.5 rounded-lg transition-colors"
+                            className="text-blue-600 hover:text-blue-800"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <Edit2 className="w-5 h-5" />
                           </button>
                           <button
                             onClick={() => handleDeleteOffer(offer)}
-                            className="text-neutral-400 hover:text-red-500 bg-neutral-800 p-1.5 rounded-lg transition-colors"
+                            className="text-red-600 hover:text-red-800"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
                       </div>
-                      <h3 className="text-base font-bold text-neutral-100 mb-2 relative z-10 leading-tight">
-                        {offer.title}
-                      </h3>
-                      <p className="text-neutral-400 text-xs mb-3 line-clamp-2 relative z-10">{offer.description}</p>
+                      <h3 className="text-xl font-bold mb-2">{offer.title}</h3>
+                      <p className="text-gray-600 mb-2">{offer.description}</p>
                       {offer.code && (
-                        <p className="text-xs text-neutral-500 relative z-10">
-                          Código: <span className="font-bold text-yellow-400">{offer.code}</span>
+                        <p className="text-sm text-gray-500">
+                          Código: <span className="font-bold">{offer.code}</span>
                         </p>
                       )}
-                      <p className="text-[10px] text-neutral-600 mt-4 relative z-10 font-bold uppercase tracking-widest">
-                        Estado: {offer.active ? <span className="text-emerald-400">Activo</span> : 'Inactivo'}
+                      {offer.link && (
+                        <p className="text-sm text-blue-600 truncate">
+                          Link: {offer.link}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-400 mt-2">
+                        Estado: {offer.active ? 'Activo ✓' : 'Inactivo'}
                       </p>
                     </div>
                   ))}
                 </div>
               </>
             )}
-
             {adminSection === 'products' && (
               <>
                 <button
                   onClick={() => setShowAddProductModal(true)}
-                  className="mb-6 bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 rounded-xl font-black transition-all flex items-center gap-2 shadow-lg shadow-yellow-400/20"
+                  className="mb-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all flex items-center gap-2"
                   data-testid="add-product-button"
                 >
-                  <Plus className="w-5 h-5" strokeWidth={3} /> NUEVO PRODUCTO
+                  <Plus className="w-5 h-5" /> Nuevo Producto
                 </button>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {allProducts.map((prod) => (
                     <div
                       key={getSafeId(prod) || prod.title}
-                      className={`border rounded-2xl p-5 relative overflow-hidden ${
-                        prod.active
-                           ? 'border-yellow-400/30 bg-neutral-900 hover:border-yellow-400/60'
-                           : 'border-neutral-800 bg-neutral-950 opacity-70'
-                      }`}
+                      className="border-2 rounded-xl p-6 border-gray-300 bg-gray-50"
                     >
-                      <div className="flex justify-between items-start mb-4 relative z-10">
-                        <span className="px-3 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold border bg-neutral-800 text-neutral-300 border-neutral-700">
+                      <div className="flex justify-between items-start mb-3">
+                        <span className="px-3 py-1 rounded-full text-sm font-bold bg-green-200 text-green-800">
                           📦 Producto
                         </span>
                         <div className="flex gap-2">
@@ -1195,31 +1237,22 @@ function App() {
                               setEditingProduct(prod);
                               setShowAddProductModal(true);
                             }}
-                            className="text-neutral-400 hover:text-yellow-400 bg-neutral-800 p-1.5 rounded-lg transition-colors"
+                            className="text-blue-600 hover:text-blue-800"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <Edit2 className="w-5 h-5" />
                           </button>
                           <button
                             onClick={() => handleDeleteProduct(prod)}
-                            className="text-neutral-400 hover:text-red-500 bg-neutral-800 p-1.5 rounded-lg transition-colors"
+                            className="text-red-600 hover:text-red-800"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
                       </div>
-                      <div className="flex gap-4 relative z-10">
-                        {prod.image_url && (
-                           <img src={prod.image_url} alt="thumb" className="w-16 h-16 object-cover rounded-lg bg-neutral-800" />
-                        )}
-                        <div>
-                          <h3 className="text-sm font-bold text-neutral-100 mb-1 line-clamp-2 leading-tight">
-                            {prod.title}
-                          </h3>
-                          <p className="text-yellow-400 font-black text-sm">
-                            ${prod.discount_price} <span className="text-neutral-500 line-through text-xs ml-1">${prod.original_price}</span>
-                          </p>
-                        </div>
-                      </div>
+                      <h3 className="text-xl font-bold mb-2">{prod.title}</h3>
+                      <p className="text-gray-600 mb-2">
+                        ${prod.discount_price} / ${prod.original_price}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -1229,25 +1262,24 @@ function App() {
         </div>
       )}
 
-      {/* MODAL AGREGAR / EDITAR OFERTA */}
       {showAddOfferModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto text-gray-800 relative">
             <button
               onClick={() => {
                 setShowAddOfferModal(false);
                 setEditingOffer(null);
               }}
-              className="absolute top-6 right-6 text-neutral-500 hover:text-white bg-neutral-800 p-1.5 rounded-full"
+              className="absolute top-6 right-6 text-gray-500 hover:text-gray-800"
             >
               <X className="w-5 h-5" />
             </button>
-            <h2 className="text-2xl font-black text-neutral-100 mb-6 border-b border-neutral-800 pb-4">
-              {editingOffer ? 'EDITAR OFERTA' : 'NUEVA OFERTA'}
+            <h2 className="text-2xl font-bold mb-4">
+              {editingOffer ? 'Editar Oferta' : 'Agregar Oferta'}
             </h2>
-            <div className="space-y-5">
+            <div className="space-y-4">
               <div>
-                <label className="block text-neutral-400 text-xs font-bold uppercase tracking-wider mb-2">
+                <label className="block text-gray-700 font-bold mb-2">
                   Tipo
                 </label>
                 <select
@@ -1257,14 +1289,14 @@ function App() {
                       ? setEditingOffer({ ...editingOffer, type: e.target.value })
                       : setNewOffer({ ...newOffer, type: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 text-neutral-100 rounded-xl focus:outline-none focus:border-yellow-400 transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 >
                   <option value="descuento">🏷️ Descuento</option>
                   <option value="cupon">✨ Cupón</option>
                 </select>
               </div>
               <div>
-                <label className="block text-neutral-400 text-xs font-bold uppercase tracking-wider mb-2">
+                <label className="block text-gray-700 font-bold mb-2">
                   Título
                 </label>
                 <input
@@ -1276,11 +1308,11 @@ function App() {
                       : setNewOffer({ ...newOffer, title: e.target.value })
                   }
                   placeholder="Ej: 50% de descuento en laptops"
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 text-neutral-100 rounded-xl focus:outline-none focus:border-yellow-400 transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-neutral-400 text-xs font-bold uppercase tracking-wider mb-2">
+                <label className="block text-gray-700 font-bold mb-2">
                   Descripción
                 </label>
                 <textarea
@@ -1294,11 +1326,11 @@ function App() {
                   }
                   placeholder="Descripción detallada de la oferta"
                   rows="3"
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 text-neutral-100 rounded-xl focus:outline-none focus:border-yellow-400 transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-neutral-400 text-xs font-bold uppercase tracking-wider mb-2">
+                <label className="block text-gray-700 font-bold mb-2">
                   Código (opcional)
                 </label>
                 <input
@@ -1310,11 +1342,11 @@ function App() {
                       : setNewOffer({ ...newOffer, code: e.target.value })
                   }
                   placeholder="Ej: DESCUENTO50"
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 text-neutral-100 rounded-xl focus:outline-none focus:border-yellow-400 transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-neutral-400 text-xs font-bold uppercase tracking-wider mb-2">
+                <label className="block text-gray-700 font-bold mb-2">
                   Enlace / Link (opcional)
                 </label>
                 <input
@@ -1326,62 +1358,57 @@ function App() {
                       : setNewOffer({ ...newOffer, link: e.target.value })
                   }
                   placeholder="https://..."
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 text-neutral-100 rounded-xl focus:outline-none focus:border-yellow-400 transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
-              
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={() => {
-                    setShowAddOfferModal(false);
-                    setEditingOffer(null);
-                  }}
-                  className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 py-3 rounded-xl font-bold transition-all"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={() => {
-                    if (editingOffer) {
-                      // Limpiamos exhaustivamente las variables de identificador para que no colisionen al hacer PATCH
-                      const cleanUpdates = { ...editingOffer };
-                      const idKeys = ['id', '_id', 'offer_id', 'product_id', 'Id', 'ID', 'uuid'];
-                      idKeys.forEach(k => delete cleanUpdates[k]);
-                      handleUpdateOffer(editingOffer, cleanUpdates);
-                    } else {
-                      handleCreateOffer();
-                    }
-                  }}
-                  className="flex-1 bg-yellow-400 hover:bg-yellow-300 text-black py-3 rounded-xl font-black transition-all"
-                >
-                  {editingOffer ? 'Guardar' : 'Crear'}
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  if (editingOffer) {
+                    const cleanUpdates = { ...editingOffer };
+                    const idKeys = ['id', '_id', 'offer_id', 'product_id', 'Id', 'ID', 'uuid'];
+                    idKeys.forEach(k => delete cleanUpdates[k]);
+                    handleUpdateOffer(editingOffer, cleanUpdates);
+                  } else {
+                    handleCreateOffer();
+                  }
+                }}
+                className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"
+              >
+                {editingOffer ? 'Actualizar Oferta' : 'Guardar Oferta'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowAddOfferModal(false);
+                  setEditingOffer(null);
+                }}
+                className="w-full bg-gray-300 text-gray-800 py-3 rounded-lg font-bold"
+              >
+                Cancelar
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL AGREGAR / EDITAR PRODUCTO */}
       {showAddProductModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto text-gray-800 relative">
             <button
               onClick={() => {
                 setShowAddProductModal(false);
                 setEditingProduct(null);
               }}
-              className="absolute top-6 right-6 text-neutral-500 hover:text-white bg-neutral-800 p-1.5 rounded-full"
+              className="absolute top-6 right-6 text-gray-500 hover:text-gray-800"
               aria-label="Cerrar modal"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" />
             </button>
-            <h2 className="text-2xl font-black text-neutral-100 mb-6 border-b border-neutral-800 pb-4">
-              {editingProduct ? 'EDITAR PRODUCTO' : 'NUEVO PRODUCTO'}
+            <h2 className="text-2xl font-bold mb-4">
+              {editingProduct ? 'Editar Producto' : 'Agregar Producto'}
             </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-neutral-400 text-xs font-bold uppercase tracking-wider mb-2">
+                <label className="block text-gray-700 font-bold mb-2">
                   Título del Producto
                 </label>
                 <input
@@ -1392,11 +1419,11 @@ function App() {
                       ? setEditingProduct({ ...editingProduct, title: e.target.value })
                       : setNewProduct({ ...newProduct, title: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 text-neutral-100 rounded-xl focus:outline-none focus:border-yellow-400 transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-neutral-400 text-xs font-bold uppercase tracking-wider mb-2">
+                <label className="block text-gray-700 font-bold mb-2">
                   Descripción
                 </label>
                 <textarea
@@ -1410,13 +1437,13 @@ function App() {
                   }
                   placeholder="Descripción del producto, características, etc."
                   rows="3"
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 text-neutral-100 rounded-xl focus:outline-none focus:border-yellow-400 transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-neutral-400 text-xs font-bold uppercase tracking-wider mb-2">
-                    Precio Original
+                  <label className="block text-gray-700 font-bold mb-2">
+                    Precio Original ($)
                   </label>
                   <input
                     type="number"
@@ -1431,12 +1458,12 @@ function App() {
                         ? setEditingProduct({ ...editingProduct, original_price: e.target.value })
                         : setNewProduct({ ...newProduct, original_price: e.target.value })
                     }
-                    className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 text-neutral-100 rounded-xl focus:outline-none focus:border-yellow-400 transition-colors"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-neutral-400 text-xs font-bold uppercase tracking-wider mb-2">
-                    Precio c/ Descuento
+                  <label className="block text-gray-700 font-bold mb-2">
+                    Precio con Descuento ($)
                   </label>
                   <input
                     type="number"
@@ -1451,12 +1478,12 @@ function App() {
                         ? setEditingProduct({ ...editingProduct, discount_price: e.target.value })
                         : setNewProduct({ ...newProduct, discount_price: e.target.value })
                     }
-                    className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 text-neutral-100 rounded-xl focus:outline-none focus:border-yellow-400 transition-colors"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-neutral-400 text-xs font-bold uppercase tracking-wider mb-2">
+                <label className="block text-gray-700 font-bold mb-2">
                   URL de la Imagen
                 </label>
                 <input
@@ -1470,12 +1497,12 @@ function App() {
                       : setNewProduct({ ...newProduct, image_url: e.target.value })
                   }
                   placeholder="https://..."
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 text-neutral-100 rounded-xl focus:outline-none focus:border-yellow-400 transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-neutral-400 text-xs font-bold uppercase tracking-wider mb-2">
-                  Enlace de Afiliado
+                <label className="block text-gray-700 font-bold mb-2">
+                  Enlace de Afiliado / Link del Producto
                 </label>
                 <input
                   type="text"
@@ -1488,27 +1515,26 @@ function App() {
                       : setNewProduct({ ...newProduct, affiliate_link: e.target.value })
                   }
                   placeholder="https://..."
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 text-neutral-100 rounded-xl focus:outline-none focus:border-yellow-400 transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
-              
-              <div className="flex items-center bg-neutral-950 border border-neutral-800 p-3 rounded-xl mt-2">
+              <div className="flex items-center">
                 <input
                   type="checkbox"
-                  id="activeCheck"
-                  checked={editingProduct ? editingProduct.active : newProduct.active}
+                  checked={
+                    editingProduct ? editingProduct.active : newProduct.active
+                  }
                   onChange={(e) =>
                     editingProduct
                       ? setEditingProduct({ ...editingProduct, active: e.target.checked })
                       : setNewProduct({ ...newProduct, active: e.target.checked })
                   }
-                  className="w-5 h-5 mr-3 accent-yellow-400"
+                  className="w-5 h-5 mr-3 accent-purple-500"
                 />
-                <label htmlFor="activeCheck" className="text-neutral-300 text-sm font-bold cursor-pointer">
+                <label className="text-gray-700 font-bold">
                   Activo (visible en carrusel)
                 </label>
               </div>
-
               <button
                 onClick={() => {
                   if (editingProduct) {
@@ -1520,15 +1546,34 @@ function App() {
                     handleCreateProduct();
                   }
                 }}
-                className="w-full mt-4 bg-yellow-400 hover:bg-yellow-300 text-black py-4 rounded-xl font-black transition-all"
+                className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"
               >
-                {editingProduct ? 'ACTUALIZAR PRODUCTO' : 'CREAR PRODUCTO'}
+                {editingProduct ? 'Actualizar Producto' : 'Crear Producto'}
               </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* CHATBOT FLOATING ACTION BUTTON */}
+      <motion.button
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1.2, type: 'spring' }}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.95 }}
+        id="chatbot-fab"
+        data-chatbot-slot="customer-service"
+        onClick={() => setShowChatWindow(!showChatWindow)}
+        className="fixed right-5 bottom-5 z-40 group cursor-pointer"
+        aria-label="Abrir chat de atención"
+      >
+        <span className="absolute inset-0 rounded-full bg-yellow-400/40 blur-xl group-hover:blur-2xl transition" />
+        <span className="relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 text-black shadow-2xl shadow-yellow-400/50 border-2 border-yellow-300">
+          <Bot className="w-6 h-6" strokeWidth={2.5} />
+          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-neutral-950" />
+        </span>
+      </motion.button>
     </div>
   );
 }
