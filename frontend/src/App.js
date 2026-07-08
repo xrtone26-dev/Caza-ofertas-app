@@ -285,7 +285,7 @@ function App() {
         updateData.discount_percentage = parseInt(
           updateData.discount_percentage
         );
-      
+
       await axios.patch(
         `${API}/admin/products/${productId}?password=${adminPassword}`,
         updateData
@@ -345,7 +345,9 @@ function App() {
       navigator.clipboard.writeText(cupon.code);
     }
     playSniperSound();
-    setToastMessage('¡Estás cerca de obtener un mejor precio por tus artículos!');
+    setToastMessage(
+      '¡Estás cerca de obtener un mejor precio por tus artículos!'
+    );
     setShowToast(true);
 
     setTimeout(() => {
@@ -396,7 +398,13 @@ function App() {
 
   // Esto permite que los botones de sugerencia rápida ejecuten el envío directo
   useEffect(() => {
-    if (inputMessage && isTyping === false && inputMessage.match(/¿Cuál es el número de WhatsApp\?|Quiero ver cupones|Busco una oferta de pantalla/)) {
+    if (
+      inputMessage &&
+      isTyping === false &&
+      inputMessage.match(
+        /¿Cuál es el número de WhatsApp\?|Quiero ver cupones|Busco una oferta de pantalla/
+      )
+    ) {
       handleSendChatMessage({});
     }
   }, [inputMessage]);
@@ -446,7 +454,9 @@ function App() {
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-bold text-yellow-400">¡Alerta de Oferta!</p>
+                  <p className="font-bold text-yellow-400">
+                    ¡Alerta de Oferta!
+                  </p>
                   <p className="text-sm text-gray-200">{toastMessage}</p>
                 </div>
                 <button
@@ -477,7 +487,7 @@ function App() {
                 </div>
                 <div>
                   <p className="text-sm leading-tight">
-                    Asistente IA LadyOfertas
+                    Asistente IA CazaOfertasML
                   </p>
                   <span className="text-[10px] text-neutral-800 font-semibold flex items-center gap-1">
                     <span className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse" />{' '}
@@ -524,21 +534,25 @@ function App() {
 
             {/* SUGERENCIAS RÁPIDAS / OPCIONES DE PREGUNTAS */}
             <div className="px-3 py-2 bg-yellow-50 border-b border-gray-200 flex flex-wrap gap-1.5 text-xs">
-              <span className="text-gray-500 font-semibold w-full mb-0.5">Preguntas frecuentes:</span>
-              <button 
-                onClick={() => setInputMessage('¿Cuál es el número de WhatsApp?')} 
+              <span className="text-gray-500 font-semibold w-full mb-0.5">
+                Preguntas frecuentes:
+              </span>
+              <button
+                onClick={() =>
+                  setInputMessage('¿Cuál es el número de WhatsApp?')
+                }
                 className="bg-white hover:bg-yellow-200 text-gray-800 px-2.5 py-1 rounded-full border border-yellow-300 transition-all font-medium"
               >
                 💬 ¿Número de WhatsApp?
               </button>
-              <button 
-                onClick={() => setInputMessage('Quiero ver cupones')} 
+              <button
+                onClick={() => setInputMessage('Quiero ver cupones')}
                 className="bg-white hover:bg-yellow-200 text-gray-800 px-2.5 py-1 rounded-full border border-yellow-300 transition-all font-medium"
               >
                 ✨ Ver cupones
               </button>
-              <button 
-                onClick={() => setInputMessage('Busco una oferta de pantalla')} 
+              <button
+                onClick={() => setInputMessage('Busco una oferta de pantalla')}
                 className="bg-white hover:bg-yellow-200 text-gray-800 px-2.5 py-1 rounded-full border border-yellow-300 transition-all font-medium"
               >
                 🔥 Buscar ofertas
@@ -587,7 +601,7 @@ function App() {
               className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg"
               data-testid="main-title"
             >
-              LadyOfertasMex
+              CazaOfertasML
             </h1>
 
             <p
@@ -810,11 +824,11 @@ function App() {
           <div className="mb-6">
             <img
               src={logoUrl}
-              alt="LadyOfertasMex"
+              alt="CazaOfertasML"
               className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-white/20"
               data-testid="footer-logo"
             />
-            <h3 className="text-2xl font-bold mb-2">LadyOfertasMex</h3>
+            <h3 className="text-2xl font-bold mb-2">CazaOfertasML</h3>
             <p className="text-gray-400">
               Las mejores ofertas y descuentos para ti
             </p>
@@ -1079,7 +1093,8 @@ function App() {
                       <p className="text-gray-600 mb-2">{offer.description}</p>
                       {offer.code && (
                         <p className="text-sm text-gray-500">
-                          Código: <span className="font-bold">{offer.code}</span>
+                          Código:{' '}
+                          <span className="font-bold">{offer.code}</span>
                         </p>
                       )}
                       {offer.link && (
@@ -1259,7 +1274,9 @@ function App() {
                 </label>
                 <input
                   type="text"
-                  value={editingProduct ? editingProduct.title : newProduct.title}
+                  value={
+                    editingProduct ? editingProduct.title : newProduct.title
+                  }
                   onChange={(e) =>
                     editingProduct
                       ? setEditingProduct({
