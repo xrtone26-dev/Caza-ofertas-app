@@ -1350,7 +1350,17 @@ function App() {
 
       {showAddProductModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto relative">
+            <button
+              onClick={() => {
+                setShowAddProductModal(false);
+                setEditingProduct(null);
+              }}
+              className="absolute top-6 right-6 text-gray-500 hover:text-gray-800"
+              aria-label="Cerrar modal"
+            >
+              <X className="w-6 h-6" />
+            </button>
             <h2 className="text-2xl font-bold text-gray-800 mb-4">
               {editingProduct ? 'Editar Producto' : 'Agregar Producto'}
             </h2>
