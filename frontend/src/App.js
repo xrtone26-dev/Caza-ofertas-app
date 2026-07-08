@@ -124,6 +124,18 @@ function App() {
     },
   ];
 
+  // Helper seguro para obtener ID de cualquier objeto (maneja id, _id string u objeto)
+  const getSafeId = (item) => {
+    if (!item) return null;
+    if (item.id) return item.id;
+    if (item._id) {
+      if (typeof item._id === 'string') return item._id;
+      if (item._id.$oid) return item._id.$oid;
+      if (typeof item._id.toString === 'function') return item._id.toString();
+    }
+    return null;
+  };
+
   // Cargar ofertas y productos públicos
   useEffect(() => {
     loadPublicOffers();
@@ -217,8 +229,13 @@ function App() {
     }
   };
 
-  const handleUpdateOffer = async (offerId, updates) => {
+  const handleUpdateOffer = async (offerOrId, updates) => {
     try {
+      const offerId = getSafeId(offerOrId) || offerOrId;
+      if (!offerId || offerId === 'undefined') {
+        alert('Error: ID de oferta no válido');
+        return;
+      }
       await axios.patch(
         `${API}/admin/offers/${offerId}?password=${adminPassword}`,
         updates
@@ -226,12 +243,18 @@ function App() {
       loadAllOffers();
       loadPublicOffers();
       setEditingOffer(null);
+      setShowAddOfferModal(false);
     } catch (error) {
       alert('Error al actualizar oferta');
     }
   };
 
-  const handleDeleteOffer = async (offerId) => {
+  const handleDeleteOffer = async (offerOrId) => {
+    const offerId = getSafeId(offerOrId) || offerOrId;
+    if (!offerId || offerId === 'undefined') {
+      alert('Error: No se pudo identificar el ID de la oferta');
+      return;
+    }
     if (window.confirm('¿Estás seguro de eliminar esta oferta?')) {
       try {
         await axios.delete(
@@ -924,7 +947,7 @@ function App() {
               <div className="space-y-4">
                 {descuentos.map((desc) => (
                   <div
-                    key={desc.id}
+                    key={getSafeId(desc) || desc.title}
                     className="bg-gray-50 rounded-xl p-4 border border-gray-200"
                   >
                     <h3 className="text-xl font-bold text-gray-800">
@@ -978,7 +1001,7 @@ function App() {
               <div className="space-y-4">
                 {cupones.map((cupon) => (
                   <div
-                    key={cupon.id}
+                    key={getSafeId(cupon) || cupon.title}
                     className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border-2 border-purple-200"
                   >
                     <h3 className="text-xl font-bold text-gray-800 mb-2">
@@ -1060,7 +1083,7 @@ function App() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {allOffers.map((offer) => (
                     <div
-                      key={offer.id || offer._id}
+                      key={getSafeId(offer) || offer.title}
                       className={`border-2 rounded-xl p-6 ${
                         offer.active
                           ? 'border-green-300 bg-green-50'
@@ -1090,9 +1113,7 @@ function App() {
                             <Edit2 className="w-5 h-5" />
                           </button>
                           <button
-                            onClick={() =>
-                              handleDeleteOffer(offer.id || offer._id)
-                            }
+                            onClick={() => handleDeleteOffer(offer)}
                             className="text-red-600 hover:text-red-800"
                           >
                             <Trash2 className="w-5 h-5" />
@@ -1134,7 +1155,7 @@ function App() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {allProducts.map((prod) => (
                     <div
-                      key={prod.id}
+                      key={getSafeId(prod) || prod.title}
                       className="border-2 rounded-xl p-6 border-gray-300 bg-gray-50"
                     >
                       <div className="flex justify-between items-start mb-3">
@@ -1152,7 +1173,7 @@ function App() {
                             <Edit2 className="w-5 h-5" />
                           </button>
                           <button
-                            onClick={() => handleDeleteProduct(prod.id)}
+                            onClick={() => handleDeleteProduct(getSafeId(prod))}
                             className="text-red-600 hover:text-red-800"
                           >
                             <Trash2 className="w-5 h-5" />
@@ -1287,10 +1308,7 @@ function App() {
               <button
                 onClick={() => {
                   if (editingOffer) {
-                    handleUpdateOffer(
-                      editingOffer.id || editingOffer._id,
-                      editingOffer
-                    );
+                    handleUpdateOffer(editingOffer, editingOffer);
                   } else {
                     handleCreateOffer();
                   }
@@ -1498,7 +1516,7 @@ function App() {
               <button
                 onClick={() => {
                   if (editingProduct) {
-                    handleUpdateProduct(editingProduct.id, editingProduct);
+                    handleUpdateProduct(getSafeId(editingProduct), editingProduct);
                   } else {
                     handleCreateProduct();
                   }
