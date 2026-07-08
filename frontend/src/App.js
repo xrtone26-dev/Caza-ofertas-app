@@ -240,9 +240,10 @@ function App() {
         alert('Error: ID de oferta no válido');
         return;
       }
+      const { id, _id, ...cleanUpdates } = updates;
       await axios.patch(
         `${API}/admin/offers/${offerId}?password=${adminPassword}`,
-        updates
+        cleanUpdates
       );
       loadAllOffers();
       loadPublicOffers();
@@ -308,21 +309,26 @@ function App() {
     }
   };
 
-  const handleUpdateProduct = async (productId, updates) => {
+  const handleUpdateProduct = async (productOrId, updates) => {
     try {
+      const productId = getSafeId(productOrId);
+      if (!productId) {
+        alert('Error: ID de producto no válido');
+        return;
+      }
       const updateData = { ...updates };
-      if (updateData.original_price)
+      if (updateData.original_price !== '' && updateData.original_price != null)
         updateData.original_price = parseFloat(updateData.original_price);
-      if (updateData.discount_price)
+      if (updateData.discount_price !== '' && updateData.discount_price != null)
         updateData.discount_price = parseFloat(updateData.discount_price);
-      if (updateData.discount_percentage)
-        updateData.discount_percentage = parseInt(
-          updateData.discount_percentage
-        );
+      if (updateData.discount_percentage !== '' && updateData.discount_percentage != null)
+        updateData.discount_percentage = parseInt(updateData.discount_percentage);
+
+      const { id, _id, created_at, ...cleanProductUpdates } = updateData;
 
       await axios.patch(
         `${API}/admin/products/${productId}?password=${adminPassword}`,
-        updateData
+        cleanProductUpdates
       );
       loadAllProducts();
       loadPublicProducts();
@@ -333,7 +339,12 @@ function App() {
     }
   };
 
-  const handleDeleteProduct = async (productId) => {
+  const handleDeleteProduct = async (productOrId) => {
+    const productId = getSafeId(productOrId);
+    if (!productId) {
+      alert('Error: No se pudo identificar el ID del producto');
+      return;
+    }
     if (window.confirm('¿Estás seguro de eliminar este producto?')) {
       try {
         await axios.delete(
@@ -1522,7 +1533,7 @@ function App() {
               <button
                 onClick={() => {
                   if (editingProduct) {
-                    const { id, _id, ...cleanProductUpdates } = editingProduct;
+                    const { id, _id, created_at, ...cleanProductUpdates } = editingProduct;
                     handleUpdateProduct(getSafeId(editingProduct), cleanProductUpdates);
                   } else {
                     handleCreateProduct();
