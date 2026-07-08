@@ -30,6 +30,14 @@ class ProductUpdate(BaseModel):
     discount_price: Optional[float] = None
     active: Optional[bool] = None
 
+class OfferUpdate(BaseModel):
+    type: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    code: Optional[str] = None
+    link: Optional[str] = None
+    active: Optional[bool] = None
+
 class AdminLoginRequest(BaseModel):
     password: str
 
@@ -107,6 +115,25 @@ async def create_offer(offer_data: dict, password: str):
         raise HTTPException(status_code=401, detail="No autorizado")
     await db.offers.insert_one(offer_data)
     return {"success": True, "message": "Oferta creada"}
+
+# Actualizar oferta/cupón (admin)
+@api_router.patch("/admin/offers/{offer_id}")
+async def update_offer(offer_id: str, offer_data: OfferUpdate, password: str):
+    if password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="No autorizado")
+    
+    update_dict = {k: v for k, v in offer_data.model_dump().items() if v is not None}
+    if not update_dict:
+        raise HTTPException(status_code=400, detail="No hay datos para actualizar")
+    
+    result = await db.offers.update_one(
+        {"id": offer_id},
+        {"$set": update_dict}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Oferta no encontrada")
+    
+    return {"success": True, "message": "Oferta actualizada"}
 
 # Eliminar oferta (admin)
 @api_router.delete("/admin/offers/{offer_id}")
@@ -197,7 +224,7 @@ async def delete_product(product_id: str, password: str):
     
     result = await db.products.delete_one({"id": product_id})
     if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Oferta no encontrada") # fixed typo from original code or kept identical
+        raise HTTPException(status_code=404, detail="Oferta no encontrada")
     
     return {"success": True, "message": "Producto eliminado"}
 
