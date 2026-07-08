@@ -327,8 +327,9 @@ function App() {
       loadAllProducts();
       loadPublicProducts();
       setEditingProduct(null);
+      setShowAddProductModal(false);
     } catch (error) {
-      alert('Error al actualizar oferta');
+      alert('Error al actualizar producto');
     }
   };
 
@@ -1312,7 +1313,8 @@ function App() {
               <button
                 onClick={() => {
                   if (editingOffer) {
-                    handleUpdateOffer(editingOffer, editingOffer);
+                    const { id, _id, ...cleanUpdates } = editingOffer;
+                    handleUpdateOffer(editingOffer, cleanUpdates);
                   } else {
                     handleCreateOffer();
                   }
@@ -1520,7 +1522,8 @@ function App() {
               <button
                 onClick={() => {
                   if (editingProduct) {
-                    handleUpdateProduct(getSafeId(editingProduct), editingProduct);
+                    const { id, _id, ...cleanProductUpdates } = editingProduct;
+                    handleUpdateProduct(getSafeId(editingProduct), cleanProductUpdates);
                   } else {
                     handleCreateProduct();
                   }
