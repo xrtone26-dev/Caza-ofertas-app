@@ -124,14 +124,18 @@ function App() {
     },
   ];
 
-  // Helper seguro para obtener ID de cualquier objeto (maneja id, _id string u objeto)
+  // Helper totalmente blindado para extraer ID de cupones y ofertas sin fallos
   const getSafeId = (item) => {
     if (!item) return null;
-    if (item.id) return item.id;
+    if (typeof item === 'string' || typeof item === 'number') return String(item);
+    if (item.id) return String(item.id);
     if (item._id) {
       if (typeof item._id === 'string') return item._id;
       if (item._id.$oid) return item._id.$oid;
-      if (typeof item._id.toString === 'function') return item._id.toString();
+      if (typeof item._id.toString === 'function') {
+        const val = item._id.toString();
+        if (val !== '[object Object]') return val;
+      }
     }
     return null;
   };
@@ -231,8 +235,8 @@ function App() {
 
   const handleUpdateOffer = async (offerOrId, updates) => {
     try {
-      const offerId = getSafeId(offerOrId) || offerOrId;
-      if (!offerId || offerId === 'undefined') {
+      const offerId = getSafeId(offerOrId);
+      if (!offerId) {
         alert('Error: ID de oferta no válido');
         return;
       }
@@ -250,8 +254,8 @@ function App() {
   };
 
   const handleDeleteOffer = async (offerOrId) => {
-    const offerId = getSafeId(offerOrId) || offerOrId;
-    if (!offerId || offerId === 'undefined') {
+    const offerId = getSafeId(offerOrId);
+    if (!offerId) {
       alert('Error: No se pudo identificar el ID de la oferta');
       return;
     }
