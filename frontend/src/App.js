@@ -27,11 +27,19 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 // Pagina Render
 const API = BACKEND_URL;
 
+// ========== PROMPT DE SISTEMA DEL BOT OFICIAL ==========
+const BOT_SYSTEM_PROMPT = `
+Eres el Asistente Virtual Oficial de CazaOfertasML, una comunidad mexicana especializada en encontrar y compartir las mejores ofertas de Mercado Libre México.
+Tu objetivo principal es ayudar a los usuarios a ahorrar dinero, encontrar el mejor producto según sus necesidades, resolver dudas relacionadas con Mercado Libre y guiar al usuario hasta completar una compra informada.
+Personalidad: Amigable, cercana, profesional, paciente, muy servicial, natural, conversacional y positiva. Utiliza emojis únicamente cuando aporten valor (✅🔥💰📦🛒🎉⚡).
+Aclara siempre que: "Los precios, promociones y disponibilidad pueden cambiar en cualquier momento sin previo aviso."
+`;
+
 function App() {
   const logoUrl = 'https://i.postimg.cc/RCXL4ZZ9/logo.png';
   const whatsappNumber = '+523312229710';
 
-  // Estados
+  // Estados principales de la aplicación
   const [showDescuentosModal, setShowDescuentosModal] = useState(false);
   const [showCuponesModal, setShowCuponesModal] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
@@ -45,6 +53,7 @@ function App() {
   const [allOffers, setAllOffers] = useState([]);
   const [showAddOfferModal, setShowAddOfferModal] = useState(false);
   const [editingOffer, setEditingOffer] = useState(null);
+  
   const [newOffer, setNewOffer] = useState({
     type: 'descuento',
     title: '',
@@ -54,14 +63,14 @@ function App() {
     active: true,
   });
 
-  // Estados para productos
+  // Estados para productos y carrusel
   const [products, setProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [adminSection, setAdminSection] = useState('offers');
   
-  // NUEVO ESTADO: Buscador de productos
+  // Estado para el buscador y filtrado
   const [searchTerm, setSearchTerm] = useState('');
 
   const [newProduct, setNewProduct] = useState({
@@ -76,16 +85,18 @@ function App() {
     active: true,
   });
 
+  // Notificaciones y Chatbot
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-
   const [showChatWindow, setShowChatWindow] = useState(false);
+  
   const [chatMessages, setChatMessages] = useState([
     {
       sender: 'bot',
       text: '¡Hola! Soy tu asistente virtual de CazaOfertasML. ¿Qué producto o descuento estás buscando hoy?',
     },
   ]);
+  
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef(null);
@@ -125,6 +136,7 @@ function App() {
     },
   ];
 
+  // Helper robusto para extracción de identificadores
   const getSafeId = (item) => {
     if (!item) return null;
     if (typeof item === 'string' || typeof item === 'number') return String(item);
@@ -369,7 +381,6 @@ function App() {
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
 
-  // NUEVA FUNCIÓN: Redirección directa para buscar en Mercado Libre por afiliado/término
   const handleSearchOnMercadoLibre = () => {
     if (!searchTerm.trim()) {
       window.open('https://www.mercadolibre.com.mx', '_blank');
@@ -426,10 +437,25 @@ function App() {
     if (!inputMessage.trim()) return;
 
     const userText = inputMessage;
+    const lowerText = userText.toLowerCase();
     const newHistory = [...chatMessages, { sender: 'user', text: userText }];
     setChatMessages(newHistory);
     setInputMessage('');
     setIsTyping(true);
+
+    if (lowerText.includes('unirse') || lowerText.includes('grupo') || lowerText.includes('telegram') || lowerText.includes('facebook') || lowerText.includes('comunidad')) {
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            text: '¡Claro que sí! Aquí tienes nuestros canales oficiales para no perderte ninguna oferta:\n💬 WhatsApp Grupo: https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1\n💬 WhatsApp Canal: https://whatsapp.com/channel/0029Vb6HXPR3wtbIPP0vUT1m\n✈ Telegram: https://t.me/LadyOfertas2026\n📘 Facebook: https://www.facebook.com/CazaOfertasml1\n⚠️ Recuerda que los precios y disponibilidad pueden cambiar en cualquier momento sin previo aviso.',
+          },
+        ]);
+        setIsTyping(false);
+      }, 800);
+      return;
+    }
 
     try {
       const response = await axios.post(`${API}/chat`, {
@@ -446,7 +472,7 @@ function App() {
           ...prev,
           {
             sender: 'bot',
-            text: '¡Excelente pregunta! Revisa nuestro carrusel de productos destacados o escríbenos por WhatsApp para darte una atención inmediata.',
+            text: '¡Excelente pregunta! Revisa nuestro carrusel de productos destacados o escríbenos por WhatsApp para darte atención inmediata. (Los precios y disponibilidad pueden cambiar en cualquier momento sin previo aviso).',
           },
         ]);
       }, 1000);
@@ -494,7 +520,6 @@ function App() {
     },
   ];
 
-  // Filtrado de productos según el texto introducido en el buscador
   const isLight = themeMode === 'light';
   const filteredProducts = products.filter(
     (p) =>
@@ -508,7 +533,6 @@ function App() {
 
   return (
     <div className={mainBgClass}>
-      {/* Fondo Ambiental */}
       {!isLight && (
         <>
           <div className="fixed inset-0 bg-grid opacity-20 pointer-events-none" />
@@ -581,7 +605,7 @@ function App() {
               </button>
             </div>
 
-            <div className={`flex-1 p-4 overflow-y-auto space-y-3 text-sm ${isLight ? 'bg-gray-50' : 'bg-neutral-950'}`}>
+            <div className={`flex-1 p-4 overflow-y-auto space-y-3 text-sm whitespace-pre-line ${isLight ? 'bg-gray-50' : 'bg-neutral-950'}`}>
               {chatMessages.map((msg, index) => (
                 <div
                   key={index}
@@ -615,10 +639,10 @@ function App() {
                 Preguntas frecuentes:
               </span>
               <button
-                onClick={() => setInputMessage('¿Cuál es el número de WhatsApp?')}
+                onClick={() => setInputMessage('¿Cómo puedo unirme a la comunidad?')}
                 className={`px-2.5 py-1 rounded-full border transition-all font-medium ${isLight ? 'bg-white hover:bg-yellow-200 text-gray-800 border-yellow-300' : 'bg-neutral-800 hover:bg-yellow-400 hover:text-black text-neutral-300 border-neutral-700'}`}
               >
-                💬 ¿Número de WhatsApp?
+                💬 Unirme a comunidad
               </button>
               <button
                 onClick={() => setInputMessage('Quiero ver cupones')}
@@ -696,7 +720,7 @@ function App() {
         </div>
       </div>
 
-      {/* Products Carousel Section + BARRA DE BÚSQUEDA INTELIGENTE */}
+      {/* Products Carousel Section + Buscador */}
       {products.length > 0 && (
         <div className="container mx-auto px-4 -mt-8 mb-16 relative z-10">
           <div className={`rounded-3xl shadow-xl p-8 backdrop-blur-xl border ${isLight ? 'bg-white border-gray-100' : 'bg-neutral-900/85 border-neutral-800'}`}>
@@ -707,7 +731,6 @@ function App() {
               🔥 Productos Destacados
             </h2>
 
-            {/* NUEVA BARRA DE BÚSQUEDA Y FILTRADO */}
             <div className="max-w-xl mx-auto mb-8 flex gap-2">
               <div className="relative flex-1">
                 <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 ${isLight ? 'text-gray-400' : 'text-neutral-500'}`} />
@@ -807,7 +830,6 @@ function App() {
                   </div>
                 </div>
 
-                {/* Carousel Navigation Buttons */}
                 {filteredProducts.length > 1 && (
                   <>
                     <button
@@ -874,10 +896,7 @@ function App() {
             ¿Por qué unirte a nuestros canales?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8 text-left">
-            <div
-              className="flex items-start space-x-4"
-              data-testid="feature-item-1"
-            >
+            <div className="flex items-start space-x-4" data-testid="feature-item-1">
               <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold ${isLight ? 'bg-gradient-to-br from-pink-500 to-purple-500 text-white' : 'bg-yellow-400 text-black font-black'}`}>
                 ✓
               </div>
@@ -890,10 +909,7 @@ function App() {
                 </p>
               </div>
             </div>
-            <div
-              className="flex items-start space-x-4"
-              data-testid="feature-item-2"
-            >
+            <div className="flex items-start space-x-4" data-testid="feature-item-2">
               <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold ${isLight ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white' : 'bg-yellow-400 text-black font-black'}`}>
                 ✓
               </div>
@@ -906,10 +922,7 @@ function App() {
                 </p>
               </div>
             </div>
-            <div
-              className="flex items-start space-x-4"
-              data-testid="feature-item-3"
-            >
+            <div className="flex items-start space-x-4" data-testid="feature-item-3">
               <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold ${isLight ? 'bg-gradient-to-br from-orange-500 to-red-500 text-white' : 'bg-yellow-400 text-black font-black'}`}>
                 ✓
               </div>
@@ -976,35 +989,26 @@ function App() {
         </div>
       </footer>
 
-      {/* MODAL CONFIGURACIÓN DE TEMA */}
+      {/* MODALS Y DIÁLOGOS TÁCTICOS */}
       {showThemeModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className={`rounded-3xl p-8 max-w-sm w-full shadow-2xl border ${isLight ? 'bg-white text-gray-800 border-gray-200' : 'bg-neutral-900 text-neutral-100 border-neutral-800'}`}>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold">⚙️ Tema de fondo</h2>
-              <button
-                onClick={() => setShowThemeModal(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
+              <button onClick={() => setShowThemeModal(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-3">
               <button
-                onClick={() => {
-                  setThemeMode('light');
-                  setShowThemeModal(false);
-                }}
+                onClick={() => { setThemeMode('light'); setShowThemeModal(false); }}
                 className={`w-full py-3.5 px-4 rounded-xl font-bold flex items-center justify-between border transition-all ${themeMode === 'light' ? 'bg-purple-500 text-white border-purple-500 shadow-md' : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700'}`}
               >
                 <span>☀️ Tema Claro</span>
                 {themeMode === 'light' && <span className="font-black">✓</span>}
               </button>
               <button
-                onClick={() => {
-                  setThemeMode('dark');
-                  setShowThemeModal(false);
-                }}
+                onClick={() => { setThemeMode('dark'); setShowThemeModal(false); }}
                 className={`w-full py-3.5 px-4 rounded-xl font-bold flex items-center justify-between border transition-all ${themeMode === 'dark' ? 'bg-yellow-400 text-black border-yellow-400 shadow-md' : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700'}`}
               >
                 <span>🌙 Tema Oscuro</span>
@@ -1019,13 +1023,8 @@ function App() {
         <div className="fixed inset-0 bg-black/55 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full text-gray-800">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">
-                🔐 Acceso Administrador
-              </h2>
-              <button
-                onClick={() => setShowAdminLogin(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
+              <h2 className="text-2xl font-bold">🔐 Acceso Administrador</h2>
+              <button onClick={() => setShowAdminLogin(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -1036,10 +1035,7 @@ function App() {
               placeholder="Contraseña de administrador"
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg mb-4 text-gray-800 focus:outline-none focus:border-purple-500"
             />
-            <button
-              onClick={handleAdminLogin}
-              className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:shadow-lg"
-            >
+            <button onClick={handleAdminLogin} className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:shadow-lg">
               Entrar
             </button>
           </div>
@@ -1047,45 +1043,24 @@ function App() {
       )}
 
       {showDescuentosModal && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowDescuentosModal(false)}
-        >
-          <div
-            className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto text-gray-800"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowDescuentosModal(false)}>
+          <div className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto text-gray-800" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-3xl font-bold">
-                🏷️ Descuentos Exclusivos
-              </h2>
-              <button
-                onClick={() => setShowDescuentosModal(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
+              <h2 className="text-3xl font-bold">🏷️ Descuentos Exclusivos</h2>
+              <button onClick={() => setShowDescuentosModal(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="w-6 h-6" />
               </button>
             </div>
             {descuentos.length === 0 ? (
-              <p className="text-gray-600 text-center py-8">
-                No hay descuentos disponibles en este momento.
-              </p>
+              <p className="text-gray-600 text-center py-8">No hay descuentos disponibles en este momento.</p>
             ) : (
               <div className="space-y-4">
                 {descuentos.map((desc) => (
-                  <div
-                    key={getSafeId(desc) || desc.title}
-                    className="bg-gray-50 rounded-xl p-4 border border-gray-200"
-                  >
+                  <div key={getSafeId(desc) || desc.title} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                     <h3 className="text-xl font-bold">{desc.title}</h3>
                     <p className="text-gray-600">{desc.description}</p>
                     {desc.link && (
-                      <a
-                        href={desc.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 underline"
-                      >
+                      <a href={desc.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
                         Ver oferta
                       </a>
                     )}
@@ -1098,58 +1073,32 @@ function App() {
       )}
 
       {showCuponesModal && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowCuponesModal(false)}
-        >
-          <div
-            className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto text-gray-800"
-            onClick={(e) => e.stopPropagation()}
-            data-testid="cupones-modal"
-          >
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowCuponesModal(false)}>
+          <div className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto text-gray-800" onClick={(e) => e.stopPropagation()} data-testid="cupones-modal">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-3xl font-bold">
-                ✨ Cupones Especiales
-              </h2>
-              <button
-                onClick={() => setShowCuponesModal(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
+              <h2 className="text-3xl font-bold">✨ Cupones Especiales</h2>
+              <button onClick={() => setShowCuponesModal(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="w-6 h-6" />
               </button>
             </div>
             {cupones.length === 0 ? (
-              <p className="text-gray-600 text-center py-8">
-                No hay cupones disponibles en este momento. ¡Vuelve pronto!
-              </p>
+              <p className="text-gray-600 text-center py-8">No hay cupones disponibles en este momento. ¡Vuelve pronto!</p>
             ) : (
               <div className="space-y-4">
                 {cupones.map((cupon) => (
-                  <div
-                    key={getSafeId(cupon) || cupon.title}
-                    className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border-2 border-purple-200"
-                  >
-                    <h3 className="text-xl font-bold mb-2">
-                      {cupon.title}
-                    </h3>
+                  <div key={getSafeId(cupon) || cupon.title} className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border-2 border-purple-200">
+                    <h3 className="text-xl font-bold mb-2">{cupon.title}</h3>
                     <p className="text-gray-600 mb-3">{cupon.description}</p>
                     {cupon.code && (
                       <div className="bg-white border-2 border-dashed border-purple-400 rounded-lg p-3 mb-3">
-                        <p className="text-sm text-gray-600 mb-1">
-                          Código del cupón:
-                        </p>
+                        <p className="text-sm text-gray-600 mb-1">Código del cupón:</p>
                         <p className="text-2xl font-bold text-purple-600">
-                          {cupon.code.length > 3
-                            ? cupon.code.substring(0, 3) + '********'
-                            : '****'}
+                          {cupon.code.length > 3 ? cupon.code.substring(0, 3) + '********' : '****'}
                         </p>
                       </div>
                     )}
                     {cupon.link && (
-                      <button
-                        onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                        className="w-full mt-2 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all font-bold"
-                      >
+                      <button onClick={() => handleCopiarIrMercadoLibre(cupon)} className="w-full mt-2 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all font-bold">
                         <Tag className="w-5 h-5" /> Copiar e ir a MercadoLibre
                       </button>
                     )}
@@ -1165,101 +1114,45 @@ function App() {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto text-gray-800">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">
-                🛠️ Panel de Administración
-              </h2>
-              <button
-                onClick={() => setShowAdminPanel(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
+              <h2 className="text-2xl font-bold">🛠️ Panel de Administración</h2>
+              <button onClick={() => setShowAdminPanel(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="w-6 h-6" />
               </button>
             </div>
             <div className="flex gap-4 mb-6">
-              <button
-                onClick={() => setAdminSection('offers')}
-                className={`px-4 py-2 rounded-lg font-bold ${
-                  adminSection === 'offers'
-                    ? 'bg-purple-500 text-white'
-                    : 'bg-gray-200 text-gray-700'
-                }`}
-              >
+              <button onClick={() => setAdminSection('offers')} className={`px-4 py-2 rounded-lg font-bold ${adminSection === 'offers' ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-700'}`}>
                 Ofertas
               </button>
-              <button
-                onClick={() => setAdminSection('products')}
-                className={`px-4 py-2 rounded-lg font-bold ${
-                  adminSection === 'products'
-                    ? 'bg-purple-500 text-white'
-                    : 'bg-gray-200 text-gray-700'
-                }`}
-              >
+              <button onClick={() => setAdminSection('products')} className={`px-4 py-2 rounded-lg font-bold ${adminSection === 'products' ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-700'}`}>
                 Productos
               </button>
             </div>
             {adminSection === 'offers' && (
               <>
-                <button
-                  onClick={() => setShowAddOfferModal(true)}
-                  className="mb-6 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all flex items-center gap-2"
-                >
+                <button onClick={() => setShowAddOfferModal(true)} className="mb-6 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all flex items-center gap-2">
                   <Plus className="w-5 h-5" /> Nueva Oferta
                 </button>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {allOffers.map((offer) => (
-                    <div
-                      key={getSafeId(offer) || offer.title}
-                      className={`border-2 rounded-xl p-6 ${
-                        offer.active
-                          ? 'border-green-300 bg-green-50'
-                          : 'border-gray-300 bg-gray-50'
-                      }`}
-                    >
+                    <div key={getSafeId(offer) || offer.title} className={`border-2 rounded-xl p-6 ${offer.active ? 'border-green-300 bg-green-50' : 'border-gray-300 bg-gray-50'}`}>
                       <div className="flex justify-between items-start mb-3">
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-bold ${
-                            offer.type === 'descuento'
-                              ? 'bg-pink-200 text-pink-800'
-                              : 'bg-purple-200 text-purple-800'
-                          }`}
-                        >
-                          {offer.type === 'descuento'
-                            ? '🏷️ Descuento'
-                            : '✨ Cupón'}
+                        <span className={`px-3 py-1 rounded-full text-sm font-bold ${offer.type === 'descuento' ? 'bg-pink-200 text-pink-800' : 'bg-purple-200 text-purple-800'}`}>
+                          {offer.type === 'descuento' ? '🏷️ Descuento' : '✨ Cupón'}
                         </span>
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              setEditingOffer(offer);
-                              setShowAddOfferModal(true);
-                            }}
-                            className="text-blue-600 hover:text-blue-800"
-                          >
+                          <button onClick={() => { setEditingOffer(offer); setShowAddOfferModal(true); }} className="text-blue-600 hover:text-blue-800">
                             <Edit2 className="w-5 h-5" />
                           </button>
-                          <button
-                            onClick={() => handleDeleteOffer(offer)}
-                            className="text-red-600 hover:text-red-800"
-                          >
+                          <button onClick={() => handleDeleteOffer(offer)} className="text-red-600 hover:text-red-800">
                             <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
                       </div>
                       <h3 className="text-xl font-bold mb-2">{offer.title}</h3>
                       <p className="text-gray-600 mb-2">{offer.description}</p>
-                      {offer.code && (
-                        <p className="text-sm text-gray-500">
-                          Código: <span className="font-bold">{offer.code}</span>
-                        </p>
-                      )}
-                      {offer.link && (
-                        <p className="text-sm text-blue-600 truncate">
-                          Link: {offer.link}
-                        </p>
-                      )}
-                      <p className="text-xs text-gray-400 mt-2">
-                        Estado: {offer.active ? 'Activo ✓' : 'Inactivo'}
-                      </p>
+                      {offer.code && <p className="text-sm text-gray-500">Código: <span className="font-bold">{offer.code}</span></p>}
+                      {offer.link && <p className="text-sm text-blue-600 truncate">Link: {offer.link}</p>}
+                      <p className="text-xs text-gray-400 mt-2">Estado: {offer.active ? 'Activo ✓' : 'Inactivo'}</p>
                     </div>
                   ))}
                 </div>
@@ -1267,45 +1160,25 @@ function App() {
             )}
             {adminSection === 'products' && (
               <>
-                <button
-                  onClick={() => setShowAddProductModal(true)}
-                  className="mb-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all flex items-center gap-2"
-                  data-testid="add-product-button"
-                >
+                <button onClick={() => setShowAddProductModal(true)} className="mb-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all flex items-center gap-2" data-testid="add-product-button">
                   <Plus className="w-5 h-5" /> Nuevo Producto
                 </button>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {allProducts.map((prod) => (
-                    <div
-                      key={getSafeId(prod) || prod.title}
-                      className="border-2 rounded-xl p-6 border-gray-300 bg-gray-50"
-                    >
+                    <div key={getSafeId(prod) || prod.title} className="border-2 rounded-xl p-6 border-gray-300 bg-gray-50">
                       <div className="flex justify-between items-start mb-3">
-                        <span className="px-3 py-1 rounded-full text-sm font-bold bg-green-200 text-green-800">
-                          📦 Producto
-                        </span>
+                        <span className="px-3 py-1 rounded-full text-sm font-bold bg-green-200 text-green-800">📦 Producto</span>
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              setEditingProduct(prod);
-                              setShowAddProductModal(true);
-                            }}
-                            className="text-blue-600 hover:text-blue-800"
-                          >
+                          <button onClick={() => { setEditingProduct(prod); setShowAddProductModal(true); }} className="text-blue-600 hover:text-blue-800">
                             <Edit2 className="w-5 h-5" />
                           </button>
-                          <button
-                            onClick={() => handleDeleteProduct(prod)}
-                            className="text-red-600 hover:text-red-800"
-                          >
+                          <button onClick={() => handleDeleteProduct(prod)} className="text-red-600 hover:text-red-800">
                             <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
                       </div>
                       <h3 className="text-xl font-bold mb-2">{prod.title}</h3>
-                      <p className="text-gray-600 mb-2">
-                        ${prod.discount_price} / ${prod.original_price}
-                      </p>
+                      <p className="text-gray-600 mb-2">${prod.discount_price} / ${prod.original_price}</p>
                     </div>
                   ))}
                 </div>
@@ -1318,30 +1191,16 @@ function App() {
       {showAddOfferModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
           <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto text-gray-800 relative">
-            <button
-              onClick={() => {
-                setShowAddOfferModal(false);
-                setEditingOffer(null);
-              }}
-              className="absolute top-6 right-6 text-gray-500 hover:text-gray-800"
-            >
+            <button onClick={() => { setShowAddOfferModal(false); setEditingOffer(null); }} className="absolute top-6 right-6 text-gray-500 hover:text-gray-800">
               <X className="w-5 h-5" />
             </button>
-            <h2 className="text-2xl font-bold mb-4">
-              {editingOffer ? 'Editar Oferta' : 'Agregar Oferta'}
-            </h2>
+            <h2 className="text-2xl font-bold mb-4">{editingOffer ? 'Editar Oferta' : 'Agregar Oferta'}</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Tipo
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Tipo</label>
                 <select
                   value={editingOffer ? editingOffer.type : newOffer.type}
-                  onChange={(e) =>
-                    editingOffer
-                      ? setEditingOffer({ ...editingOffer, type: e.target.value })
-                      : setNewOffer({ ...newOffer, type: e.target.value })
-                  }
+                  onChange={(e) => editingOffer ? setEditingOffer({ ...editingOffer, type: e.target.value }) : setNewOffer({ ...newOffer, type: e.target.value })}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 >
                   <option value="descuento">🏷️ Descuento</option>
@@ -1349,67 +1208,41 @@ function App() {
                 </select>
               </div>
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Título
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Título</label>
                 <input
                   type="text"
                   value={editingOffer ? editingOffer.title : newOffer.title}
-                  onChange={(e) =>
-                    editingOffer
-                      ? setEditingOffer({ ...editingOffer, title: e.target.value })
-                      : setNewOffer({ ...newOffer, title: e.target.value })
-                  }
+                  onChange={(e) => editingOffer ? setEditingOffer({ ...editingOffer, title: e.target.value }) : setNewOffer({ ...newOffer, title: e.target.value })}
                   placeholder="Ej: 50% de descuento en laptops"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Descripción
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Descripción</label>
                 <textarea
-                  value={
-                    editingOffer ? editingOffer.description : newOffer.description
-                  }
-                  onChange={(e) =>
-                    editingOffer
-                      ? setEditingOffer({ ...editingOffer, description: e.target.value })
-                      : setNewOffer({ ...newOffer, description: e.target.value })
-                  }
+                  value={editingOffer ? editingOffer.description : newOffer.description}
+                  onChange={(e) => editingOffer ? setEditingOffer({ ...editingOffer, description: e.target.value }) : setNewOffer({ ...newOffer, description: e.target.value })}
                   placeholder="Descripción detallada de la oferta"
                   rows="3"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Código (opcional)
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Código (opcional)</label>
                 <input
                   type="text"
                   value={editingOffer ? editingOffer.code : newOffer.code}
-                  onChange={(e) =>
-                    editingOffer
-                      ? setEditingOffer({ ...editingOffer, code: e.target.value })
-                      : setNewOffer({ ...newOffer, code: e.target.value })
-                  }
+                  onChange={(e) => editingOffer ? setEditingOffer({ ...editingOffer, code: e.target.value }) : setNewOffer({ ...newOffer, code: e.target.value })}
                   placeholder="Ej: DESCUENTO50"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Enlace / Link (opcional)
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Enlace / Link (opcional)</label>
                 <input
                   type="text"
                   value={editingOffer ? editingOffer.link : newOffer.link}
-                  onChange={(e) =>
-                    editingOffer
-                      ? setEditingOffer({ ...editingOffer, link: e.target.value })
-                      : setNewOffer({ ...newOffer, link: e.target.value })
-                  }
+                  onChange={(e) => editingOffer ? setEditingOffer({ ...editingOffer, link: e.target.value }) : setNewOffer({ ...newOffer, link: e.target.value })}
                   placeholder="https://..."
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
@@ -1429,13 +1262,7 @@ function App() {
               >
                 {editingOffer ? 'Actualizar Oferta' : 'Guardar Oferta'}
               </button>
-              <button
-                onClick={() => {
-                  setShowAddOfferModal(false);
-                  setEditingOffer(null);
-                }}
-                className="w-full bg-gray-300 text-gray-800 py-3 rounded-lg font-bold"
-              >
+              <button onClick={() => { setShowAddOfferModal(false); setEditingOffer(null); }} className="w-full bg-gray-300 text-gray-800 py-3 rounded-lg font-bold">
                 Cancelar
               </button>
             </div>
@@ -1446,48 +1273,25 @@ function App() {
       {showAddProductModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
           <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto text-gray-800 relative">
-            <button
-              onClick={() => {
-                setShowAddProductModal(false);
-                setEditingProduct(null);
-              }}
-              className="absolute top-6 right-6 text-gray-500 hover:text-gray-800"
-              aria-label="Cerrar modal"
-            >
+            <button onClick={() => { setShowAddProductModal(false); setEditingProduct(null); }} className="absolute top-6 right-6 text-gray-500 hover:text-gray-800" aria-label="Cerrar modal">
               <X className="w-6 h-6" />
             </button>
-            <h2 className="text-2xl font-bold mb-4">
-              {editingProduct ? 'Editar Producto' : 'Agregar Producto'}
-            </h2>
+            <h2 className="text-2xl font-bold mb-4">{editingProduct ? 'Editar Producto' : 'Agregar Producto'}</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Título del Producto
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Título del Producto</label>
                 <input
                   type="text"
                   value={editingProduct ? editingProduct.title : newProduct.title}
-                  onChange={(e) =>
-                    editingProduct
-                      ? setEditingProduct({ ...editingProduct, title: e.target.value })
-                      : setNewProduct({ ...newProduct, title: e.target.value })
-                  }
+                  onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, title: e.target.value }) : setNewProduct({ ...newProduct, title: e.target.value })}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Descripción
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Descripción</label>
                 <textarea
-                  value={
-                    editingProduct ? editingProduct.description : newProduct.description
-                  }
-                  onChange={(e) =>
-                    editingProduct
-                      ? setEditingProduct({ ...editingProduct, description: e.target.value })
-                      : setNewProduct({ ...newProduct, description: e.target.value })
-                  }
+                  value={editingProduct ? editingProduct.description : newProduct.description}
+                  onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, description: e.target.value }) : setNewProduct({ ...newProduct, description: e.target.value })}
                   placeholder="Descripción del producto, características, etc."
                   rows="3"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
@@ -1495,78 +1299,42 @@ function App() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-700 font-bold mb-2">
-                    Precio Original ($)
-                  </label>
+                  <label className="block text-gray-700 font-bold mb-2">Precio Original ($)</label>
                   <input
                     type="number"
                     step="0.01"
-                    value={
-                      editingProduct
-                        ? editingProduct.original_price
-                        : newProduct.original_price
-                    }
-                    onChange={(e) =>
-                      editingProduct
-                        ? setEditingProduct({ ...editingProduct, original_price: e.target.value })
-                        : setNewProduct({ ...newProduct, original_price: e.target.value })
-                    }
+                    value={editingProduct ? editingProduct.original_price : newProduct.original_price}
+                    onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, original_price: e.target.value }) : setNewProduct({ ...newProduct, original_price: e.target.value })}
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 font-bold mb-2">
-                    Precio con Descuento ($)
-                  </label>
+                  <label className="block text-gray-700 font-bold mb-2">Precio con Descuento ($)</label>
                   <input
                     type="number"
                     step="0.01"
-                    value={
-                      editingProduct
-                        ? editingProduct.discount_price
-                        : newProduct.discount_price
-                    }
-                    onChange={(e) =>
-                      editingProduct
-                        ? setEditingProduct({ ...editingProduct, discount_price: e.target.value })
-                        : setNewProduct({ ...newProduct, discount_price: e.target.value })
-                    }
+                    value={editingProduct ? editingProduct.discount_price : newProduct.discount_price}
+                    onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, discount_price: e.target.value }) : setNewProduct({ ...newProduct, discount_price: e.target.value })}
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  URL de la Imagen
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">URL de la Imagen</label>
                 <input
                   type="text"
-                  value={
-                    editingProduct ? editingProduct.image_url : newProduct.image_url
-                  }
-                  onChange={(e) =>
-                    editingProduct
-                      ? setEditingProduct({ ...editingProduct, image_url: e.target.value })
-                      : setNewProduct({ ...newProduct, image_url: e.target.value })
-                  }
+                  value={editingProduct ? editingProduct.image_url : newProduct.image_url}
+                  onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, image_url: e.target.value }) : setNewProduct({ ...newProduct, image_url: e.target.value })}
                   placeholder="https://..."
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Enlace de Afiliado / Link del Producto
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Enlace de Afiliado / Link del Producto</label>
                 <input
                   type="text"
-                  value={
-                    editingProduct ? editingProduct.affiliate_link : newProduct.affiliate_link
-                  }
-                  onChange={(e) =>
-                    editingProduct
-                      ? setEditingProduct({ ...editingProduct, affiliate_link: e.target.value })
-                      : setNewProduct({ ...newProduct, affiliate_link: e.target.value })
-                  }
+                  value={editingProduct ? editingProduct.affiliate_link : newProduct.affiliate_link}
+                  onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, affiliate_link: e.target.value }) : setNewProduct({ ...newProduct, affiliate_link: e.target.value })}
                   placeholder="https://..."
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
@@ -1574,19 +1342,11 @@ function App() {
               <div className="flex items-center">
                 <input
                   type="checkbox"
-                  checked={
-                    editingProduct ? editingProduct.active : newProduct.active
-                  }
-                  onChange={(e) =>
-                    editingProduct
-                      ? setEditingProduct({ ...editingProduct, active: e.target.checked })
-                      : setNewProduct({ ...newProduct, active: e.target.checked })
-                  }
+                  checked={editingProduct ? editingProduct.active : newProduct.active}
+                  onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, active: e.target.checked }) : setNewProduct({ ...newProduct, active: e.target.checked })}
                   className="w-5 h-5 mr-3 accent-purple-500"
                 />
-                <label className="text-gray-700 font-bold">
-                  Activo (visible en carrusel)
-                </label>
+                <label className="text-gray-700 font-bold">Activo (visible en carrusel)</label>
               </div>
               <button
                 onClick={() => {
