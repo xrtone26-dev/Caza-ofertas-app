@@ -33,26 +33,10 @@ class ProductUpdate(BaseModel):
 class AdminLoginRequest(BaseModel):
     password: str
 
-    # ================= CHAT CON PROVEEDOR DE IA =================
+# ================= CHAT CON PROVEEDOR DE IA =================
 class ChatRequest(BaseModel):
     message: str
     history: Optional[List[dict]] = []
-
-@api_router.post("/chat")
-async def ai_chat_endpoint(data: ChatRequest):
-    user_msg = data.message.lower()
-    
-    # Detección de intención táctica (ej. WhatsApp)
-    if "whatsapp" in user_msg or "número" in user_msg or "contacto" in user_msg:
-        reply_text = f"¡Claro! Nuestro número oficial de atención por WhatsApp es +523312229710. Escríbenos directamente aquí: https://wa.me/523312229710"
-    elif "tv" in user_msg or "samsung" in user_msg or "pantalla" in user_msg:
-        reply_text = "¡Tenemos excelentes ofertas en pantallas! Revisa los descuentos activos en nuestro carrusel principal o pídenos el cupón secreto."
-    elif "cupon" in user_msg or "descuento" in user_msg:
-        reply_text = "Puedes abrir la pestaña de 'Cupones Especiales' arriba para ver los códigos con descuento directo para Mercado Libre."
-    else:
-        reply_text = "¡Entendido! Déjanos tu duda exacta o da clic en nuestro botón de búsqueda personalizada de WhatsApp para rastrear el artículo por ti."
-        
-    return {"reply": reply_text}
 
 # ========== CONFIGURACIÓN ==========
 app = FastAPI()
@@ -75,6 +59,22 @@ db = client.cazaofertas_db
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Caza-Ofertas2026")
 
 # ========== ENDPOINTS ==========
+
+@api_router.post("/chat")
+async def ai_chat_endpoint(data: ChatRequest):
+    user_msg = data.message.lower()
+    
+    # Detección de intención táctica (ej. WhatsApp)
+    if "whatsapp" in user_msg or "número" in user_msg or "contacto" in user_msg:
+        reply_text = f"¡Claro! Nuestro número oficial de atención por WhatsApp es +523312229710. Escríbenos directamente aquí: https://wa.me/523312229710"
+    elif "tv" in user_msg or "samsung" in user_msg or "pantalla" in user_msg:
+        reply_text = "¡Tenemos excelentes ofertas en pantallas! Revisa los descuentos activos en nuestro carrusel principal o pídenos el cupón secreto."
+    elif "cupon" in user_msg or "descuento" in user_msg:
+        reply_text = "Puedes abrir la pestaña de 'Cupones Especiales' arriba para ver los códigos con descuento directo para Mercado Libre."
+    else:
+        reply_text = "¡Entendido! Déjanos tu duda exacta o da clic en nuestro botón de búsqueda personalizada de WhatsApp para rastrear el artículo por ti."
+        
+    return {"reply": reply_text}
 
 # Iniciar sesión de administrador
 @api_router.post("/admin/login")
