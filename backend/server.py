@@ -1,6 +1,7 @@
 import os
 import string
 import secrets
+import hashlib
 from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
@@ -13,6 +14,12 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+# ========== ENCRIPTACIÓN NATIVA ==========
+def hash_password(password: str) -> str:
+    # Encriptación SHA-256 para proteger las contraseñas en la base de datos
+    return hashlib.sha256(password.encode('utf-8')).hexdigest()
+
+# ========== MODELOS DE PRODUCTOS Y OFERTAS ==========
 class Product(BaseModel):
     id: str
     title: str
@@ -86,18 +93,27 @@ class ChatRequest(BaseModel):
 class ForgotPasswordRequest(BaseModel):
     email: str
 
+# ========== MODELOS ESTILO FACEBOOK ==========
 class UserRegister(BaseModel):
     nombre: str
-    nick: str
+    apellido: str
     email: str
-    telefono: str
     password: str
-    avatar: str
+    sexo: str
+    fecha_nacimiento: str # Formato DD/MM/YYYY
+    provider: Optional[str] = "local" # local, google, facebook
 
 class UserLogin(BaseModel):
     identificador: str
     password: str
 
+class SocialLogin(BaseModel):
+    email: str
+    nombre: str
+    apellido: str
+    provider: str
+
+# ========== CONFIGURACIÓN ==========
 app = FastAPI()
 
 app.add_middleware(
@@ -122,6 +138,7 @@ def get_query_id(item_id: str):
     except InvalidId:
         return {"id": item_id}
 
+# ========== RUTAS PÚBLICAS ==========
 @api_router.get("/products")
 async def get_products():
     cursor = db.products.find({"active": True})
@@ -147,43 +164,63 @@ async def get_offers(type: Optional[str] = None):
 async def ai_chat_endpoint(data: ChatRequest):
     return {"reply": "¡Hola! He recibido tu mensaje de Caza Ofertas, pero el cerebro de IA aún está en construcción. ¡Regresa pronto!"}
 
+# ========== RUTAS DE AUTENTICACIÓN (ESTILO FACEBOOK) ==========
 @api_router.post("/register")
 async def register_user(user: UserRegister):
-    existing = await db.users.find_one({"$or": [{"email": user.email}, {"nick": user.nick}]})
+    existing = await db.users.find_one({"email": user.email})
     if existing:
-        raise HTTPException(status_code=400, detail="El correo o nickname ya están en uso.")
+        raise HTTPException(status_code=400, detail="El correo electrónico ya está registrado.")
+    
     user_dict = user.model_dump()
+    user_dict["password"] = hash_password(user.password) # Guardamos la contraseña encriptada
     await db.users.insert_one(user_dict)
-    return {"success": True, "message": "Usuario registrado."}
+    return {"success": True, "message": "Usuario registrado exitosamente."}
 
 @api_router.post("/login")
 async def login_user(creds: UserLogin):
+    hashed_pass = hash_password(creds.password)
     user = await db.users.find_one({
-        "$or": [{"email": creds.identificador}, {"nick": creds.identificador}],
-        "password": creds.password
+        "email": creds.identificador,
+        "password": hashed_pass
     })
+    
     if not user:
-        raise HTTPException(status_code=401, detail="Credenciales incorrectas.")
-    return {"success": True, "nick": user.get("nick"), "nombre": user.get("nombre")}
+        raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos.")
+    
+    return {"success": True, "nombre": user.get("nombre"), "apellido": user.get("apellido")}
+
+@api_router.post("/social-login")
+async def social_login(data: SocialLogin):
+    # Inicio rápido con Google/Facebook a prueba de fallos
+    user = await db.users.find_one({"email": data.email})
+    if not user:
+        new_user = data.model_dump()
+        new_user["password"] = "SOCIAL_LOGIN_NO_PASSWORD"
+        await db.users.insert_one(new_user)
+        return {"success": True, "nombre": data.nombre, "apellido": data.apellido, "message": "Cuenta social creada"}
+    
+    return {"success": True, "nombre": user.get("nombre", data.nombre), "apellido": user.get("apellido", data.apellido), "message": "Inicio de sesión social exitoso"}
 
 @api_router.post("/forgot-password")
 async def forgot_password(request: ForgotPasswordRequest):
     identifier = request.email
-    user = await db.users.find_one({"$or": [{"email": identifier}, {"nick": identifier}]})
+    user = await db.users.find_one({"email": identifier})
     
     if not user:
-        return {"success": True, "message": "Si la cuenta existe, enviamos el correo."}
+        raise HTTPException(status_code=404, detail="El correo no está registrado en el sistema.")
 
+    # REGLA DE ORO ACTIVADA: Generamos clave, la enviamos limpia, pero la guardamos encriptada
     alphabet = string.ascii_letters + string.digits
     provisional_pass = ''.join(secrets.choice(alphabet) for _ in range(8)).upper()
+    hashed_provisional = hash_password(provisional_pass)
 
-    await db.users.update_one({"_id": user["_id"]}, {"$set": {"password": provisional_pass}})
+    await db.users.update_one({"_id": user["_id"]}, {"$set": {"password": hashed_provisional}})
 
     sender_email = os.getenv('EMAIL_USER', 'tu_correo@gmail.com')
     sender_password = os.getenv('EMAIL_PASS', 'tu_contraseña_de_aplicacion')
     
     target_email = user.get("email")
-    target_nick = user.get("nick", "Cazador")
+    target_nombre = user.get("nombre", "Cazador")
 
     html_content = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -191,13 +228,13 @@ async def forgot_password(request: ForgotPasswordRequest):
         <h1 style="color: #FFEA00; background-color: #000; padding: 10px; border-radius: 8px;">CazaOfertasML</h1>
       </div>
       <h2>¡Regla de Oro Activada!</h2>
-      <p>Hola <strong>{target_nick}</strong>,</p>
+      <p>Hola <strong>{target_nombre}</strong>,</p>
       <p>Has solicitado recuperar tu acceso. Aquí tienes tus credenciales de emergencia:</p>
       <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
-        <p style="margin: 5px 0;">Tu Nickname: <strong style="color: #0056b3;">{target_nick}</strong></p>
+        <p style="margin: 5px 0;">Tu Correo: <strong style="color: #0056b3;">{target_email}</strong></p>
         <p style="margin: 5px 0; font-size: 18px;">Clave Provisional: <strong style="color: #d97706;">{provisional_pass}</strong></p>
       </div>
-      <p>Ingresa con esta clave en la página principal. Una vez dentro, recuerda que podrás actualizarla cuando implementemos la función en tu perfil.</p>
+      <p>Ingresa con esta clave en la página principal. Una vez dentro, recuerda que podrás actualizarla desde tu perfil.</p>
       <p>Con cariño,<br>El equipo de CazaOfertasML.</p>
     </div>
     """
@@ -216,6 +253,7 @@ async def forgot_password(request: ForgotPasswordRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error enviando el correo.")
 
+# ========== RUTAS DE ADMINISTRACIÓN ==========
 @api_router.post("/admin/login")
 async def admin_login(request: AdminLoginRequest):
     if request.password == ADMIN_PASSWORD:
