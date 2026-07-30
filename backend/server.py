@@ -8,9 +8,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 
-# Importamos la NUEVA librería oficial de Google Gemini
-from google import genai
-from google.genai import types
+# Importamos la librería de Groq
+from groq import Groq
 
 # ========== MODELOS ==========
 class Product(BaseModel):
@@ -131,43 +130,38 @@ async def get_offers(type: Optional[str] = None):
         offers.append(doc)
     return offers
 
-# ========== EL NUEVO CEREBRO DE LA IA (GEMINI ACTUALIZADO) ==========
+# ========== EL CEREBRO DE LA IA (GROQ / LLAMA 3) ==========
 @api_router.post("/chat")
 async def ai_chat_endpoint(data: ChatRequest):
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
     
-    if not GEMINI_API_KEY:
-        return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Gemini en el servidor."}
+    if not GROQ_API_KEY:
+        return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        # Iniciamos el cliente con la nueva librería
-        ai_client = genai.Client(api_key=GEMINI_API_KEY)
+        # Iniciamos el cliente de Groq
+        ai_client = Groq(api_key=GROQ_API_KEY)
         
-        # Preparamos el historial de chat en el formato estricto que pide Google
-        formatted_history = []
-        for msg in data.history:
-            role = "user" if msg["sender"] == "user" else "model"
-            formatted_history.append(
-                types.Content(
-                    role=role,
-                    parts=[types.Part.from_text(text=msg["text"])]
-                )
-            )
-            
-        # Configuramos el System Prompt
+        # Preparamos los mensajes
+        messages = []
+        
+        # 1. Agregamos el System Prompt
         sys_prompt = data.systemPrompt if data.systemPrompt else "Eres un asistente experto de CazaOfertasML."
+        messages.append({"role": "system", "content": sys_prompt})
         
-        # Generamos la respuesta con el modelo más nuevo (2.0-flash)
-        response = ai_client.models.generate_content(
-           model='gemini-2.0-flash',
-            contents=formatted_history,
-            config=types.GenerateContentConfig(
-                system_instruction=sys_prompt,
-                temperature=0.7
-            )
+        # 2. Agregamos el historial
+        for msg in data.history:
+            role = "user" if msg["sender"] == "user" else "assistant"
+            messages.append({"role": role, "content": msg["text"]})
+            
+        # Generamos la respuesta con el modelo Llama 3.1 (Rápido y Gratis)
+        chat_completion = ai_client.chat.completions.create(
+            messages=messages,
+            model="llama-3.1-70b-versatile",
+            temperature=0.7,
         )
         
-        return {"reply": response.text}
+        return {"reply": chat_completion.choices[0].message.content}
 
     except Exception as e:
         print(f"Error en AI: {str(e)}")
