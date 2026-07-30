@@ -1,7 +1,4 @@
 import os
-import string
-import secrets
-import hashlib
 from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
@@ -10,16 +7,11 @@ from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
-# ========== ENCRIPTACIÓN NATIVA ==========
-def hash_password(password: str) -> str:
-    # Encriptación SHA-256 para proteger las contraseñas en la base de datos
-    return hashlib.sha256(password.encode('utf-8')).hexdigest()
+# Importamos la librería de OpenAI
+from openai import AsyncOpenAI
 
-# ========== MODELOS DE PRODUCTOS Y OFERTAS ==========
+# ========== MODELOS ==========
 class Product(BaseModel):
     id: str
     title: str
@@ -86,32 +78,11 @@ class OfferUpdate(BaseModel):
 class AdminLoginRequest(BaseModel):
     password: str
 
+# AQUÍ AÑADIMOS EL SYSTEM PROMPT PARA RECIBIRLO DEL FRONTEND
 class ChatRequest(BaseModel):
     message: str
     history: Optional[List[dict]] = []
-
-class ForgotPasswordRequest(BaseModel):
-    email: str
-
-# ========== MODELOS ESTILO FACEBOOK ==========
-class UserRegister(BaseModel):
-    nombre: str
-    apellido: str
-    email: str
-    password: str
-    sexo: str
-    fecha_nacimiento: str # Formato DD/MM/YYYY
-    provider: Optional[str] = "local" # local, google, facebook
-
-class UserLogin(BaseModel):
-    identificador: str
-    password: str
-
-class SocialLogin(BaseModel):
-    email: str
-    nombre: str
-    apellido: str
-    provider: str
+    systemPrompt: Optional[str] = None 
 
 # ========== CONFIGURACIÓN ==========
 app = FastAPI()
@@ -126,12 +97,18 @@ app.add_middleware(
 
 api_router = APIRouter()
 
+# Variables de entorno
 MONGO_URL = os.getenv("MONGO_URL", "tu_cadena_de_conexion_aqui")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Caza-Ofertas2026")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "") # Tu llave de OpenAI
 
 client = AsyncIOMotorClient(MONGO_URL)
 db = client.cazaofertas
 
+# Cliente Asíncrono de OpenAI
+ai_client = AsyncOpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+
+# ========== HELPER ANTI-ERRORES DE ID ==========
 def get_query_id(item_id: str):
     try:
         return {"$or": [{"id": item_id}, {"_id": ObjectId(item_id)}]}
@@ -160,98 +137,40 @@ async def get_offers(type: Optional[str] = None):
         offers.append(doc)
     return offers
 
+# ========== EL CEREBRO DE LA IA ==========
 @api_router.post("/chat")
 async def ai_chat_endpoint(data: ChatRequest):
-    return {"reply": "¡Hola! He recibido tu mensaje de Caza Ofertas, pero el cerebro de IA aún está en construcción. ¡Regresa pronto!"}
-
-# ========== RUTAS DE AUTENTICACIÓN (ESTILO FACEBOOK) ==========
-@api_router.post("/register")
-async def register_user(user: UserRegister):
-    existing = await db.users.find_one({"email": user.email})
-    if existing:
-        raise HTTPException(status_code=400, detail="El correo electrónico ya está registrado.")
+    if not ai_client:
+        return {"reply": "⚠️ El administrador aún no ha configurado la API Key de IA en el servidor."}
     
-    user_dict = user.model_dump()
-    user_dict["password"] = hash_password(user.password) # Guardamos la contraseña encriptada
-    await db.users.insert_one(user_dict)
-    return {"success": True, "message": "Usuario registrado exitosamente."}
-
-@api_router.post("/login")
-async def login_user(creds: UserLogin):
-    hashed_pass = hash_password(creds.password)
-    user = await db.users.find_one({
-        "email": creds.identificador,
-        "password": hashed_pass
-    })
-    
-    if not user:
-        raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos.")
-    
-    return {"success": True, "nombre": user.get("nombre"), "apellido": user.get("apellido")}
-
-@api_router.post("/social-login")
-async def social_login(data: SocialLogin):
-    # Inicio rápido con Google/Facebook a prueba de fallos
-    user = await db.users.find_one({"email": data.email})
-    if not user:
-        new_user = data.model_dump()
-        new_user["password"] = "SOCIAL_LOGIN_NO_PASSWORD"
-        await db.users.insert_one(new_user)
-        return {"success": True, "nombre": data.nombre, "apellido": data.apellido, "message": "Cuenta social creada"}
-    
-    return {"success": True, "nombre": user.get("nombre", data.nombre), "apellido": user.get("apellido", data.apellido), "message": "Inicio de sesión social exitoso"}
-
-@api_router.post("/forgot-password")
-async def forgot_password(request: ForgotPasswordRequest):
-    identifier = request.email
-    user = await db.users.find_one({"email": identifier})
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="El correo no está registrado en el sistema.")
-
-    # REGLA DE ORO ACTIVADA: Generamos clave, la enviamos limpia, pero la guardamos encriptada
-    alphabet = string.ascii_letters + string.digits
-    provisional_pass = ''.join(secrets.choice(alphabet) for _ in range(8)).upper()
-    hashed_provisional = hash_password(provisional_pass)
-
-    await db.users.update_one({"_id": user["_id"]}, {"$set": {"password": hashed_provisional}})
-
-    sender_email = os.getenv('EMAIL_USER', 'tu_correo@gmail.com')
-    sender_password = os.getenv('EMAIL_PASS', 'tu_contraseña_de_aplicacion')
-    
-    target_email = user.get("email")
-    target_nombre = user.get("nombre", "Cazador")
-
-    html_content = f"""
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="text-align: center; margin-bottom: 20px;">
-        <h1 style="color: #FFEA00; background-color: #000; padding: 10px; border-radius: 8px;">CazaOfertasML</h1>
-      </div>
-      <h2>¡Regla de Oro Activada!</h2>
-      <p>Hola <strong>{target_nombre}</strong>,</p>
-      <p>Has solicitado recuperar tu acceso. Aquí tienes tus credenciales de emergencia:</p>
-      <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
-        <p style="margin: 5px 0;">Tu Correo: <strong style="color: #0056b3;">{target_email}</strong></p>
-        <p style="margin: 5px 0; font-size: 18px;">Clave Provisional: <strong style="color: #d97706;">{provisional_pass}</strong></p>
-      </div>
-      <p>Ingresa con esta clave en la página principal. Una vez dentro, recuerda que podrás actualizarla desde tu perfil.</p>
-      <p>Con cariño,<br>El equipo de CazaOfertasML.</p>
-    </div>
-    """
-
-    message = MIMEMultipart("alternative")
-    message["Subject"] = "Clave Provisional | CazaOfertasML"
-    message["From"] = f"Seguridad CazaOfertasML <{sender_email}>"
-    message["To"] = target_email
-    message.attach(MIMEText(html_content, "html"))
-
     try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(sender_email, sender_password)
-            server.sendmail(sender_email, target_email, message.as_string())
-        return {"success": True, "message": "Correo enviado con éxito"}
+        # 1. Preparamos los mensajes para OpenAI
+        messages = []
+        
+        # 2. Inyectamos tu Master Prompt (El que programamos en el Front-end)
+        if data.systemPrompt:
+            messages.append({"role": "system", "content": data.systemPrompt})
+        
+        # 3. Le pasamos el historial de conversación (para que tenga memoria)
+        for msg in data.history:
+            role = "user" if msg["sender"] == "user" else "assistant"
+            messages.append({"role": role, "content": msg["text"]})
+            
+        # 4. Hacemos la llamada al motor de Inteligencia Artificial
+        response = await ai_client.chat.completions.create(
+            model="gpt-4o-mini", # Es el modelo más rápido, inteligente y económico de OpenAI actual
+            messages=messages,
+            temperature=0.7, # Creatividad del bot (0.7 es ideal para ventas amigables)
+            max_tokens=400
+        )
+        
+        # Extraemos la respuesta y se la enviamos de vuelta al Front-end
+        bot_reply = response.choices[0].message.content
+        return {"reply": bot_reply}
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Error enviando el correo.")
+        print(f"Error en AI: {str(e)}")
+        return {"reply": "¡Uy! Mi procesador está un poco saturado cazando ofertas en este momento. 😅 ¿Puedes intentarlo de nuevo en unos segundos?"}
 
 # ========== RUTAS DE ADMINISTRACIÓN ==========
 @api_router.post("/admin/login")
@@ -297,14 +216,17 @@ async def update_product(product_id: str, product_data: ProductUpdate, password:
                 update_dict['discount_percentage'] = int(((original - discount) / original) * 100)
     
     result = await db.products.update_one(get_query_id(product_id), {"$set": update_dict})
+    
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
+    
     return {"success": True, "message": "Producto actualizado"}
 
 @api_router.delete("/admin/products/{product_id}")
 async def delete_product(product_id: str, password: str):
     if password != ADMIN_PASSWORD:
         raise HTTPException(status_code=401, detail="No autorizado")
+    
     result = await db.products.delete_one(get_query_id(product_id))
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
@@ -333,10 +255,13 @@ async def create_offer(offer: OfferCreate, password: str):
 async def update_offer(offer_id: str, offer_data: OfferUpdate, password: str):
     if password != ADMIN_PASSWORD:
         raise HTTPException(status_code=401, detail="No autorizado")
+    
     update_dict = {k: v for k, v in offer_data.model_dump().items() if v is not None}
     if not update_dict:
         raise HTTPException(status_code=400, detail="No hay datos para actualizar")
+        
     result = await db.offers.update_one(get_query_id(offer_id), {"$set": update_dict})
+    
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Oferta no encontrada")
     return {"success": True, "message": "Oferta actualizada"}
@@ -345,7 +270,9 @@ async def update_offer(offer_id: str, offer_data: OfferUpdate, password: str):
 async def delete_offer(offer_id: str, password: str):
     if password != ADMIN_PASSWORD:
         raise HTTPException(status_code=401, detail="No autorizado")
+        
     result = await db.offers.delete_one(get_query_id(offer_id))
+    
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Oferta no encontrada")
     return {"success": True, "message": "Oferta eliminada"}
