@@ -8,8 +8,9 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 
-# Importamos la librería de Google Gemini
-import google.generativeai as genai
+# Importamos la NUEVA librería oficial de Google Gemini
+from google import genai
+from google.genai import types
 
 # ========== MODELOS ==========
 class Product(BaseModel):
@@ -130,7 +131,7 @@ async def get_offers(type: Optional[str] = None):
         offers.append(doc)
     return offers
 
-# ========== EL NUEVO CEREBRO DE LA IA (GEMINI) ==========
+# ========== EL NUEVO CEREBRO DE LA IA (GEMINI ACTUALIZADO) ==========
 @api_router.post("/chat")
 async def ai_chat_endpoint(data: ChatRequest):
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
@@ -139,23 +140,32 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Gemini en el servidor."}
     
     try:
-        # Configuramos la llave
-        genai.configure(api_key=GEMINI_API_KEY)
+        # Iniciamos el cliente con la nueva librería
+        ai_client = genai.Client(api_key=GEMINI_API_KEY)
         
-        # Le damos el rol de experto usando tu System Prompt
-        model = genai.GenerativeModel(
-            model_name='gemini-1.5-flash',
-            system_instruction=data.systemPrompt if data.systemPrompt else "Eres un asistente de compras experto de CazaOfertasML."
-        )
-        
-        # Preparamos los mensajes en el formato que entiende Gemini
-        contents = []
+        # Preparamos el historial de chat en el formato estricto que pide Google
+        formatted_history = []
         for msg in data.history:
             role = "user" if msg["sender"] == "user" else "model"
-            contents.append({"role": role, "parts": [msg["text"]]})
+            formatted_history.append(
+                types.Content(
+                    role=role,
+                    parts=[types.Part.from_text(text=msg["text"])]
+                )
+            )
             
-        # Generamos la respuesta
-        response = model.generate_content(contents)
+        # Configuramos el System Prompt
+        sys_prompt = data.systemPrompt if data.systemPrompt else "Eres un asistente experto de CazaOfertasML."
+        
+        # Generamos la respuesta con el modelo más nuevo (2.0-flash)
+        response = ai_client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=formatted_history,
+            config=types.GenerateContentConfig(
+                system_instruction=sys_prompt,
+                temperature=0.7
+            )
+        )
         
         return {"reply": response.text}
 
