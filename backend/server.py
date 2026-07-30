@@ -159,7 +159,7 @@ async def ai_chat_endpoint(data: ChatRequest):
         
         # Generamos la respuesta con el modelo más nuevo (2.0-flash)
         response = ai_client.models.generate_content(
-            model='gemini-2.0-flash',
+            model='gemini-1.5-flash',
             contents=formatted_history,
             config=types.GenerateContentConfig(
                 system_instruction=sys_prompt,
