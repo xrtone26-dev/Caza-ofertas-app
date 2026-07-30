@@ -8,8 +8,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 
-# Importamos la librería de OpenAI
-from openai import AsyncOpenAI
+# Importamos la librería de Google Gemini
+import google.generativeai as genai
 
 # ========== MODELOS ==========
 class Product(BaseModel):
@@ -78,7 +78,6 @@ class OfferUpdate(BaseModel):
 class AdminLoginRequest(BaseModel):
     password: str
 
-# AQUÍ AÑADIMOS EL SYSTEM PROMPT PARA RECIBIRLO DEL FRONTEND
 class ChatRequest(BaseModel):
     message: str
     history: Optional[List[dict]] = []
@@ -97,18 +96,12 @@ app.add_middleware(
 
 api_router = APIRouter()
 
-# Variables de entorno
 MONGO_URL = os.getenv("MONGO_URL", "tu_cadena_de_conexion_aqui")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Caza-Ofertas2026")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "") # Tu llave de OpenAI
 
 client = AsyncIOMotorClient(MONGO_URL)
 db = client.cazaofertas
 
-# Cliente Asíncrono de OpenAI
-ai_client = AsyncOpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
-
-# ========== HELPER ANTI-ERRORES DE ID ==========
 def get_query_id(item_id: str):
     try:
         return {"$or": [{"id": item_id}, {"_id": ObjectId(item_id)}]}
@@ -137,36 +130,34 @@ async def get_offers(type: Optional[str] = None):
         offers.append(doc)
     return offers
 
-# ========== EL CEREBRO DE LA IA ==========
+# ========== EL NUEVO CEREBRO DE LA IA (GEMINI) ==========
 @api_router.post("/chat")
 async def ai_chat_endpoint(data: ChatRequest):
-    if not ai_client:
-        return {"reply": "⚠️ El administrador aún no ha configurado la API Key de IA en el servidor."}
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+    
+    if not GEMINI_API_KEY:
+        return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Gemini en el servidor."}
     
     try:
-        # 1. Preparamos los mensajes para OpenAI
-        messages = []
+        # Configuramos la llave
+        genai.configure(api_key=GEMINI_API_KEY)
         
-        # 2. Inyectamos tu Master Prompt (El que programamos en el Front-end)
-        if data.systemPrompt:
-            messages.append({"role": "system", "content": data.systemPrompt})
-        
-        # 3. Le pasamos el historial de conversación (para que tenga memoria)
-        for msg in data.history:
-            role = "user" if msg["sender"] == "user" else "assistant"
-            messages.append({"role": role, "content": msg["text"]})
-            
-        # 4. Hacemos la llamada al motor de Inteligencia Artificial
-        response = await ai_client.chat.completions.create(
-            model="gpt-4o-mini", # Es el modelo más rápido, inteligente y económico de OpenAI actual
-            messages=messages,
-            temperature=0.7, # Creatividad del bot (0.7 es ideal para ventas amigables)
-            max_tokens=400
+        # Le damos el rol de experto usando tu System Prompt
+        model = genai.GenerativeModel(
+            model_name='gemini-1.5-flash',
+            system_instruction=data.systemPrompt if data.systemPrompt else "Eres un asistente de compras experto de CazaOfertasML."
         )
         
-        # Extraemos la respuesta y se la enviamos de vuelta al Front-end
-        bot_reply = response.choices[0].message.content
-        return {"reply": bot_reply}
+        # Preparamos los mensajes en el formato que entiende Gemini
+        contents = []
+        for msg in data.history:
+            role = "user" if msg["sender"] == "user" else "model"
+            contents.append({"role": role, "parts": [msg["text"]]})
+            
+        # Generamos la respuesta
+        response = model.generate_content(contents)
+        
+        return {"reply": response.text}
 
     except Exception as e:
         print(f"Error en AI: {str(e)}")
