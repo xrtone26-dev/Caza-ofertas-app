@@ -157,7 +157,7 @@ async def ai_chat_endpoint(data: ChatRequest):
         # Generamos la respuesta con el modelo Llama 3.1 (Rápido y Gratis)
         chat_completion = ai_client.chat.completions.create(
             messages=messages,
-            model="llama-3.1-70b-versatile",
+           model="llama-3.3-70b-versatile",
             temperature=0.7,
         )
         
