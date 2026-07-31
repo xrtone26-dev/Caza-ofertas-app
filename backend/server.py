@@ -7,8 +7,6 @@ from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-
-# Importamos la librería de Groq
 from groq import Groq
 
 # ========== MODELOS ==========
@@ -130,7 +128,7 @@ async def get_offers(type: Optional[str] = None):
         offers.append(doc)
     return offers
 
-# ========== EL CEREBRO DE LA IA (GROQ / LLAMA 3) ==========
+# ========== EL CEREBRO DE LA IA CON SUPERPODERES (GROQ) ==========
 @api_router.post("/chat")
 async def ai_chat_endpoint(data: ChatRequest):
     GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
@@ -139,26 +137,44 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        # Iniciamos el cliente de Groq
-        ai_client = Groq(api_key=GROQ_API_KEY)
+        # 1. LEER LA BASE DE DATOS EN TIEMPO REAL
+        active_products = await db.products.find({"active": True}).to_list(length=100)
+        active_offers = await db.offers.find({"active": True}).to_list(length=100)
         
-        # Preparamos los mensajes
+        # 2. INYECTAR DATOS AL CEREBRO DE LA IA
+        db_context = "\n\n--- INVENTARIO Y OFERTAS REALES DISPONIBLES EN LA TIENDA ---\n"
+        if active_products:
+            db_context += "PRODUCTOS:\n"
+            for p in active_products:
+                db_context += f"- {p.get('title')}: Precio Descuento ${p.get('discount_price')}. Link real: {p.get('affiliate_link')}\n"
+        if active_offers:
+            db_context += "\nCUPONES:\n"
+            for o in active_offers:
+                db_context += f"- {o.get('title')}: Código '{o.get('code', 'N/A')}', Link real: {o.get('link')}\n"
+        
+        db_context += "\n--- REGLAS ESTRICTAS PARA TUS RESPUESTAS ---\n"
+        db_context += "1. SOLO recomienda productos o cupones que existan en el inventario de arriba. Si te piden algo que no está, di amablemente que por ahora no lo tienes.\n"
+        db_context += "2. NUNCA inventes enlaces. Usa EXACTAMENTE el 'Link real' que aparece en el inventario de arriba.\n"
+        db_context += "3. SÉ EXTREMADAMENTE BREVE. Da la respuesta directa en 1 o máximo 2 párrafos cortos. Elimina el relleno, ve directo al grano.\n"
+
+        ai_client = Groq(api_key=GROQ_API_KEY)
         messages = []
         
-        # 1. Agregamos el System Prompt
-        sys_prompt = data.systemPrompt if data.systemPrompt else "Eres un asistente experto de CazaOfertasML."
-        messages.append({"role": "system", "content": sys_prompt})
+        # Mezclamos su personalidad base con las reglas y datos de la tienda
+        base_prompt = data.systemPrompt if data.systemPrompt else "Eres un asistente experto de CazaOfertasML."
+        messages.append({"role": "system", "content": base_prompt + db_context})
         
-        # 2. Agregamos el historial
+        # Historial de usuario
         for msg in data.history:
             role = "user" if msg["sender"] == "user" else "assistant"
             messages.append({"role": role, "content": msg["text"]})
             
-        # Generamos la respuesta con el modelo Llama 3.1 (Rápido y Gratis)
+        # Generar respuesta (Le bajamos la 'temperature' para que no sea fantasioso y le ponemos un límite de palabras)
         chat_completion = ai_client.chat.completions.create(
             messages=messages,
-           model="llama-3.3-70b-versatile",
-            temperature=0.7,
+            model="llama-3.3-70b-versatile",
+            temperature=0.3,
+            max_tokens=300
         )
         
         return {"reply": chat_completion.choices[0].message.content}
