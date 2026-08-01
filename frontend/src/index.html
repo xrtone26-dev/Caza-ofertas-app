@@ -1,1 +1,87 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klondike Solitaire Pro - Edición Comercial Definitiva</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- BARRA SUPERIOR PROFESIONAL -->
+        <header class="navbar glass">
+            <div class="brand">
+                <span class="logo-icon">♠️</span>
+                <h1>KLONDIKE <span class="highlight">SOLITAIRE PRO</span></h1>
+            </div>
+            <div class="global-stats-bar">
+                <span>Puntos: <strong id="scoreVal">0</strong></span>
+                <span>Movimientos: <strong id="movesVal">0</strong></span>
+                <span>⏱️ <strong id="timerVal">0s</strong></span>
+            </div>
+            <div class="nav-controls">
+                <button id="btnUndo" class="btn-icon" title="Deshacer Movimiento">↩️</button>
+                <button id="btnHint" class="btn-icon" title="Pista Inteligente">💡</button>
+                <button id="btnSound" class="btn-icon" title="Sonido ON/OFF">🔊</button>
+                <button id="btnTheme" class="btn-icon" title="Cambiar Tema">🎨</button>
+                <button id="btnBg" class="btn-icon" title="Personalizar Fondo">🖼️</button>
+                <button id="btnFullscreen" class="btn-icon" title="Pantalla Completa">⛶</button>
+            </div>
+        </header>
 
+        <!-- ÁREA DE JUEGO PRINCIPAL -->
+        <main class="game-viewport glass">
+            <!-- MENÚ PRINCIPAL -->
+            <div id="mainMenu" class="overlay-screen active">
+                <div class="modal-card glass">
+                    <h2>KLONDIKE SOLITAIRE</h2>
+                    <p>Calidad comercial, reglas oficiales Microsoft, 60 FPS y rendimiento optimizado.</p>
+                    <div class="menu-buttons">
+                        <button id="btnPlayDraw1" class="btn-cta primary">MODO ROBAR 1 (FÁCIL)</button>
+                        <button id="btnPlayDraw3" class="btn-cta secondary">MODO ROBAR 3 (DIFÍCIL)</button>
+                        <button id="btnResume" class="btn-cta outline" style="display:none;">CONTINUAR PARTIDA GUARDADA</button>
+                        <button id="btnOpenStats" class="btn-cta outline">ESTADÍSTICAS Y RÉCORDS</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL DE ESTADÍSTICAS -->
+            <div id="statsModal" class="overlay-screen">
+                <div class="modal-card glass">
+                    <h2>ESTADÍSTICAS GLOBALES</h2>
+                    <div class="stats-grid">
+                        <div class="stat-box"><span>Partidas</span><strong id="stPlayed">0</strong></div>
+                        <div class="stat-box"><span>Victorias</span><strong id="stWins" class="text-green">0</strong></div>
+                        <div class="stat-box"><span>Racha Actual</span><strong id="stStreak">0</strong></div>
+                        <div class="stat-box"><span>Mejor Tiempo</span><strong id="stTime">N/A</strong></div>
+                    </div>
+                    <button id="btnCloseStats" class="btn-cta primary">CERRAR</button>
+                </div>
+            </div>
+
+            <!-- PANTALLA DE VICTORIA -->
+            <div id="victoryModal" class="overlay-screen">
+                <div class="modal-card glass victory-card">
+                    <span class="victory-icon">🏆</span>
+                    <h2>¡VICTORIA ÉPICA!</h2>
+                    <p>Has completado las 4 fundaciones con éxito absoluto.</p>
+                    <div class="victory-summary">
+                        <div>Puntuación: <span id="vicScore">0</span></div>
+                        <div>Tiempo: <span id="vicTime">0s</span></div>
+                    </div>
+                    <button id="btnRestartVictory" class="btn-cta primary">JUGAR DE NUEVO</button>
+                </div>
+            </div>
+
+            <!-- CANVAS NATIVO -->
+            <canvas id="gameCanvas" width="1050" height="700"></canvas>
+        </main>
+    </div>
+
+    <!-- CANVAS DE CONFETI -->
+    <canvas id="confettiCanvas"></canvas>
+
+    <script src="script.js" type="module"></script>
+</body>
+</html>
