@@ -15,7 +15,7 @@ const MEMORY_THEMES = {
   'Animales': ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🐤','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🦟','🦗','🕷','🦂','🐢','🐍','🦎','🦖','🦕','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟'],
   'Frutas': ['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌶','🌽','🥕','🧄','🧅','🥔','🍠','🥐','🥯','🍞','🥖','🥨','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🥩','🍗','🍖','🌭','🍔','🍟','🍕','🥪','🥙'],
   'Espacio': ['🌍','🌎','🌏','🪐','☀️','🌙','🌜','🌛','🌟','🌠','🌌','☁️','⛅','⛈️','🌤️','🌥️','🌦️','🌧️','🌨️','🌩️','🌪️','🌫️','🌬️','🌀','🌈','🌂','☂️','☔','⛱️','⚡','❄️','☃️','⛄','☄️','🔥','💧','🌊','🚀','🛸','🛰️','👨‍🚀','👩‍🚀','👽','👾','🤖','🌌','🔭','📡','🔋','🔮'],
-  'Tecnología': ['⌚','📱','📲','💻','⌨️','🖥️','🖨️','🖱️','🖲️','🕹️','🗜️','💽','💾','💿','📀','📼','📷','📸','📹','🎥','📽️','🎞️','📞','☎️','📟','📠','📺','📻','🎙️','🎚️','🎛️','🧭','⏱️','⏲️','⏰','🕰️','⌛','⏳','📡','🔋','🔌','💡','🔦','🕯️','🧯','🗑️','🛢️','💸','💵','💴']
+  'Tecnología': ['⌚','📱','📲','💻','⌨️','🖥️','🖨️','🖱️','🗜️','💽','💾','💿','📀','📼','📷','📸','📹','🎥','📽️','🎞️','📞','☎️','📟','📠','📺','📻','🎙️','🎚️','🎛️','🧭','⏱️','⏲️','⏰','🕰️','⌛','⏳','📡','🔋','🔌','💡','🔦','🕯️','🧯','🗑️','🛢️','💸','💵','💴']
 };
 
 const FRUIT_TYPES = [
@@ -1810,19 +1810,21 @@ export default function GamesZone({ currentUser, isLight }) {
   };
 
   const renderUnifiedPauseOverlay = (onResume, onQuit) => (
-    <div className="absolute inset-0 bg-neutral-950/90 z-50 flex flex-col items-center justify-center p-6 text-center text-white backdrop-blur-md animate-in fade-in duration-200">
-      <h2 className="text-3xl font-black text-yellow-400 mb-2 uppercase tracking-widest">JUEGO PAUSADO</h2>
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 my-4 max-w-sm w-full space-y-1 shadow-lg">
-        <p className="text-sm font-black text-white">Juego desarrollado por Omar Navarro</p>
-        <p className="text-xs text-neutral-400">para CazaOfertasML</p>
-      </div>
+    <div className="absolute inset-0 bg-neutral-950/90 z-50 flex flex-col items-center justify-center p-6 text-center text-white backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
+      <div className="my-auto w-full flex flex-col items-center">
+        <h2 className="text-3xl font-black text-yellow-400 mb-2 uppercase tracking-widest">JUEGO PAUSADO</h2>
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 my-4 max-w-sm w-full space-y-1 shadow-lg">
+          <p className="text-sm font-black text-white">Juego desarrollado por Omar Navarro</p>
+          <p className="text-xs text-neutral-400">para CazaOfertasML</p>
+        </div>
 
-      <div className="flex flex-col gap-3 w-full max-w-xs">
-        <button onClick={onResume} className="px-6 py-3 bg-yellow-400 text-black font-black rounded-xl text-xs uppercase shadow-lg hover:scale-105 transition-all">Reanudar Partida ▶️</button>
-        <button onClick={() => setIsEffectsMuted(!isEffectsMuted)} className="px-6 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-bold rounded-xl text-xs flex items-center justify-center gap-2 border border-neutral-700">
-          {isEffectsMuted ? <VolumeX size={14} /> : <Volume2 size={14} />} Sonido: {isEffectsMuted ? 'Silenciado' : 'Activado'}
-        </button>
-        <button onClick={onQuit} className="px-6 py-2.5 bg-red-900/40 hover:bg-red-900/70 text-red-300 font-bold rounded-xl text-xs border border-red-500/30 transition-all">Menú Principal</button>
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          <button onClick={onResume} className="px-6 py-3 bg-yellow-400 text-black font-black rounded-xl text-xs uppercase shadow-lg hover:scale-105 transition-all">Reanudar Partida ▶️</button>
+          <button onClick={() => setIsEffectsMuted(!isEffectsMuted)} className="px-6 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-bold rounded-xl text-xs flex items-center justify-center gap-2 border border-neutral-700">
+            {isEffectsMuted ? <VolumeX size={14} /> : <Volume2 size={14} />} Sonido: {isEffectsMuted ? 'Silenciado' : 'Activado'}
+          </button>
+          <button onClick={onQuit} className="px-6 py-2.5 bg-red-900/40 hover:bg-red-900/70 text-red-300 font-bold rounded-xl text-xs border border-red-500/30 transition-all">Menú Principal</button>
+        </div>
       </div>
     </div>
   );
@@ -1855,12 +1857,12 @@ export default function GamesZone({ currentUser, isLight }) {
         </div>
       </div>
 
-      <div className={`rounded-3xl shadow-xl p-6 md:p-8 backdrop-blur-xl border ${isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'}`}>
-        <h2 className={`text-3xl font-bold text-center mb-6 flex items-center justify-center gap-2 ${isLight ? 'text-purple-700' : 'text-neutral-100 font-black'}`}>
+      <div className={`rounded-3xl shadow-xl p-4 md:p-8 backdrop-blur-xl border ${isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'}`}>
+        <h2 className={`text-2xl sm:text-3xl font-bold text-center mb-6 flex items-center justify-center gap-2 ${isLight ? 'text-purple-700' : 'text-neutral-100 font-black'}`}>
           <Gamepad2 className="w-8 h-8 text-yellow-400" /> ZONA DE RECREACIÓN CAZAOFERTAS
         </h2>
 
-        <div className="flex justify-center gap-2.5 mb-6 flex-wrap">
+        <div className="flex justify-center gap-2 mb-6 flex-wrap">
           <button onClick={() => handleSelectGame('2048')} className={`px-4 py-2 rounded-full font-bold text-xs transition-all border ${activeGame === '2048' ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg scale-105' : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700'}`}>🔢 2048 Classic</button>
           <button onClick={() => handleSelectGame('tetris')} className={`px-4 py-2 rounded-full font-bold text-xs transition-all border ${activeGame === 'tetris' ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg scale-105' : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700'}`}>🧱 Cyber Tetris</button>
           <button onClick={() => handleSelectGame('memory')} className={`px-4 py-2 rounded-full font-bold text-xs transition-all border ${activeGame === 'memory' ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg scale-105' : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700'}`}>🎴 Memoria Pro</button>
@@ -1868,10 +1870,10 @@ export default function GamesZone({ currentUser, isLight }) {
           <button onClick={() => handleSelectGame('clicker')} className={`px-4 py-2 rounded-full font-bold text-xs transition-all border ${activeGame === 'clicker' ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg scale-105' : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700'}`}>⚡ Click Challenge</button>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6 items-start justify-center">
+        <div className="flex flex-col xl:flex-row gap-6 items-center xl:items-start justify-center w-full">
           
-          {/* PROGRESO GLOBAL */}
-          <div className="w-full lg:w-64 shrink-0 bg-gradient-to-b from-red-600 to-red-900 rounded-2xl p-5 text-white shadow-lg border border-red-500 relative overflow-hidden">
+          {/* PROGRESO GLOBAL (Izquierda en PC, Arriba en Celular pero después del Menú Opcional o Antes) */}
+          <div className="w-full max-w-sm xl:w-64 shrink-0 bg-gradient-to-b from-red-600 to-red-900 rounded-2xl p-5 text-white shadow-lg border border-red-500 relative overflow-hidden order-2 xl:order-1">
             <h3 className="text-center font-black text-sm uppercase tracking-wider mb-3 flex items-center justify-center gap-2">
               <User className="w-4 h-4" /> PROGRESO GLOBAL
             </h3>
@@ -1897,10 +1899,10 @@ export default function GamesZone({ currentUser, isLight }) {
             </div>
           </div>
 
-          {/* CONTENEDOR CENTRAL DEL JUEGO */}
-          <div className="flex flex-col gap-3">
+          {/* CONTENEDOR CENTRAL DEL JUEGO (Centro en PC, Arriba del todo en Móviles) */}
+          <div className="flex flex-col gap-3 w-full max-w-[840px] order-1 xl:order-2">
             {gamePhase === 'playing' && activeGame !== 'memory' && activeGame !== 'ninja' && activeGame !== 'clicker' && activeGame !== 'tetris' && (
-              <div className="w-[840px] max-w-full flex justify-between items-center bg-neutral-900 border border-neutral-800 px-4 py-2 rounded-xl shadow-md text-white text-xs font-bold">
+              <div className="w-full flex flex-wrap justify-between items-center gap-2 bg-neutral-900 border border-neutral-800 px-4 py-2 rounded-xl shadow-md text-white text-xs font-bold">
                 <div>Puntos: <span className="text-yellow-400 text-sm font-black">{score}</span></div>
                 <div>Récord: <span className="text-yellow-400 text-sm font-black">{highScores[activeGame] || 0}</span></div>
                 <div className="flex gap-2">
@@ -1918,10 +1920,10 @@ export default function GamesZone({ currentUser, isLight }) {
 
             <div 
               ref={gameContainerRef} 
-              className={`relative w-[840px] max-w-full h-[520px] bg-neutral-950 rounded-2xl border flex items-center justify-center shadow-2xl overflow-hidden ${
+              className={`relative w-full h-[65vh] min-h-[450px] max-h-[520px] sm:h-[520px] bg-neutral-950 rounded-2xl border flex items-center justify-center shadow-2xl overflow-hidden ${
                 activeGame === 'clicker' ? getClickerThemeClasses() : 'border-neutral-800'
               } ${
-                isFullscreen ? 'h-screen w-screen rounded-none border-none max-w-none' : ''
+                isFullscreen ? 'h-screen w-screen rounded-none border-none max-h-none min-h-screen' : ''
               } ${screenRed ? 'ring-4 ring-red-600 animate-pulse' : ''}`}
             >
               {/* BOTÓN DE PANTALLA COMPLETA */}
@@ -1942,104 +1944,108 @@ export default function GamesZone({ currentUser, isLight }) {
               )}
               
               {gamePhase === 'menu' && (
-                <div className="absolute inset-0 bg-neutral-900/95 flex flex-col items-center justify-center z-30 p-6 text-center rounded-2xl">
-                  <Gamepad2 className="w-16 h-16 text-yellow-400 mb-4 animate-bounce" />
-                  <h3 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">
-                    {activeGame === '2048' && '2048 Classic'}
-                    {activeGame === 'tetris' && 'Cyber Tetris Pro'}
-                    {activeGame === 'memory' && 'Memoria Pro'}
-                    {activeGame === 'ninja' && 'Ninja Cut HD'}
-                    {activeGame === 'clicker' && 'Click Challenge'}
-                  </h3>
-                  <p className="text-sm text-neutral-400 max-w-md mb-6">Compite en el Top Global mensual. ¡El mejor por mes en cada juego Gana tarjetas de regalo!</p>
-                  <button onClick={startGameFlow} className="flex items-center gap-2 px-8 py-3.5 bg-yellow-400 text-black font-black rounded-full shadow-lg hover:scale-105 transition-all uppercase text-sm">
-                    <Play className="w-5 h-5 fill-current" /> Jugar Ahora
-                  </button>
+                <div className="absolute inset-0 bg-neutral-900/95 flex flex-col items-center justify-center z-30 p-6 text-center rounded-2xl overflow-y-auto">
+                  <div className="my-auto flex flex-col items-center py-4">
+                    <Gamepad2 className="w-16 h-16 text-yellow-400 mb-4 animate-bounce" />
+                    <h3 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">
+                      {activeGame === '2048' && '2048 Classic'}
+                      {activeGame === 'tetris' && 'Cyber Tetris Pro'}
+                      {activeGame === 'memory' && 'Memoria Pro'}
+                      {activeGame === 'ninja' && 'Ninja Cut HD'}
+                      {activeGame === 'clicker' && 'Click Challenge'}
+                    </h3>
+                    <p className="text-sm text-neutral-400 max-w-md mb-6">Compite en el Top Global mensual. ¡El mejor por mes en cada juego Gana tarjetas de regalo!</p>
+                    <button onClick={startGameFlow} className="flex items-center gap-2 px-8 py-3.5 bg-yellow-400 text-black font-black rounded-full shadow-lg hover:scale-105 transition-all uppercase text-sm">
+                      <Play className="w-5 h-5 fill-current" /> Jugar Ahora
+                    </button>
+                  </div>
                 </div>
               )}
 
               {gamePhase === 'rules' && activeGame !== 'clicker' && (
-                <div className="absolute inset-0 bg-neutral-950 z-40 flex flex-col items-center justify-center p-8 text-white text-center rounded-2xl">
-                  <h3 className="text-2xl font-black text-yellow-400 mb-3 uppercase">Instrucciones</h3>
-                  <p className="text-sm text-neutral-300 max-w-md mb-6 leading-relaxed">
-                    {activeGame === '2048' && 'Usa el teclado (Flechas o las teclas W,A,S,D) o desliza el dedo en cualquier dirección sobre el tablero para combinar fichas iguales.'}
-                    {activeGame === 'tetris' && 'Mueve piezas con las teclas A/D o Flechas, rota con W/X, baja suavemente con S o Espacio y guarda pieza con Shift o C.'}
-                    {activeGame === 'memory' && 'Voltea las cartas, encuentra las parejas ocultas en el menor tiempo posible y usa tus pistas sabiamente.'}
-                    {activeGame === 'ninja' && 'Corta la mayor cantidad de frutas posibles. Usa el mouse y click izquierdo, ¡Cuidado con las bombas (restan 1 vida)!'}
-                  </p>
+                <div className="absolute inset-0 bg-neutral-950 z-40 flex flex-col items-center p-6 sm:p-8 text-white text-center rounded-2xl overflow-y-auto">
+                  <div className="my-auto w-full flex flex-col items-center py-4">
+                    <h3 className="text-2xl font-black text-yellow-400 mb-3 uppercase">Instrucciones</h3>
+                    <p className="text-sm text-neutral-300 max-w-md mb-6 leading-relaxed">
+                      {activeGame === '2048' && 'Usa el teclado (Flechas o las teclas W,A,S,D) o desliza el dedo en cualquier dirección sobre el tablero para combinar fichas iguales.'}
+                      {activeGame === 'tetris' && 'Mueve piezas con las teclas A/D o desliza el dedo, rota con W/X o toca, baja rápido con S y guarda pieza con Shift o C.'}
+                      {activeGame === 'memory' && 'Voltea las cartas, encuentra las parejas ocultas en el menor tiempo posible y usa tus pistas sabiamente.'}
+                      {activeGame === 'ninja' && 'Corta la mayor cantidad de frutas posibles. Desliza el dedo o el mouse, ¡Cuidado con las bombas (restan 1 vida)!'}
+                    </p>
 
-                  {/* Selectores desplegables limpios para Memoria Pro */}
-                  {activeGame === 'memory' && (
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md mb-6 text-left">
-                        <div className="flex flex-col gap-1.5">
-                          <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Dificultad</label>
-                          <select 
-                            value={memSettings.diff} 
-                            onChange={(e) => setMemSettings(s => ({...s, diff: e.target.value}))} 
-                            className="bg-neutral-900 text-white font-bold text-sm p-3 rounded-xl border border-neutral-700 outline-none focus:border-yellow-400 transition-colors shadow-inner cursor-pointer"
-                          >
-                            {Object.keys(MEMORY_DIFFICULTIES).map(d => (
-                              <option key={d} value={d} className="bg-neutral-900 text-white py-2">{d}</option>
-                            ))}
-                          </select>
+                    {/* Selectores desplegables limpios para Memoria Pro */}
+                    {activeGame === 'memory' && (
+                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md mb-6 text-left">
+                          <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Dificultad</label>
+                            <select 
+                              value={memSettings.diff} 
+                              onChange={(e) => setMemSettings(s => ({...s, diff: e.target.value}))} 
+                              className="bg-neutral-900 text-white font-bold text-sm p-3 rounded-xl border border-neutral-700 outline-none focus:border-yellow-400 transition-colors shadow-inner cursor-pointer"
+                            >
+                              {Object.keys(MEMORY_DIFFICULTIES).map(d => (
+                                <option key={d} value={d} className="bg-neutral-900 text-white py-2">{d}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Temática</label>
+                            <select 
+                              value={memSettings.theme} 
+                              onChange={(e) => setMemSettings(s => ({...s, theme: e.target.value}))} 
+                              className="bg-neutral-900 text-white font-bold text-sm p-3 rounded-xl border border-neutral-700 outline-none focus:border-yellow-400 transition-colors shadow-inner cursor-pointer"
+                            >
+                              {Object.keys(MEMORY_THEMES).map(t => (
+                                <option key={t} value={t} className="bg-neutral-900 text-white py-2">{t}</option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
-                        <div className="flex flex-col gap-1.5">
-                          <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Temática</label>
-                          <select 
-                            value={memSettings.theme} 
-                            onChange={(e) => setMemSettings(s => ({...s, theme: e.target.value}))} 
-                            className="bg-neutral-900 text-white font-bold text-sm p-3 rounded-xl border border-neutral-700 outline-none focus:border-yellow-400 transition-colors shadow-inner cursor-pointer"
-                          >
-                            {Object.keys(MEMORY_THEMES).map(t => (
-                              <option key={t} value={t} className="bg-neutral-900 text-white py-2">{t}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                  )}
+                    )}
 
-                  {activeGame === 'ninja' && (
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-lg mb-6 text-left">
-                        <div className="flex flex-col gap-1">
-                          <label className="text-xs font-bold text-neutral-400 uppercase">Modo</label>
-                          <select value={ninjaMode} onChange={(e) => setNinjaMode(e.target.value)} className="bg-neutral-800 text-white text-xs p-2 rounded-lg border border-neutral-700">
-                            <option value="classic">Clásico (3 Vidas)</option>
-                            <option value="arcade">Arcade (60s)</option>
-                            <option value="zen">Zen (Sin Bombas)</option>
-                          </select>
+                    {activeGame === 'ninja' && (
+                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-lg mb-6 text-left">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-xs font-bold text-neutral-400 uppercase">Modo</label>
+                            <select value={ninjaMode} onChange={(e) => setNinjaMode(e.target.value)} className="bg-neutral-800 text-white text-xs p-2 rounded-lg border border-neutral-700">
+                              <option value="classic">Clásico (3 Vidas)</option>
+                              <option value="arcade">Arcade (60s)</option>
+                              <option value="zen">Zen (Sin Bombas)</option>
+                            </select>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-xs font-bold text-neutral-400 uppercase">Fondo</label>
+                            <select value={ninjaTheme} onChange={(e) => setNinjaTheme(e.target.value)} className="bg-neutral-800 text-white text-xs p-2 rounded-lg border border-neutral-700">
+                              <option value="Dojo">Dojo Tradicional</option>
+                              <option value="Bosque">Bosque Místico</option>
+                              <option value="Atardecer">Atardecer Épico</option>
+                              <option value="Noche">Noche Estrellada</option>
+                            </select>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-xs font-bold text-neutral-400 uppercase">Katana</label>
+                            <select value={ninjaKatana} onChange={(e) => setNinjaKatana(e.target.value)} className="bg-neutral-800 text-white text-xs p-2 rounded-lg border border-neutral-700">
+                              <option value="Katana">Katana Clásica</option>
+                              <option value="Láser">Láser Cibernético</option>
+                              <option value="Fuego">Espada de Fuego</option>
+                              <option value="Rayos">Rayos de Trueno</option>
+                            </select>
+                          </div>
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <label className="text-xs font-bold text-neutral-400 uppercase">Fondo</label>
-                          <select value={ninjaTheme} onChange={(e) => setNinjaTheme(e.target.value)} className="bg-neutral-800 text-white text-xs p-2 rounded-lg border border-neutral-700">
-                            <option value="Dojo">Dojo Tradicional</option>
-                            <option value="Bosque">Bosque Místico</option>
-                            <option value="Atardecer">Atardecer Épico</option>
-                            <option value="Noche">Noche Estrellada</option>
-                          </select>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <label className="text-xs font-bold text-neutral-400 uppercase">Sable / Katana</label>
-                          <select value={ninjaKatana} onChange={(e) => setNinjaKatana(e.target.value)} className="bg-neutral-800 text-white text-xs p-2 rounded-lg border border-neutral-700">
-                            <option value="Katana">Katana Clásica</option>
-                            <option value="Láser">Láser Cibernético</option>
-                            <option value="Fuego">Espada de Fuego</option>
-                            <option value="Rayos">Rayos de Trueno</option>
-                          </select>
-                        </div>
-                      </div>
-                  )}
+                    )}
 
-                  <button onClick={startPlaying} className="px-8 py-3 bg-yellow-400 text-black font-black rounded-xl text-sm shadow-lg hover:scale-105 transition-transform uppercase">¡Comenzar Partida! 🚀</button>
+                    <button onClick={startPlaying} className="px-8 py-3 bg-yellow-400 text-black font-black rounded-xl text-sm shadow-lg hover:scale-105 transition-transform uppercase">¡Comenzar Partida! 🚀</button>
+                  </div>
                 </div>
               )}
 
               {/* MENU ESPECÍFICO CLICKER */}
               {activeGame === 'clicker' && gamePhase === 'rules' && (
-                <div className="absolute inset-0 flex flex-col z-30 p-6">
+                <div className="absolute inset-0 flex flex-col z-30 p-6 overflow-y-auto">
                   <div className="flex justify-between items-center mb-4 shrink-0">
                     <div className="flex items-center gap-2">
                       <Zap className={`w-6 h-6 ${clickerSettings.theme === 'neon' ? 'text-cyan-400' : 'text-blue-500'}`} />
-                      <h1 className="text-xl font-black uppercase tracking-wider">Click Challenge</h1>
+                      <h1 className="text-lg sm:text-xl font-black uppercase tracking-wider">Click Challenge</h1>
                     </div>
                     <div className="flex gap-2 pr-10">
                       <button onClick={() => setGamePhase('clicker-stats')} className="p-2 bg-black/10 hover:bg-black/20 rounded-xl transition-all" title="Estadísticas"><BarChart3 size={18} /></button>
@@ -2048,15 +2054,15 @@ export default function GamesZone({ currentUser, isLight }) {
                     </div>
                   </div>
                   
-                  <div className="flex-1 flex flex-col items-center justify-center text-center animate-in fade-in zoom-in duration-300">
-                    <div className="mb-8 p-6 bg-black/5 rounded-2xl">
-                      <p className="text-sm font-bold uppercase tracking-widest opacity-60 mb-1">Récord Personal</p>
-                      <p className={`text-6xl font-black ${clickerSettings.theme === 'neon' ? 'text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]' : ''}`}>{highScores['clicker'] || 0}</p>
+                  <div className="flex-1 flex flex-col items-center justify-center text-center animate-in fade-in zoom-in duration-300 py-4">
+                    <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-black/5 rounded-2xl w-full max-w-xs">
+                      <p className="text-xs sm:text-sm font-bold uppercase tracking-widest opacity-60 mb-1">Récord Personal</p>
+                      <p className={`text-5xl sm:text-6xl font-black ${clickerSettings.theme === 'neon' ? 'text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]' : ''}`}>{highScores['clicker'] || 0}</p>
                       <p className="text-xs opacity-50 mt-2">Mejor racha: {clickerStats.bestCps} CPS</p>
                     </div>
                     <button 
                       onClick={startClickerCountdown}
-                      className={`relative px-12 py-5 text-2xl font-black uppercase tracking-wider text-white rounded-full transition-all hover:scale-105 active:scale-95 shadow-2xl bg-gradient-to-r ${getClickerButtonColorClasses()} overflow-hidden group`}
+                      className={`relative px-10 sm:px-12 py-4 sm:py-5 text-xl sm:text-2xl font-black uppercase tracking-wider text-white rounded-full transition-all hover:scale-105 active:scale-95 shadow-2xl bg-gradient-to-r ${getClickerButtonColorClasses()} overflow-hidden group`}
                     >
                       <span className="relative z-20 flex items-center gap-2"><Play fill="currentColor" /> Comenzar</span>
                       <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform z-10"></div>
@@ -2070,7 +2076,7 @@ export default function GamesZone({ currentUser, isLight }) {
               {activeGame === 'clicker' && gamePhase === 'clicker-countdown' && (
                 <div className="absolute inset-0 z-30 flex flex-col items-center justify-center animate-pulse">
                   <p className="text-sm font-bold uppercase tracking-widest mb-4 opacity-70">Prepárate...</p>
-                  <span className={`text-[150px] leading-none font-black ${clickerSettings.theme === 'neon' ? 'text-cyan-400 drop-shadow-[0_0_30px_rgba(34,211,238,1)]' : 'text-blue-500'}`}>
+                  <span className={`text-[120px] sm:text-[150px] leading-none font-black ${clickerSettings.theme === 'neon' ? 'text-cyan-400 drop-shadow-[0_0_30px_rgba(34,211,238,1)]' : 'text-blue-500'}`}>
                     {clickerCountdown}
                   </span>
                 </div>
@@ -2078,17 +2084,17 @@ export default function GamesZone({ currentUser, isLight }) {
 
               {/* ESTADÍSTICAS CLICKER */}
               {activeGame === 'clicker' && gamePhase === 'clicker-stats' && (
-                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-black/30 backdrop-blur-md">
-                  <div className="w-full max-w-lg animate-in fade-in text-left bg-black/60 p-6 rounded-2xl border border-white/10 shadow-2xl">
-                    <h2 className="text-2xl font-black mb-6 uppercase flex items-center gap-2 border-b border-current pb-2"><BarChart3 /> Estadísticas Globales</h2>
-                    <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-4 sm:p-6 bg-black/30 backdrop-blur-md overflow-y-auto">
+                  <div className="w-full max-w-lg animate-in fade-in text-left bg-black/60 p-5 sm:p-6 rounded-2xl border border-white/10 shadow-2xl my-auto">
+                    <h2 className="text-xl sm:text-2xl font-black mb-4 sm:mb-6 uppercase flex items-center gap-2 border-b border-current pb-2"><BarChart3 /> Estadísticas Globales</h2>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
                       <div className="p-3 bg-black/40 rounded-xl"><span className="text-[10px] uppercase font-bold opacity-60 block">Partidas Jugadas</span><span className="text-lg font-black">{clickerStats.played}</span></div>
                       <div className="p-3 bg-black/40 rounded-xl"><span className="text-[10px] uppercase font-bold opacity-60 block">Clicks Totales</span><span className="text-lg font-black">{clickerStats.totalClicks.toLocaleString()}</span></div>
                       <div className="p-3 bg-blue-500/80 rounded-xl text-white"><span className="text-[10px] uppercase font-bold opacity-80 block">Mejor Récord</span><span className="text-lg font-black">{highScores['clicker'] || 0}</span></div>
                       <div className="p-3 bg-black/40 rounded-xl"><span className="text-[10px] uppercase font-bold opacity-60 block">CPS Promedio</span><span className="text-lg font-black">{clickerStats.avgCps.toFixed(2)}</span></div>
                     </div>
                     <h3 className="text-sm font-black uppercase mb-3 opacity-70">Logros ({clickerStats.achievements.length}/{ACHIEVEMENTS.length})</h3>
-                    <div className="space-y-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="space-y-2 max-h-32 sm:max-h-40 overflow-y-auto pr-2 custom-scrollbar">
                       {ACHIEVEMENTS.map(ach => {
                         const unlocked = clickerStats.achievements.includes(ach.id);
                         return (
@@ -2109,39 +2115,39 @@ export default function GamesZone({ currentUser, isLight }) {
 
               {/* LEADERBOARD CLICKER */}
               {activeGame === 'clicker' && gamePhase === 'clicker-leaderboard' && (
-                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-black/30 backdrop-blur-md">
-                  <div className="w-full max-w-lg animate-in fade-in text-left bg-black/60 p-6 rounded-2xl border border-white/10 shadow-2xl">
-                    <h2 className="text-2xl font-black mb-6 uppercase flex items-center gap-2 border-b border-current pb-2"><Trophy className="text-yellow-500" /> Mejores Puntuaciones</h2>
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-4 sm:p-6 bg-black/30 backdrop-blur-md overflow-y-auto">
+                  <div className="w-full max-w-lg animate-in fade-in text-left bg-black/60 p-5 sm:p-6 rounded-2xl border border-white/10 shadow-2xl my-auto">
+                    <h2 className="text-xl sm:text-2xl font-black mb-4 sm:mb-6 uppercase flex items-center gap-2 border-b border-current pb-2"><Trophy className="text-yellow-500" /> Mejores Puntuaciones</h2>
                     {clickerLeaderboard.length === 0 ? (
                       <p className="text-center opacity-50 py-10">Aún no hay partidas registradas.</p>
                     ) : (
-                      <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                      <div className="space-y-2 max-h-[250px] sm:max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
                         {clickerLeaderboard.map((entry, idx) => (
-                          <div key={idx} className={`p-3 rounded-xl flex items-center justify-between ${idx === 0 ? 'bg-yellow-500/20 border border-yellow-500/50 text-yellow-300' : 'bg-black/20 border border-transparent'}`}>
-                            <div className="flex items-center gap-3">
-                              <span className="text-lg font-black opacity-60 w-6 text-center">#{idx + 1}</span>
+                          <div key={idx} className={`p-2 sm:p-3 rounded-xl flex items-center justify-between ${idx === 0 ? 'bg-yellow-500/20 border border-yellow-500/50 text-yellow-300' : 'bg-black/20 border border-transparent'}`}>
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <span className="text-sm sm:text-lg font-black opacity-60 w-5 sm:w-6 text-center">#{idx + 1}</span>
                               <div>
-                                <p className="font-black text-base">{entry.clicks} <span className="text-[10px] font-normal opacity-70">clicks</span></p>
-                                <p className="text-[10px] opacity-60">{entry.date} - {entry.time}</p>
+                                <p className="font-black text-sm sm:text-base">{entry.clicks} <span className="text-[9px] sm:text-[10px] font-normal opacity-70">clicks</span></p>
+                                <p className="text-[9px] sm:text-[10px] opacity-60">{entry.date} - {entry.time}</p>
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className="font-bold text-sm">{entry.cps} CPS</p>
-                              <p className="text-[10px] opacity-60">Promedio</p>
+                              <p className="font-bold text-xs sm:text-sm">{entry.cps} CPS</p>
+                              <p className="text-[9px] sm:text-[10px] opacity-60">Promedio</p>
                             </div>
                           </div>
                         ))}
                       </div>
                     )}
-                    <button onClick={() => setGamePhase('rules')} className="mt-6 w-full py-2 bg-black/40 hover:bg-black/60 font-bold rounded-xl transition-all">Volver</button>
+                    <button onClick={() => setGamePhase('rules')} className="mt-4 sm:mt-6 w-full py-2 bg-black/40 hover:bg-black/60 font-bold rounded-xl transition-all">Volver</button>
                   </div>
                 </div>
               )}
 
               {/* CONFIGURACIÓN CLICKER */}
               {activeGame === 'clicker' && gamePhase === 'clicker-settings' && (
-                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-black/30 backdrop-blur-md">
-                  <div className="w-full max-w-sm animate-in fade-in text-left bg-black/60 p-6 rounded-2xl border border-white/10 shadow-2xl">
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-4 sm:p-6 bg-black/30 backdrop-blur-md overflow-y-auto">
+                  <div className="w-full max-w-sm animate-in fade-in text-left bg-black/60 p-5 sm:p-6 rounded-2xl border border-white/10 shadow-2xl my-auto">
                     <h2 className="text-xl font-black mb-4 uppercase flex items-center gap-2 border-b border-current pb-2"><SettingsIcon /> Configuración</h2>
                     <div className="space-y-3">
                       <div className="flex justify-between items-center p-3 bg-black/20 rounded-xl cursor-pointer" onClick={() => setClickerSettings(s => ({...s, sound: !s.sound}))}>
@@ -2176,7 +2182,7 @@ export default function GamesZone({ currentUser, isLight }) {
                         </div>
                       </div>
                     </div>
-                    <button onClick={() => setGamePhase('rules')} className="mt-6 w-full py-2 bg-black/40 hover:bg-black/60 font-bold rounded-xl transition-all">Guardar y Volver</button>
+                    <button onClick={() => setGamePhase('rules')} className="mt-4 sm:mt-6 w-full py-2 bg-black/40 hover:bg-black/60 font-bold rounded-xl transition-all">Guardar y Volver</button>
                   </div>
                 </div>
               )}
@@ -2184,29 +2190,29 @@ export default function GamesZone({ currentUser, isLight }) {
               {/* JUGANDO CLICKER */}
               {activeGame === 'clicker' && gamePhase === 'playing' && (
                 <div className="w-full h-full flex flex-col items-center justify-between py-4 relative z-20">
-                  <div className="w-full flex justify-between items-start px-6 pt-12">
-                    <div className="flex flex-col items-start bg-black/10 p-3 rounded-xl min-w-[120px] backdrop-blur-md">
-                      <span className="text-[10px] uppercase font-bold opacity-60">Tiempo</span>
-                      <span ref={timerTextRef} className="text-4xl font-black font-mono tracking-tighter">01:00</span>
+                  <div className="w-full flex justify-between items-start px-4 sm:px-6 pt-10 sm:pt-12">
+                    <div className="flex flex-col items-start bg-black/10 p-2 sm:p-3 rounded-xl min-w-[100px] sm:min-w-[120px] backdrop-blur-md">
+                      <span className="text-[9px] sm:text-[10px] uppercase font-bold opacity-60">Tiempo</span>
+                      <span ref={timerTextRef} className="text-3xl sm:text-4xl font-black font-mono tracking-tighter">01:00</span>
                     </div>
-                    <div className="flex flex-col items-end bg-black/10 p-3 rounded-xl min-w-[120px] backdrop-blur-md">
-                      <span className="text-[10px] uppercase font-bold opacity-60">Clicks</span>
-                      <span ref={clicksTextRef} className="text-4xl font-black font-mono tracking-tighter text-blue-500">0</span>
+                    <div className="flex flex-col items-end bg-black/10 p-2 sm:p-3 rounded-xl min-w-[100px] sm:min-w-[120px] backdrop-blur-md">
+                      <span className="text-[9px] sm:text-[10px] uppercase font-bold opacity-60">Clicks</span>
+                      <span ref={clicksTextRef} className="text-3xl sm:text-4xl font-black font-mono tracking-tighter text-blue-500">0</span>
                     </div>
                   </div>
-                  <div className="w-full max-w-md px-6 absolute top-[120px] left-1/2 -translate-x-1/2 pointer-events-none">
-                    <div className="flex justify-between text-[10px] font-bold uppercase opacity-60 mb-1">
+                  <div className="w-full max-w-md px-4 sm:px-6 absolute top-[100px] sm:top-[120px] left-1/2 -translate-x-1/2 pointer-events-none">
+                    <div className="flex justify-between text-[9px] sm:text-[10px] font-bold uppercase opacity-60 mb-1">
                       <span>Velocidad Actual</span>
                       <span><span ref={cpsTextRef}>0</span> CPS</span>
                     </div>
-                    <div className="w-full h-2 bg-black/20 rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 sm:h-2 bg-black/20 rounded-full overflow-hidden">
                       <div ref={cpsBarRef} className="h-full bg-blue-500 w-0 transition-all duration-100 ease-linear"></div>
                     </div>
                   </div>
-                  <div className="flex-1 flex items-center justify-center w-full touch-none select-none">
+                  <div className="flex-1 flex items-center justify-center w-full touch-none select-none my-4">
                     <button
                       onPointerDown={handleMainClickerAction}
-                      className={`w-56 h-56 sm:w-64 sm:h-64 rounded-full font-black text-2xl sm:text-3xl text-white outline-none px-4 text-center
+                      className={`w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 rounded-full font-black text-xl sm:text-2xl md:text-3xl text-white outline-none px-4 text-center
                         bg-gradient-to-br ${getClickerButtonColorClasses()} 
                         shadow-[0_20px_50px_rgba(0,0,0,0.4)]
                         hover:brightness-110 active:brightness-90
@@ -2219,7 +2225,7 @@ export default function GamesZone({ currentUser, isLight }) {
                       <div className="absolute inset-0 rounded-full border-2 border-white/0 group-hover:border-white/30 group-hover:scale-105 transition-all duration-300 pointer-events-none"></div>
                     </button>
                   </div>
-                  <div className="text-xs font-medium opacity-40">Presiona el botón, Espacio o Enter.</div>
+                  <div className="text-[10px] sm:text-xs font-medium opacity-40 px-4 text-center">Presiona el botón, Espacio o Enter.</div>
                 </div>
               )}
 
@@ -2230,31 +2236,31 @@ export default function GamesZone({ currentUser, isLight }) {
                 const medal = getClickerMedal(finalScore);
                 const isNewRecord = finalScore >= (highScores['clicker'] || 0) && finalScore > 0;
                 return (
-                  <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-black/80 backdrop-blur-md">
-                    <div className="w-full max-w-2xl flex flex-col items-center text-center animate-in slide-in-from-bottom-8 duration-500 bg-neutral-900 border border-white/10 p-6 md:p-8 rounded-3xl shadow-2xl">
+                  <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto">
+                    <div className="w-full max-w-2xl flex flex-col items-center text-center animate-in slide-in-from-bottom-8 duration-500 bg-neutral-900 border border-white/10 p-5 md:p-8 rounded-3xl shadow-2xl my-auto">
                       {isNewRecord && (
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-yellow-400 text-black font-black uppercase text-xs rounded-full mb-4 animate-bounce">
+                        <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-1.5 bg-yellow-400 text-black font-black uppercase text-[10px] sm:text-xs rounded-full mb-3 sm:mb-4 animate-bounce">
                           <Award size={14} /> ¡Nuevo Récord Personal!
                         </div>
                       )}
-                      <h2 className="text-5xl sm:text-7xl font-black mb-1">{finalScore}</h2>
-                      <p className="text-sm uppercase font-bold opacity-60 tracking-widest mb-4">Clicks Totales</p>
+                      <h2 className="text-4xl sm:text-6xl md:text-7xl font-black mb-1">{finalScore}</h2>
+                      <p className="text-[10px] sm:text-sm uppercase font-bold opacity-60 tracking-widest mb-4">Clicks Totales</p>
                       
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full mb-4">
-                        <div className="bg-black/20 p-3 rounded-2xl flex flex-col items-center"><span className="text-[10px] uppercase font-bold opacity-50 mb-1">Promedio</span><span className="text-lg font-black">{avg} <span className="text-[10px]">CPS</span></span></div>
-                        <div className="bg-black/20 p-3 rounded-2xl flex flex-col items-center"><span className="text-[10px] uppercase font-bold opacity-50 mb-1">Mejor Racha</span><span className="text-lg font-black">{clickerMaxCpsRef.current} <span className="text-[10px]">CPS</span></span></div>
-                        <div className="bg-black/20 p-3 rounded-2xl flex flex-col items-center col-span-2 md:col-span-2"><span className="text-[10px] uppercase font-bold opacity-50 mb-1">Medalla Obtenida</span>
-                          <div className="flex items-center gap-2"><span className="text-xl">{medal.icon}</span><span className={`text-base font-black bg-clip-text text-transparent bg-gradient-to-r ${medal.color}`}>{medal.name}</span></div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 w-full mb-4">
+                        <div className="bg-black/20 p-2 sm:p-3 rounded-xl sm:rounded-2xl flex flex-col items-center"><span className="text-[9px] sm:text-[10px] uppercase font-bold opacity-50 mb-1">Promedio</span><span className="text-base sm:text-lg font-black">{avg} <span className="text-[9px] sm:text-[10px]">CPS</span></span></div>
+                        <div className="bg-black/20 p-2 sm:p-3 rounded-xl sm:rounded-2xl flex flex-col items-center"><span className="text-[9px] sm:text-[10px] uppercase font-bold opacity-50 mb-1">Mejor Racha</span><span className="text-base sm:text-lg font-black">{clickerMaxCpsRef.current} <span className="text-[9px] sm:text-[10px]">CPS</span></span></div>
+                        <div className="bg-black/20 p-2 sm:p-3 rounded-xl sm:rounded-2xl flex flex-col items-center col-span-2 md:col-span-2"><span className="text-[9px] sm:text-[10px] uppercase font-bold opacity-50 mb-1">Medalla Obtenida</span>
+                          <div className="flex items-center gap-2"><span className="text-lg sm:text-xl">{medal.icon}</span><span className={`text-sm sm:text-base font-black bg-clip-text text-transparent bg-gradient-to-r ${medal.color}`}>{medal.name}</span></div>
                         </div>
                       </div>
-                      <div className="w-full mb-6">
-                        <p className="text-[10px] uppercase font-bold opacity-50 text-left mb-1">Rendimiento (CPS por segundo)</p>
+                      <div className="w-full mb-4 sm:mb-6">
+                        <p className="text-[9px] sm:text-[10px] uppercase font-bold opacity-50 text-left mb-1">Rendimiento (CPS por segundo)</p>
                         {renderClickerChart()}
                       </div>
-                      <div className="flex flex-wrap justify-center gap-3 w-full">
-                        <button onClick={startClickerCountdown} className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-black rounded-xl transition-all shadow-lg flex items-center gap-2 flex-1 min-w-[160px] justify-center"><RotateCcw size={16} /> Jugar Otra Vez</button>
-                        <button onClick={() => handleShareScore('Click Challenge', finalScore)} className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-black rounded-xl transition-all shadow-lg flex items-center gap-2 flex-1 min-w-[150px] justify-center"><Share2 size={16} /> Compartir</button>
-                        <button onClick={() => setGamePhase('rules')} className="px-6 py-3 bg-black/40 hover:bg-black/60 font-bold rounded-xl transition-all flex items-center gap-2 flex-1 min-w-[120px] justify-center"><Home size={16} /> Menú</button>
+                      <div className="flex flex-wrap justify-center gap-2 sm:gap-3 w-full">
+                        <button onClick={startClickerCountdown} className="px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-500 hover:bg-blue-600 text-white font-black rounded-xl text-xs sm:text-sm transition-all shadow-lg flex items-center gap-2 flex-1 min-w-[140px] justify-center"><RotateCcw size={16} /> Volver a Jugar</button>
+                        <button onClick={() => handleShareScore('Click Challenge', finalScore)} className="px-4 sm:px-6 py-2.5 sm:py-3 bg-green-600 hover:bg-green-700 text-white font-black rounded-xl text-xs sm:text-sm transition-all shadow-lg flex items-center gap-2 flex-1 min-w-[130px] justify-center"><Share2 size={16} /> Compartir</button>
+                        <button onClick={() => setGamePhase('rules')} className="px-4 sm:px-6 py-2.5 sm:py-3 bg-black/40 hover:bg-black/60 font-bold rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 flex-1 min-w-[100px] justify-center"><Home size={16} /> Menú</button>
                       </div>
                     </div>
                   </div>
@@ -2263,20 +2269,20 @@ export default function GamesZone({ currentUser, isLight }) {
 
               {/* JUGANDO 2048 */}
               {activeGame === '2048' && gamePhase === 'playing' && (
-                <div className="w-full h-full flex flex-col items-center justify-center p-4 select-none touch-none relative" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+                <div className="w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 select-none touch-none relative" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
                   {is2048Paused && renderUnifiedPauseOverlay(() => setIs2048Paused(false), () => setGamePhase('menu'))}
-                  <div className="flex justify-between w-full max-w-[340px] mb-3">
-                    <span className="text-xs font-bold text-neutral-400">{isWon ? '✨ ¡2048 Conseguido! (Modo Infinito)' : 'Combina fichas iguales'}</span>
+                  <div className="flex justify-between items-center w-full max-w-[340px] mb-2 sm:mb-3 px-2">
+                    <span className="text-[10px] sm:text-xs font-bold text-neutral-400">{isWon ? '✨ ¡2048 Conseguido! (Infinito)' : 'Combina fichas iguales'}</span>
                     <button onClick={undo2048} className="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-xs font-bold text-yellow-400 rounded-lg flex items-center gap-1 shadow"><RotateCcw size={12} /> Deshacer</button>
                   </div>
-                  <div className="grid grid-cols-4 gap-2.5 bg-neutral-900 p-3.5 rounded-2xl border-2 border-neutral-800 shadow-2xl">
+                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5 bg-neutral-900 p-2 sm:p-3.5 rounded-2xl border-2 border-neutral-800 shadow-2xl">
                     {grid2048.map((row, r) => row.map((val, c) => (
-                      <div key={`${r}-${c}`} className={`w-16 h-16 md:w-20 md:h-20 rounded-xl flex items-center justify-center font-black text-xl md:text-3xl transition-all shadow-inner ${val === 0 ? 'bg-neutral-800/40 text-transparent' : val === 2 ? 'bg-amber-100 text-neutral-800' : val === 4 ? 'bg-amber-200 text-neutral-800' : val === 8 ? 'bg-orange-400 text-white' : val === 16 ? 'bg-orange-500 text-white' : val === 32 ? 'bg-red-500 text-white' : val === 64 ? 'bg-red-600 text-white' : 'bg-yellow-400 text-black scale-105'}`}>
+                      <div key={`${r}-${c}`} className={`w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-xl flex items-center justify-center font-black text-lg sm:text-xl md:text-3xl transition-all shadow-inner ${val === 0 ? 'bg-neutral-800/40 text-transparent' : val === 2 ? 'bg-amber-100 text-neutral-800' : val === 4 ? 'bg-amber-200 text-neutral-800' : val === 8 ? 'bg-orange-400 text-white' : val === 16 ? 'bg-orange-500 text-white' : val === 32 ? 'bg-red-500 text-white' : val === 64 ? 'bg-red-600 text-white' : 'bg-yellow-400 text-black scale-105'}`}>
                         {val !== 0 ? val : ''}
                       </div>
                     )))}
                   </div>
-                  <p className="text-[11px] text-neutral-500 mt-3 font-medium">💡 En PC usa Teclas de Flecha / WASD | En Móvil desliza el dedo sobre el tablero.</p>
+                  <p className="text-[10px] sm:text-[11px] text-neutral-500 mt-3 sm:mt-4 font-medium px-4 text-center">💡 En PC usa Teclas de Flecha / WASD | En Móvil desliza el dedo sobre el tablero.</p>
                 </div>
               )}
 
@@ -2313,36 +2319,40 @@ export default function GamesZone({ currentUser, isLight }) {
                 }
 
                 return (
-                  <div className="w-full h-full flex items-center justify-center gap-6 p-4 select-none touch-none relative" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+                  <div className="w-full h-full flex flex-row items-center justify-center gap-2 sm:gap-6 p-2 sm:p-4 select-none touch-none relative" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
                     {isTetrisPaused && renderUnifiedPauseOverlay(() => setIsTetrisPaused(false), () => setGamePhase('menu'))}
                     
-                    <div className="flex flex-col gap-3 w-28 bg-neutral-900/90 p-3 rounded-2xl border border-neutral-800 text-white text-xs">
-                      <span className="font-black text-yellow-400 uppercase tracking-wider text-center">Guardada</span>
-                      <div className="w-20 h-20 bg-black/50 rounded-xl mx-auto flex items-center justify-center border border-neutral-800 p-2">
+                    {/* Panel Izquierdo (Hold) */}
+                    <div className="flex flex-col gap-2 w-20 sm:w-28 bg-neutral-900/90 p-2 sm:p-3 rounded-2xl border border-neutral-800 text-white text-[10px] sm:text-xs">
+                      <span className="font-black text-yellow-400 uppercase tracking-wider text-center text-[9px] sm:text-[10px]">Guardada</span>
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-black/50 rounded-xl mx-auto flex items-center justify-center border border-neutral-800 p-1 sm:p-2">
                         {tetrisHold ? (
                           <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${tetrisHold.shape[0].length}, 1fr)` }}>
                             {tetrisHold.shape.map((row, ri) => row.map((cell, ci) => (
-                              <div key={`${ri}-${ci}`} className={`w-3.5 h-3.5 rounded-sm ${cell ? '' : 'opacity-0'}`} style={{ backgroundColor: cell ? tetrisHold.color : 'transparent' }} />
+                              <div key={`${ri}-${ci}`} className={`w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-sm ${cell ? '' : 'opacity-0'}`} style={{ backgroundColor: cell ? tetrisHold.color : 'transparent' }} />
                             )))}
                           </div>
-                        ) : <span className="text-[10px] text-neutral-500">Vacío</span>}
+                        ) : <span className="text-[9px] sm:text-[10px] text-neutral-500">Vacío</span>}
                       </div>
-                      <div className="pt-2 border-t border-neutral-800 space-y-1">
-                        <p className="text-[10px] text-neutral-400">Puntos: <span className="text-yellow-400 font-black">{score}</span></p>
-                        <p className="text-[10px] text-neutral-400">Nivel: <span className="text-yellow-400 font-black">{tetrisLevel}</span></p>
-                        <p className="text-[10px] text-neutral-400">Líneas: <span className="text-yellow-400 font-black">{tetrisLines}</span></p>
+                      <div className="pt-2 border-t border-neutral-800 space-y-1 mt-auto">
+                        <p className="text-[9px] sm:text-[10px] text-neutral-400">Pts: <span className="text-yellow-400 font-black block sm:inline">{score}</span></p>
+                        <p className="text-[9px] sm:text-[10px] text-neutral-400">Niv: <span className="text-yellow-400 font-black">{tetrisLevel}</span></p>
+                        <p className="text-[9px] sm:text-[10px] text-neutral-400">Lín: <span className="text-yellow-400 font-black">{tetrisLines}</span></p>
                       </div>
-                      <button onClick={() => setIsTetrisPaused(true)} className="mt-auto py-1.5 bg-neutral-800 hover:bg-neutral-700 text-yellow-400 font-bold rounded-lg text-xs">Pausa</button>
+                      <button onClick={() => setIsTetrisPaused(true)} className="mt-1 sm:mt-auto py-1 sm:py-1.5 bg-neutral-800 hover:bg-neutral-700 text-yellow-400 font-bold rounded-lg text-[10px] sm:text-xs">Pausa</button>
                     </div>
 
-                    <div className="bg-neutral-900 p-2 rounded-2xl border-2 border-neutral-800 shadow-2xl flex flex-col justify-center">
+                    {/* Tablero Tetris Centrado */}
+                    <div className="bg-neutral-900 p-1 sm:p-2 rounded-2xl border-2 border-neutral-800 shadow-2xl flex flex-col justify-center h-full max-h-[420px]">
                       <div 
-                        className="grid bg-black/80 rounded-xl overflow-hidden border border-neutral-800"
+                        className="grid bg-black/80 rounded-xl overflow-hidden border border-neutral-800 w-full h-full"
                         style={{ 
                           gridTemplateColumns: `repeat(${TETRIS_COLS}, minmax(0, 1fr))`, 
                           gridTemplateRows: `repeat(${TETRIS_ROWS}, minmax(0, 1fr))`,
-                          width: '240px',
-                          height: '400px'
+                          width: '100%',
+                          maxWidth: '240px',
+                          minWidth: '160px',
+                          aspectRatio: '240 / 400'
                         }}
                       >
                         {displayGrid.slice(TETRIS_HIDDEN_ROWS).map((row, r) => row.map((cell, c) => (
@@ -2357,14 +2367,15 @@ export default function GamesZone({ currentUser, isLight }) {
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-2 w-32 bg-neutral-900/90 p-3 rounded-2xl border border-neutral-800 text-white text-xs">
-                      <span className="font-black text-yellow-400 uppercase tracking-wider text-center">Siguientes</span>
-                      <div className="flex flex-col gap-2 overflow-y-auto max-h-[340px] pr-1 custom-scrollbar">
-                        {tetrisQueue.slice(0, 5).map((piece, idx) => (
-                          <div key={idx} className="w-full h-14 bg-black/50 rounded-xl flex items-center justify-center border border-neutral-800 p-1">
+                    {/* Panel Derecho (Next) */}
+                    <div className="flex flex-col gap-2 w-20 sm:w-28 bg-neutral-900/90 p-2 sm:p-3 rounded-2xl border border-neutral-800 text-white text-[10px] sm:text-xs">
+                      <span className="font-black text-yellow-400 uppercase tracking-wider text-center text-[9px] sm:text-[10px]">Siguientes</span>
+                      <div className="flex flex-col gap-1 sm:gap-2 overflow-y-auto max-h-[250px] sm:max-h-[340px] pr-1 custom-scrollbar">
+                        {tetrisQueue.slice(0, 4).map((piece, idx) => (
+                          <div key={idx} className="w-full h-10 sm:h-14 bg-black/50 rounded-xl flex items-center justify-center border border-neutral-800 p-1">
                             <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${piece.shape[0].length}, 1fr)` }}>
                               {piece.shape.map((row, ri) => row.map((cell, ci) => (
-                                <div key={`${ri}-${ci}`} className={`w-2.5 h-2.5 rounded-sm ${cell ? '' : 'opacity-0'}`} style={{ backgroundColor: cell ? piece.color : 'transparent' }} />
+                                <div key={`${ri}-${ci}`} className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-sm ${cell ? '' : 'opacity-0'}`} style={{ backgroundColor: cell ? piece.color : 'transparent' }} />
                               )))}
                             </div>
                           </div>
@@ -2379,12 +2390,12 @@ export default function GamesZone({ currentUser, isLight }) {
               {/* JUGANDO NINJA CUT */}
               {activeGame === 'ninja' && gamePhase === 'playing' && (
                 <div className="w-full h-full relative select-none touch-none overflow-hidden flex flex-col">
-                  <div className="absolute top-3 left-3 right-16 z-20 flex justify-between items-center pointer-events-none px-4 py-2 bg-black/60 backdrop-blur-md rounded-xl border border-neutral-800 text-white font-bold text-xs">
-                    <div>Puntos: <span className="text-yellow-400 text-sm font-black">{score}</span></div>
+                  <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-12 sm:right-16 z-20 flex justify-between items-center pointer-events-none px-3 sm:px-4 py-1.5 sm:py-2 bg-black/60 backdrop-blur-md rounded-xl border border-neutral-800 text-white font-bold text-[10px] sm:text-xs">
+                    <div>Puntos: <span className="text-yellow-400 text-xs sm:text-sm font-black">{score}</span></div>
                     {ninjaMode === 'classic' && (
-                      <div className="flex gap-1 items-center">
+                      <div className="flex gap-0.5 sm:gap-1 items-center">
                         {[1, 2, 3].map(heartIndex => (
-                          <span key={heartIndex} className="text-base relative inline-block">
+                          <span key={heartIndex} className="text-sm sm:text-base relative inline-block">
                             {heartIndex <= ninjaLives ? '❤️' : '🖤'}
                           </span>
                         ))}
@@ -2392,7 +2403,7 @@ export default function GamesZone({ currentUser, isLight }) {
                     )}
                     {ninjaMode === 'arcade' && <div>⏱️ <span className="text-yellow-400 font-black">{ninjaTimeLeft}s</span></div>}
                     
-                    <div className="flex gap-2 pointer-events-auto">
+                    <div className="flex gap-1 sm:gap-2 pointer-events-auto">
                       <button onClick={() => setNinjaPausedState(true)} className="p-1.5 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-yellow-400 flex items-center gap-1" title="Pausar">
                         <Pause size={14} />
                       </button>
@@ -2406,7 +2417,7 @@ export default function GamesZone({ currentUser, isLight }) {
 
                   {comboPopup && (
                     <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none animate-bounce">
-                      <span className="text-3xl font-black text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)] uppercase">{comboPopup}</span>
+                      <span className="text-xl sm:text-3xl font-black text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)] uppercase">{comboPopup}</span>
                     </div>
                   )}
 
@@ -2427,26 +2438,26 @@ export default function GamesZone({ currentUser, isLight }) {
               {/* JUGANDO MEMORY */}
               {activeGame === 'memory' && gamePhase === 'playing' && (
                 <div className="w-full h-full flex flex-col items-center justify-between p-2 sm:p-2.5 relative overflow-hidden">
-                  <div className="w-full max-w-[480px] flex justify-between items-center bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-xl shadow-md text-white font-bold z-10 shrink-0">
-                    <div className="flex gap-2 sm:gap-3 items-center text-xs">
-                      <span className="flex items-center gap-1"><Clock size={13} className="text-yellow-400"/> {formatTime(memStats.time)}</span>
-                      <span className="flex items-center gap-1 hidden sm:flex"><RotateCcw size={13} className="text-blue-400"/> Mov: {memStats.moves}</span>
+                  <div className="w-full max-w-[480px] flex justify-between items-center bg-neutral-900 border border-neutral-800 px-2 sm:px-3 py-1.5 rounded-xl shadow-md text-white font-bold z-10 shrink-0">
+                    <div className="flex gap-1.5 sm:gap-3 items-center text-[10px] sm:text-xs">
+                      <span className="flex items-center gap-1"><Clock size={12} className="text-yellow-400"/> {formatTime(memStats.time)}</span>
+                      <span className="flex items-center gap-1 hidden sm:flex"><RotateCcw size={12} className="text-blue-400"/> Mov: {memStats.moves}</span>
                       <span className="flex items-center gap-1 text-red-400 hidden sm:flex">❌ Err: {memStats.errors}</span>
                     </div>
-                    <div className="text-xs">Pts: <span className="text-yellow-400 font-black">{score}</span></div>
-                    <div className="flex gap-2">
-                       <button onClick={useMemoryHint} disabled={memStats.hints === 0 || isMemoryPaused} className="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 rounded-lg flex items-center gap-1 text-xs border border-yellow-500/30">
-                         <Lightbulb size={12} className="text-yellow-400" /> ({memStats.hints})
+                    <div className="text-[10px] sm:text-xs">Pts: <span className="text-yellow-400 font-black">{score}</span></div>
+                    <div className="flex gap-1 sm:gap-2">
+                       <button onClick={useMemoryHint} disabled={memStats.hints === 0 || isMemoryPaused} className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 rounded-lg flex items-center gap-1 text-[10px] sm:text-xs border border-yellow-500/30">
+                         <Lightbulb size={12} className="text-yellow-400" /> <span className="hidden sm:inline">({memStats.hints})</span>
                        </button>
-                       <button onClick={() => setIsMemoryPaused(!isMemoryPaused)} className="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 rounded-lg flex items-center gap-1 text-xs text-yellow-400">
-                         <Pause size={12} /> Pausa
+                       <button onClick={() => setIsMemoryPaused(!isMemoryPaused)} className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 rounded-lg flex items-center gap-1 text-[10px] sm:text-xs text-yellow-400">
+                         <Pause size={12} /> <span className="hidden sm:inline">Pausa</span>
                        </button>
                     </div>
                   </div>
 
                   {isMemoryPaused && !isWon && renderUnifiedPauseOverlay(() => setIsMemoryPaused(false), () => setGamePhase('menu'))}
 
-                  <div className={`grid gap-0.5 sm:gap-1 w-full ${MEMORY_DIFFICULTIES[memSettings.diff].maxWidth} ${MEMORY_DIFFICULTIES[memSettings.diff].maxHeight} aspect-square mx-auto items-center justify-center my-auto ${MEMORY_DIFFICULTIES[memSettings.diff].gridClass}`}
+                  <div className={`grid gap-0.5 sm:gap-1 w-full max-h-[85%] ${MEMORY_DIFFICULTIES[memSettings.diff].maxWidth} ${MEMORY_DIFFICULTIES[memSettings.diff].maxHeight} aspect-square mx-auto items-center justify-center my-auto ${MEMORY_DIFFICULTIES[memSettings.diff].gridClass}`}
                        style={{ 
                          gridTemplateColumns: `repeat(${MEMORY_DIFFICULTIES[memSettings.diff].cols}, minmax(0, 1fr))`,
                          gridTemplateRows: `repeat(${MEMORY_DIFFICULTIES[memSettings.diff].rows}, minmax(0, 1fr))` 
@@ -2454,7 +2465,7 @@ export default function GamesZone({ currentUser, isLight }) {
                     {memoryCards.map((card, idx) => {
                       const isFlipped = card.flipped || memoryMatched.includes(idx) || card.isHint;
                       const cols = MEMORY_DIFFICULTIES[memSettings.diff].cols;
-                      const textSize = cols >= 10 ? 'text-sm sm:text-base md:text-lg' : cols >= 8 ? 'text-base sm:text-lg md:text-xl' : cols >= 6 ? 'text-xl sm:text-2xl md:text-3xl' : 'text-3xl sm:text-4xl md:text-5xl';
+                      const textSize = cols >= 10 ? 'text-xs sm:text-base md:text-lg' : cols >= 8 ? 'text-sm sm:text-lg md:text-xl' : cols >= 6 ? 'text-base sm:text-2xl md:text-3xl' : 'text-xl sm:text-4xl md:text-5xl';
                       
                       return (
                         <div key={card.id} 
@@ -2481,25 +2492,27 @@ export default function GamesZone({ currentUser, isLight }) {
 
               {/* GAMEOVER PARA 2048, TETRIS, MEMORY Y NINJA */}
               {gamePhase === 'gameover' && activeGame !== 'clicker' && (
-                <div className="absolute inset-0 bg-neutral-950/95 z-50 flex flex-col items-center justify-center p-6 text-center text-white rounded-2xl backdrop-blur-md">
-                  <h3 className={`text-3xl font-black mb-2 uppercase ${isWon ? 'text-green-400' : 'text-red-500'}`}>{isWon ? '🎉 ¡Victoria!' : '💥 ¡Partida Finalizada!'}</h3>
-                  
-                  {activeGame === 'memory' && isWon && (
-                    <div className="flex gap-2 mb-4">
-                       {[1, 2, 3].map(star => (
-                         <div key={star} className={`text-4xl ${star <= memoryStars ? 'text-yellow-400 scale-110 drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]' : 'text-neutral-700 opacity-50'} transition-all duration-500 transform`}>
-                            ⭐
-                         </div>
-                       ))}
-                    </div>
-                  )}
+                <div className="absolute inset-0 bg-neutral-950/95 z-50 flex flex-col items-center justify-center p-4 sm:p-6 text-center text-white rounded-2xl backdrop-blur-md overflow-y-auto">
+                  <div className="my-auto w-full flex flex-col items-center py-4">
+                    <h3 className={`text-2xl sm:text-3xl font-black mb-2 uppercase ${isWon ? 'text-green-400' : 'text-red-500'}`}>{isWon ? '🎉 ¡Victoria!' : '💥 ¡Partida Finalizada!'}</h3>
+                    
+                    {activeGame === 'memory' && isWon && (
+                      <div className="flex gap-2 mb-4">
+                         {[1, 2, 3].map(star => (
+                           <div key={star} className={`text-3xl sm:text-4xl ${star <= memoryStars ? 'text-yellow-400 scale-110 drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]' : 'text-neutral-700 opacity-50'} transition-all duration-500 transform`}>
+                              ⭐
+                           </div>
+                         ))}
+                      </div>
+                    )}
 
-                  <p className="text-sm text-neutral-300 mb-6">Puntuación obtenida: <strong className="text-yellow-400 text-xl block mt-1">{score}</strong></p>
-                  
-                  <div className="flex flex-wrap gap-3 justify-center w-full max-w-md">
-                    <button onClick={startPlaying} className="px-5 py-3 bg-yellow-400 text-black font-black rounded-xl text-xs uppercase shadow-lg hover:scale-105 transition-all flex items-center gap-2 flex-1 justify-center min-w-[140px]"><RotateCcw size={16} /> Jugar Otra Vez</button>
-                    <button onClick={() => handleShareScore(activeGame === '2048' ? '2048 Classic' : activeGame === 'tetris' ? 'Cyber Tetris Pro' : activeGame === 'memory' ? 'Memoria Pro' : 'Ninja Cut', score)} className="px-5 py-3 bg-green-600 hover:bg-green-700 text-white font-black rounded-xl text-xs uppercase shadow-lg transition-all flex items-center gap-2 flex-1 justify-center min-w-[140px]"><Share2 size={16} /> Compartir</button>
-                    <button onClick={() => setGamePhase('menu')} className="px-5 py-3 bg-neutral-800 text-neutral-300 font-bold rounded-xl text-xs hover:bg-neutral-700 transition-all border border-neutral-700 flex items-center gap-2 justify-center w-full"><Home size={16} /> Menú Principal</button>
+                    <p className="text-xs sm:text-sm text-neutral-300 mb-6">Puntuación obtenida: <strong className="text-yellow-400 text-xl sm:text-2xl block mt-1">{score}</strong></p>
+                    
+                    <div className="flex flex-wrap gap-2 sm:gap-3 justify-center w-full max-w-md">
+                      <button onClick={startPlaying} className="px-4 sm:px-5 py-2.5 sm:py-3 bg-yellow-400 text-black font-black rounded-xl text-xs uppercase shadow-lg hover:scale-105 transition-all flex items-center gap-2 flex-1 justify-center min-w-[140px]"><RotateCcw size={16} /> Volver a Jugar</button>
+                      <button onClick={() => handleShareScore(activeGame === '2048' ? '2048 Classic' : activeGame === 'tetris' ? 'Cyber Tetris Pro' : activeGame === 'memory' ? 'Memoria Pro' : 'Ninja Cut', score)} className="px-4 sm:px-5 py-2.5 sm:py-3 bg-green-600 hover:bg-green-700 text-white font-black rounded-xl text-xs uppercase shadow-lg transition-all flex items-center gap-2 flex-1 justify-center min-w-[140px]"><Share2 size={16} /> Compartir</button>
+                      <button onClick={() => setGamePhase('menu')} className="px-4 sm:px-5 py-2.5 sm:py-3 bg-neutral-800 text-neutral-300 font-bold rounded-xl text-xs hover:bg-neutral-700 transition-all border border-neutral-700 flex items-center gap-2 justify-center w-full"><Home size={16} /> Menú Principal</button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -2507,8 +2520,8 @@ export default function GamesZone({ currentUser, isLight }) {
             </div>
           </div>
 
-          {/* COLUMNA DERECHA: TOP GLOBAL + GANADORES DEL MES */}
-          <div className="w-full lg:w-64 shrink-0 flex flex-col gap-6">
+          {/* COLUMNA DERECHA: TOP GLOBAL + GANADORES DEL MES (Derecha en PC, Abajo del todo en Móviles) */}
+          <div className="w-full max-w-sm xl:w-64 shrink-0 flex flex-col gap-6 order-3">
             
             {/* TOP GLOBAL MENSUAL */}
             <div className="bg-gradient-to-b from-blue-600 to-blue-950 rounded-2xl p-5 text-white shadow-lg border border-blue-500 flex flex-col gap-3">
