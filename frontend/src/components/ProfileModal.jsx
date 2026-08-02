@@ -158,7 +158,7 @@ export default function ProfileModal({
     } catch (error) {
       console.error(error);
       if (error.code === 'auth/email-already-in-use') {
-        setErrorMsg('⚠️ Ese correo ya está dado de alta.'); // Escenario 1
+        setErrorMsg('⚠️ Ese correo ya está dado de alta.');
       } else if (error.code === 'auth/invalid-email') {
         setErrorMsg('⚠️ El formato del correo electrónico no es válido.');
       } else if (error.code === 'auth/weak-password') {
@@ -219,7 +219,7 @@ export default function ProfileModal({
         initial={{ opacity: 0, scale: 0.9, y: -20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: -20 }}
-        className={`relative rounded-3xl shadow-2xl p-8 max-w-md w-full border ${
+        className={`relative rounded-3xl shadow-2xl p-5 sm:p-8 max-w-md w-full max-h-[95vh] overflow-y-auto custom-scrollbar border ${
           isLight
             ? 'bg-white border-purple-200'
             : 'bg-neutral-900 border-yellow-400/30'
@@ -227,7 +227,7 @@ export default function ProfileModal({
       >
         <button
           onClick={() => setShowProfilePanel(false)}
-          className="absolute top-4 right-4 text-gray-500 hover:text-red-500 transition-colors"
+          className="absolute top-4 right-4 z-10 text-gray-500 hover:text-red-500 transition-colors"
         >
           <X className="w-6 h-6" />
         </button>
@@ -235,13 +235,12 @@ export default function ProfileModal({
         <div className="text-center">
           <div className="flex items-center justify-between mb-4 pr-6">
             <h2
-              className={`text-xl font-bold flex items-center gap-2 ${
+              className={`text-lg sm:text-xl font-bold flex items-center gap-2 ${
                 isLight ? 'text-purple-700' : 'text-yellow-400'
               }`}
             >
               <User className="w-5 h-5" /> MI PERFIL CAZAOFERTAS
             </h2>
-            {/* BOTÓN "SALIR" SUPERIOR ELIMINADO */}
           </div>
 
           {errorMsg && (
@@ -259,17 +258,17 @@ export default function ProfileModal({
           {currentUser ? (
             <div>
               {!isEditing ? (
-                <div className="p-6 rounded-2xl bg-yellow-400/10 border border-yellow-400/30 text-center">
+                <div className="p-4 sm:p-6 rounded-2xl bg-yellow-400/10 border border-yellow-400/30 text-center">
                   
                   <div className="flex flex-col items-center justify-center mb-3">
                     {customAvatarImg ? (
                       <img 
                         src={customAvatarImg} 
                         alt="Foto de perfil" 
-                        className="w-24 h-24 rounded-full object-cover border-2 border-yellow-400 shadow-md"
+                        className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-yellow-400 shadow-md"
                       />
                     ) : (
-                      <span className="text-[5rem] block leading-none">{selectedAvatar}</span>
+                      <span className="text-[4rem] sm:text-[5rem] block leading-none">{selectedAvatar}</span>
                     )}
                     
                     <span className="text-yellow-400 font-bold text-sm mt-3">
@@ -277,33 +276,33 @@ export default function ProfileModal({
                     </span>
                   </div>
 
-                  <p className="text-xl font-black text-white mt-1">
+                  <p className="text-lg sm:text-xl font-black text-white mt-1">
                     ¡Hola, {editNick || currentUser}!
                   </p>
-                  <p className="text-xs text-neutral-400 mt-1">
+                  <p className="text-[11px] sm:text-xs text-neutral-400 mt-1">
                     {editNombre ? `Nombre: ${editNombre}` : ''} {editTel ? `| 📞 ${editTel}` : ''}
                   </p>
-                  <p className="text-xs text-yellow-400 mt-1 font-semibold">
+                  <p className="text-[11px] sm:text-xs text-yellow-400 mt-1 font-semibold">
                     {editEdad ? `Edad: ${editEdad} años` : ''} {editSexo ? `• Sexo: ${editSexo}` : ''}
                   </p>
                   
-                  <div className="flex gap-2 mt-4 justify-center">
+                  <div className="flex flex-col sm:flex-row gap-2 mt-4 justify-center">
                     <button
                       onClick={() => setIsEditing(true)}
-                      className="px-4 py-2 bg-yellow-400 text-black rounded-xl text-xs font-black hover:bg-yellow-300 transition-all flex items-center gap-1 shadow-md"
+                      className="px-4 py-2.5 sm:py-2 bg-yellow-400 text-black rounded-xl text-xs font-black hover:bg-yellow-300 transition-all flex items-center justify-center gap-1 shadow-md"
                     >
                       <Edit3 size={14} /> Editar Perfil
                     </button>
                     <button
                       onClick={cerrarSesion}
-                      className="px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl text-xs font-bold hover:bg-red-500/30 transition-all flex items-center gap-1"
+                      className="px-4 py-2.5 sm:py-2 bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl text-xs font-bold hover:bg-red-500/30 transition-all flex items-center justify-center gap-1"
                     >
                       <LogOut size={14} /> Cerrar Sesión
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-3 text-left max-h-[60vh] overflow-y-auto pr-1">
+                <div className="space-y-3 text-left max-h-[65vh] sm:max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                   <p className="text-xs text-yellow-400 font-bold uppercase text-center mb-2">✏️ Editando tu perfil completo</p>
                   
                   <div>
@@ -312,18 +311,18 @@ export default function ProfileModal({
                       type="text"
                       value={editNombre}
                       onChange={(e) => setEditNombre(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border bg-neutral-950 border-neutral-700 text-white text-sm"
+                      className="w-full px-3 py-2 rounded-xl border bg-neutral-950 border-neutral-700 text-white text-sm focus:outline-none focus:border-yellow-400"
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="text-[11px] text-neutral-400 font-bold">Nickname</label>
                       <input
                         type="text"
                         value={editNick}
                         onChange={(e) => setEditNick(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border bg-neutral-950 border-neutral-700 text-white text-sm"
+                        className="w-full px-3 py-2 rounded-xl border bg-neutral-950 border-neutral-700 text-white text-sm focus:outline-none focus:border-yellow-400"
                       />
                     </div>
                     <div>
@@ -332,19 +331,19 @@ export default function ProfileModal({
                         type="tel"
                         value={editTel}
                         onChange={(e) => setEditTel(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border bg-neutral-950 border-neutral-700 text-white text-sm"
+                        className="w-full px-3 py-2 rounded-xl border bg-neutral-950 border-neutral-700 text-white text-sm focus:outline-none focus:border-yellow-400"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="text-[11px] text-neutral-400 font-bold">Edad</label>
                       <input
                         type="number"
                         value={editEdad}
                         onChange={(e) => setEditEdad(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border bg-neutral-950 border-neutral-700 text-white text-sm"
+                        className="w-full px-3 py-2 rounded-xl border bg-neutral-950 border-neutral-700 text-white text-sm focus:outline-none focus:border-yellow-400"
                       />
                     </div>
                     <div>
@@ -352,7 +351,7 @@ export default function ProfileModal({
                       <select
                         value={editSexo}
                         onChange={(e) => setEditSexo(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border bg-neutral-950 border-neutral-700 text-white text-sm"
+                        className="w-full px-3 py-2 rounded-xl border bg-neutral-950 border-neutral-700 text-white text-sm focus:outline-none focus:border-yellow-400"
                       >
                         <option value="Masculino">Masculino</option>
                         <option value="Femenino">Femenino</option>
@@ -373,7 +372,7 @@ export default function ProfileModal({
 
                   <div>
                     <label className="text-[11px] text-neutral-400 font-bold">O elige tu Avatar Emoji:</label>
-                    <div className="max-h-32 overflow-y-auto grid grid-cols-5 gap-2 p-2 bg-neutral-950 rounded-xl border border-neutral-700">
+                    <div className="max-h-32 sm:max-h-40 overflow-y-auto grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 p-2 bg-neutral-950 rounded-xl border border-neutral-700 custom-scrollbar">
                       {[
                         '👩‍🦰', '👨‍🦱', '👸', '🤴', '🦸‍♂️', '🦸‍♀️', '🦹‍♂️', '🦹‍♀️', 
                         '🦊', '🐯', '🦁', '🐼', '🐨', '🐶', '🐱', '🐰', 
@@ -404,16 +403,16 @@ export default function ProfileModal({
                     </div>
                   </div>
 
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex flex-col sm:flex-row gap-2 pt-2">
                     <button
                       onClick={guardarCambiosPerfil}
-                      className="flex-1 py-2.5 bg-yellow-400 text-black font-black rounded-xl text-xs uppercase shadow-lg hover:bg-yellow-300 transition-all flex items-center justify-center gap-1"
+                      className="flex-1 py-3 sm:py-2.5 bg-yellow-400 text-black font-black rounded-xl text-xs uppercase shadow-lg hover:bg-yellow-300 transition-all flex items-center justify-center gap-1"
                     >
                       <Save size={14} /> Guardar
                     </button>
                     <button
                       onClick={() => setIsEditing(false)}
-                      className="px-4 py-2.5 bg-neutral-800 text-neutral-300 font-bold rounded-xl text-xs hover:bg-neutral-700 transition-all"
+                      className="flex-1 py-3 sm:py-2.5 bg-neutral-800 text-neutral-300 font-bold rounded-xl text-xs hover:bg-neutral-700 transition-all flex items-center justify-center"
                     >
                       Cancelar
                     </button>
@@ -430,7 +429,7 @@ export default function ProfileModal({
                     placeholder="Correo o Nickname"
                     value={loginUser}
                     onChange={(e) => setLoginUser(e.target.value)}
-                    className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-sm ${
+                    className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-base sm:text-sm ${
                       isLight
                         ? 'bg-gray-50 border-gray-300'
                         : 'bg-neutral-950 border-neutral-700 text-white'
@@ -441,7 +440,7 @@ export default function ProfileModal({
                     placeholder="Contraseña"
                     value={loginPass}
                     onChange={(e) => setLoginPass(e.target.value)}
-                    className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-sm ${
+                    className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-base sm:text-sm ${
                       isLight
                         ? 'bg-gray-50 border-gray-300'
                         : 'bg-neutral-950 border-neutral-700 text-white'
@@ -468,15 +467,15 @@ export default function ProfileModal({
 
                   <div className="flex items-center gap-4 my-4">
                     <div className="flex-1 border-t border-neutral-700"></div>
-                    <span className="text-xs text-neutral-500">O ingresa rápido con</span>
+                    <span className="text-[11px] sm:text-xs text-neutral-500">O ingresa rápido con</span>
                     <div className="flex-1 border-t border-neutral-700"></div>
                   </div>
 
-                  <div className="flex gap-3 mb-4">
+                  <div className="flex flex-col sm:flex-row gap-3 mb-4">
                     <button
                       type="button"
                       onClick={() => handleRealSocialLogin('Google')}
-                      className="flex-1 py-2.5 bg-white text-black font-bold rounded-xl text-sm border hover:bg-gray-100 flex justify-center items-center gap-2 transition-all shadow-md"
+                      className="flex-1 py-3 sm:py-2.5 bg-white text-black font-bold rounded-xl text-sm border hover:bg-gray-100 flex justify-center items-center gap-2 transition-all shadow-md"
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43 .35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                       Google
@@ -484,7 +483,7 @@ export default function ProfileModal({
                     <button
                       type="button"
                       onClick={() => handleRealSocialLogin('Facebook')}
-                      className="flex-1 py-2.5 bg-[#1877F2] text-white font-bold rounded-xl text-sm hover:bg-[#166FE5] flex justify-center items-center gap-2 transition-all shadow-md"
+                      className="flex-1 py-3 sm:py-2.5 bg-[#1877F2] text-white font-bold rounded-xl text-sm hover:bg-[#166FE5] flex justify-center items-center gap-2 transition-all shadow-md"
                     >
                       <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103v3.381h-2.392c-1.212 0-1.42.383-1.42 1.42v1.54h3.8l-.52 3.667h-3.28v7.98c5.441-.83 9.475-5.541 9.475-11.233C22 5.58 17.525 1.105 12 1.105S2 5.58 2 11.085c0 5.692 4.033 10.403 9.475 11.233z"/></svg>
                       Facebook
@@ -523,7 +522,7 @@ export default function ProfileModal({
                       placeholder="Correo electrónico registrado"
                       value={recoveryEmail}
                       onChange={(e) => setRecoveryEmail(e.target.value)}
-                      className="w-full pl-10 pr-3 py-3 rounded-xl border text-sm bg-neutral-950 border-neutral-700 text-white focus:outline-none focus:border-yellow-400"
+                      className="w-full pl-10 pr-3 py-3 rounded-xl border text-base sm:text-sm bg-neutral-950 border-neutral-700 text-white focus:outline-none focus:border-yellow-400"
                     />
                   </div>
                   <button
@@ -543,36 +542,36 @@ export default function ProfileModal({
 
               {authMode === 'register' && (
                 <div className="space-y-4 text-left">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input
                       type="text"
                       placeholder="Nombre Completo"
                       value={regNombre}
                       onChange={(e) => setRegNombre(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border text-sm bg-neutral-950 border-neutral-700 text-white"
+                      className="w-full px-3 py-3 sm:py-2 rounded-xl border text-base sm:text-sm bg-neutral-950 border-neutral-700 text-white focus:outline-none focus:border-yellow-400"
                     />
                     <input
                       type="text"
                       placeholder="Nickname"
                       value={regNick}
                       onChange={(e) => setRegNick(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border text-sm bg-neutral-950 border-neutral-700 text-white"
+                      className="w-full px-3 py-3 sm:py-2 rounded-xl border text-base sm:text-sm bg-neutral-950 border-neutral-700 text-white focus:outline-none focus:border-yellow-400"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input
                       type="tel"
                       placeholder="Teléfono"
                       value={regTel}
                       onChange={(e) => setRegTel(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border text-sm bg-neutral-950 border-neutral-700 text-white"
+                      className="w-full px-3 py-3 sm:py-2 rounded-xl border text-base sm:text-sm bg-neutral-950 border-neutral-700 text-white focus:outline-none focus:border-yellow-400"
                     />
                     <input
                       type="email"
                       placeholder="Correo"
                       value={regEmail}
                       onChange={(e) => setRegEmail(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border text-sm bg-neutral-950 border-neutral-700 text-white"
+                      className="w-full px-3 py-3 sm:py-2 rounded-xl border text-base sm:text-sm bg-neutral-950 border-neutral-700 text-white focus:outline-none focus:border-yellow-400"
                     />
                   </div>
 
@@ -582,7 +581,7 @@ export default function ProfileModal({
                       placeholder="Contraseña"
                       value={regPass}
                       onChange={(e) => setRegPass(e.target.value)}
-                      className={`w-full px-3 py-2 pr-10 rounded-xl border text-sm bg-neutral-950 ${getPassBorderClass()}`}
+                      className={`w-full px-3 py-3 sm:py-2 pr-10 rounded-xl border text-base sm:text-sm bg-neutral-950 focus:outline-none ${getPassBorderClass()}`}
                     />
                     <button
                       type="button"
@@ -599,7 +598,7 @@ export default function ProfileModal({
                       placeholder="Confirmar Contraseña"
                       value={regConfirmPass}
                       onChange={(e) => setRegConfirmPass(e.target.value)}
-                      className={`w-full px-3 py-2 pr-10 rounded-xl border text-sm bg-neutral-950 ${getPassBorderClass()}`}
+                      className={`w-full px-3 py-3 sm:py-2 pr-10 rounded-xl border text-base sm:text-sm bg-neutral-950 focus:outline-none ${getPassBorderClass()}`}
                     />
                     <button
                       type="button"
@@ -617,7 +616,7 @@ export default function ProfileModal({
                   )}
 
                   <p className="text-xs text-neutral-400 mt-2">Selecciona tu Avatar:</p>
-                  <div className="flex justify-center gap-3 text-2xl">
+                  <div className="flex flex-wrap justify-center gap-2 sm:gap-3 text-2xl">
                     {['👩‍🦰', '👨‍🦱', '👸', '🦊', '🐯'].map((av) => (
                       <span
                         key={av}
