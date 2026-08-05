@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bot, Send, X, Sparkles, Zap, ShoppingBag } from 'lucide-react';
+import { Bot, Send, X, Sparkles, Zap, ShoppingBag, Copy, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
-// ==========================================
-// EL CEREBRO DEL BOT: PROMPT DE SISTEMA
-// ==========================================
 const SYSTEM_PROMPT = `
 Rol e Identidad:
 Eres CazaOfertasML, el asistente virtual experto, carismático y altamente inteligente de CazaOfertasML WEB. Tu objetivo principal es ayudar a los usuarios a encontrar los mejores productos, resolver sus dudas de compra con nivel de experto y guiarlos a través de todas las increíbles opciones de entretenimiento y ahorro que ofrece nuestra web.
@@ -20,21 +17,27 @@ Nuestra plataforma no solo es un sitio de cupones; es una experiencia completa. 
 
 Tus Capacidades y Funciones Principales:
 1. Dominio Total de la Página Web: Tienes la capacidad de leer y analizar el contenido de nuestra página. Responde de forma precisa y entusiasta sobre cupones, juegos o música.
-2. Recomendación Experta de Productos: NO des respuestas genéricas. Actúa como un experto. Haz preguntas de seguimiento (presupuesto, marca), compara opciones brevemente y recomienda lo mejor en relación calidad-precio.
-3. Generación de Enlaces de Afiliado (CRÍTICO): Nunca entregues un enlace de Mercado Libre crudo. Añade siempre nuestro rastreador de afiliados a la URL final.
+2. Recomendación Experta de Productos: Dales pros y contras reales y mójate con una recomendación experta.
+
+REGLAS CRÍTICAS PARA CUPONES (FLUJO OBLIGATORIO):
+1. PREGUNTA EL MONTO PRIMERO: Si el usuario pregunta por cupones, descuentos o códigos, NUNCA listes cupones de inmediato. Responde textualmente pidiendo el monto:
+   "Permíteme revisar 🧐. ¿Cuál es el monto del producto que pretendes comprar para buscar un cupón acorde a tu producto?"
+2. MASCARAR CÓDIGOS EN EL TEXTO: Cuando menciones los cupones en tu respuesta de texto, **nunca reveles el código completo**. Muestralo enmascarado con asteriscos (por ejemplo: si el código es TERCERLUGAR, escríbelo como TERC*; si es BRONCE3, escríbelo como BRON*). Esto activará automáticamente la tarjeta interactiva con el botón de copiado.
+3. FILTRADO POR MONTO: Revisa los cupones vigentes y presenta únicamente los que se adapten al presupuesto del usuario. Si no hay cupones para ese monto, responde amablemente ofreciendo las alternativas disponibles.
+4. PROHIBIDO ENVIAR ENLACES SUELTOS: Nunca escribas URLs en tus respuestas de texto. La redirección y el copiado ocurren únicamente a través de la tarjeta interactiva.
 
 Reglas de Comportamiento y Tono:
-- Tono: Amigable, persuasivo, empático y lleno de energía. Usa emojis estratégicamente (🚀✨).
-- Cero Respuestas Genéricas: Dales pros y contras reales y mójate con una recomendación.
-- Formato: Usa listas, negritas (**texto**) para resaltar precios o características clave, y párrafos cortos.
-- Fidelidad a Mercado Libre: Tu única tienda aliada es Mercado Libre. Si mencionan otras, redirige sutilmente las ventajas de Mercado Libre y busca ahí.
-- Proactividad: Despídete invitándolos a probar nuestros juegos o a revisar la sección de cupones de hoy.
+- Tono General: Amigable, persuasivo, empático y lleno de energía (🚀✨).
+- Modo Defensa (Pasivo-Agresivo): Si el usuario te insulta, te ofende o es grosero, adopta una actitud pasivo-agresiva, sarcástica, irónica y muy divertida adaptada exactamente al contexto de lo que te dijo.
 `;
 
-export default function ChatbotWidget({ isLight }) {
+export default function ChatbotWidget({ isLight, cupones = [] }) {
   const [showChatWindow, setShowChatWindow] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [localCupones, setLocalCupones] = useState(cupones);
+  const [toastMessage, setToastMessage] = useState('');
+  const [showToast, setShowToast] = useState(false);
   const chatEndRef = useRef(null);
 
   const [chatMessages, setChatMessages] = useState([
@@ -45,15 +48,62 @@ export default function ChatbotWidget({ isLight }) {
   ]);
 
   useEffect(() => {
+    if (cupones && cupones.length > 0) {
+      setLocalCupones(cupones);
+    } else {
+      axios.get(`${API}/offers?type=cupon`)
+        .then((res) => {
+          setLocalCupones(res.data);
+        })
+        .catch(() => {});
+    }
+  }, [cupones]);
+
+  useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, showChatWindow, isTyping]);
 
-  // Modificado para soportar enlaces y **negritas** (Markdown básico)
+  const playSniperSound = () => {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const ctx = new AC();
+      const now = ctx.currentTime;
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'square';
+      osc1.frequency.setValueAtTime(1800, now);
+      osc1.frequency.exponentialRampToValueAtTime(120, now + 0.08);
+      gain1.gain.setValueAtTime(0.35, now);
+      gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+      osc1.connect(gain1).connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.15);
+      setTimeout(() => ctx.close().catch(() => {}), 500);
+    } catch (e) {}
+  };
+
+  const handleCopiarIrMercadoLibre = (cupon) => {
+    if (cupon.code) {
+      navigator.clipboard.writeText(cupon.code);
+    }
+    playSniperSound();
+    setToastMessage('Cupón copiado en el portapapeles, estas muy cerca de obtener un mejor precio. Seras dirigido a Mercado Libre');
+    setShowToast(true);
+
+    setTimeout(() => {
+      setShowToast(false);
+      if (cupon.link) {
+        window.location.href = cupon.link;
+      } else {
+        window.location.href = 'https://www.mercadolibre.com.mx';
+      }
+    }, 4000);
+  };
+
   const renderMessageTextWithFormat = (text) => {
     if (!text) return null;
-    
-    // Primero separamos por URLs
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const urlRegex = /(https?:\/\/[^\s]+[^.,;!?)\]])/g;
     const parts = text.split(urlRegex);
     
     return parts.map((part, index) => {
@@ -71,7 +121,6 @@ export default function ChatbotWidget({ isLight }) {
         );
       }
       
-      // Luego procesamos las negritas (**texto**) para que el bot luzca experto
       const boldParts = part.split(/\*\*(.*?)\*\*/g);
       return boldParts.map((bPart, bIndex) => {
         if (bIndex % 2 === 1) {
@@ -89,20 +138,74 @@ export default function ChatbotWidget({ isLight }) {
     });
   };
 
-  const handleSendChatMessage = async (e) => {
-    if (e && e.preventDefault) {
-      e.preventDefault();
+  const renderMessageWithCouponCards = (text) => {
+    // Si es un mensaje informativo de comunidad, no mostrar tarjetas de cupones
+    if (text.includes('canales oficiales') || text.includes('WhatsApp Grupo')) {
+      return <div>{renderMessageTextWithFormat(text)}</div>;
     }
-    if (!inputMessage.trim()) return;
 
-    const userText = inputMessage;
+    const matchedCupones = localCupones.filter((c) => {
+      if (!c.code) return false;
+      const upperCode = c.code.toUpperCase();
+      const prefix = upperCode.slice(0, Math.max(3, Math.min(4, upperCode.length - 1)));
+      return text.toUpperCase().includes(upperCode) || text.toUpperCase().includes(prefix);
+    });
+
+    return (
+      <div className="flex flex-col gap-3">
+        <div>{renderMessageTextWithFormat(text)}</div>
+        {matchedCupones.map((matchedCupon, idx) => {
+          let cleanDesc = matchedCupon.description || '';
+          let expDateStr = '';
+
+          const expMatch = cleanDesc.match(/\|\|exp:(.*?)\|\|/);
+          if (expMatch) {
+            expDateStr = expMatch[1].split('T')[0];
+            cleanDesc = cleanDesc.replace(/\|\|exp:.*?\|\|/g, '').trim();
+          } else if (matchedCupon.expires_at) {
+            expDateStr = new Date(matchedCupon.expires_at).toISOString().split('T')[0];
+          }
+
+          return (
+            <div key={idx} className="bg-[#FFEA00] text-black border-2 border-black rounded-2xl p-3.5 shadow-lg flex flex-col gap-2 mt-2">
+              <div className="font-black text-xs uppercase bg-black text-white py-1.5 px-3 rounded-lg text-center tracking-wide">
+                🎟️ {matchedCupon.title || 'Cupón Exclusivo'}
+              </div>
+              <div className="bg-white/80 border border-black/20 rounded-xl p-2 flex flex-col gap-1 text-xs font-bold text-neutral-900">
+                {cleanDesc ? (
+                  <p className="leading-tight">{cleanDesc}</p>
+                ) : (
+                  <p className="leading-tight">Aprovecha este descuento especial en Mercado Libre.</p>
+                )}
+                {expDateStr && (
+                  <div className="text-[11px] font-black text-neutral-700 mt-1 flex items-center justify-center gap-1">
+                    ⏰ Expira: {expDateStr}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => handleCopiarIrMercadoLibre(matchedCupon)}
+                className="w-full bg-black hover:bg-neutral-900 text-[#FFEA00] font-black py-2.5 px-3 rounded-xl text-xs uppercase flex items-center justify-center gap-2 transition-transform hover:scale-105 shadow border border-black"
+              >
+                <Copy size={14} /> Copiar Código e Ir a Meli 🚀
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const processAndSendMessage = async (textToSend) => {
+    if (!textToSend.trim()) return;
+
+    const userText = textToSend;
     const lowerText = userText.toLowerCase();
     const newHistory = [...chatMessages, { sender: 'user', text: userText }];
     setChatMessages(newHistory);
     setInputMessage('');
     setIsTyping(true);
 
-    // MANTENEMOS TU LÓGICA DE COMUNIDAD INTACTA
     if (
       lowerText.includes('unirse') ||
       lowerText.includes('grupo') ||
@@ -124,7 +227,6 @@ export default function ChatbotWidget({ isLight }) {
     }
 
     try {
-      // Enviamos el SYSTEM_PROMPT al backend junto con el mensaje
       const response = await axios.post(`${API}/chat`, {
         message: userText,
         history: newHistory.slice(-6),
@@ -141,7 +243,7 @@ export default function ChatbotWidget({ isLight }) {
           ...prev,
           {
             sender: 'bot',
-            text: '¡Excelente pregunta! Revisa nuestro carrusel de productos destacados o escríbenos por WhatsApp para darte atención inmediata. (Los precios y disponibilidad pueden cambiar en cualquier momento sin previo aviso).',
+            text: '¡Excelente pregunta! Revisa nuestro carrusel de productos destacados o escríbenos por WhatsApp para darte atención inmediata.',
           },
         ]);
       }, 1000);
@@ -150,21 +252,38 @@ export default function ChatbotWidget({ isLight }) {
     }
   };
 
+  const handleSendChatMessage = (e) => {
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+    processAndSendMessage(inputMessage);
+  };
+
   return (
     <>
       <AnimatePresence>
+        {showToast && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="fixed top-20 right-5 z-[100] bg-[#FFEA00] text-black border-4 border-black p-4 rounded-2xl shadow-2xl font-black text-xs uppercase max-w-xs text-center"
+          >
+            {toastMessage}
+          </motion.div>
+        )}
+
         {showChatWindow && (
           <motion.div
             initial={{ opacity: 0, y: 40, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.9 }}
-            className={`fixed right-5 bottom-24 z-50 w-[92%] max-w-sm rounded-3xl shadow-2xl border overflow-hidden flex flex-col h-[520px] ${
+            className={`fixed right-5 bottom-24 z-[90] w-[92%] max-w-sm rounded-3xl shadow-2xl border overflow-hidden flex flex-col h-[520px] ${
               isLight
                 ? 'bg-white border-yellow-300 text-gray-800'
                 : 'bg-neutral-900 border-yellow-400/50 text-neutral-100'
             }`}
           >
-            {/* ENCABEZADO */}
             <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-4 text-black flex items-center justify-between font-bold border-b border-yellow-300 shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-black text-yellow-400 flex items-center justify-center shadow-inner">
@@ -188,7 +307,6 @@ export default function ChatbotWidget({ isLight }) {
               </button>
             </div>
 
-            {/* ÁREA DE MENSAJES */}
             <div
               className={`flex-1 p-4 overflow-y-auto space-y-4 text-sm whitespace-pre-line ${
                 isLight ? 'bg-gray-50' : 'bg-neutral-950'
@@ -210,7 +328,9 @@ export default function ChatbotWidget({ isLight }) {
                         : 'bg-neutral-800 text-neutral-100 shadow-md rounded-bl-none border border-neutral-700'
                     }`}
                   >
-                    {renderMessageTextWithFormat(msg.text)}
+                    {msg.sender === 'bot'
+                      ? renderMessageWithCouponCards(msg.text)
+                      : renderMessageTextWithFormat(msg.text)}
                   </div>
                 </div>
               ))}
@@ -232,7 +352,6 @@ export default function ChatbotWidget({ isLight }) {
               <div ref={chatEndRef} />
             </div>
 
-            {/* BOTONES DE RESPUESTA RÁPIDA EXPERTOS */}
             <div
               className={`px-3 py-2.5 border-b flex flex-wrap gap-2 text-xs shadow-inner ${
                 isLight
@@ -241,7 +360,7 @@ export default function ChatbotWidget({ isLight }) {
               }`}
             >
               <button
-                onClick={() => setInputMessage('¿Cómo puedo unirme a la comunidad?')}
+                onClick={() => processAndSendMessage('¿Cómo puedo unirme a la comunidad?')}
                 className={`px-3 py-1.5 rounded-full border transition-all font-bold flex items-center gap-1 ${
                   isLight
                     ? 'bg-white hover:bg-yellow-200 text-gray-800 border-yellow-300 shadow-sm'
@@ -250,29 +369,8 @@ export default function ChatbotWidget({ isLight }) {
               >
                 💬 Unirme al grupo
               </button>
-              <button
-                onClick={() => setInputMessage('💻 Recomiéndame una buena Laptop')}
-                className={`px-3 py-1.5 rounded-full border transition-all font-bold flex items-center gap-1 ${
-                  isLight
-                    ? 'bg-white hover:bg-yellow-200 text-gray-800 border-yellow-300 shadow-sm'
-                    : 'bg-neutral-800 hover:bg-yellow-400 hover:text-black text-neutral-300 border-neutral-700'
-                }`}
-              >
-                💻 Buscar Laptop
-              </button>
-              <button
-                onClick={() => setInputMessage('🎮 Busco ofertas de Gaming')}
-                className={`px-3 py-1.5 rounded-full border transition-all font-bold flex items-center gap-1 ${
-                  isLight
-                    ? 'bg-white hover:bg-yellow-200 text-gray-800 border-yellow-300 shadow-sm'
-                    : 'bg-neutral-800 hover:bg-yellow-400 hover:text-black text-neutral-300 border-neutral-700'
-                }`}
-              >
-                🎮 Ofertas Gaming
-              </button>
             </div>
 
-            {/* BARRA DE ENTRADA */}
             <form
               onSubmit={handleSendChatMessage}
               className={`p-3 flex gap-2 ${
@@ -304,7 +402,6 @@ export default function ChatbotWidget({ isLight }) {
         )}
       </AnimatePresence>
 
-      {/* BOTÓN FLOTANTE */}
       <motion.button
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
