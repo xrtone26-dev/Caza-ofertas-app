@@ -219,7 +219,8 @@ export default function MusicPlayer({ showMusicModal, setShowMusicModal, isMinim
 
   const compartir = (station, e) => {
     e.stopPropagation();
-    const text = `¡Escucha la estación ${station.nombre} en Radio México Online!`;
+    const text = `¡Escucha la estación ${station.nombre} en Radio México Online
+    !`;
     if (navigator.share) {
       navigator.share({ title: station.nombre, text }).catch(() => {});
     } else if (navigator.clipboard) {
@@ -260,9 +261,9 @@ export default function MusicPlayer({ showMusicModal, setShowMusicModal, isMinim
                 </div>
                 <div>
                   <h2 className="font-black text-xl flex items-center gap-2">
-                    Radio México Online <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30">🇲🇽 YouTube Engine</span>
+                    CazaOfertas Radio <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30">🇲🇽 MxOfertas</span>
                   </h2>
-                  <p className="text-xs text-neutral-400">Bucle infinito por género</p>
+                  <p className="text-xs text-neutral-400">Música por géneros</p>
                 </div>
               </div>
 
