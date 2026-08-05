@@ -425,7 +425,7 @@ function App() {
             setShowCommunityPopup(true);
           }
         }, 60000); // 60,000 ms = 1 minuto exacto
-        return () => clearTimeout(timer);
+        return () => clearInterval(timer);
       }
     }
   }, [currentUser]);
@@ -631,6 +631,16 @@ function App() {
   useEffect(() => {
     loadPublicOffers();
     loadPublicProducts();
+
+    // ==========================================
+    // PREPARACIÓN PARA EL BOT DE INTELLIJ IDEA
+    // ==========================================
+    const botSyncInterval = setInterval(() => {
+      loadPublicOffers();
+      loadPublicProducts();
+    }, 30000); 
+
+    return () => clearInterval(botSyncInterval);
   }, []);
 
   const loadPublicProducts = async () => {
@@ -754,9 +764,7 @@ function App() {
         </>
       )}
 
-      {/* ======================================================== */}
       {/* POP-UP AUTOMÁTICO A 1 MINUTO PARA USUARIOS NO REGISTRADOS */}
-      {/* ======================================================== */}
       <AnimatePresence>
         {showCommunityPopup && !currentUser && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[90] p-4">
@@ -828,7 +836,6 @@ function App() {
       {/* MENÚ FLOTANTE SUPERIOR DERECHO */}
       <div className="fixed top-6 right-6 z-[60] flex flex-col items-center gap-3">
         
-        {/* Contenedor del botón de perfil con el nickname arriba */}
         <div className="flex flex-col items-center gap-1">
           {currentUser && (
             <span className={`font-bold text-[11px] truncate max-w-[65px] text-center ${
@@ -952,7 +959,7 @@ function App() {
               className="text-xl md:text-2xl text-white/90 mb-6 max-w-2xl"
               data-testid="hero-subtitle"
             >
-              ¡Las Mejores Ofertas de Amazon, Mercado Libre, AliExpress y más!
+              ¡Las Mejores Ofertas de Mercado libre & Amazon!
             </p>
 
             <div
@@ -966,7 +973,7 @@ function App() {
                 className="text-white font-semibold text-lg"
                 data-testid="hero-tagline"
               >
-                🎁 Únete GRATIS y recibe ofertas diarias
+                🎁 "No compres caro, Nosotros ya hicimos la busqueda por ti" 🎁
               </p>
             </div>
           </div>
@@ -1567,7 +1574,7 @@ function App() {
             />
             <h3 className="text-2xl font-bold mb-2">CazaOfertasML</h3>
             <p className="text-gray-400">
-              Las mejores ofertas y descuentos para ti
+            "Ahorra con estilo, compra con sabiduría"
             </p>
           </div>
           <div className="flex justify-center space-x-6 mb-6">
@@ -1677,7 +1684,8 @@ function App() {
         setIsMinimized={setIsMinimized}
       />
 
-      <ChatbotWidget isLight={isLight} />
+      {/* AQUí PASAMOS LOS CUPONES ACTIVOS AL CHATBOT */}
+      <ChatbotWidget isLight={isLight} cupones={activeCupones} />
     </div>
   );
 }
