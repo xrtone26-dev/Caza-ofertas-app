@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bot, Send, X, Sparkles, Zap, ShoppingBag, Copy, ExternalLink } from 'lucide-react';
+import { Bot, Send, X, Copy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
@@ -44,9 +44,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       setLocalCupones(cupones);
     } else {
       axios.get(`${API}/offers?type=cupon`)
-        .then((res) => {
-          setLocalCupones(res.data);
-        })
+        .then((res) => setLocalCupones(res.data))
         .catch(() => {});
     }
   }, [cupones]);
@@ -80,17 +78,21 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       navigator.clipboard.writeText(cupon.code);
     }
     playSniperSound();
-    setToastMessage('¡Cupón copiado! Te dirigimos a Mercado Libre 🚀');
+    setToastMessage('¡Cupón copiado! Abriendo Mercado Libre en 5 segundos 🚀');
     setShowToast(true);
+
+    const nuevaPestana = window.open('about:blank', '_blank');
 
     setTimeout(() => {
       setShowToast(false);
-      if (cupon.link) {
-        window.location.href = cupon.link;
+      const linkDestino = cupon.link ? cupon.link : 'https://www.mercadolibre.com.mx';
+      
+      if (nuevaPestana) {
+        nuevaPestana.location.href = linkDestino;
       } else {
-        window.location.href = 'https://www.mercadolibre.com.mx';
+        window.location.href = linkDestino;
       }
-    }, 3000);
+    }, 5000); 
   };
 
   const renderMessageTextWithFormat = (text) => {
@@ -138,7 +140,15 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     const matchedCupones = localCupones.filter((c) => {
       if (!c.code) return false;
       const upperCode = c.code.toUpperCase();
-      return text.toUpperCase().includes(upperCode);
+      const upperText = text.toUpperCase();
+      
+      if (upperText.includes(upperCode)) return true;
+      
+      if (upperCode.length >= 4) {
+        const maskedCode = upperCode.substring(0, 4) + '*';
+        if (upperText.includes(maskedCode)) return true;
+      }
+      return false;
     });
 
     return (
@@ -269,9 +279,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.9 }}
             className={`fixed right-5 bottom-24 z-[90] w-[92%] max-w-sm rounded-3xl shadow-2xl border overflow-hidden flex flex-col h-[520px] ${
-              isLight
-                ? 'bg-white border-yellow-300 text-gray-800'
-                : 'bg-neutral-900 border-yellow-400/50 text-neutral-100'
+              isLight ? 'bg-white border-yellow-300 text-gray-800' : 'bg-neutral-900 border-yellow-400/50 text-neutral-100'
             }`}
           >
             <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-4 text-black flex items-center justify-between font-bold border-b border-yellow-300 shadow-sm">
@@ -344,9 +352,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
 
             <div
               className={`px-3 py-2.5 border-b flex flex-wrap gap-2 text-xs shadow-inner ${
-                isLight
-                  ? 'bg-yellow-50/50 border-gray-200'
-                  : 'bg-neutral-900 border-neutral-800'
+                isLight ? 'bg-yellow-50/50 border-gray-200' : 'bg-neutral-900 border-neutral-800'
               }`}
             >
               <button
@@ -363,11 +369,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
 
             <form
               onSubmit={handleSendChatMessage}
-              className={`p-3 flex gap-2 ${
-                isLight
-                  ? 'bg-white'
-                  : 'bg-neutral-900'
-              }`}
+              className={`p-3 flex gap-2 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}
             >
               <input
                 type="text"
