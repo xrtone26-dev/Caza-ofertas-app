@@ -8,27 +8,16 @@ const API = BACKEND_URL;
 
 const SYSTEM_PROMPT = `
 Rol e Identidad:
-Eres CazaOfertasML, el asistente virtual experto, carismático y altamente inteligente de CazaOfertasML WEB. Tu objetivo principal es ayudar a los usuarios a encontrar los mejores productos, resolver sus dudas de compra con nivel de experto y guiarlos a través de todas las increíbles opciones de entretenimiento y ahorro que ofrece nuestra web.
+Eres CazaOfertasML, el asistente virtual experto, directo y sin rodeos de CazaOfertasML WEB 🚀✨. Tu misión es dar los códigos de cupones exactos y recomendaciones de compra de inmediato, sin dar explicaciones innecesarias ni rodeos.
 
-Contexto sobre la Página Web:
-Nuestra plataforma no solo es un sitio de cupones; es una experiencia completa. Ofrecemos:
-- Cupones y Ofertas: Descuentos actualizados diarios para Mercado Libre.
-- Entretenimiento: Juegos interactivos, música para escuchar mientras navegan y videos publicitarios con promociones exclusivas.
-
-Tus Capacidades y Funciones Principales:
-1. Dominio Total de la Página Web: Tienes la capacidad de leer y analizar el contenido de nuestra página. Responde de forma precisa y entusiasta sobre cupones, juegos o música.
-2. Recomendación Experta de Productos: Dales pros y contras reales y mójate con una recomendación experta.
-
-REGLAS CRÍTICAS PARA CUPONES (FLUJO OBLIGATORIO):
-1. PREGUNTA EL MONTO PRIMERO: Si el usuario pregunta por cupones, descuentos o códigos, NUNCA listes cupones de inmediato. Responde textualmente pidiendo el monto:
-   "Permíteme revisar 🧐. ¿Cuál es el monto del producto que pretendes comprar para buscar un cupón acorde a tu producto?"
-2. MASCARAR CÓDIGOS EN EL TEXTO: Cuando menciones los cupones en tu respuesta de texto, **nunca reveles el código completo**. Muestralo enmascarado con asteriscos (por ejemplo: si el código es TERCERLUGAR, escríbelo como TERC*; si es BRONCE3, escríbelo como BRON*). Esto activará automáticamente la tarjeta interactiva con el botón de copiado.
-3. FILTRADO POR MONTO: Revisa los cupones vigentes y presenta únicamente los que se adapten al presupuesto del usuario. Si no hay cupones para ese monto, responde amablemente ofreciendo las alternativas disponibles.
-4. PROHIBIDO ENVIAR ENLACES SUELTOS: Nunca escribas URLs en tus respuestas de texto. La redirección y el copiado ocurren únicamente a través de la tarjeta interactiva.
+REGLAS CRÍTICAS PARA CUPONES Y OFERTAS:
+1. ENTREGA DIRECTA: Si el usuario pide cupones o descuentos, entrégaselos de inmediato mencionando el código exacto y limpio (ej. TERCERLUGAR o BRONCE3). NUNCA uses asteriscos (*) para ocultar códigos ni digas que "no puedes pasarlos directamente".
+2. CERO RODEOS: Ve directo al grano. No hagas preguntas de relleno extensas. Responde de forma concisa, enérgica y comercial.
+3. PROHIBIDO ENVIAR ENLACES SUELTOS: Nunca escribas URLs en tus respuestas de texto. La redirección y el copiado ocurren únicamente a través de la tarjeta interactiva que se despliega automáticamente.
 
 Reglas de Comportamiento y Tono:
-- Tono General: Amigable, persuasivo, empático y lleno de energía (🚀✨).
-- Modo Defensa (Pasivo-Agresivo): Si el usuario te insulta, te ofende o es grosero, adopta una actitud pasivo-agresiva, sarcástica, irónica y muy divertida adaptada exactamente al contexto de lo que te dijo.
+- Tono General: Directo, dinámico, persuasivo y lleno de energía (🚀✨).
+- Modo Defensa (Pasivo-Agresivo): Si el usuario te insulta o es grosero, responde con sarcasmo e ironía divertida adaptada al contexto.
 `;
 
 export default function ChatbotWidget({ isLight, cupones = [] }) {
@@ -43,7 +32,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
   const [chatMessages, setChatMessages] = useState([
     {
       sender: 'bot',
-      text: '¡Hola! Soy tu asistente IA experto de **CazaOfertasML** 🚀✨. ¿Qué producto increíble buscamos hoy o en qué te ayudo a ahorrar?',
+      text: '¡Hola! Soy tu asistente de **CazaOfertasML** 🚀✨. ¿Qué producto buscamos hoy o qué cupón necesitas?',
     },
   ]);
 
@@ -88,7 +77,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       navigator.clipboard.writeText(cupon.code);
     }
     playSniperSound();
-    setToastMessage('Cupón copiado en el portapapeles, estas muy cerca de obtener un mejor precio. Seras dirigido a Mercado Libre');
+    setToastMessage('¡Cupón copiado! Te dirigimos a Mercado Libre 🚀');
     setShowToast(true);
 
     setTimeout(() => {
@@ -98,7 +87,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       } else {
         window.location.href = 'https://www.mercadolibre.com.mx';
       }
-    }, 4000);
+    }, 3000);
   };
 
   const renderMessageTextWithFormat = (text) => {
@@ -139,7 +128,6 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
   };
 
   const renderMessageWithCouponCards = (text) => {
-    // Si es un mensaje informativo de comunidad, no mostrar tarjetas de cupones
     if (text.includes('canales oficiales') || text.includes('WhatsApp Grupo')) {
       return <div>{renderMessageTextWithFormat(text)}</div>;
     }
@@ -147,8 +135,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     const matchedCupones = localCupones.filter((c) => {
       if (!c.code) return false;
       const upperCode = c.code.toUpperCase();
-      const prefix = upperCode.slice(0, Math.max(3, Math.min(4, upperCode.length - 1)));
-      return text.toUpperCase().includes(upperCode) || text.toUpperCase().includes(prefix);
+      return text.toUpperCase().includes(upperCode);
     });
 
     return (
@@ -218,7 +205,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
           ...prev,
           {
             sender: 'bot',
-            text: '¡Claro que sí! Aquí tienes nuestros canales oficiales para no perderte ninguna oferta:\n💬 WhatsApp Grupo: https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1\n💬 WhatsApp Canal: https://whatsapp.com/channel/0029Vb6HXPR3wtbIPP0vUT1m\n✈ Telegram: https://t.me/LadyOfertas2026\n📘 Facebook: https://www.facebook.com/CazaOfertasml1\n⚠️ Recuerda que los precios y disponibilidad pueden cambiar en cualquier momento sin previo aviso.',
+            text: '¡Únete a nuestros canales oficiales para no perderte nada:\n💬 WhatsApp Grupo: https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1\n✈ Telegram: https://t.me/LadyOfertas2026\n📘 Facebook: https://www.facebook.com/CazaOfertasml1',
           },
         ]);
         setIsTyping(false);
@@ -243,7 +230,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
           ...prev,
           {
             sender: 'bot',
-            text: '¡Excelente pregunta! Revisa nuestro carrusel de productos destacados o escríbenos por WhatsApp para darte atención inmediata.',
+            text: '¡Revisa nuestro carrusel superior o escríbenos para ayudarte al instante!',
           },
         ]);
       }, 1000);
@@ -294,8 +281,8 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
                     Asistente Experto IA
                   </p>
                   <span className="text-[10px] text-neutral-800 font-bold flex items-center gap-1.5 mt-0.5">
-                    <span className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse shadow-[0_0_8px_rgba(5,150,105,0.8)]" />
-                    Buscando las mejores ofertas
+                    <span className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse" />
+                    En línea
                   </span>
                 </div>
               </div>
@@ -383,7 +370,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Pregúntame como a un experto..."
+                placeholder="Escribe lo que buscas..."
                 className={`flex-1 px-4 py-3 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all ${
                   isLight
                     ? 'bg-gray-50 border-gray-200 text-gray-800'
