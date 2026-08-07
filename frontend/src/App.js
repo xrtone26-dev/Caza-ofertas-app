@@ -357,6 +357,47 @@ function CountdownTimer({ expiresAt }) {
 function App() {
   const logoUrl = 'https://i.postimg.cc/RCXL4ZZ9/logo.png';
 
+  // Refs y manejadores para el efecto 3D holográfico del logo
+  const logoContainerRef = useRef(null);
+  const logoCardRef = useRef(null);
+  const logoGlareRef = useRef(null);
+
+  const handleLogoMouseMove = (e) => {
+    const container = logoContainerRef.current;
+    const card = logoCardRef.current;
+    const glare = logoGlareRef.current;
+    if (!container || !card || !glare) return;
+
+    const rect = container.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    const rotateX = -((y - centerY) / centerY) * 20;
+    const rotateY = ((x - centerX) / centerX) * 20;
+
+    card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
+    glare.style.setProperty('--x', `${x}px`);
+    glare.style.setProperty('--y', `${y}px`);
+    glare.style.opacity = '1';
+  };
+
+  const handleLogoMouseLeave = () => {
+    const card = logoCardRef.current;
+    const glare = logoGlareRef.current;
+    if (!card || !glare) return;
+    card.style.transform = `rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+    card.style.transition = 'transform 0.5s ease-in-out';
+    glare.style.opacity = '0';
+  };
+
+  const handleLogoMouseEnter = () => {
+    const card = logoCardRef.current;
+    if (!card) return;
+    card.style.transition = 'transform 0.1s ease-out';
+  };
+
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
@@ -935,17 +976,42 @@ function App() {
         {!isLight && <div className="absolute inset-0 bg-black opacity-10" />}
         <div className="relative container mx-auto px-4 pt-12 pb-8">
           <div className="flex flex-col items-center text-center">
-            <div className="mb-6 transform hover:scale-105 transition-transform duration-300">
-              <img
-                src={logoUrl}
-                alt="CazaOfertasML Logo"
-                className={`w-48 h-48 md:w-56 md:h-56 rounded-full shadow-2xl ${
+            
+            {/* LOGO CON EFECTO 3D HOLOGRÁFICO */}
+            <div
+              ref={logoContainerRef}
+              onMouseMove={handleLogoMouseMove}
+              onMouseLeave={handleLogoMouseLeave}
+              onMouseEnter={handleLogoMouseEnter}
+              className="mb-6 cursor-pointer w-48 h-48 md:w-56 md:h-56 mx-auto"
+              style={{ perspective: '1000px' }}
+            >
+              <div
+                ref={logoCardRef}
+                className={`w-full h-full relative rounded-full shadow-2xl transition-transform duration-100 ${
                   isLight
                     ? 'ring-8 ring-white/50'
                     : 'shadow-yellow-400/20 ring-4 ring-neutral-800'
                 }`}
-                data-testid="logo-image"
-              />
+                style={{ transformStyle: 'preserve-3d' }}
+              >
+                <img
+                  src={logoUrl}
+                  alt="CazaOfertasML Logo"
+                  className="w-full h-full rounded-full object-cover block pointer-events-none"
+                  style={{ transform: 'translateZ(30px)' }}
+                  data-testid="logo-image"
+                />
+                <div
+                  ref={logoGlareRef}
+                  className="absolute inset-0 rounded-full pointer-events-none opacity-0 transition-opacity duration-300"
+                  style={{
+                    mixBlendMode: 'overlay',
+                    background: 'radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255, 255, 255, 0.8) 0%, rgba(255, 215, 0, 0.3) 30%, transparent 70%)',
+                    zIndex: 10
+                  }}
+                />
+              </div>
             </div>
 
             <h1
