@@ -374,7 +374,6 @@ function App() {
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    // Ángulos de rotación 3D potenciados (-25 a 25 grados) para un giro claro
     const rotateX = -((y - centerY) / centerY) * 25;
     const rotateY = ((x - centerX) / centerX) * 25;
 
@@ -1447,6 +1446,14 @@ function App() {
                 )}
               </div>
             )}
+
+            {/* NOTA INFORMATIVA PARA PRODUCTOS DESTACADOS */}
+            <div className={`mt-6 pt-4 border-t text-center text-xs md:text-sm font-medium ${
+              isLight ? 'border-gray-200 text-gray-600' : 'border-neutral-800 text-neutral-400'
+            }`}>
+              ℹ️ Nota informativa: Los precios y la disponibilidad de los productos están sujetos a cambios sin previo aviso, ya que dependen directamente de cada vendedor o tienda asociada.
+            </div>
+
           </div>
         </div>
       )}
