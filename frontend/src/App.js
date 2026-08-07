@@ -37,7 +37,6 @@ import axios from 'axios';
 import useEmblaCarousel from 'embla-carousel-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MusicPlayer from './components/MusicPlayer';
-import GamesZone from './components/GamesZone';
 import ChatbotWidget from './components/ChatbotWidget';
 import ProfileModal from './components/ProfileModal';
 import AdminDashboard, { decodeCoupon } from './components/AdminDashboard'; 
@@ -53,13 +52,12 @@ function FeatureCube({ isLight }) {
   const requestRef = useRef();
   const startTimeRef = useRef(performance.now());
 
-  // Rotación automática con mayor rango vertical para mostrar todas las caras (incluyendo superior e inferior)
   const animate = useCallback((time) => {
     const elapsed = (time - startTimeRef.current) * 0.001;
     setRotation({
-      x: Math.sin(elapsed * 0.6) * 55, // Inclinación vertical profunda (muestra caras superior e inferior)
-      y: elapsed * 35,                 // Giro horizontal completo de 360°
-      z: Math.sin(elapsed * 0.4) * 20, // Sutil balanceo lateral dinámico
+      x: Math.sin(elapsed * 0.6) * 55,
+      y: elapsed * 35,
+      z: Math.sin(elapsed * 0.4) * 20,
     });
     requestRef.current = requestAnimationFrame(animate);
   }, []);
@@ -180,6 +178,178 @@ function FeatureCube({ isLight }) {
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// ZONA DE JUEGOS CON PREVIEWS DINÁMICOS
+// ==========================================
+function GamesZone({ currentUser, isLight, isAuthenticated }) {
+  const [selectedGame, setSelectedGame] = useState('2048');
+
+  const games = [
+    { id: '2048', name: '2048 Classic', desc: 'Compite en el Top Global mensual. ¡El mejor por mes en cada juego! Gana tarjetas de regalo.' },
+    { id: 'tetris', name: 'Cyber Tetris', desc: 'Encaja las piezas geométricas a alta velocidad. ¡Haz el récord del mes y gana premios!' },
+    { id: 'memoria', name: 'Memoria Pro', desc: 'Pon a prueba tu agilidad mental encontrando los pares en tiempo récord.' },
+    { id: 'ninja', name: 'Ninja Cut', desc: 'Corta los objetos al vuelo con precisión milimétrica y sin fallar.' },
+    { id: 'click', name: 'Click Challenge', desc: 'Demuestra la velocidad de tus clicks en este reto de alta intensidad.' },
+  ];
+
+  const currentGame = games.find(g => g.id === selectedGame) || games[0];
+
+  const renderGamePreview = () => {
+    switch (selectedGame) {
+      case '2048':
+        return (
+          <div className="w-48 h-20 mx-auto mb-2 bg-neutral-950/80 border-2 border-yellow-400/40 rounded-xl p-2 grid grid-cols-4 gap-1.5 shadow-[0_0_15px_rgba(250,204,21,0.2)] items-center justify-center">
+            <div className="bg-yellow-400/20 text-yellow-400 font-black text-xs rounded flex items-center justify-center h-full border border-yellow-400/40 animate-pulse">2</div>
+            <div className="bg-yellow-400/40 text-black font-black text-xs rounded flex items-center justify-center h-full">4</div>
+            <div className="bg-orange-500/30 text-orange-400 font-black text-xs rounded flex items-center justify-center h-full">8</div>
+            <div className="bg-red-500/30 text-red-400 font-black text-xs rounded flex items-center justify-center h-full animate-bounce">16</div>
+          </div>
+        );
+      case 'tetris':
+        return (
+          <div className="w-48 h-20 mx-auto mb-2 bg-neutral-950/80 border-2 border-cyan-400/40 rounded-xl p-2 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+            <div className="w-6 h-12 bg-cyan-400 rounded shadow-[0_0_8px_rgba(6,182,212,0.8)] animate-pulse"></div>
+            <div className="w-12 h-6 bg-yellow-400 rounded shadow-[0_0_8px_rgba(250,204,21,0.8)]"></div>
+            <div className="w-8 h-8 bg-purple-500 rounded shadow-[0_0_8px_rgba(168,85,247,0.8)] animate-bounce"></div>
+          </div>
+        );
+      case 'memoria':
+        return (
+          <div className="w-48 h-20 mx-auto mb-2 bg-neutral-950/80 border-2 border-pink-500/40 rounded-xl p-2 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(236,72,153,0.2)]">
+            <div className="w-10 h-14 bg-pink-500/20 border-2 border-pink-500 rounded-lg flex items-center justify-center text-pink-400 font-black text-lg shadow-[0_0_8px_rgba(236,72,153,0.5)] animate-pulse">⭐</div>
+            <div className="w-10 h-14 bg-pink-500/20 border-2 border-pink-500 rounded-lg flex items-center justify-center text-pink-400 font-black text-lg shadow-[0_0_8px_rgba(236,72,153,0.5)]">💎</div>
+            <div className="w-10 h-14 bg-neutral-800 border-2 border-neutral-600 rounded-lg flex items-center justify-center text-neutral-400 font-black text-lg">❓</div>
+          </div>
+        );
+      case 'ninja':
+        return (
+          <div className="w-48 h-20 mx-auto mb-2 bg-neutral-950/80 border-2 border-red-500/40 rounded-xl p-2 flex items-center justify-center relative overflow-hidden shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+            <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent animate-pulse"></div>
+            <span className="text-3xl animate-bounce">⚔️</span>
+            <div className="absolute right-4 top-2 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
+          </div>
+        );
+      case 'click':
+        return (
+          <div className="w-48 h-20 mx-auto mb-2 bg-neutral-950/80 border-2 border-green-400/40 rounded-xl p-2 flex items-center justify-center gap-3 shadow-[0_0_15px_rgba(74,222,128,0.2)]">
+            <div className="w-12 h-12 rounded-full border-4 border-green-400 flex items-center justify-center text-green-400 font-black text-sm shadow-[0_0_10px_rgba(74,222,128,0.8)] animate-ping">⚡</div>
+            <div className="text-green-400 font-black text-xs uppercase tracking-wider animate-pulse">CPS: 12.4</div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="container mx-auto px-4 mb-16 relative z-10">
+      <div className={`rounded-3xl shadow-2xl p-6 md:p-8 backdrop-blur-xl border ${
+        isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/90 border-neutral-800'
+      }`}>
+        <div className="text-center mb-6">
+          <h2 className={`text-2xl md:text-3xl font-black mb-4 flex items-center justify-center gap-2 ${
+            isLight ? 'text-purple-700' : 'text-neutral-100'
+          }`}>
+            🎮 ZONA DE RECREACIÓN CAZAOFERTAS
+          </h2>
+
+          {/*SELECTOR DE JUEGOS EN LA PARTE SUPERIOR*/}
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {games.map((g) => {
+              const isSelected = selectedGame === g.id;
+              return (
+                <button
+                  key={g.id}
+                  onClick={() => setSelectedGame(g.id)}
+                  className={`px-4 py-2 rounded-full font-black text-xs uppercase tracking-wider transition-all border-2 ${
+                    isSelected
+                      ? 'bg-[#FFEA00] text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] scale-105'
+                      : isLight
+                      ? 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
+                      : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700'
+                  }`}
+                >
+                  {g.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
+          {/*PROGRESO GLOBAL LATERAL IZQUIERDO*/}
+          <div className={`p-5 rounded-2xl border-2 border-black bg-red-600 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-3`}>
+            <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider">
+              <User size={16} /> PROGRESO GLOBAL
+            </div>
+            <div className="text-center bg-black/20 rounded-xl p-3 border border-black/30">
+              <span className="text-xs font-bold block opacity-90">@{currentUser || 'Xrtone26'}</span>
+              <div className="flex justify-around my-2 text-xs font-black">
+                <div>NIVEL <span className="block text-base text-yellow-300">14</span></div>
+                <div>MONEDAS <span className="block text-base text-yellow-300">💰 2206</span></div>
+              </div>
+              <div className="w-full bg-black/40 rounded-full h-2.5 overflow-hidden my-2">
+                <div className="bg-yellow-400 h-full w-3/4 rounded-full"></div>
+              </div>
+              <span className="text-[10px] opacity-80 block">XP: 96 / 8000 (Difícil)</span>
+            </div>
+            <div className="text-center text-xs font-black bg-black text-yellow-400 py-1.5 rounded-lg border border-black">
+              🏆 Récord Mes: 1972 pts
+            </div>
+          </div>
+
+          {/*CONTENEDOR CENTRAL DE JUEGO CON PREVIEW DINÁMICO*/}
+          <div className="lg:col-span-2 bg-neutral-950 border-4 border-neutral-800 rounded-2xl p-6 text-center text-white relative shadow-inner flex flex-col items-center justify-center min-h-[300px]">
+            {/*PREVIEW DEPENDIENDO DEL JUEGO SELECCIONADO (UBICACIÓN SOLICITADA)*/}
+            {renderGamePreview()}
+
+            <div className="w-12 h-12 bg-yellow-400/20 text-yellow-400 rounded-xl flex items-center justify-center mx-auto mb-2 border border-yellow-400/40">
+              <Sparkles className="w-6 h-6 animate-pulse" />
+            </div>
+            <h3 className="text-2xl font-black mb-1 uppercase tracking-tight text-yellow-400">{currentGame.name}</h3>
+            <p className="text-xs text-neutral-300 max-w-sm mb-4 leading-relaxed">{currentGame.desc}</p>
+            <button
+              onClick={() => alert(`Iniciando ${currentGame.name}... ¡Prepárate para ganar!`)}
+              className="bg-[#FFEA00] hover:bg-yellow-300 text-black font-black px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-transform hover:scale-105 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+            >
+              ▶ JUGAR AHORA
+            </button>
+          </div>
+
+          {/*TOP GLOBAL Y GANADORES DERECHA*/}
+          <div className="flex flex-col gap-4">
+            <div className="bg-blue-600 border-2 border-black rounded-2xl p-4 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <h4 className="font-black text-xs uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                🏆 TOP GLOBAL MENSUAL
+              </h4>
+              <div className="space-y-1.5 text-xs font-bold">
+                <div className="flex justify-between bg-yellow-400 text-black px-3 py-1.5 rounded-lg border border-black">
+                  <span>#1 Xrtone26</span><span>1972</span>
+                </div>
+                <div className="flex justify-between bg-blue-700/60 px-3 py-1.5 rounded-lg">
+                  <span>#2 OfertaKing</span><span>1540</span>
+                </div>
+                <div className="flex justify-between bg-blue-700/60 px-3 py-1.5 rounded-lg">
+                  <span>#3 Irving</span><span>840</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-900 to-indigo-950 border-2 border-purple-500/50 rounded-2xl p-4 text-white shadow-lg">
+              <h4 className="font-black text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5 text-yellow-400">
+                🎁 GANADORES DEL MES
+              </h4>
+              <p className="text-[11px] text-neutral-300 leading-tight">
+                Aún no hay ganadores registrados de meses anteriores. Se registrarán automáticamente al finalizar cada mes.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1504,6 +1674,7 @@ function App() {
         </div>
       )}
 
+      {/*ZONA DE JUEGOS INTEGRADA CON PREVIEWS*/}
       <GamesZone currentUser={currentUser} isLight={isLight} isAuthenticated={isAuthenticated} />
 
       <div className="container mx-auto px-4 mb-16 relative z-10">
