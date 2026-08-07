@@ -46,7 +46,7 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
 // ==========================================
-// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS NEÓN LIMPIO
+// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS NEÓN PERFECTO
 // ==========================================
 function FeatureCube({ isLight }) {
   const [rotation, setRotation] = useState({ x: -15, y: 45 });
@@ -104,10 +104,11 @@ function FeatureCube({ isLight }) {
 
   const neonShadow = `0 0 15px rgba(0,229,255,0.5), inset 0 0 15px rgba(0,229,255,0.3)`;
 
-  const baseFaceClasses = `absolute w-[280px] h-[280px] rounded-3xl p-6 flex flex-col justify-between backdrop-blur-xl transition-colors ${
+  // Sin rounded en el contenedor externo para que las esquinas formen un ángulo recto perfecto de 90°
+  const baseFaceClasses = `absolute w-[280px] h-[280px] p-6 flex flex-col justify-between backdrop-blur-xl transition-colors ${
     isLight 
-      ? 'bg-white/85 text-gray-800' 
-      : 'bg-neutral-900/85 text-neutral-100'
+      ? 'bg-white/90 text-gray-800' 
+      : 'bg-neutral-900/90 text-neutral-100'
   }`;
 
   const iconContainerClasses = `w-14 h-14 rounded-2xl flex-shrink-0 flex items-center justify-center mb-4 border-2 shadow-[0_0_10px_rgba(0,229,255,0.4)] ${
@@ -122,12 +123,12 @@ function FeatureCube({ isLight }) {
       : 'bg-[#00e5ff]/10 text-[#00e5ff] border-[#00e5ff]/30'
   }`;
 
-  // Logica matemática para evitar duplicidad de aristas al dibujar el cubo
+  // Distribución geométrica precisa de aristas sin solapamientos ni curvas
   const faces = [
     {
       id: 'front',
       transform: 'translateZ(140px)',
-      borderClasses: 'border-[4px] border-dotted border-[#00e5ff]', // 4 aristas
+      borderClasses: 'border-[4px] border-dotted border-[#00e5ff]',
       icon: Tag,
       title: 'Cupones Exclusivos',
       desc: 'Códigos de descuento únicos y de alto valor que no encontrarás en ningún otro lugar.',
@@ -136,7 +137,7 @@ function FeatureCube({ isLight }) {
     {
       id: 'back',
       transform: 'rotateY(180deg) translateZ(140px)',
-      borderClasses: 'border-[4px] border-dotted border-[#00e5ff]', // 4 aristas
+      borderClasses: 'border-[4px] border-dotted border-[#00e5ff]',
       icon: ShieldCheck,
       title: 'Productos Verificados',
       desc: 'Analizamos reseñas, calidad y reputación para recomendarte solo lo mejor.',
@@ -145,7 +146,7 @@ function FeatureCube({ isLight }) {
     {
       id: 'right',
       transform: 'rotateY(90deg) translateZ(140px)',
-      borderClasses: 'border-0', // 0 aristas (las cubren las demás caras)
+      borderClasses: 'border-0',
       icon: Headphones,
       title: 'Atención Personalizada',
       desc: '¿Buscas algo muy específico? Nuestro equipo te ayuda a rastrearlo al mejor precio.',
@@ -154,7 +155,7 @@ function FeatureCube({ isLight }) {
     {
       id: 'left',
       transform: 'rotateY(-90deg) translateZ(140px)',
-      borderClasses: 'border-0', // 0 aristas
+      borderClasses: 'border-0',
       icon: Award,
       title: 'Premios Mensuales',
       desc: 'Participa en nuestra comunidad, gana puntos y obtén recompensas exclusivas.',
@@ -163,7 +164,7 @@ function FeatureCube({ isLight }) {
     {
       id: 'top',
       transform: 'rotateX(90deg) translateZ(140px)',
-      borderClasses: 'border-x-[4px] border-y-0 border-dotted border-[#00e5ff]', // Solo aristas laterales (2 aristas)
+      borderClasses: 'border-x-[4px] border-y-0 border-dotted border-[#00e5ff]',
       icon: TrendingDown,
       title: 'Precios Bajos',
       desc: 'Monitoreamos el mercado para asegurarnos de que siempre obtengas la mejor oferta.',
@@ -172,7 +173,7 @@ function FeatureCube({ isLight }) {
     {
       id: 'bottom',
       transform: 'rotateX(-90deg) translateZ(140px)',
-      borderClasses: 'border-x-[4px] border-y-0 border-dotted border-[#00e5ff]', // Solo aristas laterales (2 aristas)
+      borderClasses: 'border-x-[4px] border-y-0 border-dotted border-[#00e5ff]',
       icon: Lock,
       title: 'Compras Seguras',
       desc: 'Enlaces directos a plataformas oficiales como Mercado Libre para tu tranquilidad.',
@@ -206,7 +207,7 @@ function FeatureCube({ isLight }) {
                 transform: face.transform, 
                 backfaceVisibility: 'hidden',
                 boxShadow: neonShadow,
-                boxSizing: 'border-box' // Asegura unión perfecta en los vértices
+                boxSizing: 'border-box'
               }}
             >
               <div className="flex justify-between items-start">
@@ -1583,7 +1584,7 @@ function App() {
         isLight={isLight}
       />
 
-      {/* SECCIÓN RENOVADA: CUBO DE CARACTERÍSTICAS HTML (SIN PUNTOS EN VÉRTICES, ARISTAS PERFECTAS) */}
+      {/* SECCIÓN RENOVADA: CUBO DE CARACTERÍSTICAS HTML (ESQUINAS UNIDAS PERFECTAMENTE SIN CURVATURAS) */}
       <section className={`relative overflow-hidden py-24 px-4 border-b ${
         isLight 
           ? 'bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/50 border-gray-200 text-gray-800' 
