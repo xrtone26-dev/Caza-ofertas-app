@@ -44,7 +44,7 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
 // ==========================================
-// COMPONENTE 3D: RUBIK PARTICLES & ENGINE
+// MOTOR 3D: CUBIST PARTICLES / ORIGINKIT STYLE
 // ==========================================
 function latticeCoord(i, n) {
   return n <= 1 ? 0 : -1 + (2 * i) / (n - 1);
@@ -119,6 +119,13 @@ class RubikCubeScene {
   constructor(container, cfg) {
     this.container = container;
     this.cfg = cfg;
+    this.tmp = { x: 0, y: 0, z: 0 };
+    this.ax = 0.5;
+    this.ay = 0.8;
+    this.az = 0;
+    this.isDragging = false;
+    this.lastMouseX = 0;
+    this.lastMouseY = 0;
 
     this.canvas = document.createElement("canvas");
     this.canvas.style.position = "absolute";
@@ -129,7 +136,6 @@ class RubikCubeScene {
     this.canvas.style.touchAction = "none";
     container.appendChild(this.canvas);
 
-    // Corrección: Obtener dimensiones iniciales de inmediato para evitar el canvas en blanco
     const rect = container.getBoundingClientRect();
     this.width = rect.width || container.clientWidth || 300;
     this.height = rect.height || container.clientHeight || 300;
@@ -187,7 +193,6 @@ class RubikCubeScene {
 
     const onPointerMove = (e) => {
       if (!this.isDragging) return;
-
       const dx = e.clientX - this.lastMouseX;
       const dy = e.clientY - this.lastMouseY;
       this.lastMouseX = e.clientX;
@@ -402,7 +407,7 @@ class RubikCubeScene {
     order.sort((a, b) => this.depth[a] - this.depth[b]);
 
     ctx.globalCompositeOperation = "lighter";
-    ctx.fillStyle = this.cfg.color || "#ffffff";
+    ctx.fillStyle = this.cfg.color || "#FFEA00";
     const dot = Math.max(1, Math.min(6, Math.round(this.cfg.dotSize)));
 
     for (let o = 0; o < count; o++) {
@@ -433,14 +438,14 @@ class RubikCubeScene {
 }
 
 function RubikParticles({
-  color = "#ffffff",
+  color = "#FFEA00",
   cubeGrid = 3,
   dotsPerFace = 4,
-  dotSize = 2,
+  dotSize = 2.5,
   rotation = { x: 2, y: 5, z: 0 },
   transition = { type: "spring", stiffness: 200, damping: 20, mass: 1 },
-  sizePercent = 100,
-  dragSensitivity = 1,
+  sizePercent = 95,
+  dragSensitivity = 1.2,
   style,
 }) {
   const containerRef = useRef(null);
@@ -888,7 +893,6 @@ function App() {
   const [showMusicModal, setShowMusicModal] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
-  
   const [showCommunityPopup, setShowCommunityPopup] = useState(false);
   
   const [tiktokVideos, setTiktokVideos] = useState(() => {
@@ -1348,7 +1352,6 @@ function App() {
 
       {/* MENÚ FLOTANTE SUPERIOR DERECHO */}
       <div className="fixed top-6 right-6 z-[60] flex flex-col items-center gap-3">
-        
         <div className="flex flex-col items-center gap-1">
           {currentUser && (
             <span className={`font-bold text-[11px] truncate max-w-[65px] text-center ${
@@ -1751,7 +1754,7 @@ function App() {
 
       <ProfileModal showProfilePanel={showProfilePanel} setShowProfilePanel={setShowProfilePanel} currentUser={currentUser} setCurrentUser={setCurrentUser} isLight={isLight} />
 
-      {/* SECCIÓN DEL CUBO 3D DE PARTÍCULAS COMO PROTAGONISTA (CORREGIDA) */}
+      {/* SECCIÓN PROTAGONISTA: CUBO 3D DE PARTÍCULAS ORIGINKIT ESTILO */}
       <section className={`relative overflow-hidden py-24 px-4 border-b ${
         isLight ? 'bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/50 border-gray-200 text-gray-800' : 'bg-gradient-to-br from-neutral-950 via-neutral-900 to-black border-neutral-800 text-neutral-100'
       }`}>
@@ -1771,7 +1774,7 @@ function App() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
-            {/* Contenedor del Cubo 3D totalmente visible e interactivo */}
+            {/* CUBO 3D DE PARTÍCULAS ANIMADO INTERACTIVO */}
             <div className="lg:col-span-5 flex flex-col items-center justify-center">
               <div className={`relative w-full h-[400px] md:h-[480px] rounded-3xl border-2 flex items-center justify-center overflow-hidden shadow-2xl backdrop-blur-xl ${
                 isLight ? 'bg-white/60 border-purple-200' : 'bg-neutral-900/60 border-neutral-800 shadow-yellow-400/5'
@@ -1796,7 +1799,7 @@ function App() {
               </div>
             </div>
 
-            {/* Tarjetas de Beneficios */}
+            {/* TARJETAS DE BENEFICIOS */}
             <div className="lg:col-span-7 grid grid-cols-1 gap-6">
               {[
                 {
