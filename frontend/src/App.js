@@ -46,7 +46,7 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
 // ==========================================
-// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS
+// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS NEÓN
 // ==========================================
 function FeatureCube({ isLight }) {
   const [rotation, setRotation] = useState({ x: -15, y: 45 });
@@ -102,22 +102,26 @@ function FeatureCube({ isLight }) {
     return () => window.removeEventListener('touchmove', preventScroll);
   }, []);
 
-  const faceClasses = `absolute w-[280px] h-[280px] rounded-3xl p-6 border-2 flex flex-col justify-between shadow-2xl backdrop-blur-xl transition-colors ${
+  // Color Neón Tecnológico (Cyan) para aristas y vértices
+  const neonColor = '#00e5ff';
+  const neonShadow = `0 0 15px rgba(0,229,255,0.5), inset 0 0 15px rgba(0,229,255,0.3)`;
+
+  const faceClasses = `absolute w-[280px] h-[280px] rounded-3xl p-6 flex flex-col justify-between backdrop-blur-xl transition-colors border-[4px] border-dotted border-[#00e5ff] ${
     isLight 
-      ? 'bg-white/90 border-purple-300 text-gray-800 hover:border-purple-500' 
-      : 'bg-neutral-900/90 border-neutral-700 text-neutral-100 hover:border-yellow-400'
+      ? 'bg-white/85 text-gray-800' 
+      : 'bg-neutral-900/85 text-neutral-100'
   }`;
 
-  const iconContainerClasses = `w-14 h-14 rounded-2xl flex-shrink-0 flex items-center justify-center mb-4 border-2 shadow-lg ${
+  const iconContainerClasses = `w-14 h-14 rounded-2xl flex-shrink-0 flex items-center justify-center mb-4 border-2 shadow-[0_0_10px_rgba(0,229,255,0.4)] ${
     isLight 
-      ? 'bg-purple-100 text-purple-600 border-purple-200' 
-      : 'bg-yellow-400/10 text-yellow-400 border-yellow-400/30'
+      ? 'bg-[#e0ffff] text-[#00b3cc] border-[#00e5ff]' 
+      : 'bg-[#00e5ff]/10 text-[#00e5ff] border-[#00e5ff]/50'
   }`;
 
-  const badgeClasses = `text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-full border self-start ${
+  const badgeClasses = `text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-full border self-start shadow-[0_0_8px_rgba(0,229,255,0.3)] ${
     isLight 
-      ? 'bg-purple-50 text-purple-700 border-purple-200' 
-      : 'bg-yellow-400/10 text-yellow-300 border-yellow-400/30'
+      ? 'bg-[#e0ffff] text-[#008b99] border-[#00e5ff]' 
+      : 'bg-[#00e5ff]/10 text-[#00e5ff] border-[#00e5ff]/30'
   }`;
 
   const faces = [
@@ -171,6 +175,18 @@ function FeatureCube({ isLight }) {
     }
   ];
 
+  // Coordenadas exactas para los 8 vértices del cubo
+  const vertices = [
+    { x: -140, y: -140, z: 140 },
+    { x: 140, y: -140, z: 140 },
+    { x: -140, y: 140, z: 140 },
+    { x: 140, y: 140, z: 140 },
+    { x: -140, y: -140, z: -140 },
+    { x: 140, y: -140, z: -140 },
+    { x: -140, y: 140, z: -140 },
+    { x: 140, y: 140, z: -140 },
+  ];
+
   return (
     <div 
       className="relative w-[280px] h-[280px] mx-auto cursor-grab active:cursor-grabbing touch-none"
@@ -187,13 +203,18 @@ function FeatureCube({ isLight }) {
           transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)` 
         }}
       >
+        {/* Renderizado de las 6 caras (HTML con bordes punteados de neón) */}
         {faces.map((face) => {
           const Icon = face.icon;
           return (
             <div 
               key={face.id} 
               className={faceClasses}
-              style={{ transform: face.transform, backfaceVisibility: 'hidden' }}
+              style={{ 
+                transform: face.transform, 
+                backfaceVisibility: 'hidden',
+                boxShadow: neonShadow
+              }}
             >
               <div className="flex justify-between items-start">
                 <div className={iconContainerClasses}>
@@ -210,6 +231,23 @@ function FeatureCube({ isLight }) {
             </div>
           );
         })}
+
+        {/* Renderizado de los 8 Puntos/Vértices Neón flotantes */}
+        {vertices.map((v, i) => (
+          <div
+            key={`vertex-${i}`}
+            className="absolute w-4 h-4 rounded-full z-50"
+            style={{
+              top: '50%',
+              left: '50%',
+              margin: '-8px 0 0 -8px',
+              backgroundColor: neonColor,
+              boxShadow: `0 0 15px 4px ${neonColor}`,
+              transform: `translate3d(${v.x}px, ${v.y}px, ${v.z}px)`,
+              transformStyle: 'preserve-3d'
+            }}
+          />
+        ))}
       </div>
     </div>
   );
@@ -1569,7 +1607,7 @@ function App() {
         isLight={isLight}
       />
 
-      {/* SECCIÓN RENOVADA: CUBO DE CARACTERÍSTICAS HTML (EN VEZ DE PARTÍCULAS) */}
+      {/* SECCIÓN RENOVADA: CUBO DE CARACTERÍSTICAS HTML (CON NEÓN Y PUNTOS EN VÉRTICES) */}
       <section className={`relative overflow-hidden py-24 px-4 border-b ${
         isLight 
           ? 'bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/50 border-gray-200 text-gray-800' 
@@ -1592,9 +1630,9 @@ function App() {
           {/* CUBO 3D INTERACTIVO CENTRADO */}
           <div className="flex flex-col items-center justify-center pt-8 pb-16 relative">
             <FeatureCube isLight={isLight} />
-            <div className="mt-16 text-center pointer-events-none">
-              <span className={`text-[11px] font-black uppercase tracking-widest px-4 py-2 rounded-full border shadow-xl ${
-                isLight ? 'bg-white text-purple-700 border-purple-200' : 'bg-neutral-800 text-yellow-400 border-yellow-400/30'
+            <div className="mt-20 text-center pointer-events-none">
+              <span className={`text-[11px] font-black uppercase tracking-widest px-4 py-2 rounded-full border shadow-[0_0_15px_rgba(0,229,255,0.4)] ${
+                isLight ? 'bg-white text-purple-700 border-[#00e5ff]' : 'bg-neutral-800 text-yellow-400 border-[#00e5ff]'
               }`}>
                 ✨ Arrastra con el dedo o mouse para explorar ✨
               </span>
