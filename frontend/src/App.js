@@ -43,6 +43,9 @@ import AdminDashboard, { decodeCoupon } from './components/AdminDashboard';
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
+// ==========================================
+// COMPONENTE 3D: RUBIK PARTICLES & ENGINE
+// ==========================================
 function latticeCoord(i, n) {
   return n <= 1 ? 0 : -1 + (2 * i) / (n - 1);
 }
@@ -2011,30 +2014,16 @@ function App() {
         isLight={isLight}
       />
 
-      {/* NUEVA SECCIÓN REDISEÑADA CON EL CUBO 3D DE PARTÍCULAS (RUBIKPARTICLES) */}
-      <section className={`relative overflow-hidden py-20 px-4 border-b ${
+      {/* SECCIÓN REDISEÑADA CON EL CUBO 3D DE PARTÍCULAS COMO PROTAGONISTA */}
+      <section className={`relative overflow-hidden py-24 px-4 border-b ${
         isLight 
           ? 'bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/50 border-gray-200 text-gray-800' 
           : 'bg-gradient-to-br from-neutral-950 via-neutral-900 to-black border-neutral-800 text-neutral-100'
       }`}>
-        
-        {/* Fondo interactivo con el Cubo 3D de Partículas */}
-        <div className="absolute inset-0 opacity-30 pointer-events-none flex items-center justify-center overflow-hidden">
-          <div className="w-[600px] h-[600px] max-w-full">
-            <RubikParticles 
-              color={isLight ? '#7c3aed' : '#FFEA00'} 
-              cubeGrid={3} 
-              dotsPerFace={4} 
-              dotSize={2} 
-              sizePercent={90}
-              dragSensitivity={1.2}
-            />
-          </div>
-        </div>
-
-        <div className="relative container mx-auto max-w-6xl z-10">
+        <div className="relative container mx-auto max-w-7xl z-10">
           
-          <div className="text-center max-w-2xl mx-auto mb-16">
+          {/* Encabezado */}
+          <div className="text-center max-w-3xl mx-auto mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-4 bg-yellow-400/10 text-yellow-400 border border-yellow-400/30">
               <Sparkles className="w-4 h-4 animate-pulse" /> Comunidad Élite de Ahorro
             </div>
@@ -2046,71 +2035,99 @@ function App() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Tag,
-                title: 'Cupones Exclusivos',
-                description: 'Códigos de descuento únicos y de alto valor que no encontrarás en ningún otro lugar.',
-                badge: 'Ahorro Garantizado'
-              },
-              {
-                icon: ShieldCheck,
-                title: 'Productos Verificados',
-                description: 'Analizamos reseñas, calidad y reputación para recomendarte solo lo mejor.',
-                badge: '100% Confiable'
-              },
-              {
-                icon: Headphones,
-                title: 'Atención Personalizada',
-                description: '¿Buscas algo muy específico? Nuestro equipo te ayuda a rastrearlo al mejor precio.',
-                badge: 'Soporte Directo'
-              }
-            ].map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <div 
-                  key={index}
-                  className={`group relative rounded-3xl p-8 transition-all duration-300 hover:-translate-y-2 border shadow-xl backdrop-blur-xl flex flex-col justify-between ${
-                    isLight 
-                      ? 'bg-white/80 border-gray-200/80 hover:border-purple-300 hover:shadow-purple-500/10' 
-                      : 'bg-neutral-900/80 border-neutral-800 hover:border-yellow-400/50 hover:shadow-yellow-400/10'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-6">
-                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-300 border-2 ${
-                        isLight 
-                          ? 'bg-purple-50 text-purple-600 border-purple-200' 
-                          : 'bg-yellow-400/10 text-yellow-400 border-yellow-400/30 font-black'
-                      }`}>
-                        <Icon className="w-7 h-7" />
-                      </div>
-                      <span className={`text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full border ${
-                        isLight 
-                          ? 'bg-purple-50 text-purple-700 border-purple-200' 
-                          : 'bg-yellow-400/10 text-yellow-300 border-yellow-400/30'
-                      }`}>
-                        {item.badge}
-                      </span>
+          {/* Grid Principal: Cubo 3D Interactivo a la izquierda / Beneficios a la derecha */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            {/* Columna del Cubo 3D de Partículas (Protagonista) */}
+            <div className="lg:col-span-5 flex flex-col items-center justify-center">
+              <div className={`relative w-full h-[400px] md:h-[480px] rounded-3xl border-2 flex items-center justify-center overflow-hidden shadow-2xl backdrop-blur-xl ${
+                isLight 
+                  ? 'bg-white/60 border-purple-200 shadow-purple-500/10' 
+                  : 'bg-neutral-900/60 border-neutral-800 shadow-yellow-400/5'
+              }`}>
+                <div className="absolute inset-0 w-full h-full">
+                  <RubikParticles 
+                    color={isLight ? '#7c3aed' : '#FFEA00'} 
+                    cubeGrid={3} 
+                    dotsPerFace={4} 
+                    dotSize={2.5} 
+                    sizePercent={95}
+                    dragSensitivity={1.2}
+                  />
+                </div>
+                <div className="absolute bottom-4 left-4 right-4 text-center pointer-events-none z-10">
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
+                    isLight ? 'bg-white/80 text-purple-700 border-purple-200' : 'bg-black/80 text-yellow-400 border-yellow-400/30'
+                  }`}>
+                    ✨ Arrastra para girar el cubo 3D
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Columna de Tarjetas de Beneficios */}
+            <div className="lg:col-span-7 grid grid-cols-1 gap-6">
+              {[
+                {
+                  icon: Tag,
+                  title: 'Cupones Exclusivos',
+                  description: 'Códigos de descuento únicos y de alto valor que no encontrarás en ningún otro lugar.',
+                  badge: 'Ahorro Garantizado'
+                },
+                {
+                  icon: ShieldCheck,
+                  title: 'Productos Verificados',
+                  description: 'Analizamos reseñas, calidad y reputación para recomendarte solo lo mejor.',
+                  badge: '100% Confiable'
+                },
+                {
+                  icon: Headphones,
+                  title: 'Atención Personalizada',
+                  description: '¿Buscas algo muy específico? Nuestro equipo te ayuda a rastrearlo al mejor precio.',
+                  badge: 'Soporte Directo'
+                }
+              ].map((item, index) => {
+                const Icon = item.icon;
+                return (
+                  <div 
+                    key={index}
+                    className={`group relative rounded-3xl p-6 md:p-8 transition-all duration-300 hover:-translate-y-1 border shadow-xl backdrop-blur-xl flex items-start gap-6 ${
+                      isLight 
+                        ? 'bg-white/80 border-gray-200/80 hover:border-purple-300 hover:shadow-purple-500/10' 
+                        : 'bg-neutral-900/80 border-neutral-800 hover:border-yellow-400/50 hover:shadow-yellow-400/10'
+                    }`}
+                  >
+                    <div className={`w-14 h-14 rounded-2xl flex-shrink-0 flex items-center justify-center transition-transform group-hover:scale-110 duration-300 border-2 ${
+                      isLight 
+                        ? 'bg-purple-50 text-purple-600 border-purple-200' 
+                        : 'bg-yellow-400/10 text-yellow-400 border-yellow-400/30 font-black'
+                    }`}>
+                      <Icon className="w-7 h-7" />
                     </div>
 
-                    <h3 className="text-xl font-black mb-3 tracking-tight">
-                      {item.title}
-                    </h3>
-                    
-                    <p className={`text-sm leading-relaxed opacity-80 font-medium ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-                      {item.description}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xl font-black tracking-tight">
+                          {item.title}
+                        </h3>
+                        <span className={`text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full border ${
+                          isLight 
+                            ? 'bg-purple-50 text-purple-700 border-purple-200' 
+                            : 'bg-yellow-400/10 text-yellow-300 border-yellow-400/30'
+                        }`}>
+                          {item.badge}
+                        </span>
+                      </div>
+                      
+                      <p className={`text-sm leading-relaxed opacity-80 font-medium ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+                        {item.description}
+                      </p>
+                    </div>
                   </div>
+                );
+              })}
+            </div>
 
-                  <div className="mt-8 pt-4 border-t border-dashed border-gray-500/20 flex items-center gap-2 text-xs font-bold opacity-60 group-hover:opacity-100 transition-opacity">
-                    <span>Acceso inmediato</span>
-                    <span>→</span>
-                  </div>
-                </div>
-              );
-            })}
           </div>
 
         </div>
