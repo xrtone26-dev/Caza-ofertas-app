@@ -37,6 +37,7 @@ import axios from 'axios';
 import useEmblaCarousel from 'embla-carousel-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MusicPlayer from './components/MusicPlayer';
+import GamesZone from './components/GamesZone';
 import ChatbotWidget from './components/ChatbotWidget';
 import ProfileModal from './components/ProfileModal';
 import AdminDashboard, { decodeCoupon } from './components/AdminDashboard'; 
@@ -52,12 +53,13 @@ function FeatureCube({ isLight }) {
   const requestRef = useRef();
   const startTimeRef = useRef(performance.now());
 
+  // Rotación automática con mayor rango vertical para mostrar todas las caras (incluyendo superior e inferior)
   const animate = useCallback((time) => {
     const elapsed = (time - startTimeRef.current) * 0.001;
     setRotation({
-      x: Math.sin(elapsed * 0.6) * 55,
-      y: elapsed * 35,
-      z: Math.sin(elapsed * 0.4) * 20,
+      x: Math.sin(elapsed * 0.6) * 55, // Inclinación vertical profunda (muestra caras superior e inferior)
+      y: elapsed * 35,                 // Giro horizontal completo de 360°
+      z: Math.sin(elapsed * 0.4) * 20, // Sutil balanceo lateral dinámico
     });
     requestRef.current = requestAnimationFrame(animate);
   }, []);
@@ -178,218 +180,6 @@ function FeatureCube({ isLight }) {
             </div>
           );
         })}
-      </div>
-    </div>
-  );
-}
-
-// ==========================================
-// ZONA DE JUEGOS CON CONTROL DE NEÓN Y PREVIEWS DINÁMICOS
-// ==========================================
-function GamesZone({ currentUser, isLight, isAuthenticated }) {
-  const [selectedGame, setSelectedGame] = useState('2048');
-
-  const games = [
-    { id: '2048', name: '2048 Classic', desc: 'Compite en el Top Global mensual. ¡El mejor por mes en cada juego! Gana tarjetas de regalo.' },
-    { id: 'tetris', name: 'Cyber Tetris', desc: 'Encaja las piezas geométricas a alta velocidad. ¡Haz el récord del mes y gana premios!' },
-    { id: 'memoria', name: 'Memoria Pro', desc: 'Pon a prueba tu agilidad mental encontrando los pares en tiempo récord.' },
-    { id: 'ninja', name: 'Ninja Cut', desc: 'Corta los objetos al vuelo con precisión milimétrica y sin fallar.' },
-    { id: 'click', name: 'Click Challenge', desc: 'Demuestra la velocidad de tus clicks en este reto de alta intensidad.' },
-  ];
-
-  const currentGame = games.find(g => g.id === selectedGame) || games[0];
-
-  const renderGamePreview = () => {
-    switch (selectedGame) {
-      case '2048':
-        return (
-          <div className="w-full max-w-[280px] h-24 mx-auto mb-3 bg-gradient-to-br from-neutral-900 to-black border-2 border-yellow-400 rounded-2xl p-2.5 flex flex-col justify-between shadow-[0_0_20px_rgba(250,204,21,0.4)] relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-yellow-400/10 rounded-full blur-xl"></div>
-            <div className="flex justify-between items-center text-[10px] font-black text-yellow-400 uppercase tracking-wider">
-              <span>Grid 2048 Classic</span>
-              <span className="animate-pulse">Score: 2048</span>
-            </div>
-            <div className="grid grid-cols-4 gap-1.5 h-12">
-              <div className="bg-yellow-400/20 border border-yellow-400/60 text-yellow-300 font-black text-xs rounded-lg flex items-center justify-center animate-pulse">2</div>
-              <div className="bg-yellow-400/40 border border-yellow-400 text-black font-black text-xs rounded-lg flex items-center justify-center">4</div>
-              <div className="bg-orange-500/40 border border-orange-400 text-orange-200 font-black text-xs rounded-lg flex items-center justify-center">8</div>
-              <div className="bg-red-500/50 border border-red-400 text-white font-black text-xs rounded-lg flex items-center justify-center animate-bounce">16</div>
-            </div>
-          </div>
-        );
-      case 'tetris':
-        return (
-          <div className="w-full max-w-[280px] h-24 mx-auto mb-3 bg-gradient-to-br from-neutral-900 to-black border-2 border-cyan-400 rounded-2xl p-2.5 flex flex-col justify-between shadow-[0_0_20px_rgba(6,182,212,0.4)] relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-400/10 rounded-full blur-xl"></div>
-            <div className="flex justify-between items-center text-[10px] font-black text-cyan-400 uppercase tracking-wider">
-              <span>Cyber Tetris Arcade</span>
-              <span className="animate-pulse">Level 5</span>
-            </div>
-            <div className="flex items-end justify-center gap-2 h-12 bg-neutral-950/80 rounded-xl p-1 border border-cyan-500/30">
-              <div className="w-4 h-8 bg-cyan-400 rounded-md shadow-[0_0_12px_rgba(6,182,212,0.9)] animate-pulse"></div>
-              <div className="w-8 h-4 bg-yellow-400 rounded-md shadow-[0_0_12px_rgba(250,204,21,0.9)]"></div>
-              <div className="w-6 h-6 bg-purple-500 rounded-md shadow-[0_0_12px_rgba(168,85,247,0.9)] animate-bounce"></div>
-              <div className="w-4 h-9 bg-green-400 rounded-md shadow-[0_0_12px_rgba(74,222,128,0.9)]"></div>
-            </div>
-          </div>
-        );
-      case 'memoria':
-        return (
-          <div className="w-full max-w-[280px] h-24 mx-auto mb-3 bg-gradient-to-br from-neutral-900 to-black border-2 border-pink-500 rounded-2xl p-2.5 flex flex-col justify-between shadow-[0_0_20px_rgba(236,72,153,0.4)] relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-pink-500/10 rounded-full blur-xl"></div>
-            <div className="flex justify-between items-center text-[10px] font-black text-pink-400 uppercase tracking-wider">
-              <span>Memoria Pro Deck</span>
-              <span className="animate-pulse">Pairs: 4/8</span>
-            </div>
-            <div className="grid grid-cols-4 gap-2 h-12">
-              <div className="bg-pink-500/30 border-2 border-pink-500 rounded-xl flex items-center justify-center text-pink-300 font-bold text-xs shadow-[0_0_12px_rgba(236,72,153,0.7)] animate-pulse">⭐</div>
-              <div className="bg-pink-500/30 border-2 border-pink-500 rounded-xl flex items-center justify-center text-pink-300 font-bold text-xs shadow-[0_0_12px_rgba(236,72,153,0.7)]">⭐</div>
-              <div className="bg-neutral-800 border-2 border-neutral-600 rounded-xl flex items-center justify-center text-neutral-400 font-bold text-xs">❓</div>
-              <div className="bg-neutral-800 border-2 border-neutral-600 rounded-xl flex items-center justify-center text-neutral-400 font-bold text-xs">❓</div>
-            </div>
-          </div>
-        );
-      case 'ninja':
-        return (
-          <div className="w-full max-w-[280px] h-24 mx-auto mb-3 bg-gradient-to-br from-neutral-900 to-black border-2 border-red-500 rounded-2xl p-2.5 flex flex-col justify-between shadow-[0_0_20px_rgba(239,68,68,0.4)] relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-red-500/10 rounded-full blur-xl"></div>
-            <div className="flex justify-between items-center text-[10px] font-black text-red-400 uppercase tracking-wider">
-              <span>Ninja Cut Action</span>
-              <span className="animate-pulse">Combo x5</span>
-            </div>
-            <div className="relative h-12 bg-neutral-950/80 rounded-xl flex items-center justify-center border border-red-500/30 overflow-hidden">
-              <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent animate-pulse shadow-[0_0_12px_rgba(239,68,68,1)]"></div>
-              <span className="text-2xl animate-bounce">🍉</span>
-              <span className="text-xl animate-ping absolute right-8">✨</span>
-            </div>
-          </div>
-        );
-      case 'click':
-        return (
-          <div className="w-full max-w-[280px] h-24 mx-auto mb-3 bg-gradient-to-br from-neutral-900 to-black border-2 border-green-400 rounded-2xl p-2.5 flex flex-col justify-between shadow-[0_0_20px_rgba(74,222,128,0.4)] relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-green-400/10 rounded-full blur-xl"></div>
-            <div className="flex justify-between items-center text-[10px] font-black text-green-400 uppercase tracking-wider">
-              <span>Click Challenge Arena</span>
-              <span className="animate-pulse">Speed Test</span>
-            </div>
-            <div className="h-12 bg-neutral-950/80 rounded-xl flex items-center justify-center gap-3 border border-green-500/35">
-              <div className="w-9 h-9 rounded-full border-2 border-green-400 bg-green-500/20 flex items-center justify-center text-green-300 font-black text-xs shadow-[0_0_15px_rgba(74,222,128,0.9)] animate-ping">⚡</div>
-              <div className="text-green-400 font-black text-xs uppercase tracking-wider animate-pulse">CPS: 14.8</div>
-            </div>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="container mx-auto px-4 mb-16 relative z-10">
-      <div className={`rounded-3xl shadow-2xl p-6 md:p-8 backdrop-blur-xl border ${
-        isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/90 border-neutral-800'
-      }`}>
-        <div className="text-center mb-6">
-          <h2 className={`text-2xl md:text-3xl font-black mb-4 flex items-center justify-center gap-2 ${
-            isLight ? 'text-purple-700' : 'text-neutral-100'
-          }`}>
-            🎮 ZONA DE RECREACIÓN CAZAOFERTAS
-          </h2>
-
-          {/* SELECTOR DE JUEGOS SUPERIOR */}
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            {games.map((g) => {
-              const isSelected = selectedGame === g.id;
-              return (
-                <button
-                  key={g.id}
-                  onClick={() => setSelectedGame(g.id)}
-                  className={`px-4 py-2 rounded-full font-black text-xs uppercase tracking-wider transition-all border-2 ${
-                    isSelected
-                      ? 'bg-[#FFEA00] text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] scale-105'
-                      : isLight
-                      ? 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
-                      : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700'
-                  }`}
-                >
-                  {g.name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
-          {/* PROGRESO GLOBAL LATERAL IZQUIERDO */}
-          <div className={`p-5 rounded-2xl border-2 border-black bg-red-600 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-3`}>
-            <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider">
-              <User size={16} /> PROGRESO GLOBAL
-            </div>
-            <div className="text-center bg-black/20 rounded-xl p-3 border border-black/30">
-              <span className="text-xs font-bold block opacity-90">@{currentUser || 'Xrtone26'}</span>
-              <div className="flex justify-around my-2 text-xs font-black">
-                <div>NIVEL <span className="block text-base text-yellow-300">14</span></div>
-                <div>MONEDAS <span className="block text-base text-yellow-300">💰 2206</span></div>
-              </div>
-              <div className="w-full bg-black/40 rounded-full h-2.5 overflow-hidden my-2">
-                <div className="bg-yellow-400 h-full w-3/4 rounded-full"></div>
-              </div>
-              <span className="text-[10px] opacity-80 block">XP: 96 / 8000 (Difícil)</span>
-            </div>
-            <div className="text-center text-xs font-black bg-black text-yellow-400 py-1.5 rounded-lg border border-black">
-              🏆 Récord Mes: 1972 pts
-            </div>
-          </div>
-
-          {/* CONTENEDOR CENTRAL DE JUEGO CON CONTROL NEÓN Y PREVIEW DINÁMICO */}
-          <div className="lg:col-span-2 bg-neutral-950 border-4 border-neutral-800 rounded-2xl p-5 text-center text-white relative shadow-inner flex flex-col items-center justify-center min-h-[320px]">
-            {/* CONTROL ICONO ORIGINAL RESTAURADO + PREVIEW VIVO */}
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <div className="w-10 h-10 bg-yellow-400/20 text-yellow-400 rounded-xl flex items-center justify-center border border-yellow-400/40 shadow-[0_0_15px_rgba(250,204,21,0.4)]">
-                <Sparkles className="w-5 h-5 animate-pulse" />
-              </div>
-            </div>
-
-            {renderGamePreview()}
-
-            <h3 className="text-xl font-black mb-1 uppercase tracking-tight text-yellow-400">{currentGame.name}</h3>
-            <p className="text-xs text-neutral-300 max-w-sm mb-3 leading-relaxed">{currentGame.desc}</p>
-            <button
-              onClick={() => alert(`Iniciando ${currentGame.name}... ¡Prepárate para ganar!`)}
-              className="bg-[#FFEA00] hover:bg-yellow-300 text-black font-black px-6 py-2 rounded-xl text-xs uppercase tracking-wider transition-transform hover:scale-105 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-            >
-              ▶ JUGAR AHORA
-            </button>
-          </div>
-
-          {/* TOP GLOBAL Y GANADORES DERECHA */}
-          <div className="flex flex-col gap-4">
-            <div className="bg-blue-600 border-2 border-black rounded-2xl p-4 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <h4 className="font-black text-xs uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                🏆 TOP GLOBAL MENSUAL
-              </h4>
-              <div className="space-y-1.5 text-xs font-bold">
-                <div className="flex justify-between bg-yellow-400 text-black px-3 py-1.5 rounded-lg border border-black">
-                  <span>#1 Xrtone26</span><span>1972</span>
-                </div>
-                <div className="flex justify-between bg-blue-700/60 px-3 py-1.5 rounded-lg">
-                  <span>#2 OfertaKing</span><span>1540</span>
-                </div>
-                <div className="flex justify-between bg-blue-700/60 px-3 py-1.5 rounded-lg">
-                  <span>#3 Irving</span><span>840</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-900 to-indigo-950 border-2 border-purple-500/50 rounded-2xl p-4 text-white shadow-lg">
-              <h4 className="font-black text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5 text-yellow-400">
-                🎁 GANADORES DEL MES
-              </h4>
-              <p className="text-[11px] text-neutral-300 leading-tight">
-                Aún no hay ganadores registrados de meses anteriores. Se registrarán automáticamente al finalizar cada mes.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -1714,7 +1504,6 @@ function App() {
         </div>
       )}
 
-      {/* ZONA DE JUEGOS CON EL CONTROL DE NEÓN Y PREVIEW INTEGRADO */}
       <GamesZone currentUser={currentUser} isLight={isLight} isAuthenticated={isAuthenticated} />
 
       <div className="container mx-auto px-4 mb-16 relative z-10">
