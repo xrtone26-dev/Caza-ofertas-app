@@ -184,7 +184,7 @@ function FeatureCube({ isLight }) {
 }
 
 // ==========================================
-// ZONA DE JUEGOS CON CONTROL DE NEÓN (SIN PREVIEW Y CON TEMA ROSA EN LIGHT)
+// ZONA DE JUEGOS ORIGINAL (SIN PREVIEWS, TEMA ROSA EN LIGHT)
 // ==========================================
 function GamesZone({ currentUser, isLight, isAuthenticated }) {
   const [selectedGame, setSelectedGame] = useState('2048');
@@ -262,7 +262,6 @@ function GamesZone({ currentUser, isLight, isAuthenticated }) {
               ? 'bg-gradient-to-br from-pink-500 via-pink-600 to-purple-600 border-pink-400 text-white shadow-xl' 
               : 'bg-neutral-950 border-neutral-800 text-white'
           }`}>
-            {/* CONTROL ICONO ORIGINAL RESTAURADO */}
             <div className="flex items-center justify-center gap-2 mb-3">
               <div className="w-12 h-12 bg-yellow-400/20 text-yellow-400 rounded-xl flex items-center justify-center border border-yellow-400/40 shadow-[0_0_15px_rgba(250,204,21,0.4)]">
                 <Sparkles className="w-6 h-6 animate-pulse" />
@@ -1632,7 +1631,7 @@ function App() {
         </div>
       )}
 
-      {/* ZONA DE JUEGOS CON EL CONTROL DE NEÓN */}
+      {/* ZONA DE JUEGOS ORIGINAL */}
       <GamesZone currentUser={currentUser} isLight={isLight} isAuthenticated={isAuthenticated} />
 
       <div className="container mx-auto px-4 mb-16 relative z-10">
@@ -1690,14 +1689,15 @@ function App() {
         </div>
       </section>
 
+      {/* FOOTER CORREGIDO PARA TEMA CLARO */}
       <footer className={`py-12 border-t ${
-        isLight ? 'bg-gray-900 text-white border-transparent' : 'bg-neutral-950 border-neutral-900 text-neutral-400'
+        isLight ? 'bg-white text-gray-800 border-gray-200' : 'bg-neutral-950 border-neutral-900 text-neutral-400'
       }`}>
         <div className="container mx-auto px-4 text-center">
           <div className="mb-6">
             <img src={logoUrl} alt="CazaOfertasML" className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-white/20" />
             <h3 className="text-2xl font-bold mb-2">CazaOfertasML</h3>
-            <p className="text-gray-400">"Ahorra con estilo, compra con sabiduría"</p>
+            <p className={isLight ? 'text-gray-600' : 'text-gray-400'}>"Ahorra con estilo, compra con sabiduría"</p>
           </div>
           <div className="flex justify-center space-x-6 mb-6">
             {socialLinks.map((social, index) => {
@@ -1708,7 +1708,9 @@ function App() {
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-12 h-12 bg-white/10 hover:bg-white/25 rounded-full flex items-center justify-center transition-all hover:scale-110 text-white"
+                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 ${
+                    isLight ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' : 'bg-white/10 text-white hover:bg-white/25'
+                  }`}
                 >
                   <Icon className="w-6 h-6" />
                 </a>
@@ -1720,7 +1722,9 @@ function App() {
             {isAdminVisible && (
               <button
                 onClick={() => setShowAdminLogin(true)}
-                className="text-xs text-yellow-400 hover:text-yellow-300 flex items-center gap-1 font-bold animate-pulse"
+                className={`text-xs flex items-center gap-1 font-bold animate-pulse ${
+                  isLight ? 'text-purple-600 hover:text-purple-800' : 'text-yellow-400 hover:text-yellow-300'
+                }`}
               >
                 <Lock className="w-3 h-3" /> Panel Admin
               </button>
