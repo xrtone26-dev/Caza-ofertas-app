@@ -46,20 +46,20 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
 // ==========================================
-// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS AUTOMÁTICO
+// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS AUTOMÁTICO DINÁMICO
 // ==========================================
 function FeatureCube({ isLight }) {
-  const [rotation, setRotation] = useState({ x: -15, y: 0, z: 0 });
+  const [rotation, setRotation] = useState({ x: 0, y: 0, z: 0 });
   const requestRef = useRef();
   const startTimeRef = useRef(performance.now());
 
-  // Rotación automática fluida en múltiples sentidos y ejes
+  // Rotación automática con mayor rango vertical para mostrar todas las caras (incluyendo superior e inferior)
   const animate = useCallback((time) => {
     const elapsed = (time - startTimeRef.current) * 0.001;
     setRotation({
-      x: -15 + Math.sin(elapsed * 0.8) * 30,
-      y: elapsed * 40, // Giro continuo de 360 grados
-      z: Math.cos(elapsed * 0.5) * 15,
+      x: Math.sin(elapsed * 0.6) * 55, // Inclinación vertical profunda (muestra caras superior e inferior)
+      y: elapsed * 35,                 // Giro horizontal completo de 360°
+      z: Math.sin(elapsed * 0.4) * 20, // Sutil balanceo lateral dinámico
     });
     requestRef.current = requestAnimationFrame(animate);
   }, []);
@@ -1539,7 +1539,7 @@ function App() {
         isLight={isLight}
       />
 
-      {/* SECCIÓN RENOVADA: CUBO DE CARACTERÍSTICAS HTML (GIRO AUTOMÁTICO Y TEXTOS LIMPIOS) */}
+      {/* SECCIÓN RENOVADA: CUBO DE CARACTERÍSTICAS HTML (GIRO AUTOMÁTICO DINÁMICO) */}
       <section className={`relative overflow-hidden py-24 px-4 border-b ${
         isLight 
           ? 'bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/50 border-gray-200 text-gray-800' 
@@ -1553,7 +1553,7 @@ function App() {
             </h2>
           </div>
 
-          {/* CUBO 3D AUTOMÁTICO CENTRADO */}
+          {/* CUBO 3D AUTOMÁTICO DINÁMICO CENTRADO */}
           <div className="flex flex-col items-center justify-center pt-8 pb-16 relative">
             <FeatureCube isLight={isLight} />
           </div>
