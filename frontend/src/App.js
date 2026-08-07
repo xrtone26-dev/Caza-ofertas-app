@@ -32,12 +32,15 @@ import {
   Headphones,
   Award,
   TrendingDown,
+  Maximize2,
+  Clock,
+  Trophy,
+  Gamepad2,
 } from 'lucide-react';
 import axios from 'axios';
 import useEmblaCarousel from 'embla-carousel-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MusicPlayer from './components/MusicPlayer';
-import GamesZone from './components/GamesZone';
 import ChatbotWidget from './components/ChatbotWidget';
 import ProfileModal from './components/ProfileModal';
 import AdminDashboard, { decodeCoupon } from './components/AdminDashboard'; 
@@ -53,13 +56,12 @@ function FeatureCube({ isLight }) {
   const requestRef = useRef();
   const startTimeRef = useRef(performance.now());
 
-  // Rotación automática con mayor rango vertical para mostrar todas las caras (incluyendo superior e inferior)
   const animate = useCallback((time) => {
     const elapsed = (time - startTimeRef.current) * 0.001;
     setRotation({
-      x: Math.sin(elapsed * 0.6) * 55, // Inclinación vertical profunda (muestra caras superior e inferior)
-      y: elapsed * 35,                 // Giro horizontal completo de 360°
-      z: Math.sin(elapsed * 0.4) * 20, // Sutil balanceo lateral dinámico
+      x: Math.sin(elapsed * 0.6) * 55,
+      y: elapsed * 35,
+      z: Math.sin(elapsed * 0.4) * 20,
     });
     requestRef.current = requestAnimationFrame(animate);
   }, []);
@@ -185,7 +187,141 @@ function FeatureCube({ isLight }) {
   );
 }
 
-function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowToast }) {
+// ==========================================
+// BANNER TORNEO MENSUAL ACTIVO
+// ==========================================
+function TournamentBanner({ isLight }) {
+  return (
+    <div className="container mx-auto px-4 mb-8 relative z-10">
+      <div className={`rounded-2xl p-5 md:p-6 border-2 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl ${
+        isLight 
+          ? 'bg-gradient-to-r from-amber-500 to-yellow-500 border-black text-black' 
+          : 'bg-neutral-900 border-yellow-500/50 text-white'
+      }`}>
+        <div className="flex items-center gap-4 text-center md:text-left">
+          <div className="w-14 h-14 bg-yellow-400 text-black rounded-2xl flex items-center justify-center border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] shrink-0">
+            <Trophy className="w-7 h-7" />
+          </div>
+          <div>
+            <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
+              <span className="text-xl">🎁</span>
+              <h3 className="text-lg md:text-xl font-black uppercase tracking-tight">TORNEO MENSUAL ACTIVO</h3>
+            </div>
+            <p className={`text-xs md:text-sm font-medium ${isLight ? 'text-black/80' : 'text-neutral-300'}`}>
+              Acumula la mejor puntuación, escala puestos, llega al primer puesto y gana tarjetas de regalo cada mes.
+            </p>
+          </div>
+        </div>
+
+        <div className={`px-5 py-3 rounded-xl border-2 flex items-center gap-3 shrink-0 ${
+          isLight 
+            ? 'bg-white text-black border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]' 
+            : 'bg-neutral-950 text-yellow-400 border-yellow-500/40 shadow-inner'
+        }`}>
+          <Clock className="w-5 h-5 text-yellow-500 animate-pulse" />
+          <div className="text-right">
+            <span className="text-[10px] font-black uppercase tracking-wider block opacity-75">TIEMPO RESTANTE DE MES</span>
+            <span className="text-sm md:text-base font-black tracking-tight">24d 7h 35m 15s</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// ZONA DE JUEGOS
+// ==========================================
+function GamesZone({ currentUser, isLight }) {
+  const [selectedGame, setSelectedGame] = useState('2048');
+
+  const games = [
+    { id: '2048', name: '2048 Classic', desc: 'Compite en el Top Global mensual. ¡El mejor por mes en cada juego! Gana tarjetas de regalo.' },
+    { id: 'tetris', name: 'Cyber Tetris', desc: 'Encaja las piezas geométricas a alta velocidad. ¡Haz el récord del mes y gana premios!' },
+    { id: 'memoria', name: 'Memoria Pro', desc: 'Pon a prueba tu agilidad mental encontrando los pares en tiempo récord.' },
+    { id: 'ninja', name: 'Ninja Cut', desc: 'Corta los objetos al vuelo con precisión milimétrica y sin fallar.' },
+    { id: 'click', name: 'Click Challenge', desc: 'Demuestra la velocidad de tus clicks en este reto de alta intensidad.' },
+  ];
+
+  const currentGame = games.find(g => g.id === selectedGame) || games[0];
+
+  return (
+    <div className="container mx-auto px-4 mb-16 relative z-10">
+      <div className={`rounded-3xl shadow-2xl p-6 md:p-8 backdrop-blur-xl border ${
+        isLight ? 'bg-white border-purple-200 text-gray-800' : 'bg-neutral-900/90 border-neutral-800 text-neutral-100'
+      }`}>
+        <div className="text-center mb-6">
+          <h2 className={`text-2xl md:text-3xl font-black mb-4 flex items-center justify-center gap-2 ${
+            isLight ? 'text-purple-700' : 'text-neutral-100'
+          }`}>
+            🎮 ZONA DE RECREACIÓN CAZAOFERTAS
+          </h2>
+
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {games.map((g) => {
+              const isSelected = selectedGame === g.id;
+              return (
+                <button
+                  key={g.id}
+                  onClick={() => setSelectedGame(g.id)}
+                  className={`px-4 py-2 rounded-full font-black text-xs uppercase tracking-wider transition-all border-2 ${
+                    isSelected
+                      ? 'bg-[#FFEA00] text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] scale-105'
+                      : isLight
+                      ? 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
+                      : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700'
+                  }`}
+                >
+                  {g.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* CONTENEDOR CENTRAL DEL JUEGO */}
+        <div className={`border-4 rounded-3xl p-6 text-center relative shadow-inner flex flex-col items-center justify-center min-h-[380px] ${
+          isLight 
+            ? 'bg-gray-50 border-gray-300 text-gray-900 shadow-lg' 
+            : 'bg-neutral-950 border-neutral-800 text-white'
+        }`}>
+          <button
+            onClick={() => alert(`Expandiendo ${currentGame.name} a pantalla completa...`)}
+            className={`absolute top-4 right-4 p-2 rounded-xl border-2 transition-all hover:scale-110 ${
+              isLight ? 'bg-white text-gray-700 border-gray-300 shadow-sm' : 'bg-neutral-900 text-neutral-300 border-neutral-700'
+            }`}
+            title="Pantalla completa"
+          >
+            <Maximize2 className="w-5 h-5" />
+          </button>
+
+          <div className="w-16 h-16 bg-yellow-400/20 text-yellow-400 rounded-2xl flex items-center justify-center border-2 border-yellow-400/40 shadow-[0_0_20px_rgba(250,204,21,0.3)] mb-4">
+            <Gamepad2 className="w-8 h-8 animate-pulse" />
+          </div>
+
+          <h3 className={`text-2xl md:text-3xl font-black mb-2 uppercase tracking-tight ${isLight ? 'text-purple-700' : 'text-yellow-400'}`}>
+            {currentGame.name}
+          </h3>
+          <p className={`text-xs md:text-sm max-w-md mb-6 leading-relaxed ${isLight ? 'text-gray-600 font-medium' : 'text-neutral-300'}`}>
+            {currentGame.desc}
+          </p>
+
+          <button
+            onClick={() => alert(`Iniciando ${currentGame.name}... ¡Prepárate para ganar!`)}
+            className="bg-[#FFEA00] hover:bg-yellow-300 text-black font-black px-8 py-3 rounded-2xl text-xs md:text-sm uppercase tracking-wider transition-transform hover:scale-105 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+          >
+            ▶ JUGAR AHORA
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// REPRODUCTOR YOUTUBE REELS
+// ==========================================
+function YoutubeReelsPlayer({ videos, setToastMessage, setShowToast }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [likes, setLikes] = useState({});
   const [dislikes, setDislikes] = useState({});
@@ -205,9 +341,9 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
   const currentVideo = videos[safeIndex] || videos[0];
   const videoId = currentVideo.id;
 
-  const currentLikes = likes[videoId] !== undefined ? likes[videoId] : (currentVideo.likes || 120);
-  const currentDislikes = dislikes[videoId] !== undefined ? dislikes[videoId] : (currentVideo.dislikes || 5);
-  const currentHearts = hearts[videoId] !== undefined ? hearts[videoId] : (currentVideo.hearts || 539);
+  const currentLikes = likes[videoId] !== undefined ? likes[videoId] : (currentVideo.likes || 342);
+  const currentDislikes = dislikes[videoId] !== undefined ? dislikes[videoId] : (currentVideo.dislikes || 12);
+  const currentHearts = hearts[videoId] !== undefined ? hearts[videoId] : (currentVideo.hearts || 1205);
   const currentReaction = userReactions[videoId];
 
   const shareUrl = `${window.location.origin}${window.location.pathname}?video=${videoId}`;
@@ -547,7 +683,6 @@ function App() {
   const [showMusicModal, setShowMusicModal] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
-  
   const [showCommunityPopup, setShowCommunityPopup] = useState(false);
   
   const [tiktokVideos, setTiktokVideos] = useState(() => {
@@ -1504,8 +1639,13 @@ function App() {
         </div>
       )}
 
-      <GamesZone currentUser={currentUser} isLight={isLight} isAuthenticated={isAuthenticated} />
+      {/* BANNER TORNEO MENSUAL ACTIVO */}
+      <TournamentBanner isLight={isLight} />
 
+      {/* ZONA DE JUEGOS */}
+      <GamesZone currentUser={currentUser} isLight={isLight} />
+
+      {/* PRODUCTOS PROBADOS EN YOUTUBE / REELS */}
       <div className="container mx-auto px-4 mb-16 relative z-10">
         <div className={`rounded-3xl shadow-xl p-8 backdrop-blur-xl border ${
           isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
@@ -1524,7 +1664,6 @@ function App() {
           </div>
           <YoutubeReelsPlayer 
             videos={tiktokVideos} 
-            setTiktokVideos={setTiktokVideos}
             setToastMessage={setToastMessage} 
             setShowToast={setShowToast} 
           />
@@ -1539,25 +1678,21 @@ function App() {
         isLight={isLight}
       />
 
-      {/* SECCIÓN RENOVADA: CUBO DE CARACTERÍSTICAS HTML (GIRO AUTOMÁTICO DINÁMICO) */}
+      {/* CUBO DE CARACTERÍSTICAS HTML */}
       <section className={`relative overflow-hidden py-24 px-4 border-b ${
         isLight 
           ? 'bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/50 border-gray-200 text-gray-800' 
           : 'bg-gradient-to-br from-neutral-950 via-neutral-900 to-black border-neutral-800 text-neutral-100'
       }`}>
         <div className="relative container mx-auto max-w-7xl z-10 flex flex-col items-center">
-          
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">
               ¿Por qué unirte a nuestros canales?
             </h2>
           </div>
-
-          {/* CUBO 3D AUTOMÁTICO DINÁMICO CENTRADO */}
           <div className="flex flex-col items-center justify-center pt-8 pb-16 relative">
             <FeatureCube isLight={isLight} />
           </div>
-
         </div>
       </section>
 
