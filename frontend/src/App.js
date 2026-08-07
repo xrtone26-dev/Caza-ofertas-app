@@ -184,7 +184,7 @@ function FeatureCube({ isLight }) {
 }
 
 // ==========================================
-// ZONA DE JUEGOS CON PREVIEWS DINÁMICOS
+// ZONA DE JUEGOS CON PREVIEWS DINÁMICOS VIVOS
 // ==========================================
 function GamesZone({ currentUser, isLight, isAuthenticated }) {
   const [selectedGame, setSelectedGame] = useState('2048');
@@ -203,42 +203,79 @@ function GamesZone({ currentUser, isLight, isAuthenticated }) {
     switch (selectedGame) {
       case '2048':
         return (
-          <div className="w-48 h-20 mx-auto mb-2 bg-neutral-950/80 border-2 border-yellow-400/40 rounded-xl p-2 grid grid-cols-4 gap-1.5 shadow-[0_0_15px_rgba(250,204,21,0.2)] items-center justify-center">
-            <div className="bg-yellow-400/20 text-yellow-400 font-black text-xs rounded flex items-center justify-center h-full border border-yellow-400/40 animate-pulse">2</div>
-            <div className="bg-yellow-400/40 text-black font-black text-xs rounded flex items-center justify-center h-full">4</div>
-            <div className="bg-orange-500/30 text-orange-400 font-black text-xs rounded flex items-center justify-center h-full">8</div>
-            <div className="bg-red-500/30 text-red-400 font-black text-xs rounded flex items-center justify-center h-full animate-bounce">16</div>
+          <div className="w-full max-w-[280px] h-28 mx-auto mb-3 bg-gradient-to-br from-neutral-900 to-black border-2 border-yellow-400 rounded-2xl p-3 flex flex-col justify-between shadow-[0_0_20px_rgba(250,204,21,0.4)] relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-400/10 rounded-full blur-xl"></div>
+            <div className="flex justify-between items-center text-[11px] font-black text-yellow-400 uppercase tracking-wider">
+              <span>Grid 2048 Classic</span>
+              <span className="animate-pulse">Score: 2048</span>
+            </div>
+            <div className="grid grid-cols-4 gap-1.5 h-16">
+              <div className="bg-yellow-400/20 border border-yellow-400/60 text-yellow-300 font-black text-xs rounded-lg flex items-center justify-center animate-pulse">2</div>
+              <div className="bg-yellow-400/40 border border-yellow-400 text-black font-black text-xs rounded-lg flex items-center justify-center">4</div>
+              <div className="bg-orange-500/40 border border-orange-400 text-orange-200 font-black text-xs rounded-lg flex items-center justify-center">8</div>
+              <div className="bg-red-500/50 border border-red-400 text-white font-black text-xs rounded-lg flex items-center justify-center animate-bounce">16</div>
+            </div>
           </div>
         );
       case 'tetris':
         return (
-          <div className="w-48 h-20 mx-auto mb-2 bg-neutral-950/80 border-2 border-cyan-400/40 rounded-xl p-2 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-            <div className="w-6 h-12 bg-cyan-400 rounded shadow-[0_0_8px_rgba(6,182,212,0.8)] animate-pulse"></div>
-            <div className="w-12 h-6 bg-yellow-400 rounded shadow-[0_0_8px_rgba(250,204,21,0.8)]"></div>
-            <div className="w-8 h-8 bg-purple-500 rounded shadow-[0_0_8px_rgba(168,85,247,0.8)] animate-bounce"></div>
+          <div className="w-full max-w-[280px] h-28 mx-auto mb-3 bg-gradient-to-br from-neutral-900 to-black border-2 border-cyan-400 rounded-2xl p-3 flex flex-col justify-between shadow-[0_0_20px_rgba(6,182,212,0.4)] relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-400/10 rounded-full blur-xl"></div>
+            <div className="flex justify-between items-center text-[11px] font-black text-cyan-400 uppercase tracking-wider">
+              <span>Cyber Tetris Arcade</span>
+              <span className="animate-pulse">Level 5</span>
+            </div>
+            <div className="flex items-end justify-center gap-2 h-16 bg-neutral-950/80 rounded-xl p-1 border border-cyan-500/30">
+              <div className="w-5 h-10 bg-cyan-400 rounded-md shadow-[0_0_12px_rgba(6,182,212,0.9)] animate-pulse"></div>
+              <div className="w-10 h-5 bg-yellow-400 rounded-md shadow-[0_0_12px_rgba(250,204,21,0.9)]"></div>
+              <div className="w-8 h-8 bg-purple-500 rounded-md shadow-[0_0_12px_rgba(168,85,247,0.9)] animate-bounce"></div>
+              <div className="w-6 h-12 bg-green-400 rounded-md shadow-[0_0_12px_rgba(74,222,128,0.9)]"></div>
+            </div>
           </div>
         );
       case 'memoria':
         return (
-          <div className="w-48 h-20 mx-auto mb-2 bg-neutral-950/80 border-2 border-pink-500/40 rounded-xl p-2 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(236,72,153,0.2)]">
-            <div className="w-10 h-14 bg-pink-500/20 border-2 border-pink-500 rounded-lg flex items-center justify-center text-pink-400 font-black text-lg shadow-[0_0_8px_rgba(236,72,153,0.5)] animate-pulse">⭐</div>
-            <div className="w-10 h-14 bg-pink-500/20 border-2 border-pink-500 rounded-lg flex items-center justify-center text-pink-400 font-black text-lg shadow-[0_0_8px_rgba(236,72,153,0.5)]">💎</div>
-            <div className="w-10 h-14 bg-neutral-800 border-2 border-neutral-600 rounded-lg flex items-center justify-center text-neutral-400 font-black text-lg">❓</div>
+          <div className="w-full max-w-[280px] h-28 mx-auto mb-3 bg-gradient-to-br from-neutral-900 to-black border-2 border-pink-500 rounded-2xl p-3 flex flex-col justify-between shadow-[0_0_20px_rgba(236,72,153,0.4)] relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-pink-500/10 rounded-full blur-xl"></div>
+            <div className="flex justify-between items-center text-[11px] font-black text-pink-400 uppercase tracking-wider">
+              <span>Memoria Pro Deck</span>
+              <span className="animate-pulse">Pairs: 4/8</span>
+            </div>
+            <div className="grid grid-cols-4 gap-2 h-16">
+              <div className="bg-pink-500/30 border-2 border-pink-500 rounded-xl flex items-center justify-center text-pink-300 font-bold text-sm shadow-[0_0_12px_rgba(236,72,153,0.7)] animate-pulse">⭐</div>
+              <div className="bg-pink-500/30 border-2 border-pink-500 rounded-xl flex items-center justify-center text-pink-300 font-bold text-sm shadow-[0_0_12px_rgba(236,72,153,0.7)]">⭐</div>
+              <div className="bg-neutral-800 border-2 border-neutral-600 rounded-xl flex items-center justify-center text-neutral-400 font-bold text-sm">❓</div>
+              <div className="bg-neutral-800 border-2 border-neutral-600 rounded-xl flex items-center justify-center text-neutral-400 font-bold text-sm">❓</div>
+            </div>
           </div>
         );
       case 'ninja':
         return (
-          <div className="w-48 h-20 mx-auto mb-2 bg-neutral-950/80 border-2 border-red-500/40 rounded-xl p-2 flex items-center justify-center relative overflow-hidden shadow-[0_0_15px_rgba(239,68,68,0.2)]">
-            <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent animate-pulse"></div>
-            <span className="text-3xl animate-bounce">⚔️</span>
-            <div className="absolute right-4 top-2 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
+          <div className="w-full max-w-[280px] h-28 mx-auto mb-3 bg-gradient-to-br from-neutral-900 to-black border-2 border-red-500 rounded-2xl p-3 flex flex-col justify-between shadow-[0_0_20px_rgba(239,68,68,0.4)] relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/10 rounded-full blur-xl"></div>
+            <div className="flex justify-between items-center text-[11px] font-black text-red-400 uppercase tracking-wider">
+              <span>Ninja Cut Action</span>
+              <span className="animate-pulse">Combo x5</span>
+            </div>
+            <div className="relative h-16 bg-neutral-950/80 rounded-xl flex items-center justify-center border border-red-500/30 overflow-hidden">
+              <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent animate-pulse shadow-[0_0_12px_rgba(239,68,68,1)]"></div>
+              <span className="text-3xl animate-bounce">🍉</span>
+              <span className="text-2xl animate-ping absolute right-8">✨</span>
+            </div>
           </div>
         );
       case 'click':
         return (
-          <div className="w-48 h-20 mx-auto mb-2 bg-neutral-950/80 border-2 border-green-400/40 rounded-xl p-2 flex items-center justify-center gap-3 shadow-[0_0_15px_rgba(74,222,128,0.2)]">
-            <div className="w-12 h-12 rounded-full border-4 border-green-400 flex items-center justify-center text-green-400 font-black text-sm shadow-[0_0_10px_rgba(74,222,128,0.8)] animate-ping">⚡</div>
-            <div className="text-green-400 font-black text-xs uppercase tracking-wider animate-pulse">CPS: 12.4</div>
+          <div className="w-full max-w-[280px] h-28 mx-auto mb-3 bg-gradient-to-br from-neutral-900 to-black border-2 border-green-400 rounded-2xl p-3 flex flex-col justify-between shadow-[0_0_20px_rgba(74,222,128,0.4)] relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-green-400/10 rounded-full blur-xl"></div>
+            <div className="flex justify-between items-center text-[11px] font-black text-green-400 uppercase tracking-wider">
+              <span>Click Challenge Arena</span>
+              <span className="animate-pulse">Speed Test</span>
+            </div>
+            <div className="h-16 bg-neutral-950/80 rounded-xl flex items-center justify-center gap-4 border border-green-500/35">
+              <div className="w-12 h-12 rounded-full border-4 border-green-400 bg-green-500/20 flex items-center justify-center text-green-300 font-black text-base shadow-[0_0_15px_rgba(74,222,128,0.9)] animate-ping">⚡</div>
+              <div className="text-green-400 font-black text-sm uppercase tracking-wider animate-pulse">CPS: 14.8</div>
+            </div>
           </div>
         );
       default:
@@ -258,7 +295,7 @@ function GamesZone({ currentUser, isLight, isAuthenticated }) {
             🎮 ZONA DE RECREACIÓN CAZAOFERTAS
           </h2>
 
-          {/*SELECTOR DE JUEGOS EN LA PARTE SUPERIOR*/}
+          {/* SELECTOR DE JUEGOS SUPERIOR */}
           <div className="flex flex-wrap items-center justify-center gap-2">
             {games.map((g) => {
               const isSelected = selectedGame === g.id;
@@ -282,7 +319,7 @@ function GamesZone({ currentUser, isLight, isAuthenticated }) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
-          {/*PROGRESO GLOBAL LATERAL IZQUIERDO*/}
+          {/* PROGRESO GLOBAL LATERAL IZQUIERDO */}
           <div className={`p-5 rounded-2xl border-2 border-black bg-red-600 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-3`}>
             <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider">
               <User size={16} /> PROGRESO GLOBAL
@@ -303,14 +340,11 @@ function GamesZone({ currentUser, isLight, isAuthenticated }) {
             </div>
           </div>
 
-          {/*CONTENEDOR CENTRAL DE JUEGO CON PREVIEW DINÁMICO*/}
-          <div className="lg:col-span-2 bg-neutral-950 border-4 border-neutral-800 rounded-2xl p-6 text-center text-white relative shadow-inner flex flex-col items-center justify-center min-h-[300px]">
-            {/*PREVIEW DEPENDIENDO DEL JUEGO SELECCIONADO (UBICACIÓN SOLICITADA)*/}
+          {/* CONTENEDOR CENTRAL DE JUEGO CON PREVIEW DINÁMICO */}
+          <div className="lg:col-span-2 bg-neutral-950 border-4 border-neutral-800 rounded-2xl p-6 text-center text-white relative shadow-inner flex flex-col items-center justify-center min-h-[320px]">
+            {/* PREVIEW VISUAL VIVO SEGÚN EL JUEGO SELECCIONADO */}
             {renderGamePreview()}
 
-            <div className="w-12 h-12 bg-yellow-400/20 text-yellow-400 rounded-xl flex items-center justify-center mx-auto mb-2 border border-yellow-400/40">
-              <Sparkles className="w-6 h-6 animate-pulse" />
-            </div>
             <h3 className="text-2xl font-black mb-1 uppercase tracking-tight text-yellow-400">{currentGame.name}</h3>
             <p className="text-xs text-neutral-300 max-w-sm mb-4 leading-relaxed">{currentGame.desc}</p>
             <button
@@ -321,7 +355,7 @@ function GamesZone({ currentUser, isLight, isAuthenticated }) {
             </button>
           </div>
 
-          {/*TOP GLOBAL Y GANADORES DERECHA*/}
+          {/* TOP GLOBAL Y GANADORES DERECHA */}
           <div className="flex flex-col gap-4">
             <div className="bg-blue-600 border-2 border-black rounded-2xl p-4 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <h4 className="font-black text-xs uppercase tracking-wider mb-3 flex items-center gap-1.5">
@@ -1674,7 +1708,7 @@ function App() {
         </div>
       )}
 
-      {/*ZONA DE JUEGOS INTEGRADA CON PREVIEWS*/}
+      {/* ZONA DE JUEGOS CON PREVIEW INTEGRADO Y VISIBLE */}
       <GamesZone currentUser={currentUser} isLight={isLight} isAuthenticated={isAuthenticated} />
 
       <div className="container mx-auto px-4 mb-16 relative z-10">
