@@ -46,7 +46,7 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
 // ==========================================
-// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS NEÓN
+// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS NEÓN LIMPIO
 // ==========================================
 function FeatureCube({ isLight }) {
   const [rotation, setRotation] = useState({ x: -15, y: 45 });
@@ -102,11 +102,9 @@ function FeatureCube({ isLight }) {
     return () => window.removeEventListener('touchmove', preventScroll);
   }, []);
 
-  // Color Neón Tecnológico (Cyan) para aristas y vértices
-  const neonColor = '#00e5ff';
   const neonShadow = `0 0 15px rgba(0,229,255,0.5), inset 0 0 15px rgba(0,229,255,0.3)`;
 
-  const faceClasses = `absolute w-[280px] h-[280px] rounded-3xl p-6 flex flex-col justify-between backdrop-blur-xl transition-colors border-[4px] border-dotted border-[#00e5ff] ${
+  const baseFaceClasses = `absolute w-[280px] h-[280px] rounded-3xl p-6 flex flex-col justify-between backdrop-blur-xl transition-colors ${
     isLight 
       ? 'bg-white/85 text-gray-800' 
       : 'bg-neutral-900/85 text-neutral-100'
@@ -124,10 +122,12 @@ function FeatureCube({ isLight }) {
       : 'bg-[#00e5ff]/10 text-[#00e5ff] border-[#00e5ff]/30'
   }`;
 
+  // Logica matemática para evitar duplicidad de aristas al dibujar el cubo
   const faces = [
     {
       id: 'front',
       transform: 'translateZ(140px)',
+      borderClasses: 'border-[4px] border-dotted border-[#00e5ff]', // 4 aristas
       icon: Tag,
       title: 'Cupones Exclusivos',
       desc: 'Códigos de descuento únicos y de alto valor que no encontrarás en ningún otro lugar.',
@@ -136,6 +136,7 @@ function FeatureCube({ isLight }) {
     {
       id: 'back',
       transform: 'rotateY(180deg) translateZ(140px)',
+      borderClasses: 'border-[4px] border-dotted border-[#00e5ff]', // 4 aristas
       icon: ShieldCheck,
       title: 'Productos Verificados',
       desc: 'Analizamos reseñas, calidad y reputación para recomendarte solo lo mejor.',
@@ -144,6 +145,7 @@ function FeatureCube({ isLight }) {
     {
       id: 'right',
       transform: 'rotateY(90deg) translateZ(140px)',
+      borderClasses: 'border-0', // 0 aristas (las cubren las demás caras)
       icon: Headphones,
       title: 'Atención Personalizada',
       desc: '¿Buscas algo muy específico? Nuestro equipo te ayuda a rastrearlo al mejor precio.',
@@ -152,6 +154,7 @@ function FeatureCube({ isLight }) {
     {
       id: 'left',
       transform: 'rotateY(-90deg) translateZ(140px)',
+      borderClasses: 'border-0', // 0 aristas
       icon: Award,
       title: 'Premios Mensuales',
       desc: 'Participa en nuestra comunidad, gana puntos y obtén recompensas exclusivas.',
@@ -160,6 +163,7 @@ function FeatureCube({ isLight }) {
     {
       id: 'top',
       transform: 'rotateX(90deg) translateZ(140px)',
+      borderClasses: 'border-x-[4px] border-y-0 border-dotted border-[#00e5ff]', // Solo aristas laterales (2 aristas)
       icon: TrendingDown,
       title: 'Precios Bajos',
       desc: 'Monitoreamos el mercado para asegurarnos de que siempre obtengas la mejor oferta.',
@@ -168,23 +172,12 @@ function FeatureCube({ isLight }) {
     {
       id: 'bottom',
       transform: 'rotateX(-90deg) translateZ(140px)',
+      borderClasses: 'border-x-[4px] border-y-0 border-dotted border-[#00e5ff]', // Solo aristas laterales (2 aristas)
       icon: Lock,
       title: 'Compras Seguras',
       desc: 'Enlaces directos a plataformas oficiales como Mercado Libre para tu tranquilidad.',
       badge: 'Sin Riesgos'
     }
-  ];
-
-  // Coordenadas exactas para los 8 vértices del cubo
-  const vertices = [
-    { x: -140, y: -140, z: 140 },
-    { x: 140, y: -140, z: 140 },
-    { x: -140, y: 140, z: 140 },
-    { x: 140, y: 140, z: 140 },
-    { x: -140, y: -140, z: -140 },
-    { x: 140, y: -140, z: -140 },
-    { x: -140, y: 140, z: -140 },
-    { x: 140, y: 140, z: -140 },
   ];
 
   return (
@@ -203,17 +196,17 @@ function FeatureCube({ isLight }) {
           transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)` 
         }}
       >
-        {/* Renderizado de las 6 caras (HTML con bordes punteados de neón) */}
         {faces.map((face) => {
           const Icon = face.icon;
           return (
             <div 
               key={face.id} 
-              className={faceClasses}
+              className={`${baseFaceClasses} ${face.borderClasses}`}
               style={{ 
                 transform: face.transform, 
                 backfaceVisibility: 'hidden',
-                boxShadow: neonShadow
+                boxShadow: neonShadow,
+                boxSizing: 'border-box' // Asegura unión perfecta en los vértices
               }}
             >
               <div className="flex justify-between items-start">
@@ -231,23 +224,6 @@ function FeatureCube({ isLight }) {
             </div>
           );
         })}
-
-        {/* Renderizado de los 8 Puntos/Vértices Neón flotantes */}
-        {vertices.map((v, i) => (
-          <div
-            key={`vertex-${i}`}
-            className="absolute w-4 h-4 rounded-full z-50"
-            style={{
-              top: '50%',
-              left: '50%',
-              margin: '-8px 0 0 -8px',
-              backgroundColor: neonColor,
-              boxShadow: `0 0 15px 4px ${neonColor}`,
-              transform: `translate3d(${v.x}px, ${v.y}px, ${v.z}px)`,
-              transformStyle: 'preserve-3d'
-            }}
-          />
-        ))}
       </div>
     </div>
   );
@@ -1607,7 +1583,7 @@ function App() {
         isLight={isLight}
       />
 
-      {/* SECCIÓN RENOVADA: CUBO DE CARACTERÍSTICAS HTML (CON NEÓN Y PUNTOS EN VÉRTICES) */}
+      {/* SECCIÓN RENOVADA: CUBO DE CARACTERÍSTICAS HTML (SIN PUNTOS EN VÉRTICES, ARISTAS PERFECTAS) */}
       <section className={`relative overflow-hidden py-24 px-4 border-b ${
         isLight 
           ? 'bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/50 border-gray-200 text-gray-800' 
