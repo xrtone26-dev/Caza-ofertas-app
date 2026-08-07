@@ -357,7 +357,7 @@ function CountdownTimer({ expiresAt }) {
 function App() {
   const logoUrl = 'https://i.postimg.cc/RCXL4ZZ9/logo.png';
 
-  // Refs y manejadores para el efecto 3D holográfico del logo
+  // Motor 3D Holográfico interactivo optimizado para inclinación de la mira/parche
   const logoContainerRef = useRef(null);
   const logoCardRef = useRef(null);
   const logoGlareRef = useRef(null);
@@ -374,10 +374,11 @@ function App() {
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    const rotateX = -((y - centerY) / centerY) * 20;
-    const rotateY = ((x - centerX) / centerX) * 20;
+    // Ángulos de rotación 3D potenciados (-25 a 25 grados) para un giro claro
+    const rotateX = -((y - centerY) / centerY) * 25;
+    const rotateY = ((x - centerX) / centerX) * 25;
 
-    card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
+    card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.08, 1.08, 1.08)`;
     glare.style.setProperty('--x', `${x}px`);
     glare.style.setProperty('--y', `${y}px`);
     glare.style.opacity = '1';
@@ -388,14 +389,14 @@ function App() {
     const glare = logoGlareRef.current;
     if (!card || !glare) return;
     card.style.transform = `rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
-    card.style.transition = 'transform 0.5s ease-in-out';
+    card.style.transition = 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)';
     glare.style.opacity = '0';
   };
 
   const handleLogoMouseEnter = () => {
     const card = logoCardRef.current;
     if (!card) return;
-    card.style.transition = 'transform 0.1s ease-out';
+    card.style.transition = 'transform 0.08s ease-out';
   };
 
   const [showAdminLogin, setShowAdminLogin] = useState(false);
@@ -977,29 +978,33 @@ function App() {
         <div className="relative container mx-auto px-4 pt-12 pb-8">
           <div className="flex flex-col items-center text-center">
             
-            {/* LOGO CON EFECTO 3D HOLOGRÁFICO */}
+            {/* LOGO CON EFECTO 3D HOLOGRÁFICO DINÁMICO */}
             <div
               ref={logoContainerRef}
               onMouseMove={handleLogoMouseMove}
               onMouseLeave={handleLogoMouseLeave}
               onMouseEnter={handleLogoMouseEnter}
               className="mb-6 cursor-pointer w-48 h-48 md:w-56 md:h-56 mx-auto"
-              style={{ perspective: '1000px' }}
+              style={{ perspective: '800px' }}
             >
               <div
                 ref={logoCardRef}
-                className={`w-full h-full relative rounded-full shadow-2xl transition-transform duration-100 ${
+                className={`w-full h-full relative rounded-full shadow-2xl ${
                   isLight
                     ? 'ring-8 ring-white/50'
-                    : 'shadow-yellow-400/20 ring-4 ring-neutral-800'
+                    : 'shadow-yellow-400/25 ring-4 ring-neutral-800'
                 }`}
-                style={{ transformStyle: 'preserve-3d' }}
+                style={{
+                  transformStyle: 'preserve-3d',
+                  willChange: 'transform',
+                  transition: 'transform 0.08s ease-out'
+                }}
               >
                 <img
                   src={logoUrl}
                   alt="CazaOfertasML Logo"
                   className="w-full h-full rounded-full object-cover block pointer-events-none"
-                  style={{ transform: 'translateZ(30px)' }}
+                  style={{ transform: 'translateZ(40px)' }}
                   data-testid="logo-image"
                 />
                 <div
@@ -1007,7 +1012,7 @@ function App() {
                   className="absolute inset-0 rounded-full pointer-events-none opacity-0 transition-opacity duration-300"
                   style={{
                     mixBlendMode: 'overlay',
-                    background: 'radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255, 255, 255, 0.8) 0%, rgba(255, 215, 0, 0.3) 30%, transparent 70%)',
+                    background: 'radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255, 255, 255, 0.9) 0%, rgba(255, 215, 0, 0.4) 35%, transparent 70%)',
                     zIndex: 10
                   }}
                 />
