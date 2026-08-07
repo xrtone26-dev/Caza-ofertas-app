@@ -46,7 +46,7 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
 // ==========================================
-// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS NEÓN PERFECTO
+// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS NEÓN LIBRE
 // ==========================================
 function FeatureCube({ isLight }) {
   const [rotation, setRotation] = useState({ x: -15, y: 45 });
@@ -82,9 +82,10 @@ function FeatureCube({ isLight }) {
     const deltaX = clientX - previousMousePosition.current.x;
     const deltaY = clientY - previousMousePosition.current.y;
     
+    // Rotación libre en cualquier sentido sin restricciones ni límites
     setRotation((prev) => ({
-      x: prev.x - deltaY * 0.5,
-      y: prev.y + deltaX * 0.5,
+      x: prev.x - deltaY * 0.6,
+      y: prev.y + deltaX * 0.6,
     }));
     
     previousMousePosition.current = { x: clientX, y: clientY };
@@ -104,8 +105,8 @@ function FeatureCube({ isLight }) {
 
   const neonShadow = `0 0 15px rgba(0,229,255,0.5), inset 0 0 15px rgba(0,229,255,0.3)`;
 
-  // Sin rounded en el contenedor externo para que las esquinas formen un ángulo recto perfecto de 90°
-  const baseFaceClasses = `absolute w-[280px] h-[280px] p-6 flex flex-col justify-between backdrop-blur-xl transition-colors ${
+  // Todas las caras llevan el borde punteado neón para mantener total uniformidad al girar
+  const baseFaceClasses = `absolute w-[280px] h-[280px] p-6 flex flex-col justify-between backdrop-blur-xl transition-colors border-[4px] border-dotted border-[#00e5ff] ${
     isLight 
       ? 'bg-white/90 text-gray-800' 
       : 'bg-neutral-900/90 text-neutral-100'
@@ -123,12 +124,10 @@ function FeatureCube({ isLight }) {
       : 'bg-[#00e5ff]/10 text-[#00e5ff] border-[#00e5ff]/30'
   }`;
 
-  // Distribución geométrica precisa de aristas sin solapamientos ni curvas
   const faces = [
     {
       id: 'front',
       transform: 'translateZ(140px)',
-      borderClasses: 'border-[4px] border-dotted border-[#00e5ff]',
       icon: Tag,
       title: 'Cupones Exclusivos',
       desc: 'Códigos de descuento únicos y de alto valor que no encontrarás en ningún otro lugar.',
@@ -137,7 +136,6 @@ function FeatureCube({ isLight }) {
     {
       id: 'back',
       transform: 'rotateY(180deg) translateZ(140px)',
-      borderClasses: 'border-[4px] border-dotted border-[#00e5ff]',
       icon: ShieldCheck,
       title: 'Productos Verificados',
       desc: 'Analizamos reseñas, calidad y reputación para recomendarte solo lo mejor.',
@@ -146,7 +144,6 @@ function FeatureCube({ isLight }) {
     {
       id: 'right',
       transform: 'rotateY(90deg) translateZ(140px)',
-      borderClasses: 'border-0',
       icon: Headphones,
       title: 'Atención Personalizada',
       desc: '¿Buscas algo muy específico? Nuestro equipo te ayuda a rastrearlo al mejor precio.',
@@ -155,7 +152,6 @@ function FeatureCube({ isLight }) {
     {
       id: 'left',
       transform: 'rotateY(-90deg) translateZ(140px)',
-      borderClasses: 'border-0',
       icon: Award,
       title: 'Premios Mensuales',
       desc: 'Participa en nuestra comunidad, gana puntos y obtén recompensas exclusivas.',
@@ -164,7 +160,6 @@ function FeatureCube({ isLight }) {
     {
       id: 'top',
       transform: 'rotateX(90deg) translateZ(140px)',
-      borderClasses: 'border-x-[4px] border-y-0 border-dotted border-[#00e5ff]',
       icon: TrendingDown,
       title: 'Precios Bajos',
       desc: 'Monitoreamos el mercado para asegurarnos de que siempre obtengas la mejor oferta.',
@@ -173,7 +168,6 @@ function FeatureCube({ isLight }) {
     {
       id: 'bottom',
       transform: 'rotateX(-90deg) translateZ(140px)',
-      borderClasses: 'border-x-[4px] border-y-0 border-dotted border-[#00e5ff]',
       icon: Lock,
       title: 'Compras Seguras',
       desc: 'Enlaces directos a plataformas oficiales como Mercado Libre para tu tranquilidad.',
@@ -202,7 +196,7 @@ function FeatureCube({ isLight }) {
           return (
             <div 
               key={face.id} 
-              className={`${baseFaceClasses} ${face.borderClasses}`}
+              className={baseFaceClasses}
               style={{ 
                 transform: face.transform, 
                 backfaceVisibility: 'hidden',
@@ -1584,7 +1578,7 @@ function App() {
         isLight={isLight}
       />
 
-      {/* SECCIÓN RENOVADA: CUBO DE CARACTERÍSTICAS HTML (ESQUINAS UNIDAS PERFECTAMENTE SIN CURVATURAS) */}
+      {/* SECCIÓN RENOVADA: CUBO DE CARACTERÍSTICAS HTML (BORDES UNIFORMES Y GIRO LIBRE 360°) */}
       <section className={`relative overflow-hidden py-24 px-4 border-b ${
         isLight 
           ? 'bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/50 border-gray-200 text-gray-800' 
@@ -1604,7 +1598,7 @@ function App() {
             </p>
           </div>
 
-          {/* CUBO 3D INTERACTIVO CENTRADO */}
+          {/* CUBO 3D INTERACTIVO LIBRE */}
           <div className="flex flex-col items-center justify-center pt-8 pb-16 relative">
             <FeatureCube isLight={isLight} />
             <div className="mt-20 text-center pointer-events-none">
