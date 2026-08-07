@@ -46,18 +46,21 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
 // ==========================================
-// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS NEÓN LIBRE
+// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS AUTOMÁTICO
 // ==========================================
 function FeatureCube({ isLight }) {
-  const [rotation, setRotation] = useState({ x: -15, y: 45 });
-  const isDragging = useRef(false);
-  const previousMousePosition = useRef({ x: 0, y: 0 });
+  const [rotation, setRotation] = useState({ x: -15, y: 0, z: 0 });
   const requestRef = useRef();
+  const startTimeRef = useRef(performance.now());
 
-  const animate = useCallback(() => {
-    if (!isDragging.current) {
-      setRotation((prev) => ({ x: prev.x, y: prev.y + 0.3 }));
-    }
+  // Rotación automática fluida en múltiples sentidos y ejes
+  const animate = useCallback((time) => {
+    const elapsed = (time - startTimeRef.current) * 0.001;
+    setRotation({
+      x: -15 + Math.sin(elapsed * 0.8) * 30,
+      y: elapsed * 40, // Giro continuo de 360 grados
+      z: Math.cos(elapsed * 0.5) * 15,
+    });
     requestRef.current = requestAnimationFrame(animate);
   }, []);
 
@@ -66,46 +69,8 @@ function FeatureCube({ isLight }) {
     return () => cancelAnimationFrame(requestRef.current);
   }, [animate]);
 
-  const handlePointerDown = (e) => {
-    isDragging.current = true;
-    previousMousePosition.current = {
-      x: e.clientX || (e.touches && e.touches[0].clientX),
-      y: e.clientY || (e.touches && e.touches[0].clientY),
-    };
-  };
-
-  const handlePointerMove = (e) => {
-    if (!isDragging.current) return;
-    const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
-    const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
-    
-    const deltaX = clientX - previousMousePosition.current.x;
-    const deltaY = clientY - previousMousePosition.current.y;
-    
-    // Rotación libre en cualquier sentido sin restricciones ni límites
-    setRotation((prev) => ({
-      x: prev.x - deltaY * 0.6,
-      y: prev.y + deltaX * 0.6,
-    }));
-    
-    previousMousePosition.current = { x: clientX, y: clientY };
-  };
-
-  const handlePointerUp = () => {
-    isDragging.current = false;
-  };
-
-  useEffect(() => {
-    const preventScroll = (e) => {
-      if (isDragging.current) e.preventDefault();
-    };
-    window.addEventListener('touchmove', preventScroll, { passive: false });
-    return () => window.removeEventListener('touchmove', preventScroll);
-  }, []);
-
   const neonShadow = `0 0 15px rgba(0,229,255,0.5), inset 0 0 15px rgba(0,229,255,0.3)`;
 
-  // Todas las caras llevan el borde punteado neón para mantener total uniformidad al girar
   const baseFaceClasses = `absolute w-[280px] h-[280px] p-6 flex flex-col justify-between backdrop-blur-xl transition-colors border-[4px] border-dotted border-[#00e5ff] ${
     isLight 
       ? 'bg-white/90 text-gray-800' 
@@ -177,18 +142,14 @@ function FeatureCube({ isLight }) {
 
   return (
     <div 
-      className="relative w-[280px] h-[280px] mx-auto cursor-grab active:cursor-grabbing touch-none"
+      className="relative w-[280px] h-[280px] mx-auto pointer-events-none"
       style={{ perspective: '1000px' }}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerLeave={handlePointerUp}
     >
       <div 
         className="w-full h-full relative"
         style={{ 
           transformStyle: 'preserve-3d', 
-          transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)` 
+          transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) rotateZ(${rotation.z}deg)` 
         }}
       >
         {faces.map((face) => {
@@ -1578,7 +1539,7 @@ function App() {
         isLight={isLight}
       />
 
-      {/* SECCIÓN RENOVADA: CUBO DE CARACTERÍSTICAS HTML (BORDES UNIFORMES Y GIRO LIBRE 360°) */}
+      {/* SECCIÓN RENOVADA: CUBO DE CARACTERÍSTICAS HTML (GIRO AUTOMÁTICO Y TEXTOS LIMPIOS) */}
       <section className={`relative overflow-hidden py-24 px-4 border-b ${
         isLight 
           ? 'bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/50 border-gray-200 text-gray-800' 
@@ -1587,27 +1548,14 @@ function App() {
         <div className="relative container mx-auto max-w-7xl z-10 flex flex-col items-center">
           
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-4 bg-yellow-400/10 text-yellow-400 border border-yellow-400/30">
-              <Sparkles className="w-4 h-4 animate-pulse" /> Comunidad Élite de Ahorro
-            </div>
             <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">
               ¿Por qué unirte a nuestros canales?
             </h2>
-            <p className={`text-sm md:text-base font-medium opacity-80 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-              Gira el cubo para descubrir todos los beneficios que te ofrecemos al ser parte de esta gran comunidad de compradores inteligentes.
-            </p>
           </div>
 
-          {/* CUBO 3D INTERACTIVO LIBRE */}
+          {/* CUBO 3D AUTOMÁTICO CENTRADO */}
           <div className="flex flex-col items-center justify-center pt-8 pb-16 relative">
             <FeatureCube isLight={isLight} />
-            <div className="mt-20 text-center pointer-events-none">
-              <span className={`text-[11px] font-black uppercase tracking-widest px-4 py-2 rounded-full border shadow-[0_0_15px_rgba(0,229,255,0.4)] ${
-                isLight ? 'bg-white text-purple-700 border-[#00e5ff]' : 'bg-neutral-800 text-yellow-400 border-[#00e5ff]'
-              }`}>
-                ✨ Arrastra con el dedo o mouse para explorar ✨
-              </span>
-            </div>
           </div>
 
         </div>
