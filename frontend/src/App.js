@@ -53,7 +53,8 @@ function EmojiCursorTrail() {
   const [trail, setTrail] = useState([]);
   const [currentCursorEmoji, setCurrentCursorEmoji] = useState('😀');
 
-  const cursorEmojis = ['😀', '😎', '🤩', '🔥', '🚀', '⭐', '🎉', '🎯', '💎', '🥳'];
+  // Solo caritas, nada de estrellas ni cohetes
+  const cursorEmojis = ['😀', '😂', '🥰', '😎', '😜', '🤪', '😡', '😱', '🤩', '🤓'];
 
   useEffect(() => {
     const interval = setInterval(() => {
