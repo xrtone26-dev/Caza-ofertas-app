@@ -39,7 +39,7 @@ export default function ProfileModal({
   const [editTel, setEditTel] = useState('');
   const [editEdad, setEditEdad] = useState('');
   const [editSexo, setEditSexo] = useState('Masculino');
-  const [editPlaylist, setEditPlaylist] = useState(''); // Nuevo campo para la música
+  const [editPlaylist, setEditPlaylist] = useState(''); // Campo para la música
   const [selectedAvatar, setSelectedAvatar] = useState('👩‍🦰');
   const [customAvatarImg, setCustomAvatarImg] = useState(() => localStorage.getItem('cazaAvatarImg') || '');
   
@@ -121,7 +121,7 @@ export default function ProfileModal({
     localStorage.setItem('cazaTel', editTel);
     localStorage.setItem('cazaEdad', editEdad);
     localStorage.setItem('cazaSexo', editSexo);
-    localStorage.setItem('cazaPlaylist', editPlaylist); // Guardar playlist personalizada
+    localStorage.setItem('cazaPlaylist', editPlaylist);
     localStorage.setItem('cazaAvatar', selectedAvatar);
     if (customAvatarImg) {
       localStorage.setItem('cazaAvatarImg', customAvatarImg);
@@ -204,12 +204,6 @@ export default function ProfileModal({
 
   const passwordsMatch = regPass && regConfirmPass && regPass === regConfirmPass;
   const passwordsMismatch = regConfirmPass && regPass !== regConfirmPass;
-
-  const getPassBorderClass = () => {
-    if (passwordsMatch) return 'border-green-500 focus:border-green-500 text-green-400';
-    if (passwordsMismatch) return 'border-red-500 focus:border-red-500 text-red-400';
-    return 'border-neutral-700 text-white';
-  };
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
@@ -334,7 +328,6 @@ export default function ProfileModal({
                     </div>
                   </div>
 
-                  {/* NUEVO CAMPO PARA ENLACE DE MÚSICA (SPOTIFY / YOUTUBE) */}
                   <div>
                     <label className="text-[11px] text-yellow-400 font-bold flex items-center gap-1">
                       <Music size={14} /> Enlace de tu Playlist (Spotify o YouTube)
