@@ -46,92 +46,6 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
 // ==========================================
-// COMPONENTE: CURSOR Y RASTRO DE EMOJIS DINÁMICOS
-// ==========================================
-function EmojiCursorTrail() {
-  const [mousePos, setMousePos] = useState({ x: -100, y: -100 });
-  const [trail, setTrail] = useState([]);
-  const [currentCursorEmoji, setCurrentCursorEmoji] = useState('😀');
-
-  // Solo caritas, nada de estrellas ni cohetes
-  const cursorEmojis = ['😀', '😂', '🥰', '😎', '😜', '🤪', '😡', '😱', '🤩', '🤓'];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentCursorEmoji((prev) => {
-        const nextIdx = (cursorEmojis.indexOf(prev) + 1) % cursorEmojis.length;
-        return cursorEmojis[nextIdx];
-      });
-    }, 700);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    let lastTime = 0;
-    const handleMouseMove = (e) => {
-      const now = Date.now();
-      setMousePos({ x: e.clientX, y: e.clientY });
-
-      if (now - lastTime > 40) {
-        lastTime = now;
-        const randomEmoji = cursorEmojis[Math.floor(Math.random() * cursorEmojis.length)];
-        const newParticle = {
-          id: Math.random(),
-          x: e.clientX,
-          y: e.clientY,
-          emoji: randomEmoji,
-        };
-
-        setTrail((prev) => [...prev.slice(-18), newParticle]);
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTrail((prev) => prev.slice(1));
-    }, 80);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden">
-      <div
-        className="absolute text-3xl select-none transition-transform duration-75 drop-shadow-md"
-        style={{
-          left: `${mousePos.x}px`,
-          top: `${mousePos.y}px`,
-          transform: 'translate(-50%, -50%)',
-        }}
-      >
-        {currentCursorEmoji}
-      </div>
-
-      {trail.map((p, index) => {
-        const opacity = (index + 1) / trail.length;
-        return (
-          <span
-            key={p.id}
-            className="absolute text-xl select-none transition-all duration-300"
-            style={{
-              left: `${p.x}px`,
-              top: `${p.y}px`,
-              opacity: opacity,
-              transform: `translate(-50%, -50%) scale(${opacity * 1.2})`,
-            }}
-          >
-            {p.emoji}
-          </span>
-        );
-      })}
-    </div>
-  );
-}
-
-// ==========================================
 // COMPONENTE 3D: CUBO DE CARACTERÍSTICAS AUTOMÁTICO DINÁMICO
 // ==========================================
 function FeatureCube({ isLight }) {
@@ -1015,9 +929,6 @@ function App() {
 
   return (
     <div className={mainBgClass}>
-      {/* Componente del cursor y rastro de emojis */}
-      <EmojiCursorTrail />
-
       {!isLight && (
         <>
           <div className="fixed inset-0 bg-grid opacity-20 pointer-events-none" />
@@ -1628,7 +1539,6 @@ function App() {
         isLight={isLight}
       />
 
-      {/* SECCIÓN RENOVADA: CUBO DE CARACTERÍSTICAS HTML (GIRO AUTOMÁTICO DINÁMICO) */}
       <section className={`relative overflow-hidden py-24 px-4 border-b ${
         isLight 
           ? 'bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/50 border-gray-200 text-gray-800' 
@@ -1642,7 +1552,6 @@ function App() {
             </h2>
           </div>
 
-          {/* CUBO 3D AUTOMÁTICO DINÁMICO CENTRADO */}
           <div className="flex flex-col items-center justify-center pt-8 pb-16 relative">
             <FeatureCube isLight={isLight} />
           </div>
