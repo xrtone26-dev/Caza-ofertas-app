@@ -45,21 +45,17 @@ import AdminDashboard, { decodeCoupon } from './components/AdminDashboard';
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
-// ==========================================
-// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS AUTOMÁTICO DINÁMICO
-// ==========================================
 function FeatureCube({ isLight }) {
   const [rotation, setRotation] = useState({ x: 0, y: 0, z: 0 });
   const requestRef = useRef();
   const startTimeRef = useRef(performance.now());
 
-  // Rotación automática con mayor rango vertical para mostrar todas las caras (incluyendo superior e inferior)
   const animate = useCallback((time) => {
     const elapsed = (time - startTimeRef.current) * 0.001;
     setRotation({
-      x: Math.sin(elapsed * 0.6) * 55, // Inclinación vertical profunda (muestra caras superior e inferior)
-      y: elapsed * 35,                 // Giro horizontal completo de 360°
-      z: Math.sin(elapsed * 0.4) * 20, // Sutil balanceo lateral dinámico
+      x: Math.sin(elapsed * 0.6) * 55, 
+      y: elapsed * 35,                 
+      z: Math.sin(elapsed * 0.4) * 20, 
     });
     requestRef.current = requestAnimationFrame(animate);
   }, []);
@@ -498,88 +494,6 @@ function CountdownTimer({ expiresAt }) {
   );
 }
 
-function EmojiCursorTrail() {
-  const [mousePos, setMousePos] = useState({ x: -100, y: -100 });
-  const [trail, setTrail] = useState([]);
-  const [currentCursorEmoji, setCurrentCursorEmoji] = useState('😀');
-
-  const cursorEmojis = ['😀', '😂', '🥰', '😎', '😜', '🤪', '😡', '😱', '🤩', '🤓', '🥳', '😇'];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentCursorEmoji((prev) => {
-        const nextIdx = (cursorEmojis.indexOf(prev) + 1) % cursorEmojis.length;
-        return cursorEmojis[nextIdx];
-      });
-    }, 700);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    let lastTime = 0;
-    const handleMouseMove = (e) => {
-      const now = Date.now();
-      setMousePos({ x: e.clientX, y: e.clientY });
-
-      if (now - lastTime > 40) {
-        lastTime = now;
-        const randomEmoji = cursorEmojis[Math.floor(Math.random() * cursorEmojis.length)];
-        const newParticle = {
-          id: Math.random(),
-          x: e.clientX,
-          y: e.clientY,
-          emoji: randomEmoji,
-        };
-
-        setTrail((prev) => [...prev.slice(-18), newParticle]);
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTrail((prev) => prev.slice(1));
-    }, 80);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden">
-      <div
-        className="absolute text-3xl select-none transition-transform duration-75 drop-shadow-md"
-        style={{
-          left: `${mousePos.x}px`,
-          top: `${mousePos.y}px`,
-          transform: 'translate(-50%, -50%)',
-        }}
-      >
-        {currentCursorEmoji}
-      </div>
-
-      {trail.map((p, index) => {
-        const opacity = (index + 1) / trail.length;
-        return (
-          <span
-            key={p.id}
-            className="absolute text-xl select-none transition-all duration-300"
-            style={{
-              left: `${p.x}px`,
-              top: `${p.y}px`,
-              opacity: opacity,
-              transform: `translate(-50%, -50%) scale(${opacity * 1.2})`,
-            }}
-          >
-            {p.emoji}
-          </span>
-        );
-      })}
-    </div>
-  );
-}
-
 function App() {
   const logoUrl = 'https://i.postimg.cc/RCXL4ZZ9/logo.png';
 
@@ -886,11 +800,9 @@ function App() {
   };
 
   useEffect(() => {
-    // Carga inicial
     loadPublicOffers();
     loadPublicProducts();
 
-    // El BotSync: Actualiza silenciosamente la base de datos cada 30 segundos
     const botSyncInterval = setInterval(() => {
       loadPublicOffers();
       loadPublicProducts();
@@ -901,7 +813,6 @@ function App() {
 
   const loadPublicProducts = async () => {
     try {
-      // Agregamos un timestamp para forzar la actualización y evitar el caché del navegador/servidor
       const response = await axios.get(`${API}/products?t=${Date.now()}`);
       setProducts(response.data);
     } catch (error) {}
@@ -909,7 +820,6 @@ function App() {
 
   const loadPublicOffers = async () => {
     try {
-      // Agregamos un timestamp para forzar la actualización y evitar el caché del navegador/servidor
       const [descResponse, cupResponse] = await Promise.all([
         axios.get(`${API}/offers?type=descuento&t=${Date.now()}`),
         axios.get(`${API}/offers?type=cupon&t=${Date.now()}`),
@@ -1015,7 +925,6 @@ function App() {
 
   return (
     <div className={mainBgClass}>
-      <EmojiCursorTrail />
       {!isLight && (
         <>
           <div className="fixed inset-0 bg-grid opacity-20 pointer-events-none" />
@@ -1023,7 +932,6 @@ function App() {
         </>
       )}
 
-      {/* POP-UP AUTOMÁTICO A 1 MINUTO PARA USUARIOS NO REGISTRADOS */}
       <AnimatePresence>
         {showCommunityPopup && !currentUser && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[90] p-4">
@@ -1092,7 +1000,6 @@ function App() {
         )}
       </AnimatePresence>
 
-      {/* MENÚ FLOTANTE SUPERIOR DERECHO */}
       <div className="fixed top-6 right-6 z-[60] flex flex-col items-center gap-3">
         <div className="flex flex-col items-center gap-1">
           {currentUser && (
@@ -1182,7 +1089,6 @@ function App() {
         )}
       </AnimatePresence>
 
-      {/* CABECERA CLÁSICA */}
       <div
         className={`relative overflow-hidden border-b pb-16 ${
           isLight
