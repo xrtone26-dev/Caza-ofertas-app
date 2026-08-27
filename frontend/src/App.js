@@ -498,6 +498,88 @@ function CountdownTimer({ expiresAt }) {
   );
 }
 
+function EmojiCursorTrail() {
+  const [mousePos, setMousePos] = useState({ x: -100, y: -100 });
+  const [trail, setTrail] = useState([]);
+  const [currentCursorEmoji, setCurrentCursorEmoji] = useState('😀');
+
+  const cursorEmojis = ['😀', '😂', '🥰', '😎', '😜', '🤪', '😡', '😱', '🤩', '🤓', '🥳', '😇'];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentCursorEmoji((prev) => {
+        const nextIdx = (cursorEmojis.indexOf(prev) + 1) % cursorEmojis.length;
+        return cursorEmojis[nextIdx];
+      });
+    }, 700);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    let lastTime = 0;
+    const handleMouseMove = (e) => {
+      const now = Date.now();
+      setMousePos({ x: e.clientX, y: e.clientY });
+
+      if (now - lastTime > 40) {
+        lastTime = now;
+        const randomEmoji = cursorEmojis[Math.floor(Math.random() * cursorEmojis.length)];
+        const newParticle = {
+          id: Math.random(),
+          x: e.clientX,
+          y: e.clientY,
+          emoji: randomEmoji,
+        };
+
+        setTrail((prev) => [...prev.slice(-18), newParticle]);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTrail((prev) => prev.slice(1));
+    }, 80);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden">
+      <div
+        className="absolute text-3xl select-none transition-transform duration-75 drop-shadow-md"
+        style={{
+          left: `${mousePos.x}px`,
+          top: `${mousePos.y}px`,
+          transform: 'translate(-50%, -50%)',
+        }}
+      >
+        {currentCursorEmoji}
+      </div>
+
+      {trail.map((p, index) => {
+        const opacity = (index + 1) / trail.length;
+        return (
+          <span
+            key={p.id}
+            className="absolute text-xl select-none transition-all duration-300"
+            style={{
+              left: `${p.x}px`,
+              top: `${p.y}px`,
+              opacity: opacity,
+              transform: `translate(-50%, -50%) scale(${opacity * 1.2})`,
+            }}
+          >
+            {p.emoji}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 function App() {
   const logoUrl = 'https://i.postimg.cc/RCXL4ZZ9/logo.png';
 
@@ -804,9 +886,11 @@ function App() {
   };
 
   useEffect(() => {
+    // Carga inicial
     loadPublicOffers();
     loadPublicProducts();
 
+    // El BotSync: Actualiza silenciosamente la base de datos cada 30 segundos
     const botSyncInterval = setInterval(() => {
       loadPublicOffers();
       loadPublicProducts();
@@ -817,16 +901,18 @@ function App() {
 
   const loadPublicProducts = async () => {
     try {
-      const response = await axios.get(`${API}/products`);
+      // Agregamos un timestamp para forzar la actualización y evitar el caché del navegador/servidor
+      const response = await axios.get(`${API}/products?t=${Date.now()}`);
       setProducts(response.data);
     } catch (error) {}
   };
 
   const loadPublicOffers = async () => {
     try {
+      // Agregamos un timestamp para forzar la actualización y evitar el caché del navegador/servidor
       const [descResponse, cupResponse] = await Promise.all([
-        axios.get(`${API}/offers?type=descuento`),
-        axios.get(`${API}/offers?type=cupon`),
+        axios.get(`${API}/offers?type=descuento&t=${Date.now()}`),
+        axios.get(`${API}/offers?type=cupon&t=${Date.now()}`),
       ]);
       setDescuentos(descResponse.data.map(decodeCoupon));
       setCupones(cupResponse.data.map(decodeCoupon));
@@ -929,6 +1015,7 @@ function App() {
 
   return (
     <div className={mainBgClass}>
+      <EmojiCursorTrail />
       {!isLight && (
         <>
           <div className="fixed inset-0 bg-grid opacity-20 pointer-events-none" />
