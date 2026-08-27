@@ -37,20 +37,31 @@ export default function MusicPlayer({ showMusicModal, setShowMusicModal, isLight
 
   if (!showMusicModal) return null;
 
+  // FUNCION MEJORADA: Extractor de enlaces a prueba de fallos
   const getEmbedUrl = (url, plat) => {
     if (!url) {
-      // Playlist por defecto si no hay enlace
       return plat === 'spotify' 
         ? 'https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M?utm_source=generator&theme=0'
         : 'https://www.youtube.com/embed/videoseries?list=PLw-VjHDlEOgs658kAHR_LAaILBXb-s6Qc';
     }
 
     if (plat === 'spotify') {
-      if (url.includes('open.spotify.com')) {
-        return url.replace('/track/', '/embed/track/').replace('/playlist/', '/embed/playlist/').replace('/album/', '/embed/album/');
+      // Usamos REGEX para extraer exactamente el ID sin importar si tiene /intl-es/ o ?si=123
+      const spotifyRegex = /(track|playlist|album|artist|episode|show)\/([a-zA-Z0-9]+)/;
+      const match = url.match(spotifyRegex);
+      
+      if (match) {
+        const type = match[1]; // detecta si es track, playlist, etc.
+        const id = match[2];   // extrae el código único
+        return `https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0`;
       }
-      return `https://open.spotify.com/embed/track/${url}?utm_source=generator&theme=0`;
+      return url; // Fallback por si acaso
     } else {
+      // Lógica mejorada para YouTube (Videos, Shorts y Playlists)
+      if (url.includes('playlist?list=')) {
+        const listId = url.split('playlist?list=')[1]?.split('&')[0];
+        return `https://www.youtube.com/embed/videoseries?list=${listId}&autoplay=1`;
+      }
       let ytId = '';
       if (url.includes('shorts/')) {
         ytId = url.split('shorts/')[1]?.split('?')[0];
@@ -59,7 +70,7 @@ export default function MusicPlayer({ showMusicModal, setShowMusicModal, isLight
       } else if (url.includes('watch?v=')) {
         ytId = url.split('watch?v=')[1]?.split('&')[0];
       } else {
-        ytId = url;
+        ytId = url.split('?')[0];
       }
       return `https://www.youtube.com/embed/${ytId}?autoplay=1`;
     }
