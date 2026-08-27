@@ -37,8 +37,8 @@ export default function AdminDashboard({
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   
-  // Nuevo estado para el modal de advertencia de borrado masivo
   const [showDeleteAllProductsModal, setShowDeleteAllProductsModal] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false); // Estado para mostrar que está borrando
 
   const [showAddVideoModal, setShowAddVideoModal] = useState(false);
   const [editingVideo, setEditingVideo] = useState(null);
@@ -322,21 +322,33 @@ export default function AdminDashboard({
     }
   };
 
-  // Función para vaciar todos los productos
+  // Función MEJORADA para vaciar todos los productos (a prueba de fallos individuales)
   const handleDeleteAllProducts = async () => {
-    try {
-      for (const prod of allProducts) {
-        const productId = getSafeId(prod);
-        if (productId) {
+    setIsDeletingAll(true);
+    let errores = 0;
+    
+    for (const prod of allProducts) {
+      const productId = getSafeId(prod);
+      if (productId) {
+        try {
+          // Intentamos borrar cada uno, si uno falla, no se rompe el ciclo completo
           await axios.delete(`${API}/admin/products/${productId}?password=${adminPassword}`);
+        } catch (error) {
+          console.error("Error al eliminar el producto:", productId, error);
+          errores++;
         }
       }
-      loadAllProducts();
-      if (loadPublicProducts) loadPublicProducts();
-      setShowDeleteAllProductsModal(false);
-      alert('Todos los productos han sido eliminados correctamente.');
-    } catch (error) {
-      alert('Hubo un error al eliminar algunos productos. Inténtalo nuevamente.');
+    }
+    
+    loadAllProducts();
+    if (loadPublicProducts) loadPublicProducts();
+    setShowDeleteAllProductsModal(false);
+    setIsDeletingAll(false);
+
+    if (errores > 0) {
+      alert(`Se han eliminado la mayoría, pero hubo problemas con ${errores} producto(s). Intenta vaciar la lista nuevamente.`);
+    } else {
+      alert('¡Todos los productos han sido eliminados correctamente!');
     }
   };
 
@@ -630,30 +642,39 @@ export default function AdminDashboard({
         </div>
       )}
 
-      {/* Modal para confirmar el vaciado completo de productos */}
+      {/* Modal MEJORADO para confirmar el vaciado completo de productos */}
       {showDeleteAllProductsModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[80] p-4">
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center text-gray-800 shadow-2xl">
             <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-200">
-              <Trash2 className="w-8 h-8" />
+              <Trash2 className={`w-8 h-8 ${isDeletingAll ? 'animate-bounce' : ''}`} />
             </div>
-            <h3 className="text-2xl font-black mb-2">¿Vaciar Productos?</h3>
+            <h3 className="text-2xl font-black mb-2">
+              {isDeletingAll ? 'Borrando...' : '¿Vaciar Productos?'}
+            </h3>
             <p className="text-gray-600 mb-6 font-medium text-sm">
-              Estás a punto de eliminar <strong>TODOS ({allProducts.length})</strong> los productos de tu carrusel. Esta acción no se puede deshacer.
+              {isDeletingAll 
+                ? 'Por favor espera unos segundos mientras limpiamos tu inventario. No cierres esta ventana.' 
+                : `Estás a punto de eliminar TODOS (${allProducts.length}) los productos de tu carrusel. Esta acción no se puede deshacer.`}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={handleDeleteAllProducts}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-black shadow-lg transition-all"
+                disabled={isDeletingAll}
+                className={`flex-1 text-white py-3 rounded-xl font-black shadow-lg transition-all ${
+                  isDeletingAll ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'
+                }`}
               >
-                Sí, eliminar todo
+                {isDeletingAll ? 'Procesando...' : 'Sí, eliminar todo'}
               </button>
-              <button
-                onClick={() => setShowDeleteAllProductsModal(false)}
-                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-xl font-bold transition-all"
-              >
-                Cancelar
-              </button>
+              {!isDeletingAll && (
+                <button
+                  onClick={() => setShowDeleteAllProductsModal(false)}
+                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-xl font-bold transition-all"
+                >
+                  Cancelar
+                </button>
+              )}
             </div>
           </div>
         </div>
