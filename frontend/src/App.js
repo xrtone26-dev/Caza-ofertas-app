@@ -45,6 +45,9 @@ import AdminDashboard, { decodeCoupon } from './components/AdminDashboard';
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
+// ==========================================
+// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS AUTOMÁTICO DINÁMICO
+// ==========================================
 function FeatureCube({ isLight }) {
   const [rotation, setRotation] = useState({ x: 0, y: 0, z: 0 });
   const requestRef = useRef();
@@ -932,6 +935,7 @@ function App() {
         </>
       )}
 
+      {/* POP-UP AUTOMÁTICO A 1 MINUTO PARA USUARIOS NO REGISTRADOS */}
       <AnimatePresence>
         {showCommunityPopup && !currentUser && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[90] p-4">
@@ -1000,6 +1004,7 @@ function App() {
         )}
       </AnimatePresence>
 
+      {/* MENÚ FLOTANTE SUPERIOR DERECHO */}
       <div className="fixed top-6 right-6 z-[60] flex flex-col items-center gap-3">
         <div className="flex flex-col items-center gap-1">
           {currentUser && (
@@ -1089,6 +1094,7 @@ function App() {
         )}
       </AnimatePresence>
 
+      {/* CABECERA CLÁSICA */}
       <div
         className={`relative overflow-hidden border-b pb-16 ${
           isLight
@@ -1432,7 +1438,7 @@ function App() {
                                 </p>
                               </div>
                             )}
-                            <a href={product.affiliate_link} target="_blank" rel="noopener noreferrer" className={`block w-full py-3 rounded-lg font-bold text-center transition-all flex items-center justify-center gap-2 ${
+                            <a href={product.affiliate_link || product.link || product.url || '#'} target="_blank" rel="noopener noreferrer" className={`block w-full py-3 rounded-lg font-bold text-center transition-all flex items-center justify-center gap-2 ${
                               isLight ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:shadow-lg' : 'bg-yellow-400 hover:bg-yellow-300 text-black font-black'
                             }`}>
                               Ver Producto <ExternalLink className="w-5 h-5" />
