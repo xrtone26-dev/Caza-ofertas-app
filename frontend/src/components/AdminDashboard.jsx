@@ -38,7 +38,7 @@ export default function AdminDashboard({
   const [editingProduct, setEditingProduct] = useState(null);
   
   const [showDeleteAllProductsModal, setShowDeleteAllProductsModal] = useState(false);
-  const [isDeletingAll, setIsDeletingAll] = useState(false); // Estado para mostrar que está borrando
+  const [isDeletingAll, setIsDeletingAll] = useState(false); 
 
   const [showAddVideoModal, setShowAddVideoModal] = useState(false);
   const [editingVideo, setEditingVideo] = useState(null);
@@ -79,7 +79,7 @@ export default function AdminDashboard({
   const loadAllOffers = async () => {
     try {
       const response = await axios.get(`${API}/admin/offers`, {
-        params: { password: adminPassword },
+        params: { password: adminPassword, t: Date.now() },
       });
       setAllOffers(response.data.map(decodeCoupon));
     } catch (error) {}
@@ -88,7 +88,7 @@ export default function AdminDashboard({
   const loadAllProducts = async () => {
     try {
       const response = await axios.get(`${API}/admin/products`, {
-        params: { password: adminPassword },
+        params: { password: adminPassword, t: Date.now() },
       });
       setAllProducts(response.data);
     } catch (error) {}
@@ -322,7 +322,6 @@ export default function AdminDashboard({
     }
   };
 
-  // Función MEJORADA para vaciar todos los productos (a prueba de fallos individuales)
   const handleDeleteAllProducts = async () => {
     setIsDeletingAll(true);
     let errores = 0;
@@ -331,7 +330,6 @@ export default function AdminDashboard({
       const productId = getSafeId(prod);
       if (productId) {
         try {
-          // Intentamos borrar cada uno, si uno falla, no se rompe el ciclo completo
           await axios.delete(`${API}/admin/products/${productId}?password=${adminPassword}`);
         } catch (error) {
           console.error("Error al eliminar el producto:", productId, error);
@@ -642,7 +640,6 @@ export default function AdminDashboard({
         </div>
       )}
 
-      {/* Modal MEJORADO para confirmar el vaciado completo de productos */}
       {showDeleteAllProductsModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[80] p-4">
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center text-gray-800 shadow-2xl">
@@ -1079,7 +1076,7 @@ export default function AdminDashboard({
                   type="text"
                   value={
                     editingProduct
-                      ? editingProduct.affiliate_link
+                      ? editingProduct.affiliate_link || editingProduct.link || editingProduct.url || ''
                       : newProduct.affiliate_link
                   }
                   onChange={(e) =>
