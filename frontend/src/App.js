@@ -191,6 +191,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
   const [hearts, setHearts] = useState({});
   const [userReactions, setUserReactions] = useState({});
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [isMuted, setIsMuted] = useState(true); // 🔊 Estado para activar/desactivar audio
 
   if (!videos || videos.length === 0) {
     return (
@@ -223,7 +224,8 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
     } else {
       ytId = url;
     }
-    return `https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&modestbranding=1&rel=0&showinfo=0&disablekb=1&iv_load_policy=3`;
+    // 🔊 Se ajusta dinámicamente el parámetro mute según el estado isMuted
+    return `https://www.youtube.com/embed/${ytId}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${ytId}&controls=0&modestbranding=1&rel=0&showinfo=0&disablekb=1&iv_load_policy=3`;
   };
 
   const handleNext = () => {
@@ -299,6 +301,15 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
           <div className="absolute inset-0 z-10 pointer-events-none" />
 
           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-3 z-30 pointer-events-auto">
+            {/* 🔊 Botón de Audio */}
+            <button
+              onClick={() => setIsMuted(!isMuted)}
+              className={`p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${!isMuted ? 'bg-yellow-400 text-black scale-110 font-black' : 'bg-black/70 text-white hover:bg-black'}`}
+              title={isMuted ? "Activar audio" : "Silenciar"}
+            >
+              {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+            </button>
+
             <button
               onClick={() => handleReaction('heart')}
               className={`p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${currentReaction === 'heart' ? 'bg-pink-500 text-white scale-110' : 'bg-black/70 text-white hover:bg-black'}`}
