@@ -454,10 +454,8 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
             <div className="flex items-center gap-2.5 min-w-0">
               <ShoppingCart size={22} className="flex-shrink-0" />
               <div className="flex flex-col text-left min-w-0">
-                <span className="font-black text-xs md:text-sm uppercase tracking-tight leading-tight">COMPRAR PRODUCTO EN</span>
-                <span className="font-black text-xs md:text-sm uppercase tracking-tight leading-tight">MERCADO LIBRE 🛒</span>
-              </div>
-            </div>
+                <span className="font-black text-xs md:text-sm uppercase tracking-tight leading-tight">COMPRAR PRODUCTO EN 🛒</span>
+               </div>
 
             <div className="w-16 h-14 bg-white rounded-xl border-2 border-black overflow-hidden flex-shrink-0 shadow-md flex items-center justify-center">
               {activeImgUrl ? (
@@ -1564,12 +1562,12 @@ function App() {
             <h2 className={`text-3xl md:text-4xl font-black mb-3 flex items-center justify-center gap-3 ${
               isLight ? 'text-purple-700' : 'text-neutral-100'
             }`}>
-              <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" /> Productos probados en YouTube
+              <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" /> Productos puestos a prueba
             </h2>
             <p className={`text-sm md:text-base max-w-xl mx-auto font-medium ${
               isLight ? 'text-gray-600' : 'text-neutral-400'
             }`}>
-              Mira los videos en acción y adquiere directamente en Mercado Libre el artículo recomendado. 🚀
+              Mira los videos en acción y adquiere directamente el artículo recomendado. 🚀
             </p>
           </div>
           <YoutubeReelsPlayer 
