@@ -25,7 +25,9 @@ export default function OffersAdmin({ API, adminPassword, getSafeId, loadPublicO
       // Filtramos únicamente los que son de tipo descuento
       const onlyOffers = response.data.map(decodeCoupon).filter(o => o.type === 'descuento');
       setOffers(onlyOffers);
-    } catch (error) {}
+    } catch (error) {
+      console.error("--- ⚠️ Error al cargar ofertas: ---", error);
+    }
   };
 
   React.useEffect(() => {
@@ -64,6 +66,7 @@ export default function OffersAdmin({ API, adminPassword, getSafeId, loadPublicO
       loadOffers();
       if (loadPublicOffers) loadPublicOffers();
     } catch (error) {
+      console.error("Error guardando oferta:", error);
       alert('Error al guardar oferta');
     }
   };
@@ -77,6 +80,7 @@ export default function OffersAdmin({ API, adminPassword, getSafeId, loadPublicO
         loadOffers();
         if (loadPublicOffers) loadPublicOffers();
       } catch (error) {
+        console.error("Error eliminando oferta:", error);
         alert('Error al eliminar oferta');
       }
     }
