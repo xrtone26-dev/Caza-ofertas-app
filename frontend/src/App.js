@@ -184,7 +184,7 @@ function FeatureCube({ isLight }) {
   );
 }
 
-function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowToast }) {
+function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowToast, isLight }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [likes, setLikes] = useState({});
   const [dislikes, setDislikes] = useState({});
@@ -398,10 +398,9 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
             <div className="w-8 h-8 rounded-full bg-yellow-400 text-black font-black flex items-center justify-center text-xs border-2 border-black">
               {currentVideo.author ? currentVideo.author.charAt(0) : 'C'}
             </div>
-            <span className="text-xs font-bold text-yellow-300">@{currentVideo.author || 'CazaOfertas'}</span>
+            <span className={`text-xs font-bold ${isLight ? 'text-purple-700' : 'text-cyan-400'}`}>@{currentVideo.author || 'CazaOfertas'}</span>
           </div>
-          {/* Título cambiado a text-yellow-400 (ni blanco ni negro) */}
-          <p className="text-sm font-black drop-shadow-md line-clamp-1 text-yellow-400">{currentVideo.title}</p>
+          <p className={`text-sm font-black drop-shadow-md line-clamp-1 ${isLight ? 'text-purple-900' : 'text-cyan-400'}`}>{currentVideo.title}</p>
         </div>
 
         {currentVideo.buyUrl ? (
@@ -1537,6 +1536,7 @@ function App() {
             setTiktokVideos={setTiktokVideos}
             setToastMessage={setToastMessage} 
             setShowToast={setShowToast} 
+            isLight={isLight}
           />
         </div>
       </div>
@@ -1663,7 +1663,7 @@ function App() {
       <MusicPlayer
         showMusicModal={showMusicModal}
         setShowMusicModal={setShowMusicModal}
-        isLight={isLight}	
+        isLight={isLight}
         isMinimized={isMinimized}
         setIsMinimized={setIsMinimized}
       />
