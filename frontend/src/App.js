@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 import {
-  MessageCircle,
-  Send,
-  Facebook,
-  Youtube,
   Sparkles,
   Tag,
   Search,
@@ -35,6 +31,12 @@ import {
   Award,
   TrendingDown,
 } from 'lucide-react';
+import {
+  FaWhatsapp,
+  FaTelegram,
+  FaFacebook,
+  FaYoutube
+} from "react-icons/fa";
 import axios from 'axios';
 import useEmblaCarousel from 'embla-carousel-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -454,9 +456,11 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
             <div className="flex items-center gap-2.5 min-w-0">
               <ShoppingCart size={22} className="flex-shrink-0" />
               <div className="flex flex-col text-left min-w-0">
-                <span className="font-black text-xs md:text-sm uppercase tracking-tight leading-tight">COMPRAR PRODUCTO 🛒</span>
-               </div>
- </div>
+                <span className="font-black text-xs md:text-sm uppercase tracking-tight leading-tight">COMPRAR PRODUCTO EN</span>
+                <span className="font-black text-xs md:text-sm uppercase tracking-tight leading-tight">MERCADO LIBRE 🛒</span>
+              </div>
+            </div>
+
             <div className="w-16 h-14 bg-white rounded-xl border-2 border-black overflow-hidden flex-shrink-0 shadow-md flex items-center justify-center">
               {activeImgUrl ? (
                 <img
@@ -795,21 +799,27 @@ function App() {
   const socialLinks = [
     {
       name: 'WhatsApp',
-      icon: MessageCircle,
+      icon: FaWhatsapp,
       url: 'https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1',
       color: 'bg-[#25D366] hover:bg-[#20bd5a]',
     },
     {
       name: 'Telegram',
-      icon: Send,
+      icon: FaTelegram,
       url: 'https://t.me/+K-usKp25iPYzNWUx',
       color: 'bg-[#229ED9] hover:bg-[#1a8ac2]',
     },
     {
       name: 'Facebook',
-      icon: Facebook,
+      icon: FaFacebook,
       url: 'https://www.facebook.com/share/1RpfPkSzit/',
       color: 'bg-[#1877F2] hover:bg-[#1367d5]',
+    },
+    {
+      name: 'YouTube',
+      icon: FaYoutube,
+      url: 'https://www.youtube.com/@CazaOfertasOficial',
+      color: 'bg-[#FF0000] hover:bg-[#cc0000]',
     },
   ];
 
@@ -1562,12 +1572,12 @@ function App() {
             <h2 className={`text-3xl md:text-4xl font-black mb-3 flex items-center justify-center gap-3 ${
               isLight ? 'text-purple-700' : 'text-neutral-100'
             }`}>
-              <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" /> Productos puestos a prueba
+              <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" /> Productos probados en YouTube
             </h2>
             <p className={`text-sm md:text-base max-w-xl mx-auto font-medium ${
               isLight ? 'text-gray-600' : 'text-neutral-400'
             }`}>
-              Mira los videos en acción y adquiere directamente el artículo recomendado. 🚀
+              Mira los videos en acción y adquiere directamente en Mercado Libre el artículo recomendado. 🚀
             </p>
           </div>
           <YoutubeReelsPlayer 
