@@ -393,14 +393,15 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
       </div>
 
       <div className="w-full max-w-sm flex flex-col gap-3">
-        <div className="text-white flex flex-col gap-1 px-1">
+        <div className="flex flex-col gap-1 px-1">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-yellow-400 text-black font-black flex items-center justify-center text-xs border-2 border-black">
               {currentVideo.author ? currentVideo.author.charAt(0) : 'C'}
             </div>
             <span className="text-xs font-bold text-yellow-300">@{currentVideo.author || 'CazaOfertas'}</span>
           </div>
-          <p className="text-sm font-black drop-shadow-md line-clamp-1">{currentVideo.title}</p>
+          {/* Título cambiado a text-yellow-400 (ni blanco ni negro) */}
+          <p className="text-sm font-black drop-shadow-md line-clamp-1 text-yellow-400">{currentVideo.title}</p>
         </div>
 
         {currentVideo.buyUrl ? (
@@ -1528,7 +1529,7 @@ function App() {
             <p className={`text-sm md:text-base max-w-xl mx-auto font-medium ${
               isLight ? 'text-gray-600' : 'text-neutral-400'
             }`}>
-              Mira los videos en action y adquiere directamente en Mercado Libre el artículo recomendado. 🚀
+              Mira los videos en acción y adquiere directamente en Mercado Libre el artículo recomendado. 🚀
             </p>
           </div>
           <YoutubeReelsPlayer 
@@ -1662,7 +1663,7 @@ function App() {
       <MusicPlayer
         showMusicModal={showMusicModal}
         setShowMusicModal={setShowMusicModal}
-        isLight={isLight}
+        isLight={isLight}	
         isMinimized={isMinimized}
         setIsMinimized={setIsMinimized}
       />
