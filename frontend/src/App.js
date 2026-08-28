@@ -288,7 +288,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
         <div className="hidden md:block w-14"></div>
 
         <div className="relative w-full max-w-sm h-[520px] bg-black rounded-3xl overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col select-none">
-          <div className="relative w-full h-full bg-black flex items-center justify-center pointer-events-none">
+          <div className="relative w-full h-full bg-black flex items-center justify-center">
             <div className="relative w-full h-full pointer-events-none">
               <iframe
                 src={getYouTubeEmbedUrl(currentVideo.url)}
@@ -300,7 +300,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
               <div className="absolute inset-0 z-10 pointer-events-none" />
             </div>
 
-            <div className="absolute right-3 bottom-20 flex flex-col items-center gap-4 z-30 pointer-events-auto">
+            <div className="absolute right-4 bottom-20 flex flex-col items-center gap-4 z-30 pointer-events-auto">
               <button
                 onClick={() => handleReaction('heart')}
                 className={`p-3 rounded-full border-2 border-black transition-all shadow-lg ${currentReaction === 'heart' ? 'bg-pink-500 text-white scale-110' : 'bg-black/70 text-white hover:bg-black'}`}
@@ -374,16 +374,6 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
                 </button>
               </div>
             )}
-
-            <div className="absolute bottom-4 left-4 right-20 z-20 text-white flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-yellow-400 text-black font-black flex items-center justify-center text-xs border-2 border-black">
-                  {currentVideo.author ? currentVideo.author.charAt(0) : 'C'}
-                </div>
-                <span className="text-xs font-bold text-yellow-300">@{currentVideo.author || 'CazaOfertas'}</span>
-              </div>
-              <p className="text-sm font-black drop-shadow-md line-clamp-1">{currentVideo.title}</p>
-            </div>
           </div>
         </div>
 
@@ -405,7 +395,17 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
         </div>
       </div>
 
-      <div className="w-full max-w-sm mt-2">
+      <div className="w-full max-w-sm flex flex-col gap-3">
+        <div className="text-white flex flex-col gap-1 px-1">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-yellow-400 text-black font-black flex items-center justify-center text-xs border-2 border-black">
+              {currentVideo.author ? currentVideo.author.charAt(0) : 'C'}
+            </div>
+            <span className="text-xs font-bold text-yellow-300">@{currentVideo.author || 'CazaOfertas'}</span>
+          </div>
+          <p className="text-sm font-black drop-shadow-md line-clamp-1">{currentVideo.title}</p>
+        </div>
+
         {currentVideo.buyUrl ? (
           <a
             href={currentVideo.buyUrl}
