@@ -32,7 +32,6 @@ import {
   Headphones,
   Award,
   TrendingDown,
-  ArrowLeft,
 } from 'lucide-react';
 import axios from 'axios';
 import useEmblaCarousel from 'embla-carousel-react';
@@ -288,93 +287,89 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
         <div className="hidden md:block w-14"></div>
 
         <div className="relative w-full max-w-sm h-[520px] bg-black rounded-3xl overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col select-none">
-          <div className="relative w-full h-full bg-black flex items-center justify-center">
-            <div className="relative w-full h-full pointer-events-none">
-              <iframe
-                src={getYouTubeEmbedUrl(currentVideo.url)}
-                className="w-full h-full border-0 object-cover pointer-events-none"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title={currentVideo.title}
-              />
-              <div className="absolute inset-0 z-10 pointer-events-none" />
-            </div>
+          <iframe
+            src={getYouTubeEmbedUrl(currentVideo.url)}
+            className="w-full h-full border-0 object-cover pointer-events-none"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            title={currentVideo.title}
+          />
+          <div className="absolute inset-0 z-10 pointer-events-none" />
 
-            <div className="absolute right-4 bottom-20 flex flex-col items-center gap-4 z-30 pointer-events-auto">
-              <button
-                onClick={() => handleReaction('heart')}
-                className={`p-3 rounded-full border-2 border-black transition-all shadow-lg ${currentReaction === 'heart' ? 'bg-pink-500 text-white scale-110' : 'bg-black/70 text-white hover:bg-black'}`}
-                title="Me encanta"
-              >
-                <Heart size={20} className={currentReaction === 'heart' ? 'fill-current' : ''} />
-                <span className="text-[11px] font-black block mt-0.5">{currentHearts}</span>
-              </button>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-3 z-30 pointer-events-auto">
+            <button
+              onClick={() => handleReaction('heart')}
+              className={`p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${currentReaction === 'heart' ? 'bg-pink-500 text-white scale-110' : 'bg-black/70 text-white hover:bg-black'}`}
+              title="Me encanta"
+            >
+              <Heart size={18} className={currentReaction === 'heart' ? 'fill-current' : ''} />
+              <span className="text-[10px] font-black block mt-0.5">{currentHearts}</span>
+            </button>
 
-              <button
-                onClick={() => handleReaction('like')}
-                className={`p-3 rounded-full border-2 border-black transition-all shadow-lg ${currentReaction === 'like' ? 'bg-blue-500 text-white scale-110' : 'bg-black/70 text-white hover:bg-black'}`}
-                title="Me gusta"
-              >
-                <ThumbsUp size={20} />
-                <span className="text-[11px] font-black block mt-0.5">{currentLikes}</span>
-              </button>
+            <button
+              onClick={() => handleReaction('like')}
+              className={`p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${currentReaction === 'like' ? 'bg-blue-500 text-white scale-110' : 'bg-black/70 text-white hover:bg-black'}`}
+              title="Me gusta"
+            >
+              <ThumbsUp size={18} />
+              <span className="text-[10px] font-black block mt-0.5">{currentLikes}</span>
+            </button>
 
-              <button
-                onClick={() => handleReaction('dislike')}
-                className={`p-3 rounded-full border-2 border-black transition-all shadow-lg ${currentReaction === 'dislike' ? 'bg-red-500 text-white scale-110' : 'bg-black/70 text-white hover:bg-red-900'}`}
-                title="No me gusta"
-              >
-                <ThumbsDown size={20} />
-                <span className="text-[11px] font-black block mt-0.5">{currentDislikes}</span>
-              </button>
+            <button
+              onClick={() => handleReaction('dislike')}
+              className={`p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${currentReaction === 'dislike' ? 'bg-red-500 text-white scale-110' : 'bg-black/70 text-white hover:bg-red-900'}`}
+              title="No me gusta"
+            >
+              <ThumbsDown size={18} />
+              <span className="text-[10px] font-black block mt-0.5">{currentDislikes}</span>
+            </button>
 
-              <button
-                onClick={() => setShowShareMenu(!showShareMenu)}
-                className="p-3 rounded-full bg-black/70 text-white border-2 border-black hover:bg-black hover:scale-110 transition-all shadow-lg"
-                title="Compartir"
-              >
-                <Share2 size={20} />
-              </button>
-            </div>
+            <button
+              onClick={() => setShowShareMenu(!showShareMenu)}
+              className="p-2.5 rounded-full bg-black/70 text-white border-2 border-black hover:bg-black hover:scale-110 transition-all shadow-lg"
+              title="Compartir"
+            >
+              <Share2 size={18} />
+            </button>
+          </div>
 
-            {showShareMenu && (
-              <div className="absolute inset-0 bg-black/95 z-40 flex flex-col items-center justify-center p-6 rounded-3xl animate-fadeIn pointer-events-auto">
-                <h4 className="text-yellow-400 font-black text-sm uppercase mb-4 tracking-wider">Compartir este video</h4>
-                <div className="flex flex-col gap-2.5 w-full max-w-[180px]">
-                  <button 
-                    onClick={() => handleShareOption('whatsapp')} 
-                    className="flex items-center justify-center gap-2 bg-[#25D366] text-white py-2.5 px-4 rounded-xl font-bold text-xs hover:scale-105 transition-transform border border-black shadow-md"
-                  >
-                    <span>💬 WhatsApp</span>
-                  </button>
-                  <button 
-                    onClick={() => handleShareOption('telegram')} 
-                    className="flex items-center justify-center gap-2 bg-[#229ED9] text-white py-2.5 px-4 rounded-xl font-bold text-xs hover:scale-105 transition-transform border border-black shadow-md"
-                  >
-                    <span>✈️ Telegram</span>
-                  </button>
-                  <button 
-                    onClick={() => handleShareOption('messenger')} 
-                    className="flex items-center justify-center gap-2 bg-[#00B2FF] text-white py-2.5 px-4 rounded-xl font-bold text-xs hover:scale-105 transition-transform border border-black shadow-md"
-                  >
-                    <span>💬 Messenger</span>
-                  </button>
-                  <button 
-                    onClick={() => handleShareOption('copy')} 
-                    className="flex items-center justify-center gap-2 bg-yellow-400 text-black py-2.5 px-4 rounded-xl font-black text-xs hover:scale-105 transition-transform border border-black shadow-md"
-                  >
-                    <span>🔗 Copiar Link</span>
-                  </button>
-                </div>
+          {showShareMenu && (
+            <div className="absolute inset-0 bg-black/95 z-40 flex flex-col items-center justify-center p-6 rounded-3xl animate-fadeIn pointer-events-auto">
+              <h4 className="text-yellow-400 font-black text-sm uppercase mb-4 tracking-wider">Compartir este video</h4>
+              <div className="flex flex-col gap-2.5 w-full max-w-[180px]">
                 <button 
-                  onClick={() => setShowShareMenu(false)} 
-                  className="mt-4 text-neutral-400 hover:text-white text-xs font-bold uppercase tracking-wider"
+                  onClick={() => handleShareOption('whatsapp')} 
+                  className="flex items-center justify-center gap-2 bg-[#25D366] text-white py-2.5 px-4 rounded-xl font-bold text-xs hover:scale-105 transition-transform border border-black shadow-md"
                 >
-                  Cancelar
+                  <span>💬 WhatsApp</span>
+                </button>
+                <button 
+                  onClick={() => handleShareOption('telegram')} 
+                  className="flex items-center justify-center gap-2 bg-[#229ED9] text-white py-2.5 px-4 rounded-xl font-bold text-xs hover:scale-105 transition-transform border border-black shadow-md"
+                >
+                  <span>✈️ Telegram</span>
+                </button>
+                <button 
+                  onClick={() => handleShareOption('messenger')} 
+                  className="flex items-center justify-center gap-2 bg-[#00B2FF] text-white py-2.5 px-4 rounded-xl font-bold text-xs hover:scale-105 transition-transform border border-black shadow-md"
+                >
+                  <span>💬 Messenger</span>
+                </button>
+                <button 
+                  onClick={() => handleShareOption('copy')} 
+                  className="flex items-center justify-center gap-2 bg-yellow-400 text-black py-2.5 px-4 rounded-xl font-black text-xs hover:scale-105 transition-transform border border-black shadow-md"
+                >
+                  <span>🔗 Copiar Link</span>
                 </button>
               </div>
-            )}
-          </div>
+              <button 
+                onClick={() => setShowShareMenu(false)} 
+                className="mt-4 text-neutral-400 hover:text-white text-xs font-bold uppercase tracking-wider"
+              >
+                Cancelar
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex md:flex-col gap-4">
@@ -1365,25 +1360,9 @@ function App() {
           <div className={`rounded-3xl shadow-xl p-8 backdrop-blur-xl border ${
             isLight ? 'bg-white border-gray-100' : 'bg-neutral-900/85 border-neutral-800'
           }`}>
-            <div className="relative flex items-center justify-center mb-6 min-h-[40px]">
-              {(searchTerm || productSearchInput) && (
-                <button
-                  onClick={() => {
-                    setSearchTerm('');
-                    setProductSearchInput('');
-                  }}
-                  className={`absolute left-0 md:left-4 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 shadow-lg border-2 z-10 ${
-                    isLight ? 'bg-white text-red-500 border-red-200 hover:bg-red-50' : 'bg-neutral-800 text-red-400 border-red-900/50 hover:bg-neutral-700'
-                  }`}
-                  title="Limpiar búsqueda y mostrar todos"
-                >
-                  <ArrowLeft className="w-6 h-6" />
-                </button>
-              )}
-              <h2 className={`text-3xl font-bold text-center m-0 ${isLight ? 'text-gray-800' : 'text-neutral-100 font-black'}`}>
-                🔥 Productos Destacados
-              </h2>
-            </div>
+            <h2 className={`text-3xl font-bold text-center mb-6 ${isLight ? 'text-gray-800' : 'text-neutral-100 font-black'}`}>
+              🔥 Productos Destacados
+            </h2>
 
             <div className="max-w-xl mx-auto mb-8 flex gap-2">
               <div className="relative flex-1 flex gap-2">
