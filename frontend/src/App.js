@@ -657,6 +657,7 @@ function App() {
   const [showProfilePanel, setShowProfilePanel] = useState(false);
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [productSearchInput, setProductSearchInput] = useState('');
   const [couponSearchTerm, setCouponSearchTerm] = useState(''); 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -1373,17 +1374,33 @@ function App() {
             </h2>
 
             <div className="max-w-xl mx-auto mb-8 flex gap-2">
-              <div className="relative flex-1">
-                <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 ${isLight ? 'text-gray-400' : 'text-neutral-500'}`} />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Busca un producto cargado aquí..."
-                  className={`w-full pl-11 pr-4 py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-sm ${
-                    isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-700 text-neutral-100'
+              <div className="relative flex-1 flex gap-2">
+                <div className="relative flex-1">
+                  <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 ${isLight ? 'text-gray-400' : 'text-neutral-500'}`} />
+                  <input
+                    type="text"
+                    value={productSearchInput}
+                    onChange={(e) => setProductSearchInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setSearchTerm(productSearchInput);
+                      }
+                    }}
+                    placeholder="Busca un producto cargado aquí..."
+                    className={`w-full pl-11 pr-4 py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-sm ${
+                      isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-700 text-neutral-100'
+                    }`}
+                  />
+                </div>
+                <button
+                  onClick={() => setSearchTerm(productSearchInput)}
+                  className={`px-4 py-3 rounded-xl flex items-center justify-center transition-all font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+                    isLight ? 'bg-yellow-400 text-black' : 'bg-[#FFEA00] text-black'
                   }`}
-                />
+                  title="Buscar Producto"
+                >
+                  <Search className="w-5 h-5" />
+                </button>
               </div>
             </div>
 
