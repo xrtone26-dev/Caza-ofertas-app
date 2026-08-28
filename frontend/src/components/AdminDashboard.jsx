@@ -82,7 +82,9 @@ export default function AdminDashboard({
         params: { password: adminPassword, t: Date.now() },
       });
       setAllOffers(response.data.map(decodeCoupon));
-    } catch (error) {}
+    } catch (error) {
+      console.error("--- ⚠️ Error al cargar ofertas en Admin: ---", error);
+    }
   };
 
   const loadAllProducts = async () => {
@@ -91,7 +93,9 @@ export default function AdminDashboard({
         params: { password: adminPassword, t: Date.now() },
       });
       setAllProducts(response.data);
-    } catch (error) {}
+    } catch (error) {
+      console.error("--- ⚠️ Error al cargar productos en Admin: ---", error);
+    }
   };
 
   const handleAdminLogin = async () => {
@@ -107,6 +111,7 @@ export default function AdminDashboard({
         loadAllProducts();
       }
     } catch (error) {
+      console.error("Error en login:", error);
       alert('Contraseña incorrecta');
     }
   };
@@ -195,6 +200,7 @@ export default function AdminDashboard({
       loadAllOffers();
       if (loadPublicOffers) loadPublicOffers();
     } catch (error) {
+      console.error("Error al crear cupón:", error);
       alert('Error al crear cupón');
     }
   };
@@ -221,6 +227,7 @@ export default function AdminDashboard({
       setEditingOffer(null);
       setShowAddOfferModal(false);
     } catch (error) {
+      console.error("Error al actualizar cupón:", error);
       alert('Error al actualizar cupón');
     }
   };
@@ -236,6 +243,7 @@ export default function AdminDashboard({
         loadAllOffers();
         if (loadPublicOffers) loadPublicOffers();
       } catch (error) {
+        console.error("Error al eliminar cupón:", error);
         alert('Error al eliminar cupón');
       }
     }
@@ -272,6 +280,7 @@ export default function AdminDashboard({
       loadAllProducts();
       if (loadPublicProducts) loadPublicProducts();
     } catch (error) {
+      console.error("Error al crear producto:", error);
       alert('Error al crear producto');
     }
   };
@@ -302,6 +311,7 @@ export default function AdminDashboard({
       setEditingProduct(null);
       setShowAddProductModal(false);
     } catch (error) {
+      console.error("Error al actualizar producto:", error);
       alert('Error al actualizar producto');
     }
   };
@@ -317,6 +327,7 @@ export default function AdminDashboard({
         loadAllProducts();
         if (loadPublicProducts) loadPublicProducts();
       } catch (error) {
+        console.error("Error al eliminar producto:", error);
         alert('Error al eliminar producto');
       }
     }
