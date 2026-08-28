@@ -834,12 +834,7 @@ function App() {
   };
 
   const handleSearchOnMercadoLibre = () => {
-    if (!searchTerm.trim()) {
-      window.open('https://www.mercadolibre.com.mx', '_blank');
-      return;
-    }
-    const encoded = encodeURIComponent(searchTerm.trim());
-    window.open(`https://listado.mercadolibre.com.mx/${encoded}`, '_blank');
+    window.open('https://mercadolibre.com/sec/1XFPeWr', '_blank');
   };
 
   const playSniperSound = () => {
