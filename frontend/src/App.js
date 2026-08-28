@@ -818,7 +818,7 @@ function App() {
     {
       name: 'YouTube',
       icon: FaYoutube,
-      url: 'https://www.youtube.com/@CazaOfertasOficial',
+      url: 'https://www.youtube.com/@CazaOfertasML06',
       color: 'bg-[#FF0000] hover:bg-[#cc0000]',
     },
   ];
@@ -1636,7 +1636,8 @@ function App() {
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-12 h-12 bg-white/10 hover:bg-white/25 rounded-full flex items-center justify-center transition-all hover:scale-110 text-white"
+                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 text-white shadow-lg ${social.color}`}
+                  title={social.name}
                 >
                   <Icon className="w-6 h-6" />
                 </a>
