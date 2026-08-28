@@ -19,6 +19,8 @@ import {
   HelpCircle,
   Volume2,
   VolumeX,
+  Play,
+  Pause,
   Heart,
   ThumbsUp,
   ThumbsDown,
@@ -191,7 +193,13 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
   const [hearts, setHearts] = useState({});
   const [userReactions, setUserReactions] = useState({});
   const [showShareMenu, setShowShareMenu] = useState(false);
-  const [isMuted, setIsMuted] = useState(true); // 🔊 Estado para activar/desactivar audio
+  const [isMuted, setIsMuted] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const iframeRef = useRef(null);
+
+  useEffect(() => {
+    setIsPlaying(true);
+  }, [currentIndex]);
 
   if (!videos || videos.length === 0) {
     return (
@@ -224,8 +232,22 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
     } else {
       ytId = url;
     }
-    // 🔊 Se ajusta dinámicamente el parámetro mute según el estado isMuted
-    return `https://www.youtube.com/embed/${ytId}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${ytId}&controls=0&modestbranding=1&rel=0&showinfo=0&disablekb=1&iv_load_policy=3`;
+    return `https://www.youtube.com/embed/${ytId}?enablejsapi=1&autoplay=${isPlaying ? 1 : 0}&mute=${isMuted ? 1 : 0}&loop=1&playlist=${ytId}&controls=0&modestbranding=1&rel=0&showinfo=0&disablekb=1&iv_load_policy=3`;
+  };
+
+  const togglePlay = () => {
+    const nextState = !isPlaying;
+    setIsPlaying(nextState);
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({
+          event: 'command',
+          func: nextState ? 'playVideo' : 'pauseVideo',
+          args: ''
+        }),
+        '*'
+      );
+    }
   };
 
   const handleNext = () => {
@@ -291,6 +313,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
         <div className="relative w-full max-w-sm h-[520px] bg-black rounded-3xl overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col select-none">
           <div className="absolute inset-0 w-full h-full overflow-hidden bg-black pointer-events-none">
             <iframe
+              ref={iframeRef}
               src={getYouTubeEmbedUrl(currentVideo.url)}
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] border-0 pointer-events-none"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -301,13 +324,20 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
           <div className="absolute inset-0 z-10 pointer-events-none" />
 
           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-3 z-30 pointer-events-auto">
-            {/* 🔊 Botón de Audio */}
             <button
               onClick={() => setIsMuted(!isMuted)}
               className={`p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${!isMuted ? 'bg-yellow-400 text-black scale-110 font-black' : 'bg-black/70 text-white hover:bg-black'}`}
               title={isMuted ? "Activar audio" : "Silenciar"}
             >
               {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+            </button>
+
+            <button
+              onClick={togglePlay}
+              className={`p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${!isPlaying ? 'bg-yellow-400 text-black scale-110 font-black' : 'bg-black/70 text-white hover:bg-black'}`}
+              title={isPlaying ? "Pausar video" : "Reproducir video"}
+            >
+              {isPlaying ? <Pause size={18} /> : <Play size={18} />}
             </button>
 
             <button
