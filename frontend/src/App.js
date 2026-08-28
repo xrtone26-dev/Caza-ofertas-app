@@ -32,6 +32,7 @@ import {
   Headphones,
   Award,
   TrendingDown,
+  ArrowLeft,
 } from 'lucide-react';
 import axios from 'axios';
 import useEmblaCarousel from 'embla-carousel-react';
@@ -1364,9 +1365,25 @@ function App() {
           <div className={`rounded-3xl shadow-xl p-8 backdrop-blur-xl border ${
             isLight ? 'bg-white border-gray-100' : 'bg-neutral-900/85 border-neutral-800'
           }`}>
-            <h2 className={`text-3xl font-bold text-center mb-6 ${isLight ? 'text-gray-800' : 'text-neutral-100 font-black'}`}>
-              🔥 Productos Destacados
-            </h2>
+            <div className="relative flex items-center justify-center mb-6 min-h-[40px]">
+              {(searchTerm || productSearchInput) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setProductSearchInput('');
+                  }}
+                  className={`absolute left-0 md:left-4 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 shadow-lg border-2 z-10 ${
+                    isLight ? 'bg-white text-red-500 border-red-200 hover:bg-red-50' : 'bg-neutral-800 text-red-400 border-red-900/50 hover:bg-neutral-700'
+                  }`}
+                  title="Limpiar búsqueda y mostrar todos"
+                >
+                  <ArrowLeft className="w-6 h-6" />
+                </button>
+              )}
+              <h2 className={`text-3xl font-bold text-center m-0 ${isLight ? 'text-gray-800' : 'text-neutral-100 font-black'}`}>
+                🔥 Productos Destacados
+              </h2>
+            </div>
 
             <div className="max-w-xl mx-auto mb-8 flex gap-2">
               <div className="relative flex-1 flex gap-2">
