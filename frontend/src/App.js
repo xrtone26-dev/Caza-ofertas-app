@@ -287,13 +287,15 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
         <div className="hidden md:block w-14"></div>
 
         <div className="relative w-full max-w-sm h-[520px] bg-black rounded-3xl overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col select-none">
-          <iframe
-            src={getYouTubeEmbedUrl(currentVideo.url)}
-            className="absolute inset-0 w-full h-full border-0 pointer-events-none object-cover"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            title={currentVideo.title}
-          />
+          <div className="absolute inset-0 w-full h-full overflow-hidden bg-black pointer-events-none">
+            <iframe
+              src={getYouTubeEmbedUrl(currentVideo.url)}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] border-0 pointer-events-none"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title={currentVideo.title}
+            />
+          </div>
 
           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-3 z-30 pointer-events-auto">
             <button
