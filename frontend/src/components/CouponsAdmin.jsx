@@ -19,6 +19,14 @@ const getFutureDate30Hours = () => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
+const formatDateTimeLocal = (dateString) => {
+  if (!dateString) return getFutureDate30Hours();
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return getFutureDate30Hours();
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublicOffers }) {
   const [coupons, setCoupons] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -60,7 +68,6 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
       const rawMin = newCoupon.min_purchase ? Number(String(newCoupon.min_purchase).replace(/\D/g, '')) : 0;
       let desc = (newCoupon.description || '').replace(/\s*\|\|exp:.*?\|\|/g, '');
       
-      // Asignar 30 horas por defecto si está vacío
       const finalExpiresAt = newCoupon.expires_at || getFutureDate30Hours();
       desc += ` ||exp:${finalExpiresAt}||`;
 
@@ -146,7 +153,8 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
                     setEditingCoupon(coupon);
                     setNewCoupon({
                       ...coupon,
-                      min_purchase: coupon.min_purchase ? formatCurrencyInput(String(coupon.min_purchase)) : ''
+                      min_purchase: coupon.min_purchase ? formatCurrencyInput(String(coupon.min_purchase)) : '',
+                      expires_at: formatDateTimeLocal(coupon.expires_at)
                     });
                     setShowModal(true);
                   }}
