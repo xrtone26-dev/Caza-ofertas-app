@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import { X, Plus, Edit2, Trash2 } from 'lucide-react';
 import axios from 'axios';
 
+const getFutureDate30Hours = () => {
+  const d = new Date(Date.now() + 30 * 60 * 60 * 1000);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 export const decodeCoupon = (offer) => {
   let expires_at = offer.expires_at;
   let description = offer.description || '';
@@ -10,21 +16,26 @@ export const decodeCoupon = (offer) => {
     if (match[1]) expires_at = match[1];
     description = description.replace(match[0], '').trim();
   }
+  
+  // Si el cupón no tiene fecha registrada, le asignamos 30 horas por defecto
+  if (!expires_at) {
+    expires_at = getFutureDate30Hours();
+  } else {
+    // Asegurar formato correcto para datetime-local
+    try {
+      const d = new Date(expires_at);
+      if (!isNaN(d.getTime())) {
+        const pad = (n) => String(n).padStart(2, '0');
+        expires_at = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      } else {
+        expires_at = getFutureDate30Hours();
+      }
+    } catch (e) {
+      expires_at = getFutureDate30Hours();
+    }
+  }
+
   return { ...offer, expires_at, description };
-};
-
-const getFutureDate30Hours = () => {
-  const d = new Date(Date.now() + 30 * 60 * 60 * 1000);
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-};
-
-const formatDateTimeLocal = (dateString) => {
-  if (!dateString) return getFutureDate30Hours();
-  const d = new Date(dateString);
-  if (isNaN(d.getTime())) return getFutureDate30Hours();
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
 export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublicOffers }) {
@@ -154,7 +165,7 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
                     setNewCoupon({
                       ...coupon,
                       min_purchase: coupon.min_purchase ? formatCurrencyInput(String(coupon.min_purchase)) : '',
-                      expires_at: formatDateTimeLocal(coupon.expires_at)
+                      expires_at: coupon.expires_at || getFutureDate30Hours()
                     });
                     setShowModal(true);
                   }}
