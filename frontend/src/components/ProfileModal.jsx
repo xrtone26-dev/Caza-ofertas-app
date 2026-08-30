@@ -39,7 +39,7 @@ export default function ProfileModal({
   const [editTel, setEditTel] = useState('');
   const [editEdad, setEditEdad] = useState('');
   const [editSexo, setEditSexo] = useState('Masculino');
-  const [editPlaylist, setEditPlaylist] = useState(''); // Campo para la música
+  // const [editPlaylist, setEditPlaylist] = useState(''); // 🎵 Módulo de música comentado
   const [selectedAvatar, setSelectedAvatar] = useState('👩‍🦰');
   const [customAvatarImg, setCustomAvatarImg] = useState(() => localStorage.getItem('cazaAvatarImg') || '');
   
@@ -53,7 +53,7 @@ export default function ProfileModal({
       setEditTel(localStorage.getItem('cazaTel') || '');
       setEditEdad(localStorage.getItem('cazaEdad') || '');
       setEditSexo(localStorage.getItem('cazaSexo') || 'Masculino');
-      setEditPlaylist(localStorage.getItem('cazaPlaylist') || '');
+      // setEditPlaylist(localStorage.getItem('cazaPlaylist') || ''); // 🎵 Módulo de música comentado
       setSelectedAvatar(localStorage.getItem('cazaAvatar') || '👩‍🦰');
       setCustomAvatarImg(localStorage.getItem('cazaAvatarImg') || '');
     }
@@ -121,7 +121,7 @@ export default function ProfileModal({
     localStorage.setItem('cazaTel', editTel);
     localStorage.setItem('cazaEdad', editEdad);
     localStorage.setItem('cazaSexo', editSexo);
-    localStorage.setItem('cazaPlaylist', editPlaylist);
+    // localStorage.setItem('cazaPlaylist', editPlaylist); // 🎵 Módulo de música comentado
     localStorage.setItem('cazaAvatar', selectedAvatar);
     if (customAvatarImg) {
       localStorage.setItem('cazaAvatarImg', customAvatarImg);
@@ -328,6 +328,7 @@ export default function ProfileModal({
                     </div>
                   </div>
 
+                  {/* 🎵 MÓDULO DE MÚSICA COMENTADO TEMPORALMENTE 
                   <div>
                     <label className="text-[11px] text-yellow-400 font-bold flex items-center gap-1">
                       <Music size={14} /> Enlace de tu Playlist (Spotify o YouTube)
@@ -341,6 +342,7 @@ export default function ProfileModal({
                     />
                     <p className="text-[10px] text-neutral-400 mt-0.5">Pega el enlace de tu música favorita para que suene en el reproductor.</p>
                   </div>
+                  */}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
