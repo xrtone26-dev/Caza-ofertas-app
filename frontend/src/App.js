@@ -61,7 +61,7 @@ function FeatureCube({ isLight }) {
     const elapsed = (time - startTimeRef.current) * 0.001;
     setRotation({
       x: Math.sin(elapsed * 0.6) * 55, 
-      y: elapsed * 35,                     
+      y: elapsed * 35,                         
       z: Math.sin(elapsed * 0.4) * 20, 
     });
     requestRef.current = requestAnimationFrame(animate);
@@ -308,11 +308,12 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
   const activeImgUrl = currentVideo.imageUrl || currentVideo.image_url;
 
   return (
-    <div className="flex flex-col items-center justify-center gap-6">
-      <div className="flex items-center justify-center gap-4 w-full">
+    <div className="flex flex-col items-center justify-center gap-6 w-full">
+      {/* Contenedor adaptado: en móvil se apila en columna centrado, en escritorio va en fila */}
+      <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full">
         <div className="hidden md:block w-14"></div>
 
-        <div className="relative w-full max-w-sm h-[520px] bg-black rounded-3xl overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col select-none">
+        <div className="relative w-full max-w-[280px] sm:max-w-sm h-[480px] sm:h-[520px] bg-black rounded-3xl overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col select-none">
           <div className="absolute inset-0 w-full h-full overflow-hidden bg-black pointer-events-none">
             <iframe
               ref={iframeRef}
@@ -417,20 +418,21 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
           )}
         </div>
 
-        <div className="flex md:flex-col gap-4">
+        {/* Botones de navegación: en celular se muestran en fila horizontal debajo, en escritorio en columna */}
+        <div className="flex flex-row md:flex-col gap-4 mt-2 md:mt-0">
           <button
             onClick={handlePrev}
-            className="w-14 h-14 rounded-full bg-yellow-400 text-black border-4 border-black flex items-center justify-center hover:scale-110 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-black"
+            className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-yellow-400 text-black border-4 border-black flex items-center justify-center hover:scale-110 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-black"
             title="Video Anterior"
           >
-            <ChevronUp size={28} />
+            <ChevronUp size={24} className="md:w-7 md:h-7" />
           </button>
           <button
             onClick={handleNext}
-            className="w-14 h-14 rounded-full bg-yellow-400 text-black border-4 border-black flex items-center justify-center hover:scale-110 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-black"
+            className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-yellow-400 text-black border-4 border-black flex items-center justify-center hover:scale-110 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-black"
             title="Siguiente Video"
           >
-            <ChevronDown size={28} />
+            <ChevronDown size={24} className="md:w-7 md:h-7" />
           </button>
         </div>
       </div>
@@ -1096,58 +1098,58 @@ function App() {
                               </div>
                             </div>
 
-                              <div className="absolute top-1/2 -left-5 -translate-y-1/2 w-8 h-8 bg-[#FFEA00] border-4 border-black rounded-full z-20"></div>
-                              <div className="absolute top-1/2 -right-5 -translate-y-1/2 w-8 h-8 bg-[#FFEA00] border-4 border-black rounded-full z-20"></div>
-                            </div>
+                            <div className="absolute top-1/2 -left-5 -translate-y-1/2 w-8 h-8 bg-[#FFEA00] border-4 border-black rounded-full z-20"></div>
+                            <div className="absolute top-1/2 -right-5 -translate-y-1/2 w-8 h-8 bg-[#FFEA00] border-4 border-black rounded-full z-20"></div>
+                          </div>
 
-                            <div className="flex justify-between items-center w-full mb-4 px-1 gap-2">
-                              <button
-                                onClick={() => handleReaction(cuponId, 'like')}
-                                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-black ${
-                                  currentReaction === 'like'
-                                    ? 'bg-blue-500 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] scale-105'
-                                    : 'bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100'
-                                }`}
-                              >
-                                <span>👍</span><span>{counts.like}</span>
-                              </button>
-                              <button
-                                onClick={() => handleReaction(cuponId, 'dislike')}
-                                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-black ${
-                                  currentReaction === 'dislike'
-                                    ? 'bg-red-500 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] scale-105'
-                                    : 'bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100'
-                                }`}
-                              >
-                                <span>👎</span><span>{counts.dislike}</span>
-                              </button>
-                              <button
-                                onClick={() => handleReaction(cuponId, 'heart')}
-                                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-black ${
-                                  currentReaction === 'heart'
-                                    ? 'bg-pink-500 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] scale-105'
-                                    : 'bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100'
-                                }`}
-                              >
-                                <span>❤️</span><span>{counts.heart}</span>
-                              </button>
-                            </div>
+                          <div className="flex justify-between items-center w-full mb-4 px-1 gap-2">
+                            <button
+                              onClick={() => handleReaction(cuponId, 'like')}
+                              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-black ${
+                                currentReaction === 'like'
+                                  ? 'bg-blue-500 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] scale-105'
+                                  : 'bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100'
+                              }`}
+                            >
+                              <span>👍</span><span>{counts.like}</span>
+                            </button>
+                            <button
+                              onClick={() => handleReaction(cuponId, 'dislike')}
+                              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-black ${
+                                currentReaction === 'dislike'
+                                  ? 'bg-red-500 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] scale-105'
+                                  : 'bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100'
+                              }`}
+                            >
+                              <span>👎</span><span>{counts.dislike}</span>
+                            </button>
+                            <button
+                              onClick={() => handleReaction(cuponId, 'heart')}
+                              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-black ${
+                                currentReaction === 'heart'
+                                  ? 'bg-pink-500 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] scale-105'
+                                  : 'bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100'
+                              }`}
+                            >
+                              <span>❤️</span><span>{counts.heart}</span>
+                            </button>
+                          </div>
 
-                            {cupon.link && (
-                              <button
-                                onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                                className="w-full bg-black text-[#FFEA00] rounded-2xl py-2 flex flex-col items-center justify-center transition-transform hover:scale-[1.02] mt-auto border-2 border-black shadow-[0_4px_14px_0_rgba(0,0,0,0.39)]"
-                              >
-                                <div className="flex items-center justify-center gap-3 w-full">
-                                  <svg className="w-5 h-5 text-[#FFEA00] flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-                                  <span className="text-xl md:text-2xl font-black tracking-wide uppercase">COPIAR CUPÒN</span>
-                                  <svg className="w-5 h-5 text-[#FFEA00] flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
-                                </div>
-                                <div className="text-sm md:text-base font-bold tracking-tight -mt-1">
-                                  E IR A MERCADO LIBRE
-                                </div>
-                              </button>
-                            )}
+                          {cupon.link && (
+                            <button
+                              onClick={() => handleCopiarIrMercadoLibre(cupon)}
+                              className="w-full bg-black text-[#FFEA00] rounded-2xl py-2 flex flex-col items-center justify-center transition-transform hover:scale-[1.02] mt-auto border-2 border-black shadow-[0_4px_14px_0_rgba(0,0,0,0.39)]"
+                            >
+                              <div className="flex items-center justify-center gap-3 w-full">
+                                <svg className="w-5 h-5 text-[#FFEA00] flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                                <span className="text-xl md:text-2xl font-black tracking-wide uppercase">COPIAR CUPÒN</span>
+                                <svg className="w-5 h-5 text-[#FFEA00] flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+                              </div>
+                              <div className="text-sm md:text-base font-bold tracking-tight -mt-1">
+                                E IR A MERCADO LIBRE
+                              </div>
+                            </button>
+                          )}
 
                         </div>
                       </div>
@@ -1379,7 +1381,7 @@ function App() {
               </h3>
 
               <p className="text-sm leading-relaxed mb-6 opacity-90">
-                Tenemos beneficios exclusivos para ti. Jugando, interactuando y descubriendo ofertas en nossa plataforma, podrás <strong>ganar premios cada mes</strong> si te encuentras entre los usuarios con mayor actividad.
+                Tenemos beneficios exclusivos para ti. Jugando, interactuando y descubriendo ofertas en nuestra plataforma, podrás <strong>ganar premios cada mes</strong> si te encuentras entre los usuarios con mayor actividad.
               </p>
 
               <div className="bg-yellow-400/10 border border-yellow-400/30 rounded-2xl p-4 mb-6 text-left">
@@ -1411,11 +1413,11 @@ function App() {
                 >
                   Cerrar
                 </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* MENÚ FLOTANTE SUPERIOR DERECHO */}
       <div className="fixed top-6 right-6 z-[60] flex flex-col items-center gap-3">
