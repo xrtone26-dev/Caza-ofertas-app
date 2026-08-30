@@ -13,6 +13,12 @@ export const decodeCoupon = (offer) => {
   return { ...offer, expires_at, description };
 };
 
+const getFutureDate30Hours = () => {
+  const d = new Date(Date.now() + 30 * 60 * 60 * 1000);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublicOffers }) {
   const [coupons, setCoupons] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -25,7 +31,7 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
     code: '',
     min_purchase: '',
     link: '',
-    expires_at: '',
+    expires_at: getFutureDate30Hours(),
     active: true,
   });
 
@@ -40,7 +46,6 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
       const response = await axios.get(`${API}/admin/offers`, {
         params: { password: adminPassword },
       });
-      // Filtramos únicamente los que son de tipo cupón
       const onlyCoupons = response.data.map(decodeCoupon).filter(o => o.type === 'cupon');
       setCoupons(onlyCoupons);
     } catch (error) {}
@@ -54,11 +59,15 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
     try {
       const rawMin = newCoupon.min_purchase ? Number(String(newCoupon.min_purchase).replace(/\D/g, '')) : 0;
       let desc = (newCoupon.description || '').replace(/\s*\|\|exp:.*?\|\|/g, '');
-      if (newCoupon.expires_at) desc += ` ||exp:${newCoupon.expires_at}||`;
+      
+      // Asignar 30 horas por defecto si está vacío
+      const finalExpiresAt = newCoupon.expires_at || getFutureDate30Hours();
+      desc += ` ||exp:${finalExpiresAt}||`;
 
       const couponData = {
         ...newCoupon,
         description: desc,
+        expires_at: finalExpiresAt,
         min_purchase: rawMin,
         type: 'cupon',
         id: editingCoupon ? getSafeId(editingCoupon) : 'offer_' + Date.now(),
@@ -80,7 +89,7 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
         code: '',
         min_purchase: '',
         link: '',
-        expires_at: '',
+        expires_at: getFutureDate30Hours(),
         active: true,
       });
       loadCoupons();
@@ -107,7 +116,20 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
   return (
     <div>
       <button
-        onClick={() => { setEditingCoupon(null); setShowModal(true); }}
+        onClick={() => { 
+          setEditingCoupon(null); 
+          setNewCoupon({
+            type: 'cupon',
+            title: '',
+            description: '',
+            code: '',
+            min_purchase: '',
+            link: '',
+            expires_at: getFutureDate30Hours(),
+            active: true,
+          });
+          setShowModal(true); 
+        }}
         className="mb-6 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all flex items-center gap-2"
       >
         <Plus className="w-5 h-5" /> Nuevo Cupón
@@ -198,7 +220,7 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-bold mb-2">Fecha y Hora de Expiración</label>
+                <label className="block text-gray-700 font-bold mb-2">Fecha y Hora de Expiración (30 hrs por defecto)</label>
                 <input
                   type="datetime-local"
                   value={newCoupon.expires_at}
