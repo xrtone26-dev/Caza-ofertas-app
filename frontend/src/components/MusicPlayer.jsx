@@ -1,7 +1,19 @@
+import React from 'react';
+
+// ==============================================================================
+// 🎵 MÓDULO DE MÚSICA COMENTADO TEMPORALMENTE (OCULTO EN LA PÁGINA)
+// ==============================================================================
+export default function MusicPlayer() {
+  return null;
+}
+
+/* 
+--- CÓDIGO ORIGINAL PRESERVADO INTEGRO ---
+
 import React, { useState, useEffect } from 'react';
 import { Music, X, Maximize2, Minimize2, ExternalLink, Play, Radio, CheckCircle2 } from 'lucide-react';
 
-export default function MusicPlayer({ showMusicModal, setShowMusicModal, isLight, isMinimized, setIsMinimized }) {
+export default function MusicPlayerOriginal({ showMusicModal, setShowMusicModal, isLight, isMinimized, setIsMinimized }) {
   const [platform, setPlatform] = useState('spotify'); // 'spotify' o 'youtube'
   const [musicLink, setMusicLink] = useState('');
   const [savedLink, setSavedLink] = useState('');
@@ -37,7 +49,6 @@ export default function MusicPlayer({ showMusicModal, setShowMusicModal, isLight
 
   if (!showMusicModal) return null;
 
-  // FUNCION MEJORADA: Extractor de enlaces a prueba de fallos
   const getEmbedUrl = (url, plat) => {
     if (!url) {
       return plat === 'spotify' 
@@ -46,18 +57,16 @@ export default function MusicPlayer({ showMusicModal, setShowMusicModal, isLight
     }
 
     if (plat === 'spotify') {
-      // Usamos REGEX para extraer exactamente el ID sin importar si tiene /intl-es/ o ?si=123
       const spotifyRegex = /(track|playlist|album|artist|episode|show)\/([a-zA-Z0-9]+)/;
       const match = url.match(spotifyRegex);
       
       if (match) {
-        const type = match[1]; // detecta si es track, playlist, etc.
-        const id = match[2];   // extrae el código único
+        const type = match[1];
+        const id = match[2];
         return `https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0`;
       }
-      return url; // Fallback por si acaso
+      return url;
     } else {
-      // Lógica mejorada para YouTube (Videos, Shorts y Playlists)
       if (url.includes('playlist?list=')) {
         const listId = url.split('playlist?list=')[1]?.split('&')[0];
         return `https://www.youtube.com/embed/videoseries?list=${listId}&autoplay=1`;
@@ -82,7 +91,6 @@ export default function MusicPlayer({ showMusicModal, setShowMusicModal, isLight
         ? 'inset-4 md:inset-10 rounded-3xl bg-neutral-900 text-white' 
         : 'bottom-20 right-6 w-[92%] max-w-[380px] rounded-3xl bg-neutral-900 text-white'
     }`}>
-      {/* Barra superior de la ventana emergente */}
       <div className="bg-black px-4 py-3 rounded-t-2xl flex items-center justify-between border-b-2 border-neutral-800">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
@@ -109,7 +117,6 @@ export default function MusicPlayer({ showMusicModal, setShowMusicModal, isLight
         </div>
       </div>
 
-      {/* Contenido de la ventana */}
       <div className={`p-5 flex flex-col ${isMaximized ? 'h-[calc(100%-60px)]' : 'h-[360px]'}`}>
         {!isLoggedIn ? (
           <div className="flex flex-col h-full justify-center text-center">
@@ -188,3 +195,4 @@ export default function MusicPlayer({ showMusicModal, setShowMusicModal, isLight
     </div>
   );
 }
+*/
