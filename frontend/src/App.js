@@ -1200,25 +1200,25 @@ function App() {
           isLight ? 'bg-white border-gray-100' : 'bg-neutral-900/85 border-neutral-800'
         }`}>
           <div className="relative flex items-center justify-center mb-6">
+            <h2 className={`text-3xl font-bold text-center ${isLight ? 'text-gray-800' : 'text-neutral-100 font-black'}`}>
+              🔥 Productos Destacados
+            </h2>
+          </div>
+
+          <div className="max-w-xl mx-auto mb-8 flex flex-col gap-3">
             {searchTerm && (
               <button
                 onClick={() => {
                   setSearchTerm('');
                   setProductSearchInput('');
                 }}
-                className="absolute left-0 flex items-center gap-1 px-3.5 py-2 rounded-xl font-black text-xs uppercase transition-transform hover:scale-105 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] bg-yellow-400 text-black border-2 border-black"
+                className="self-start flex items-center gap-1 px-3.5 py-2 rounded-xl font-black text-xs uppercase transition-transform hover:scale-105 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] bg-yellow-400 text-black border-2 border-black"
                 title="Regresar a todos los productos"
               >
                 <ChevronLeft className="w-5 h-5" /> Regresar
               </button>
             )}
-            <h2 className={`text-3xl font-bold text-center ${isLight ? 'text-gray-800' : 'text-neutral-100 font-black'}`}>
-              🔥 Productos Destacados
-            </h2>
-          </div>
-
-          <div className="max-w-xl mx-auto mb-8 flex gap-2">
-            <div className="relative flex-1 flex gap-2">
+            <div className="flex gap-2 w-full">
               <div className="relative flex-1">
                 <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 ${isLight ? 'text-gray-400' : 'text-neutral-500'}`} />
                 <input
