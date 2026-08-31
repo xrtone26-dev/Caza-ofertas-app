@@ -485,6 +485,9 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
   );
 }
 
+// ==========================================
+// NUEVO DISEÑO BLACK & GOLD PARA EL TEMPORIZADOR
+// ==========================================
 function CountdownTimer({ expiresAt }) {
   const [timeLeft, setTimeLeft] = useState('');
 
@@ -523,17 +526,17 @@ function CountdownTimer({ expiresAt }) {
 
   if (!expiresAt) {
     return (
-      <span className="text-sm font-black text-black bg-white px-3 py-1.5 rounded-full border-2 border-black flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+      <span className="text-sm font-black text-yellow-400 bg-neutral-950 px-3 py-1.5 rounded-full border-2 border-yellow-400 flex items-center gap-1 shadow-[2px_2px_0px_0px_#ca8a04]">
         ⏰ Permanente
       </span>
     );
   }
 
   return (
-    <span className={`text-sm font-black px-3 py-1.5 rounded-full border-2 flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+    <span className={`text-sm font-black px-3 py-1.5 rounded-full border-2 flex items-center gap-1 shadow-[2px_2px_0px_0px_#ca8a04] ${
       timeLeft === 'Expirado' 
-        ? 'text-white bg-red-600 border-black' 
-        : 'text-black bg-white border-black'
+        ? 'text-white bg-red-600 border-red-800' 
+        : 'text-yellow-400 bg-neutral-950 border-yellow-400'
     }`}>
       ⏰ {timeLeft}
     </span>
@@ -1048,7 +1051,7 @@ function App() {
           ) : (
             <div className="relative">
               <div className="overflow-hidden" ref={cuponesRef}>
-                <div className="flex gap-6">
+                <div className="flex gap-6 py-4">
                   {filteredCupones.map((cupon) => {
                     const cuponId = getSafeId(cupon) || cupon.title;
                     const currentReaction = userReactions[cuponId];
@@ -1056,37 +1059,39 @@ function App() {
 
                     return (
                       <div key={cuponId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
-                        <div className="h-full bg-[#FFEA00] border-4 border-black rounded-3xl p-4 md:p-5 flex flex-col items-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] relative">
+                        {/* 🌟 NUEVO DISEÑO VIP BLACK & GOLD PARA EL CONTENEDOR */}
+                        <div className="h-full bg-gradient-to-b from-neutral-900 to-black border-4 border-yellow-400 rounded-3xl p-4 md:p-5 flex flex-col items-center shadow-[6px_6px_0px_0px_#ca8a04] relative">
                           
                           <div className="absolute top-3 right-3 z-10">
                             <CountdownTimer expiresAt={cupon.expires_at} />
                           </div>
 
                           <div className="w-full text-center mt-7 mb-3 flex items-center justify-center gap-2 md:gap-4 relative">
-                            <svg className="w-8 h-8 md:w-10 md:h-10 text-black flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-                            <h3 className="text-3xl md:text-4xl font-black text-black leading-[1.1] tracking-tighter uppercase">
+                            <svg className="w-8 h-8 md:w-10 md:h-10 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                            <h3 className="text-3xl md:text-4xl font-black text-yellow-400 leading-[1.1] tracking-tighter uppercase drop-shadow-[0_2px_10px_rgba(250,204,21,0.4)]">
                               CUPÓN<br/>ACTIVO
                             </h3>
-                            <svg className="w-8 h-8 md:w-10 md:h-10 text-black flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+                            <svg className="w-8 h-8 md:w-10 md:h-10 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
                           </div>
 
-                          <div className="relative w-full bg-white border-4 border-black rounded-2xl p-1 mb-4 flex-grow flex flex-col justify-center">
-                            <div className="border-[3px] border-dashed border-black rounded-xl p-4 flex flex-col items-center justify-center h-full text-center bg-white relative z-10">
+                          {/* CAJA INTERIOR DEL CÓDIGO */}
+                          <div className="relative w-full bg-[#0a0a0a] border-4 border-yellow-400 rounded-2xl p-1 mb-4 flex-grow flex flex-col justify-center shadow-inner">
+                            <div className="border-[3px] border-dashed border-yellow-500/50 rounded-xl p-4 flex flex-col items-center justify-center h-full text-center bg-[#0a0a0a] relative z-10">
                               
-                              <div className="bg-black text-white px-5 py-1.5 rounded-full text-sm font-black uppercase tracking-wider mb-2 max-w-full truncate">
+                              <div className="bg-yellow-400 text-black px-5 py-1.5 rounded-full text-sm font-black uppercase tracking-wider mb-2 max-w-full truncate shadow-[0_0_15px_rgba(250,204,21,0.3)]">
                                 {cupon.title || 'NUEVO CUPÓN'}
                               </div>
                               
                               {cupon.code && (
-                                <div className="text-4xl md:text-5xl font-black text-black tracking-tighter mb-2 break-all">
+                                <div className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-2 break-all drop-shadow-md">
                                   {String(cupon.code).length > 3
                                     ? String(cupon.code).slice(0, 3) + '*'.repeat(String(cupon.code).length - 3)
                                     : cupon.code}
                                 </div>
                               )}
                               
-                              <div className="border-t-[3px] border-black w-full mx-4 mt-2 pt-2 pb-1">
-                                <div className="text-sm font-black text-black uppercase tracking-tight flex flex-col gap-1">
+                              <div className="border-t-[3px] border-yellow-500/20 w-full mx-4 mt-2 pt-2 pb-1">
+                                <div className="text-sm font-black text-gray-300 uppercase tracking-tight flex flex-col gap-1">
                                   {cupon.description ? (
                                     cupon.description.split(/(?=[Dd][Ee][Ss][Cc][Uu][Ee][Nn][Tt][Oo]\s+[Mm][ÁáAa][Xx][Ii][Mm][Oo])/).map((part, i) => (
                                       <span key={i} className="block">{part.trim()}</span>
@@ -1098,37 +1103,38 @@ function App() {
                               </div>
                             </div>
 
-                            <div className="absolute top-1/2 -left-5 -translate-y-1/2 w-8 h-8 bg-[#FFEA00] border-4 border-black rounded-full z-20"></div>
-                            <div className="absolute top-1/2 -right-5 -translate-y-1/2 w-8 h-8 bg-[#FFEA00] border-4 border-black rounded-full z-20"></div>
+                            {/* RECORTES LATERALES DEL TICKET CAMBIADOS PARA BLENDEARSE COMO AGUJEROS */}
+                            <div className={`absolute top-1/2 -left-5 -translate-y-1/2 w-8 h-8 border-4 border-yellow-400 rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
+                            <div className={`absolute top-1/2 -right-5 -translate-y-1/2 w-8 h-8 border-4 border-yellow-400 rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
                           </div>
 
                           <div className="flex justify-between items-center w-full mb-4 px-1 gap-2">
                             <button
                               onClick={() => handleReaction(cuponId, 'like')}
-                              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-black ${
+                              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-yellow-400 ${
                                 currentReaction === 'like'
-                                  ? 'bg-blue-500 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] scale-105'
-                                  : 'bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100'
+                                  ? 'bg-blue-600 text-white shadow-[2px_2px_0px_0px_#ca8a04] scale-105 border-blue-500'
+                                  : 'bg-neutral-900 text-yellow-400 shadow-[2px_2px_0px_0px_#ca8a04] hover:bg-neutral-800'
                               }`}
                             >
                               <span>👍</span><span>{counts.like}</span>
                             </button>
                             <button
                               onClick={() => handleReaction(cuponId, 'dislike')}
-                              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-black ${
+                              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-yellow-400 ${
                                 currentReaction === 'dislike'
-                                  ? 'bg-red-500 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] scale-105'
-                                  : 'bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100'
+                                  ? 'bg-red-600 text-white shadow-[2px_2px_0px_0px_#ca8a04] scale-105 border-red-500'
+                                  : 'bg-neutral-900 text-yellow-400 shadow-[2px_2px_0px_0px_#ca8a04] hover:bg-neutral-800'
                               }`}
                             >
                               <span>👎</span><span>{counts.dislike}</span>
                             </button>
                             <button
                               onClick={() => handleReaction(cuponId, 'heart')}
-                              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-black ${
+                              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-yellow-400 ${
                                 currentReaction === 'heart'
-                                  ? 'bg-pink-500 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] scale-105'
-                                  : 'bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100'
+                                  ? 'bg-pink-600 text-white shadow-[2px_2px_0px_0px_#ca8a04] scale-105 border-pink-500'
+                                  : 'bg-neutral-900 text-yellow-400 shadow-[2px_2px_0px_0px_#ca8a04] hover:bg-neutral-800'
                               }`}
                             >
                               <span>❤️</span><span>{counts.heart}</span>
@@ -1138,14 +1144,14 @@ function App() {
                           {cupon.link && (
                             <button
                               onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                              className="w-full bg-black text-[#FFEA00] rounded-2xl py-2 flex flex-col items-center justify-center transition-transform hover:scale-[1.02] mt-auto border-2 border-black shadow-[0_4px_14px_0_rgba(0,0,0,0.39)]"
+                              className="w-full bg-yellow-400 hover:bg-yellow-300 text-black rounded-2xl py-2 flex flex-col items-center justify-center transition-transform hover:scale-[1.02] mt-auto border-2 border-yellow-600 shadow-[0_4px_14px_0_rgba(250,204,21,0.4)]"
                             >
                               <div className="flex items-center justify-center gap-3 w-full">
-                                <svg className="w-5 h-5 text-[#FFEA00] flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-                                <span className="text-xl md:text-2xl font-black tracking-wide uppercase">COPIAR CUPÒN</span>
-                                <svg className="w-5 h-5 text-[#FFEA00] flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+                                <svg className="w-5 h-5 text-black flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                                <span className="text-xl md:text-2xl font-black tracking-wide uppercase drop-shadow-sm">COPIAR CUPÓN</span>
+                                <svg className="w-5 h-5 text-black flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
                               </div>
-                              <div className="text-sm md:text-base font-bold tracking-tight -mt-1">
+                              <div className="text-sm md:text-base font-bold tracking-tight -mt-1 opacity-90">
                                 E IR A MERCADO LIBRE
                               </div>
                             </button>
@@ -1162,15 +1168,15 @@ function App() {
                 <>
                   <button
                     onClick={scrollPrevCupones}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
                   >
-                    <ChevronLeft className="w-6 h-6" />
+                    <ChevronLeft className="w-6 h-6 font-black" />
                   </button>
                   <button
                     onClick={scrollNextCupones}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
                   >
-                    <ChevronRight className="w-6 h-6" />
+                    <ChevronRight className="w-6 h-6 font-black" />
                   </button>
                 </>
               )}
