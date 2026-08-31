@@ -53,7 +53,7 @@ const API = BACKEND_URL;
 // ==========================================
 // COMPONENTE 3D: CUBO DE CARACTERÍSTICAS AUTOMÁTICO DINÁMICO
 // ==========================================
-function FeatureCube({ isLight }) {
+function FeatureCube({ isLight, isMobileDevice }) {
   const [rotation, setRotation] = useState({ x: 0, y: 0, z: 0 });
   const requestRef = useRef();
   const startTimeRef = useRef(performance.now());
@@ -75,13 +75,17 @@ function FeatureCube({ isLight }) {
 
   const neonShadow = `0 0 15px rgba(0,229,255,0.5), inset 0 0 15px rgba(0,229,255,0.3)`;
 
-  const baseFaceClasses = `absolute w-[280px] h-[280px] p-6 flex flex-col justify-between backdrop-blur-xl transition-colors border-[4px] border-dotted border-[#00e5ff] ${
+  // 📱 Dieta del cubo: Más pequeño en celulares para que no desborde la pantalla
+  const cubeSize = isMobileDevice ? 220 : 280;
+  const tz = cubeSize / 2;
+
+  const baseFaceClasses = `absolute p-4 md:p-6 flex flex-col justify-between backdrop-blur-xl transition-colors border-[4px] border-dotted border-[#00e5ff] ${
     isLight 
       ? 'bg-white/90 text-gray-800' 
       : 'bg-neutral-900/90 text-neutral-100'
   }`;
 
-  const iconContainerClasses = `w-14 h-14 rounded-2xl flex-shrink-0 flex items-center justify-center mb-4 border-2 shadow-[0_0_10px_rgba(0,229,255,0.4)] ${
+  const iconContainerClasses = `w-12 h-12 md:w-14 md:h-14 rounded-2xl flex-shrink-0 flex items-center justify-center mb-2 md:mb-4 border-2 shadow-[0_0_10px_rgba(0,229,255,0.4)] ${
     isLight 
       ? 'bg-[#e0ffff] text-[#00b3cc] border-[#00e5ff]' 
       : 'bg-[#00e5ff]/10 text-[#00e5ff] border-[#00e5ff]/50'
@@ -96,7 +100,7 @@ function FeatureCube({ isLight }) {
   const faces = [
     {
       id: 'front',
-      transform: 'translateZ(140px)',
+      transform: `translateZ(${tz}px)`,
       icon: Tag,
       title: 'Cupones Exclusivos',
       desc: 'Códigos de descuento únicos y de alto valor que no encontrarás en ningún otro lugar.',
@@ -104,7 +108,7 @@ function FeatureCube({ isLight }) {
     },
     {
       id: 'back',
-      transform: 'rotateY(180deg) translateZ(140px)',
+      transform: `rotateY(180deg) translateZ(${tz}px)`,
       icon: ShieldCheck,
       title: 'Productos Verificados',
       desc: 'Analizamos reseñas, calidad y reputación para recomendarte solo lo mejor.',
@@ -112,7 +116,7 @@ function FeatureCube({ isLight }) {
     },
     {
       id: 'right',
-      transform: 'rotateY(90deg) translateZ(140px)',
+      transform: `rotateY(90deg) translateZ(${tz}px)`,
       icon: Headphones,
       title: 'Atención Personalizada',
       desc: '¿Buscas algo muy específico? Nuestro equipo te ayuda a rastrearlo al mejor precio.',
@@ -120,7 +124,7 @@ function FeatureCube({ isLight }) {
     },
     {
       id: 'left',
-      transform: 'rotateY(-90deg) translateZ(140px)',
+      transform: `rotateY(-90deg) translateZ(${tz}px)`,
       icon: Award,
       title: 'Premios Mensuales',
       desc: 'Participa en nuestra comunidad, gana puntos y obtén recompensas exclusivas.',
@@ -128,7 +132,7 @@ function FeatureCube({ isLight }) {
     },
     {
       id: 'top',
-      transform: 'rotateX(90deg) translateZ(140px)',
+      transform: `rotateX(90deg) translateZ(${tz}px)`,
       icon: TrendingDown,
       title: 'Precios Bajos',
       desc: 'Monitoreamos el mercado para asegurarnos de que siempre obtengas la mejor oferta.',
@@ -136,7 +140,7 @@ function FeatureCube({ isLight }) {
     },
     {
       id: 'bottom',
-      transform: 'rotateX(-90deg) translateZ(140px)',
+      transform: `rotateX(-90deg) translateZ(${tz}px)`,
       icon: Lock,
       title: 'Compras Seguras',
       desc: 'Enlaces directos a plataformas oficiales como Mercado Libre para tu tranquilidad.',
@@ -146,8 +150,8 @@ function FeatureCube({ isLight }) {
 
   return (
     <div 
-      className="relative w-[280px] h-[280px] mx-auto pointer-events-none"
-      style={{ perspective: '1000px' }}
+      className="relative mx-auto pointer-events-none"
+      style={{ perspective: '1000px', width: `${cubeSize}px`, height: `${cubeSize}px` }}
     >
       <div 
         className="w-full h-full relative"
@@ -166,18 +170,20 @@ function FeatureCube({ isLight }) {
                 transform: face.transform, 
                 backfaceVisibility: 'hidden',
                 boxShadow: neonShadow,
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                width: `${cubeSize}px`,
+                height: `${cubeSize}px`,
               }}
             >
               <div className="flex justify-between items-start">
                 <div className={iconContainerClasses}>
-                  <Icon className="w-7 h-7" />
+                  <Icon className="w-6 h-6 md:w-7 md:h-7" />
                 </div>
                 <span className={badgeClasses}>{face.badge}</span>
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-black tracking-tight mb-2 leading-tight">{face.title}</h3>
-                <p className={`text-xs leading-relaxed opacity-80 font-medium ${isLight ? 'text-gray-600' : 'text-neutral-300'}`}>
+                <h3 className="text-lg md:text-xl font-black tracking-tight mb-1 md:mb-2 leading-tight">{face.title}</h3>
+                <p className={`text-[10px] md:text-xs leading-relaxed opacity-80 font-medium ${isLight ? 'text-gray-600' : 'text-neutral-300'}`}>
                   {face.desc}
                 </p>
               </div>
@@ -1747,7 +1753,7 @@ function App() {
           </div>
 
           <div className="flex flex-col items-center justify-center pt-8 pb-16 relative">
-            <FeatureCube isLight={isLight} />
+            <FeatureCube isLight={isLight} isMobileDevice={isMobileDevice} />
           </div>
 
         </div>
