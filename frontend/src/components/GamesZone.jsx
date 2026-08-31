@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Gamepad2, User, Trophy, Play, Pause, Sparkles, Volume2, VolumeX, RotateCcw, Clock, Lightbulb, Maximize, Minimize, Settings as SettingsIcon, Music, Zap, Award, BarChart3, Share2, Home, Calendar } from 'lucide-react';
+import { Gamepad2, User, Trophy, Play, Pause, Sparkles, Volume2, VolumeX, RotateCcw, Clock, Lightbulb, Maximize, Minimize, Settings as SettingsIcon, Music, Zap, Award, BarChart3, Share2, Home, Calendar, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCw, ArrowDownToLine } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
 // CONFIGURACIÓN DEL MEMORAMA
@@ -98,6 +98,15 @@ export default function GamesZone({ currentUser, isLight }) {
   const [activeGame, setActiveGame] = useState('2048'); 
   const [gamePhase, setGamePhase] = useState('menu'); 
   const [isEffectsMuted, setIsEffectsMuted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detectar dispositivo móvil para ajustar controles
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768 || ('ontouchstart' in window));
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Estados de XP y Niveles independientes por jugador y más difíciles
   const [playerXP, setPlayerXP] = useState(() => Number(localStorage.getItem('caza_player_xp')) || 96);
@@ -1106,16 +1115,22 @@ export default function GamesZone({ currentUser, isLight }) {
         return;
       }
 
-      if (canvas.width !== 840 || canvas.height !== 520) {
-        canvas.width = 840;
-        canvas.height = 520;
+      // Solución Pixelaje: Ajustar canvas según dpr y tamaño real del contenedor
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      
+      if (canvas.width !== Math.floor(rect.width * dpr) || canvas.height !== Math.floor(rect.height * dpr)) {
+        canvas.width = Math.floor(rect.width * dpr);
+        canvas.height = Math.floor(rect.height * dpr);
       }
-
-      const width = canvas.width;
-      const height = canvas.height;
 
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
+      
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      const width = rect.width;
+      const height = rect.height;
 
       ctx.clearRect(0, 0, width, height);
       drawNinjaBackground(ctx, width, height);
@@ -1138,7 +1153,7 @@ export default function GamesZone({ currentUser, isLight }) {
           x: width * 0.15 + Math.random() * (width * 0.7),
           y: height + 60,
           vx: Math.random() * 150 - 75,
-          vy: -(Math.random() * 150 + 720),
+          vy: -(Math.random() * 150 + height * 1.3),
           rotation: 0,
           vRot: Math.random() * 60 - 30,
           isHalf: false
@@ -1146,7 +1161,7 @@ export default function GamesZone({ currentUser, isLight }) {
       }
 
       const dt = 1 / 60;
-      const gravity = 950;
+      const gravity = height * 1.8; // Gravedad proporcional al alto de pantalla
 
       let currentObjects = [...ninjaObjectsRef.current];
 
@@ -1170,6 +1185,10 @@ export default function GamesZone({ currentUser, isLight }) {
         ctx.translate(obj.x, obj.y);
         ctx.rotate(obj.rotation);
         ctx.globalAlpha = obj.alpha !== undefined ? obj.alpha : 1;
+        
+        // Responsividad: Ajustar tamaños según la pantalla (celular vs PC)
+        const scaleFactor = Math.min(1, width / 840);
+        ctx.scale(scaleFactor, scaleFactor);
 
         if (obj.type === 'bomb') {
           ctx.beginPath();
@@ -1209,6 +1228,7 @@ export default function GamesZone({ currentUser, isLight }) {
           ninjaLivesRef.current = Math.max(0, ninjaLivesRef.current - 1);
           setNinjaLives(ninjaLivesRef.current);
           if (ninjaLivesRef.current <= 0) {
+            ctx.restore(); // Restore main ctx before finishing
             handleFinishGame(scoreRef.current, false);
             return;
           }
@@ -1277,6 +1297,7 @@ export default function GamesZone({ currentUser, isLight }) {
           trail.shift();
         }
       }
+      ctx.restore(); // Restore global context scale
 
       ninjaGameLoopRef.current = requestAnimationFrame(gameLoop);
     };
@@ -1285,12 +1306,12 @@ export default function GamesZone({ currentUser, isLight }) {
   };
 
   const getNinjaStageConfig = (gTime) => {
-    if (gTime < 30) return { minFruits: 1, maxFruits: 1, interval: 2.2, speed: 780, bombChance: 0 };
-    if (gTime < 60) return { minFruits: 1, maxFruits: 2, interval: 1.8, speed: 820, bombChance: 3 };
-    if (gTime < 120) return { minFruits: 1, maxFruits: 2, interval: 1.4, speed: 870, bombChance: 6 };
-    if (gTime < 180) return { minFruits: 2, maxFruits: 3, interval: 1.2, speed: 920, bombChance: 8 };
-    if (gTime < 300) return { minFruits: 2, maxFruits: 3, interval: 1.0, speed: 970, bombChance: 10 };
-    return { minFruits: 2, maxFruits: 4, interval: 0.9, speed: 1020, bombChance: 12 };
+    if (gTime < 30) return { minFruits: 1, maxFruits: 1, interval: 2.2, speed: 1.5, bombChance: 0 };
+    if (gTime < 60) return { minFruits: 1, maxFruits: 2, interval: 1.8, speed: 1.6, bombChance: 3 };
+    if (gTime < 120) return { minFruits: 1, maxFruits: 2, interval: 1.4, speed: 1.7, bombChance: 6 };
+    if (gTime < 180) return { minFruits: 2, maxFruits: 3, interval: 1.2, speed: 1.8, bombChance: 8 };
+    if (gTime < 300) return { minFruits: 2, maxFruits: 3, interval: 1.0, speed: 1.9, bombChance: 10 };
+    return { minFruits: 2, maxFruits: 4, interval: 0.9, speed: 2.0, bombChance: 12 };
   };
 
   const drawNinjaBackground = (ctx, width, height) => {
@@ -1317,8 +1338,9 @@ export default function GamesZone({ currentUser, isLight }) {
       const maxX = width * 0.85;
       const startX = minX + Math.random() * (maxX - minX);
       const startY = height + 60; 
-      const vx = Math.random() * 160 - 80; 
-      const vy = -(Math.random() * 100 + stage.speed);
+      const vx = Math.random() * (width * 0.4) - (width * 0.2); 
+      // La altura de lanzamiento depende del alto de pantalla para que suba y baje bien
+      const vy = -(Math.random() * (height * 0.3) + (height * stage.speed * 0.9));
       const rotationDegPerSec = Math.random() * 150 - 75;
       const vRot = (rotationDegPerSec * Math.PI) / 180;
 
@@ -1337,9 +1359,12 @@ export default function GamesZone({ currentUser, isLight }) {
     const rect = canvas.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+    
+    // Convertir de client bounds a coordenadas reales
+    return { 
+      x: (clientX - rect.left), 
+      y: (clientY - rect.top) 
+    };
   };
 
   const handleNinjaPointerDown = (e) => {
@@ -1363,13 +1388,17 @@ export default function GamesZone({ currentUser, isLight }) {
   const checkNinjaSlices = (x, y) => {
     let objects = ninjaObjectsRef.current;
     let cutCount = 0;
+    const canvas = canvasRef.current;
+    const width = canvas ? canvas.getBoundingClientRect().width : 840;
+    const scaleFactor = Math.min(1, width / 840);
+    const hitRadius = 55 * scaleFactor;
 
     for (let i = objects.length - 1; i >= 0; i--) {
       let obj = objects[i];
       if (obj.isHalf) continue;
 
       const dist = Math.hypot(obj.x - x, obj.y - y);
-      if (dist < 55) {
+      if (dist < hitRadius) {
         if (obj.type === 'bomb') {
           playSoundEffect('explosion');
           setScreenRed(true);
@@ -1447,7 +1476,8 @@ export default function GamesZone({ currentUser, isLight }) {
   const spawnConfetti = () => {
     const canvas = clickerCanvasRef.current;
     if (!canvas) return;
-    const w = canvas.width; const h = canvas.height;
+    const w = canvas.getBoundingClientRect().width;
+    const h = canvas.getBoundingClientRect().height;
     for (let i = 0; i < 150; i++) {
       clickerConfettiRef.current.push({
         x: Math.random() < 0.5 ? 0 : w, y: h - Math.random() * 100,
@@ -1461,13 +1491,22 @@ export default function GamesZone({ currentUser, isLight }) {
   const drawClickerCanvas = useCallback(() => {
     const canvas = clickerCanvasRef.current;
     if (!canvas) return;
+    
+    // Solución Pixelaje: Usar dpr
+    const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    if (canvas.width !== rect.width || canvas.height !== rect.height) {
-      canvas.width = rect.width;
-      canvas.height = rect.height;
+    if (canvas.width !== Math.floor(rect.width * dpr) || canvas.height !== Math.floor(rect.height * dpr)) {
+      canvas.width = Math.floor(rect.width * dpr);
+      canvas.height = Math.floor(rect.height * dpr);
     }
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.save();
+    ctx.scale(dpr, dpr);
+    const width = rect.width;
+    const height = rect.height;
+
+    ctx.clearRect(0, 0, width, height);
 
     for (let i = clickerParticlesRef.current.length - 1; i >= 0; i--) {
       let p = clickerParticlesRef.current[i];
@@ -1481,12 +1520,13 @@ export default function GamesZone({ currentUser, isLight }) {
     for (let i = clickerConfettiRef.current.length - 1; i >= 0; i--) {
       let c = clickerConfettiRef.current[i];
       c.x += c.vx; c.y += c.vy; c.vy += 0.4; c.angle += c.rot;
-      if (c.y > canvas.height) { clickerConfettiRef.current.splice(i, 1); continue; }
+      if (c.y > height) { clickerConfettiRef.current.splice(i, 1); continue; }
       ctx.globalAlpha = 1; ctx.fillStyle = c.color;
       ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.angle * Math.PI / 180);
       ctx.fillRect(-c.size/2, -c.size/2, c.size, c.size); ctx.restore();
     }
-    ctx.globalAlpha = 1;
+    
+    ctx.restore();
   }, [clickerSettings.theme]);
 
   const startClickerCountdown = () => {
@@ -1550,7 +1590,6 @@ export default function GamesZone({ currentUser, isLight }) {
     const finalClicks = clickerClicksRef.current;
     const finalMaxCps = clickerMaxCpsRef.current;
     
-    // CORRECCIÓN: Actualizar el récord global del juego ('clicker') para que se refleje en el Top Global y el Récord del Mes
     const currentHighScore = highScores['clicker'] || 0;
     if (finalClicks > currentHighScore) {
       setHighScores(prev => ({ ...prev, 'clicker': finalClicks }));
@@ -1669,15 +1708,16 @@ export default function GamesZone({ currentUser, isLight }) {
         const rect = canvas.getBoundingClientRect();
         const clientX = e.clientX || (e.touches && e.touches[0].clientX);
         const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        const x = (clientX - rect.left) * scaleX;
-        const y = (clientY - rect.top) * scaleY;
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
         spawnClickEffect(x, y);
       }
     } else {
        const canvas = clickerCanvasRef.current;
-       if (canvas) spawnClickEffect(canvas.width / 2, canvas.height / 2);
+       if (canvas) {
+         const rect = canvas.getBoundingClientRect();
+         spawnClickEffect(rect.width / 2, rect.height / 2);
+       }
     }
   };
 
@@ -1843,7 +1883,7 @@ export default function GamesZone({ currentUser, isLight }) {
               🎁 TORNEO MENSUAL ACTIVO
             </h3>
             <p className="text-xs text-neutral-400 mt-0.5">
-              Acumula la mejor puntuaciòn, escala puestos, llega al primer puesto y gana tarjetas de regalo cada mes.
+              Acumula la mejor puntuación, escala puestos, llega al primer puesto y gana tarjetas de regalo cada mes.
             </p>
           </div>
         </div>
@@ -1872,7 +1912,7 @@ export default function GamesZone({ currentUser, isLight }) {
 
         <div className="flex flex-col xl:flex-row gap-6 items-center xl:items-start justify-center w-full">
           
-          {/* PROGRESO GLOBAL (Izquierda en PC, Arriba en Celular pero después del Menú Opcional o Antes) */}
+          {/* PROGRESO GLOBAL */}
           <div className="w-full max-w-sm xl:w-64 shrink-0 bg-gradient-to-b from-red-600 to-red-900 rounded-2xl p-5 text-white shadow-lg border border-red-500 relative overflow-hidden order-2 xl:order-1">
             <h3 className="text-center font-black text-sm uppercase tracking-wider mb-3 flex items-center justify-center gap-2">
               <User className="w-4 h-4" /> PROGRESO GLOBAL
@@ -1899,7 +1939,7 @@ export default function GamesZone({ currentUser, isLight }) {
             </div>
           </div>
 
-          {/* CONTENEDOR CENTRAL DEL JUEGO (Centro en PC, Arriba del todo en Móviles) */}
+          {/* CONTENEDOR CENTRAL DEL JUEGO */}
           <div className="flex flex-col gap-3 w-full max-w-[840px] order-1 xl:order-2">
             {gamePhase === 'playing' && activeGame !== 'memory' && activeGame !== 'ninja' && activeGame !== 'clicker' && activeGame !== 'tetris' && (
               <div className="w-full flex flex-wrap justify-between items-center gap-2 bg-neutral-900 border border-neutral-800 px-4 py-2 rounded-xl shadow-md text-white text-xs font-bold">
@@ -1920,7 +1960,10 @@ export default function GamesZone({ currentUser, isLight }) {
 
             <div 
               ref={gameContainerRef} 
-              className={`relative w-full h-[65vh] min-h-[450px] max-h-[520px] sm:h-[520px] bg-neutral-950 rounded-2xl border flex items-center justify-center shadow-2xl overflow-hidden ${
+              className={`relative w-full ${
+                // Permitimos que el contenedor crezca automáticamente en celular para que quepan los botones
+                isMobile ? 'h-auto min-h-[60vh]' : 'h-[65vh] min-h-[450px] max-h-[520px] sm:h-[520px]' 
+              } bg-neutral-950 rounded-2xl border flex items-center justify-center shadow-2xl overflow-hidden ${
                 activeGame === 'clicker' ? getClickerThemeClasses() : 'border-neutral-800'
               } ${
                 isFullscreen ? 'h-screen w-screen rounded-none border-none max-h-none min-h-screen' : ''
@@ -1967,8 +2010,8 @@ export default function GamesZone({ currentUser, isLight }) {
                   <div className="my-auto w-full flex flex-col items-center py-4">
                     <h3 className="text-2xl font-black text-yellow-400 mb-3 uppercase">Instrucciones</h3>
                     <p className="text-sm text-neutral-300 max-w-md mb-6 leading-relaxed">
-                      {activeGame === '2048' && 'Usa el teclado (Flechas o las teclas W,A,S,D) o desliza el dedo en cualquier dirección sobre el tablero para combinar fichas iguales.'}
-                      {activeGame === 'tetris' && 'Mueve piezas con las teclas A/D o desliza el dedo, rota con W/X o toca, baja rápido con S y guarda pieza con Shift o C.'}
+                      {activeGame === '2048' && 'Usa el teclado (Flechas o las teclas W,A,S,D) o usa los botones en pantalla para combinar fichas iguales.'}
+                      {activeGame === 'tetris' && 'Mueve piezas con los botones en pantalla o teclado. Evita que la pantalla se llene.'}
                       {activeGame === 'memory' && 'Voltea las cartas, encuentra las parejas ocultas en el menor tiempo posible y usa tus pistas sabiamente.'}
                       {activeGame === 'ninja' && 'Corta la mayor cantidad de frutas posibles. Desliza el dedo o el mouse, ¡Cuidado con las bombas (restan 1 vida)!'}
                     </p>
@@ -2275,14 +2318,29 @@ export default function GamesZone({ currentUser, isLight }) {
                     <span className="text-[10px] sm:text-xs font-bold text-neutral-400">{isWon ? '✨ ¡2048 Conseguido! (Infinito)' : 'Combina fichas iguales'}</span>
                     <button onClick={undo2048} className="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-xs font-bold text-yellow-400 rounded-lg flex items-center gap-1 shadow"><RotateCcw size={12} /> Deshacer</button>
                   </div>
-                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5 bg-neutral-900 p-2 sm:p-3.5 rounded-2xl border-2 border-neutral-800 shadow-2xl">
+                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5 bg-neutral-900 p-2 sm:p-3.5 rounded-2xl border-2 border-neutral-800 shadow-2xl relative z-10">
                     {grid2048.map((row, r) => row.map((val, c) => (
                       <div key={`${r}-${c}`} className={`w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-xl flex items-center justify-center font-black text-lg sm:text-xl md:text-3xl transition-all shadow-inner ${val === 0 ? 'bg-neutral-800/40 text-transparent' : val === 2 ? 'bg-amber-100 text-neutral-800' : val === 4 ? 'bg-amber-200 text-neutral-800' : val === 8 ? 'bg-orange-400 text-white' : val === 16 ? 'bg-orange-500 text-white' : val === 32 ? 'bg-red-500 text-white' : val === 64 ? 'bg-red-600 text-white' : 'bg-yellow-400 text-black scale-105'}`}>
                         {val !== 0 ? val : ''}
                       </div>
                     )))}
                   </div>
-                  <p className="text-[10px] sm:text-[11px] text-neutral-500 mt-3 sm:mt-4 font-medium px-4 text-center">💡 En PC usa Teclas de Flecha / WASD | En Móvil desliza el dedo sobre el tablero.</p>
+                  
+                  {/* ON-SCREEN BUTTONS 2048 MOBILE */}
+                  {isMobile && (
+                    <div className="grid grid-cols-3 gap-2 w-[180px] mt-6 z-10">
+                      <div />
+                      <button onClick={() => move2048('up')} className="bg-neutral-800/80 active:bg-neutral-600 border border-neutral-700 text-yellow-400 p-3 rounded-2xl flex justify-center shadow-lg"><ArrowUp size={24} /></button>
+                      <div />
+                      <button onClick={() => move2048('left')} className="bg-neutral-800/80 active:bg-neutral-600 border border-neutral-700 text-yellow-400 p-3 rounded-2xl flex justify-center shadow-lg"><ArrowLeft size={24} /></button>
+                      <button onClick={() => move2048('down')} className="bg-neutral-800/80 active:bg-neutral-600 border border-neutral-700 text-yellow-400 p-3 rounded-2xl flex justify-center shadow-lg"><ArrowDown size={24} /></button>
+                      <button onClick={() => move2048('right')} className="bg-neutral-800/80 active:bg-neutral-600 border border-neutral-700 text-yellow-400 p-3 rounded-2xl flex justify-center shadow-lg"><ArrowRight size={24} /></button>
+                    </div>
+                  )}
+
+                  {!isMobile && (
+                    <p className="text-[10px] sm:text-[11px] text-neutral-500 mt-3 sm:mt-4 font-medium px-4 text-center">💡 En PC usa Teclas de Flecha / WASD</p>
+                  )}
                 </div>
               )}
 
@@ -2319,70 +2377,105 @@ export default function GamesZone({ currentUser, isLight }) {
                 }
 
                 return (
-                  <div className="w-full h-full flex flex-row items-center justify-center gap-2 sm:gap-6 p-2 sm:p-4 select-none touch-none relative" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+                  <div className="w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 select-none touch-none relative" onTouchStart={!isMobile ? handleTouchStart : undefined} onTouchEnd={!isMobile ? handleTouchEnd : undefined}>
                     {isTetrisPaused && renderUnifiedPauseOverlay(() => setIsTetrisPaused(false), () => setGamePhase('menu'))}
                     
-                    {/* Panel Izquierdo (Hold) */}
-                    <div className="flex flex-col gap-2 w-20 sm:w-28 bg-neutral-900/90 p-2 sm:p-3 rounded-2xl border border-neutral-800 text-white text-[10px] sm:text-xs">
-                      <span className="font-black text-yellow-400 uppercase tracking-wider text-center text-[9px] sm:text-[10px]">Guardada</span>
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-black/50 rounded-xl mx-auto flex items-center justify-center border border-neutral-800 p-1 sm:p-2">
-                        {tetrisHold ? (
-                          <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${tetrisHold.shape[0].length}, 1fr)` }}>
-                            {tetrisHold.shape.map((row, ri) => row.map((cell, ci) => (
-                              <div key={`${ri}-${ci}`} className={`w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-sm ${cell ? '' : 'opacity-0'}`} style={{ backgroundColor: cell ? tetrisHold.color : 'transparent' }} />
-                            )))}
-                          </div>
-                        ) : <span className="text-[9px] sm:text-[10px] text-neutral-500">Vacío</span>}
-                      </div>
-                      <div className="pt-2 border-t border-neutral-800 space-y-1 mt-auto">
-                        <p className="text-[9px] sm:text-[10px] text-neutral-400">Pts: <span className="text-yellow-400 font-black block sm:inline">{score}</span></p>
-                        <p className="text-[9px] sm:text-[10px] text-neutral-400">Niv: <span className="text-yellow-400 font-black">{tetrisLevel}</span></p>
-                        <p className="text-[9px] sm:text-[10px] text-neutral-400">Lín: <span className="text-yellow-400 font-black">{tetrisLines}</span></p>
-                      </div>
-                      <button onClick={() => setIsTetrisPaused(true)} className="mt-1 sm:mt-auto py-1 sm:py-1.5 bg-neutral-800 hover:bg-neutral-700 text-yellow-400 font-bold rounded-lg text-[10px] sm:text-xs">Pausa</button>
-                    </div>
-
-                    {/* Tablero Tetris Centrado */}
-                    <div className="bg-neutral-900 p-1 sm:p-2 rounded-2xl border-2 border-neutral-800 shadow-2xl flex flex-col justify-center h-full max-h-[420px]">
-                      <div 
-                        className="grid bg-black/80 rounded-xl overflow-hidden border border-neutral-800 w-full h-full"
-                        style={{ 
-                          gridTemplateColumns: `repeat(${TETRIS_COLS}, minmax(0, 1fr))`, 
-                          gridTemplateRows: `repeat(${TETRIS_ROWS}, minmax(0, 1fr))`,
-                          width: '100%',
-                          maxWidth: '240px',
-                          minWidth: '160px',
-                          aspectRatio: '240 / 400'
-                        }}
-                      >
-                        {displayGrid.slice(TETRIS_HIDDEN_ROWS).map((row, r) => row.map((cell, c) => (
-                          <div 
-                            key={`${r}-${c}`} 
-                            className={`w-full h-full border border-neutral-900/30 ${
-                              cell === 'ghost' ? 'border border-dashed border-white/30 bg-white/5' : ''
-                            }`}
-                            style={{ backgroundColor: cell && cell !== 'ghost' ? cell : undefined }}
-                          />
-                        )))}
-                      </div>
-                    </div>
-
-                    {/* Panel Derecho (Next) */}
-                    <div className="flex flex-col gap-2 w-20 sm:w-28 bg-neutral-900/90 p-2 sm:p-3 rounded-2xl border border-neutral-800 text-white text-[10px] sm:text-xs">
-                      <span className="font-black text-yellow-400 uppercase tracking-wider text-center text-[9px] sm:text-[10px]">Siguientes</span>
-                      <div className="flex flex-col gap-1 sm:gap-2 overflow-y-auto max-h-[250px] sm:max-h-[340px] pr-1 custom-scrollbar">
-                        {tetrisQueue.slice(0, 4).map((piece, idx) => (
-                          <div key={idx} className="w-full h-10 sm:h-14 bg-black/50 rounded-xl flex items-center justify-center border border-neutral-800 p-1">
-                            <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${piece.shape[0].length}, 1fr)` }}>
-                              {piece.shape.map((row, ri) => row.map((cell, ci) => (
-                                <div key={`${ri}-${ci}`} className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-sm ${cell ? '' : 'opacity-0'}`} style={{ backgroundColor: cell ? piece.color : 'transparent' }} />
+                    <div className="flex flex-row items-center justify-center gap-2 sm:gap-6 w-full max-w-full overflow-hidden mb-2 relative z-10">
+                      {/* Panel Izquierdo (Hold) */}
+                      <div className="flex flex-col gap-2 w-16 sm:w-28 bg-neutral-900/90 p-2 sm:p-3 rounded-2xl border border-neutral-800 text-white text-[10px] sm:text-xs">
+                        <span className="font-black text-yellow-400 uppercase tracking-wider text-center text-[8px] sm:text-[10px]">Guardada</span>
+                        <div className="w-12 h-12 sm:w-20 sm:h-20 bg-black/50 rounded-xl mx-auto flex items-center justify-center border border-neutral-800 p-1 sm:p-2">
+                          {tetrisHold ? (
+                            <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${tetrisHold.shape[0].length}, 1fr)` }}>
+                              {tetrisHold.shape.map((row, ri) => row.map((cell, ci) => (
+                                <div key={`${ri}-${ci}`} className={`w-2 h-2 sm:w-3.5 sm:h-3.5 rounded-sm ${cell ? '' : 'opacity-0'}`} style={{ backgroundColor: cell ? tetrisHold.color : 'transparent' }} />
                               )))}
                             </div>
-                          </div>
-                        ))}
+                          ) : <span className="text-[8px] sm:text-[10px] text-neutral-500">Vacío</span>}
+                        </div>
+                        <div className="pt-2 border-t border-neutral-800 space-y-1 mt-auto">
+                          <p className="text-[8px] sm:text-[10px] text-neutral-400">Pts: <span className="text-yellow-400 font-black block sm:inline">{score}</span></p>
+                          <p className="text-[8px] sm:text-[10px] text-neutral-400">Niv: <span className="text-yellow-400 font-black">{tetrisLevel}</span></p>
+                          <p className="text-[8px] sm:text-[10px] text-neutral-400">Lín: <span className="text-yellow-400 font-black">{tetrisLines}</span></p>
+                        </div>
+                        <button onClick={() => setIsTetrisPaused(true)} className="mt-1 sm:mt-auto py-1 bg-neutral-800 hover:bg-neutral-700 text-yellow-400 font-bold rounded-lg text-[9px] sm:text-xs">Pausa</button>
+                      </div>
+
+                      {/* Tablero Tetris Centrado */}
+                      <div className="bg-neutral-900 p-1 sm:p-2 rounded-2xl border-2 border-neutral-800 shadow-2xl flex flex-col justify-center max-h-[380px] sm:max-h-[420px]">
+                        <div 
+                          className="grid bg-black/80 rounded-xl overflow-hidden border border-neutral-800"
+                          style={{ 
+                            gridTemplateColumns: `repeat(${TETRIS_COLS}, minmax(0, 1fr))`, 
+                            gridTemplateRows: `repeat(${TETRIS_ROWS}, minmax(0, 1fr))`,
+                            width: isMobile ? '160px' : '200px', // Ajustado ligeramente más pequeño para celular
+                            height: isMobile ? '320px' : '400px'
+                          }}
+                        >
+                          {displayGrid.slice(TETRIS_HIDDEN_ROWS).map((row, r) => row.map((cell, c) => (
+                            <div 
+                              key={`${r}-${c}`} 
+                              className={`w-full h-full border border-neutral-900/30 ${
+                                cell === 'ghost' ? 'border border-dashed border-white/30 bg-white/5' : ''
+                              }`}
+                              style={{ backgroundColor: cell && cell !== 'ghost' ? cell : undefined }}
+                            />
+                          )))}
+                        </div>
+                      </div>
+
+                      {/* Panel Derecho (Next) */}
+                      <div className="flex flex-col gap-2 w-16 sm:w-28 bg-neutral-900/90 p-2 sm:p-3 rounded-2xl border border-neutral-800 text-white text-[10px] sm:text-xs">
+                        <span className="font-black text-yellow-400 uppercase tracking-wider text-center text-[8px] sm:text-[10px]">Siguientes</span>
+                        <div className="flex flex-col gap-1 sm:gap-2 overflow-y-auto max-h-[220px] sm:max-h-[340px] pr-1 custom-scrollbar">
+                          {tetrisQueue.slice(0, 4).map((piece, idx) => (
+                            <div key={idx} className="w-full h-10 sm:h-14 bg-black/50 rounded-xl flex items-center justify-center border border-neutral-800 p-1">
+                              <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${piece.shape[0].length}, 1fr)` }}>
+                                {piece.shape.map((row, ri) => row.map((cell, ci) => (
+                                  <div key={`${ri}-${ci}`} className={`w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 rounded-sm ${cell ? '' : 'opacity-0'}`} style={{ backgroundColor: cell ? piece.color : 'transparent' }} />
+                                )))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
+                    {/* ON-SCREEN BUTTONS TETRIS MOBILE */}
+                    {isMobile && (
+                      <div className="w-full flex justify-between px-2 gap-2 z-10">
+                        {/* Controles de movimiento */}
+                        <div className="flex gap-1">
+                          <button onClick={() => {
+                            if (!checkTetrisCollision(tetrisCurrent, tetrisGrid, -1, 0)) {
+                              playSoundEffect('move');
+                              setTetrisCurrent(prev => ({ ...prev, x: prev.x - 1 }));
+                            }
+                          }} className="bg-neutral-800/90 border border-neutral-700 text-yellow-400 p-3.5 rounded-xl shadow-lg active:bg-neutral-600"><ArrowLeft size={22} /></button>
+                          
+                          <button onClick={moveTetrisDown} className="bg-neutral-800/90 border border-neutral-700 text-yellow-400 p-3.5 rounded-xl shadow-lg active:bg-neutral-600"><ArrowDown size={22} /></button>
+                          
+                          <button onClick={() => {
+                            if (!checkTetrisCollision(tetrisCurrent, tetrisGrid, 1, 0)) {
+                              playSoundEffect('move');
+                              setTetrisCurrent(prev => ({ ...prev, x: prev.x + 1 }));
+                            }
+                          }} className="bg-neutral-800/90 border border-neutral-700 text-yellow-400 p-3.5 rounded-xl shadow-lg active:bg-neutral-600"><ArrowRight size={22} /></button>
+                        </div>
+                        
+                        {/* Controles de Acción */}
+                        <div className="flex gap-1">
+                          <button onClick={() => {
+                            playSoundEffect('rotate');
+                            setTetrisCurrent(prev => rotateTetrisPiece(prev));
+                          }} className="bg-blue-600/90 border border-blue-500 text-white p-3.5 rounded-xl shadow-lg active:bg-blue-500"><RotateCw size={22} /></button>
+                          
+                          <button onClick={softDropTetris} className="bg-red-600/90 border border-red-500 text-white p-3.5 rounded-xl shadow-lg active:bg-red-500 flex flex-col items-center justify-center font-black text-[10px]"><ArrowDownToLine size={22}/></button>
+
+                          <button onClick={holdTetrisPiece} className="bg-green-600/90 border border-green-500 text-white p-3.5 rounded-xl shadow-lg active:bg-green-500 flex flex-col items-center justify-center font-black text-[9px]">HOLD</button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })()}
@@ -2520,7 +2613,7 @@ export default function GamesZone({ currentUser, isLight }) {
             </div>
           </div>
 
-          {/* COLUMNA DERECHA: TOP GLOBAL + GANADORES DEL MES (Derecha en PC, Abajo del todo en Móviles) */}
+          {/* COLUMNA DERECHA: TOP GLOBAL + GANADORES DEL MES */}
           <div className="w-full max-w-sm xl:w-64 shrink-0 flex flex-col gap-6 order-3">
             
             {/* TOP GLOBAL MENSUAL */}
@@ -2538,7 +2631,7 @@ export default function GamesZone({ currentUser, isLight }) {
               </div>
             </div>
 
-            {/* APARTADO: GANADORES DEL MES (Enero, Febrero, Marzo, etc.) */}
+            {/* APARTADO: GANADORES DEL MES */}
             <div className="bg-gradient-to-b from-purple-900 to-neutral-950 rounded-2xl p-5 text-white shadow-lg border border-purple-500 flex flex-col gap-3">
               <h3 className="text-center font-black text-sm uppercase tracking-wider mb-2 flex items-center justify-center gap-2">
                 <Calendar className="w-4 h-4 text-yellow-400" /> GANADORES DEL MES
