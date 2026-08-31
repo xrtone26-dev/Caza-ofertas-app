@@ -1035,7 +1035,7 @@ function App() {
                 type="text"
                 value={couponSearchTerm}
                 onChange={handleCouponSearchChange}
-                placeholder=¿Cuánto planeas gastar?
+                placeholder="¿Cuánto planeas gastar?"
                 className={`w-full pl-11 pr-4 py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-sm ${
                   isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-700 text-neutral-100'
                 }`}
@@ -1387,7 +1387,7 @@ function App() {
               </h3>
 
               <p className="text-sm leading-relaxed mb-6 opacity-90">
-                Tenemos beneficios exclusivos para ti. Jugando, interactuando y descubriendo ofertas en nuestra plataforma, podrás <strong>ganar premios cada mes</strong> si te encuentras entre los usuarios con mayor actividad.
+                Tenemos beneficios exclusivos para ti. Jugando, interactuando y descubriendo ofertas en nossa plataforma, podrás <strong>ganar premios cada mes</strong> si te encuentras entre los usuarios con mayor actividad.
               </p>
 
               <div className="flex gap-3">
