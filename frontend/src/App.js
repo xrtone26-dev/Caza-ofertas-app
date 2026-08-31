@@ -1035,7 +1035,7 @@ function App() {
                 type="text"
                 value={couponSearchTerm}
                 onChange={handleCouponSearchChange}
-                placeholder="¿Cuánto planeas gastar? Ej: $4,000"
+                placeholder=¿Cuánto planeas gastar?
                 className={`w-full pl-11 pr-4 py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-sm ${
                   isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-700 text-neutral-100'
                 }`}
@@ -1217,7 +1217,7 @@ function App() {
                       setSearchTerm(productSearchInput);
                     }
                   }}
-                  placeholder="Busca un producto cargado aquí..."
+                  placeholder="Busca un producto..."
                   className={`w-full pl-11 pr-4 py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-sm ${
                     isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-700 text-neutral-100'
                   }`}
