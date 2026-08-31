@@ -461,8 +461,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
             <div className="flex items-center gap-2.5 min-w-0">
               <ShoppingCart size={22} className="flex-shrink-0" />
               <div className="flex flex-col text-left min-w-0">
-                <span className="font-black text-xs md:text-sm uppercase tracking-tight leading-tight">COMPRAR PRODUCTO EN</span>
-                <span className="font-black text-xs md:text-sm uppercase tracking-tight leading-tight">MERCADO LIBRE 🛒</span>
+                <span className="font-black text-xs md:text-sm uppercase tracking-tight leading-tight">COMPRAR PRODUCTO 🛒</span>
               </div>
             </div>
 
