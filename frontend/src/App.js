@@ -1329,12 +1329,12 @@ function App() {
           <h2 className={`text-3xl md:text-4xl font-black mb-3 flex items-center justify-center gap-3 ${
             isLight ? 'text-purple-700' : 'text-neutral-100'
           }`}>
-            <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" /> Productos probados en YouTube
+            <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" /> Productos puestos a prueba por influencers
           </h2>
           <p className={`text-sm md:text-base max-w-xl mx-auto font-medium ${
             isLight ? 'text-gray-600' : 'text-neutral-400'
           }`}>
-            Mira los videos en acción y adquiere directamente en Mercado Libre el artículo recomendado. 🚀
+            Mira los productos en acción y adquiere el artículo recomendado. 🚀
           </p>
         </div>
         <YoutubeReelsPlayer 
