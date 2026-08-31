@@ -1540,15 +1540,11 @@ function App() {
               CazaOfertasML
             </h1>
 
-            <p className="text-xl md:text-2xl text-white/90 mb-6 max-w-2xl">
-              ¡Las Mejores Ofertas de Mercado libre & Amazon!
-            </p>
-
             <div className={`inline-block backdrop-blur-sm px-6 py-3 rounded-full ${
               isLight ? 'bg-white/20' : 'bg-yellow-400/10 border border-yellow-400/30'
             }`}>
               <p className="text-white font-semibold text-lg">
-                🎁 "No compres caro, Nosotros ya hicimos la busqueda por ti" 🎁
+              "No compres caro, Nosotros ya hicimos la busqueda por ti"
               </p>
             </div>
           </div>
