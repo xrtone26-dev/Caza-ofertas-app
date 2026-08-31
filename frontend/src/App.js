@@ -30,6 +30,7 @@ import {
   Headphones,
   Award,
   TrendingDown,
+  Clock, // <-- Nuevo ícono importado para el timer minimalista
 } from 'lucide-react';
 import {
   FaWhatsapp,
@@ -486,10 +487,11 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
 }
 
 // ==========================================
-// NUEVO DISEÑO BLACK & GOLD PARA EL TEMPORIZADOR
+// TEMPORIZADOR ACTUALIZADO: ADAPTABLE A VARIANTE CLEAN (E-commerce Style)
 // ==========================================
-function CountdownTimer({ expiresAt }) {
+function CountdownTimer({ expiresAt, variant = 'default', isLight = true }) {
   const [timeLeft, setTimeLeft] = useState('');
+  const [isExpiringSoon, setIsExpiringSoon] = useState(false);
 
   useEffect(() => {
     if (!expiresAt) {
@@ -504,6 +506,7 @@ function CountdownTimer({ expiresAt }) {
 
       if (diff <= 0) {
         setTimeLeft('Expirado');
+        setIsExpiringSoon(true);
         return;
       }
 
@@ -512,31 +515,59 @@ function CountdownTimer({ expiresAt }) {
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-      let timeString = '';
-      if (days > 0) timeString += `${days}d `;
-      timeString += `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      setIsExpiringSoon(days === 0 && hours < 24);
 
-      setTimeLeft(timeString);
+      if (variant === 'clean') {
+        if (days > 1) {
+          setTimeLeft(`Vence en ${days} días`);
+        } else if (days === 1) {
+          setTimeLeft(`¡Vence mañana!`);
+        } else if (hours > 0) {
+          setTimeLeft(`¡Termina en ${hours} horas!`);
+        } else {
+          setTimeLeft(`¡Termina en ${minutes} min!`);
+        }
+      } else {
+        let timeString = '';
+        if (days > 0) timeString += `${days}d `;
+        timeString += `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        setTimeLeft(timeString);
+      }
     };
 
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [expiresAt]);
+  }, [expiresAt, variant]);
 
   if (!expiresAt) {
+    if (variant === 'clean') {
+      return (
+        <span className={`text-xs flex items-center gap-1.5 ${isLight ? 'text-gray-500' : 'text-neutral-400'}`}>
+          <Clock size={12} /> Vigencia extendida
+        </span>
+      );
+    }
     return (
-      <span className="text-sm font-black text-yellow-400 bg-neutral-950 px-3 py-1.5 rounded-full border-2 border-yellow-400 flex items-center gap-1 shadow-[2px_2px_0px_0px_#ca8a04]">
+      <span className="text-sm font-black text-black bg-white px-3 py-1.5 rounded-full border-2 border-black flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
         ⏰ Permanente
       </span>
     );
   }
 
+  if (variant === 'clean') {
+    return (
+      <span className={`text-xs flex items-center gap-1.5 ${isExpiringSoon ? 'text-red-500 font-medium' : isLight ? 'text-gray-500' : 'text-neutral-400'}`}>
+        <Clock size={12} /> {timeLeft}
+      </span>
+    );
+  }
+
   return (
-    <span className={`text-sm font-black px-3 py-1.5 rounded-full border-2 flex items-center gap-1 shadow-[2px_2px_0px_0px_#ca8a04] ${
+    <span className={`text-sm font-black px-3 py-1.5 rounded-full border-2 flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
       timeLeft === 'Expirado' 
-        ? 'text-white bg-red-600 border-red-800' 
-        : 'text-yellow-400 bg-neutral-950 border-yellow-400'
+        ? 'text-white bg-red-600 border-black' 
+        : 'text-black bg-white border-black'
     }`}>
       ⏰ {timeLeft}
     </span>
@@ -986,34 +1017,34 @@ function App() {
   );
 
   const mainBgClass = isLight
-    ? 'min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-800 relative overflow-x-hidden font-sans'
+    ? 'min-h-screen bg-gray-50/50 text-gray-800 relative overflow-x-hidden font-sans' // Ajustado a un gris clarito para el contenedor en Light Mode
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // Renderizador modular para los contenidos principales (Cupones, Productos, Juegos, Reels)
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
       <div className="container mx-auto px-4 mb-8 relative z-20">
-        <div className={`rounded-3xl shadow-xl p-8 backdrop-blur-xl border ${
-          isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
+        <div className={`rounded-3xl shadow-sm p-6 md:p-8 border ${
+          isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'
         }`}>
           <div className="relative flex items-center justify-center mb-6">
-            <h2 className={`text-3xl font-bold text-center ${
-              isLight ? 'text-purple-700' : 'text-neutral-100 font-black'
+            <h2 className={`text-2xl md:text-3xl font-bold text-center ${
+              isLight ? 'text-gray-900' : 'text-neutral-100'
             }`}>
-              ✨ Cupones Especiales del dia
+              ✨ Cupones Especiales del día
             </h2>
             
             <div className="absolute right-0 top-0 group">
               <button
                 onClick={() => setShowTutorialModal(true)}
-                className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all hover:scale-110 shadow-lg ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all shadow-sm hover:scale-105 ${
                   isLight
-                    ? 'text-purple-600 border-purple-300 hover:bg-purple-100'
-                    : 'text-yellow-400 border-yellow-400/50 hover:bg-yellow-400/20'
+                    ? 'text-gray-500 border-gray-200 hover:bg-gray-50'
+                    : 'text-neutral-400 border-neutral-700 hover:bg-neutral-800'
                 }`}
                 aria-label="Ayuda con cupones"
               >
-                <HelpCircle className="w-6 h-6" />
+                <HelpCircle className="w-5 h-5" />
               </button>
               
               <div className={`absolute bottom-full right-0 mb-3 w-56 p-2.5 text-xs font-bold text-center rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none shadow-xl transform translate-y-2 group-hover:translate-y-0 z-10 ${
@@ -1035,8 +1066,8 @@ function App() {
                 value={couponSearchTerm}
                 onChange={handleCouponSearchChange}
                 placeholder="¿Cuánto planeas gastar? Ej: $4,000"
-                className={`w-full pl-11 pr-4 py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-sm ${
-                  isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-700 text-neutral-100'
+                className={`w-full pl-11 pr-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all ${
+                  isLight ? 'bg-gray-50 border-gray-200 text-gray-800' : 'bg-neutral-950 border-neutral-700 text-neutral-100'
                 }`}
               />
             </div>
@@ -1044,119 +1075,132 @@ function App() {
 
           {filteredCupones.length === 0 ? (
             <div className="text-center py-12">
-              <p className={`text-base mb-4 font-semibold ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+              <p className={`text-base mb-4 font-semibold ${isLight ? 'text-gray-500' : 'text-neutral-400'}`}>
                 Lo lamentamos, por el momento no tenemos un cupón para ese precio. ¡Regresa más tarde! 🕒
               </p>
             </div>
           ) : (
             <div className="relative">
               <div className="overflow-hidden" ref={cuponesRef}>
-                <div className="flex gap-6 py-4">
+                <div className="flex gap-4 py-2">
                   {filteredCupones.map((cupon) => {
                     const cuponId = getSafeId(cupon) || cupon.title;
                     const currentReaction = userReactions[cuponId];
                     const counts = couponCounts[cuponId] || { like: 0, dislike: 0, heart: 0 };
 
                     return (
-                      <div key={cuponId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
-                        {/* 🌟 NUEVO DISEÑO VIP BLACK & GOLD PARA EL CONTENEDOR */}
-                        <div className="h-full bg-gradient-to-b from-neutral-900 to-black border-4 border-yellow-400 rounded-3xl p-4 md:p-5 flex flex-col items-center shadow-[6px_6px_0px_0px_#ca8a04] relative">
+                      <div key={cuponId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-8px)] lg:flex-[0_0_calc(33.333%-10px)] min-w-0">
+                        {/* 🌟 NUEVA TARJETA CLEAN / E-COMMERCE STYLE */}
+                        <div className={`h-full flex flex-col relative rounded-xl border shadow-sm transition-shadow hover:shadow-md ${
+                          isLight ? 'bg-white border-gray-200' : 'bg-[#18181b] border-neutral-800'
+                        }`}>
                           
-                          <div className="absolute top-3 right-3 z-10">
-                            <CountdownTimer expiresAt={cupon.expires_at} />
-                          </div>
-
-                          <div className="w-full text-center mt-7 mb-3 flex items-center justify-center gap-2 md:gap-4 relative">
-                            <svg className="w-8 h-8 md:w-10 md:h-10 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-                            <h3 className="text-3xl md:text-4xl font-black text-yellow-400 leading-[1.1] tracking-tighter uppercase drop-shadow-[0_2px_10px_rgba(250,204,21,0.4)]">
-                              CUPÓN<br/>ACTIVO
-                            </h3>
-                            <svg className="w-8 h-8 md:w-10 md:h-10 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
-                          </div>
-
-                          {/* CAJA INTERIOR DEL CÓDIGO */}
-                          <div className="relative w-full bg-[#0a0a0a] border-4 border-yellow-400 rounded-2xl p-1 mb-4 flex-grow flex flex-col justify-center shadow-inner">
-                            <div className="border-[3px] border-dashed border-yellow-500/50 rounded-xl p-4 flex flex-col items-center justify-center h-full text-center bg-[#0a0a0a] relative z-10">
-                              
-                              <div className="bg-yellow-400 text-black px-5 py-1.5 rounded-full text-sm font-black uppercase tracking-wider mb-2 max-w-full truncate shadow-[0_0_15px_rgba(250,204,21,0.3)]">
-                                {cupon.title || 'NUEVO CUPÓN'}
-                              </div>
-                              
-                              {cupon.code && (
-                                <div className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-2 break-all drop-shadow-md">
-                                  {String(cupon.code).length > 3
-                                    ? String(cupon.code).slice(0, 3) + '*'.repeat(String(cupon.code).length - 3)
-                                    : cupon.code}
-                                </div>
-                              )}
-                              
-                              <div className="border-t-[3px] border-yellow-500/20 w-full mx-4 mt-2 pt-2 pb-1">
-                                <div className="text-sm font-black text-gray-300 uppercase tracking-tight flex flex-col gap-1">
-                                  {cupon.description ? (
-                                    cupon.description.split(/(?=[Dd][Ee][Ss][Cc][Uu][Ee][Nn][Tt][Oo]\s+[Mm][ÁáAa][Xx][Ii][Mm][Oo])/).map((part, i) => (
-                                      <span key={i} className="block">{part.trim()}</span>
-                                    ))
-                                  ) : (
-                                    <span>COMPRA MÍNIMA APLICABLE</span>
-                                  )}
-                                </div>
+                          {/* Top Info (Icono, Título Prominente y Descripción) */}
+                          <div className="p-4 flex gap-4">
+                            <div className="flex-shrink-0 mt-1">
+                              <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-sm ${
+                                isLight ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-blue-900/20 text-blue-400 border border-blue-900/50'
+                              }`}>
+                                <ShoppingCart size={22} />
                               </div>
                             </div>
-
-                            {/* RECORTES LATERALES DEL TICKET CAMBIADOS PARA BLENDEARSE COMO AGUJEROS */}
-                            <div className={`absolute top-1/2 -left-5 -translate-y-1/2 w-8 h-8 border-4 border-yellow-400 rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
-                            <div className={`absolute top-1/2 -right-5 -translate-y-1/2 w-8 h-8 border-4 border-yellow-400 rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
+                            
+                            <div className="flex-1 min-w-0 flex flex-col justify-center">
+                              {/* Precio/Descuento destacado al inicio (Regla de oro) */}
+                              <h3 className={`text-lg font-bold leading-tight truncate ${isLight ? 'text-gray-900' : 'text-gray-100'}`}>
+                                {cupon.title || 'Descuento Especial'}
+                              </h3>
+                              
+                              <div className={`text-xs mt-1.5 leading-snug space-y-0.5 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+                                {cupon.description ? (
+                                  cupon.description.split(/(?=[Dd][Ee][Ss][Cc][Uu][Ee][Nn][Tt][Oo]\s+[Mm][ÁáAa][Xx][Ii][Mm][Oo]|Compra mínima)/i).map((part, i) => (
+                                    <p key={i} className="truncate">{part.trim()}</p>
+                                  ))
+                                ) : (
+                                  <p>En productos seleccionados</p>
+                                )}
+                              </div>
+                              
+                              {/* Código literal si existe */}
+                              {cupon.code && (
+                                <div className="mt-2.5">
+                                  <span className={`inline-block px-2 py-1 rounded text-xs font-mono font-bold border ${
+                                    isLight ? 'bg-gray-50 border-gray-200 text-gray-700' : 'bg-neutral-900 border-neutral-700 text-gray-300'
+                                  }`}>
+                                    {cupon.code}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </div>
 
-                          <div className="flex justify-between items-center w-full mb-4 px-1 gap-2">
+                          {/* Separador Perforado (Ticket Effect) adaptado al color del fondo */}
+                          <div className="relative flex items-center h-4 my-1 overflow-hidden pointer-events-none">
+                            {/* El color de fondo (bg) de los recortes debe ser el color del contenedor padre */}
+                            <div className={`absolute -left-2 w-4 h-4 rounded-full border-r ${
+                              isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'
+                            } z-10`}></div>
+                            
+                            <div className={`w-full border-t border-dashed ${
+                              isLight ? 'border-gray-200' : 'border-neutral-700'
+                            }`}></div>
+                            
+                            <div className={`absolute -right-2 w-4 h-4 rounded-full border-l ${
+                              isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'
+                            } z-10`}></div>
+                          </div>
+
+                          {/* Footer: Timer minimalista y Botón Azul de Aplicar */}
+                          <div className="p-4 pt-2 pb-3 flex items-center justify-between gap-2 mt-auto">
+                            <CountdownTimer expiresAt={cupon.expires_at} variant="clean" isLight={isLight} />
+                            
                             <button
-                              onClick={() => handleReaction(cuponId, 'like')}
-                              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-yellow-400 ${
-                                currentReaction === 'like'
-                                  ? 'bg-blue-600 text-white shadow-[2px_2px_0px_0px_#ca8a04] scale-105 border-blue-500'
-                                  : 'bg-neutral-900 text-yellow-400 shadow-[2px_2px_0px_0px_#ca8a04] hover:bg-neutral-800'
+                              onClick={() => handleCopiarIrMercadoLibre(cupon)}
+                              className={`text-xs font-bold py-2 px-5 rounded-lg transition-colors whitespace-nowrap shadow-sm ${
+                                isLight 
+                                  ? 'bg-[#2968c8] hover:bg-blue-700 text-white' 
+                                  : 'bg-blue-600 hover:bg-blue-500 text-white'
                               }`}
                             >
-                              <span>👍</span><span>{counts.like}</span>
+                              {cupon.link ? 'Aplicar' : 'Copiar'}
+                            </button>
+                          </div>
+
+                          {/* Reacciones sutiles en la base (Para mantener todo el código funcional) */}
+                          <div className={`flex justify-around items-center py-2 px-4 border-t rounded-b-xl opacity-80 hover:opacity-100 transition-opacity ${
+                            isLight ? 'border-gray-100 bg-gray-50/50' : 'border-neutral-800 bg-neutral-900/50'
+                          }`}>
+                            <button
+                              onClick={() => handleReaction(cuponId, 'like')}
+                              className={`flex items-center gap-1.5 text-[10px] font-semibold transition-all ${
+                                currentReaction === 'like'
+                                  ? (isLight ? 'text-blue-600' : 'text-blue-400')
+                                  : (isLight ? 'text-gray-500 hover:text-gray-800' : 'text-neutral-500 hover:text-neutral-300')
+                              }`}
+                            >
+                              <ThumbsUp size={12} className={currentReaction === 'like' ? 'fill-current' : ''} /> {counts.like}
                             </button>
                             <button
                               onClick={() => handleReaction(cuponId, 'dislike')}
-                              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-yellow-400 ${
+                              className={`flex items-center gap-1.5 text-[10px] font-semibold transition-all ${
                                 currentReaction === 'dislike'
-                                  ? 'bg-red-600 text-white shadow-[2px_2px_0px_0px_#ca8a04] scale-105 border-red-500'
-                                  : 'bg-neutral-900 text-yellow-400 shadow-[2px_2px_0px_0px_#ca8a04] hover:bg-neutral-800'
+                                  ? (isLight ? 'text-red-500' : 'text-red-400')
+                                  : (isLight ? 'text-gray-500 hover:text-gray-800' : 'text-neutral-500 hover:text-neutral-300')
                               }`}
                             >
-                              <span>👎</span><span>{counts.dislike}</span>
+                              <ThumbsDown size={12} className={currentReaction === 'dislike' ? 'fill-current' : ''} /> {counts.dislike}
                             </button>
                             <button
                               onClick={() => handleReaction(cuponId, 'heart')}
-                              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-yellow-400 ${
+                              className={`flex items-center gap-1.5 text-[10px] font-semibold transition-all ${
                                 currentReaction === 'heart'
-                                  ? 'bg-pink-600 text-white shadow-[2px_2px_0px_0px_#ca8a04] scale-105 border-pink-500'
-                                  : 'bg-neutral-900 text-yellow-400 shadow-[2px_2px_0px_0px_#ca8a04] hover:bg-neutral-800'
+                                  ? (isLight ? 'text-pink-500' : 'text-pink-400')
+                                  : (isLight ? 'text-gray-500 hover:text-gray-800' : 'text-neutral-500 hover:text-neutral-300')
                               }`}
                             >
-                              <span>❤️</span><span>{counts.heart}</span>
+                              <Heart size={12} className={currentReaction === 'heart' ? 'fill-current' : ''} /> {counts.heart}
                             </button>
                           </div>
-
-                          {cupon.link && (
-                            <button
-                              onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                              className="w-full bg-yellow-400 hover:bg-yellow-300 text-black rounded-2xl py-2 flex flex-col items-center justify-center transition-transform hover:scale-[1.02] mt-auto border-2 border-yellow-600 shadow-[0_4px_14px_0_rgba(250,204,21,0.4)]"
-                            >
-                              <div className="flex items-center justify-center gap-3 w-full">
-                                <svg className="w-5 h-5 text-black flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-                                <span className="text-xl md:text-2xl font-black tracking-wide uppercase drop-shadow-sm">COPIAR CUPÓN</span>
-                                <svg className="w-5 h-5 text-black flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
-                              </div>
-                              <div className="text-sm md:text-base font-bold tracking-tight -mt-1 opacity-90">
-                                E IR A MERCADO LIBRE
-                              </div>
-                            </button>
-                          )}
-
                         </div>
                       </div>
                     );
@@ -1168,15 +1212,15 @@ function App() {
                 <>
                   <button
                     onClick={scrollPrevCupones}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 bg-white border border-gray-200 rounded-full p-2.5 shadow-lg hover:bg-gray-50 transition-all z-10 text-gray-700 dark:bg-neutral-800 dark:border-neutral-700 dark:text-gray-300 dark:hover:bg-neutral-700"
                   >
-                    <ChevronLeft className="w-6 h-6 font-black" />
+                    <ChevronLeft className="w-5 h-5 font-black" />
                   </button>
                   <button
                     onClick={scrollNextCupones}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 bg-white border border-gray-200 rounded-full p-2.5 shadow-lg hover:bg-gray-50 transition-all z-10 text-gray-700 dark:bg-neutral-800 dark:border-neutral-700 dark:text-gray-300 dark:hover:bg-neutral-700"
                   >
-                    <ChevronRight className="w-6 h-6 font-black" />
+                    <ChevronRight className="w-5 h-5 font-black" />
                   </button>
                 </>
               )}
@@ -1184,7 +1228,7 @@ function App() {
           )}
 
           <div className={`mt-6 pt-4 border-t text-center text-xs md:text-sm font-medium ${
-            isLight ? 'border-purple-200 text-purple-900/70' : 'border-neutral-800 text-neutral-400'
+            isLight ? 'border-gray-100 text-gray-500' : 'border-neutral-800 text-neutral-500'
           }`}>
             ℹ️ Nota informativa: La disponibilidad y vigencia de cada cupón son estimadas, ya que su validez está sujeta a un límite determinado de redenciones.
           </div>
@@ -1638,7 +1682,7 @@ function App() {
           {mobileTab === 'reels' && renderReelsSection()}
         </div>
       ) : (
-        // Contenido completo para Computadora y Tablet (tal cual estaba)
+        // Contenido completo para Computadora y Tablet
         <>
           {renderCuponesSection()}
           {renderProductosSection()}
