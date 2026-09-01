@@ -1450,7 +1450,14 @@ function App() {
             {localStorage.getItem('cazaAvatarImg') ? (
               <img src={localStorage.getItem('cazaAvatarImg')} alt="Perfil" className="w-full h-full object-cover" />
             ) : currentUser ? (
-              <span className="text-xl font-black">{localStorage.getItem('cazaAvatar') || currentUser.charAt(0)}</span>
+              <span className="text-xl font-black">
+                {localStorage.getItem('cazaAvatar') || 
+                  String(
+                    typeof currentUser === 'object' 
+                      ? (currentUser.nickname || currentUser.nombre || currentUser.email || 'U') 
+                      : currentUser
+                  ).charAt(0)}
+              </span>
             ) : (
               <User className="w-6 h-6" />
             )}
