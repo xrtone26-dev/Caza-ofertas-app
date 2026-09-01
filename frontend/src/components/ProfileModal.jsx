@@ -434,328 +434,329 @@ export default function ProfileModal({
         ----------------------------------------------------------------------
         */
 
-        unsubscribe =
-          onAuthStateChanged(
-            auth,
-            async (firebaseUser) => {
+        try {
+          unsubscribe =
+            onAuthStateChanged(
+              auth,
+              async (firebaseUser) => {
 
-              if (!mounted) {
-                return;
-              }
-
-              /*
-              ----------------------------------------------------------------
-              NO HAY SESIÓN
-              ----------------------------------------------------------------
-              */
-
-              if (!firebaseUser) {
-                setCurrentUser(null);
-                setAuthReady(true);
-                return;
-              }
-
-              try {
-                /*
-                --------------------------------------------------------------
-                Refrescar usuario.
-                --------------------------------------------------------------
-                */
-
-                try {
-                  await reload(firebaseUser);
-                } catch (reloadError) {
-                  console.warn(
-                    'No se pudo recargar usuario:',
-                    reloadError
-                  );
-                }
-
-                /*
-                --------------------------------------------------------------
-                Verificación de correo para cuentas password.
-                Google/Facebook no pasan por esta restricción.
-                --------------------------------------------------------------
-                */
-
-                const providerId =
-                  firebaseUser
-                    .providerData?.[0]
-                    ?.providerId || '';
-
-                if (
-                  providerId === 'password' &&
-                  !firebaseUser.emailVerified
-                ) {
-
-                  await signOut(auth);
-
-                  if (mounted) {
-                    setCurrentUser(null);
-                    setAuthReady(true);
-                  }
-
+                if (!mounted) {
                   return;
                 }
 
                 /*
-                --------------------------------------------------------------
-                Obtener perfil Firestore.
-                --------------------------------------------------------------
+                ----------------------------------------------------------------
+                NO HAY SESIÓN
+                ----------------------------------------------------------------
                 */
 
-                const profileRef =
-                  doc(
-                    db,
-                    'users',
-                    firebaseUser.uid
-                  );
-
-                const profileSnapshot =
-                  await getDoc(profileRef);
-
-                let profile = null;
-
-                if (
-                  profileSnapshot.exists()
-                ) {
-                  profile =
-                    profileSnapshot.data();
+                if (!firebaseUser) {
+                  setCurrentUser(null);
+                  setAuthReady(true);
+                  return;
                 }
-
-                /*
-                --------------------------------------------------------------
-                Si es una cuenta social que todavía no tiene perfil,
-                creamos uno.
-                --------------------------------------------------------------
-                */
-
-                if (
-                  !profile &&
-                  providerId !== 'password'
-                ) {
-
-                  profile =
-                    await createSocialProfile(
-                      firebaseUser
-                    );
-                }
-
-                /*
-                --------------------------------------------------------------
-                Si es una cuenta password antigua sin perfil,
-                creamos uno mínimo.
-                --------------------------------------------------------------
-                */
-
-                if (
-                  !profile &&
-                  firebaseUser.email
-                ) {
-
-                  const base =
-                    normalizeNickname(
-                      firebaseUser
-                        .email
-                        .split('@')[0]
-                    )
-                    .replace(
-                      /[^a-z0-9._]/g,
-                      ''
-                    )
-                    .slice(0, 16);
-
-                  const finalBase =
-                    base.length >= 3
-                      ? base
-                      : 'cazador';
-
-                  const nickname =
-                    await generateUniqueNickname(
-                      finalBase,
-                      firebaseUser.uid,
-                      firebaseUser.email
-                    );
-
-                  profile = {
-                    uid:
-                      firebaseUser.uid,
-
-                    email:
-                      firebaseUser.email,
-
-                    nombre:
-                      firebaseUser
-                        .displayName ||
-                      finalBase,
-
-                    nickname,
-
-                    nicknameLower:
-                      nickname,
-
-                    telefono: '',
-
-                    edad: '',
-
-                    sexo: 'Otro',
-
-                    avatar: '👩‍🦰',
-
-                    photoURL:
-                      firebaseUser.photoURL ||
-                      '',
-
-                    provider:
-                      'password',
-
-                    role: 'user',
-
-                    status: 'active',
-
-                    emailVerified:
-                      Boolean(
-                        firebaseUser.emailVerified
-                      ),
-
-                    createdAt:
-                      serverTimestamp(),
-
-                    updatedAt:
-                      serverTimestamp(),
-
-                    lastLoginAt:
-                      serverTimestamp(),
-                  };
-
-                  await setDoc(
-                    profileRef,
-                    profile
-                  );
-                }
-
-                /*
-                --------------------------------------------------------------
-                Actualizar último acceso.
-                --------------------------------------------------------------
-                */
 
                 try {
-                  await setDoc(
-                    profileRef,
-                    {
-                      lastLoginAt:
-                        serverTimestamp(),
+                  /*
+                  --------------------------------------------------------------
+                  Refrescar usuario.
+                  --------------------------------------------------------------
+                  */
+
+                  try {
+                    await reload(firebaseUser);
+                  } catch (reloadError) {
+                    console.warn(
+                      'No se pudo recargar usuario:',
+                      reloadError
+                    );
+                  }
+
+                  /*
+                  --------------------------------------------------------------
+                  Verificación de correo para cuentas password.
+                  Google/Facebook no pasan por esta restricción.
+                  --------------------------------------------------------------
+                  */
+
+                  const providerId =
+                    firebaseUser
+                      .providerData?.[0]
+                      ?.providerId || '';
+
+                  if (
+                    providerId === 'password' &&
+                    !firebaseUser.emailVerified
+                  ) {
+
+                    await signOut(auth);
+
+                    if (mounted) {
+                      setCurrentUser(null);
+                      setAuthReady(true);
+                    }
+
+                    return;
+                  }
+
+                  /*
+                  --------------------------------------------------------------
+                  Obtener perfil Firestore.
+                  --------------------------------------------------------------
+                  */
+
+                  const profileRef =
+                    doc(
+                      db,
+                      'users',
+                      firebaseUser.uid
+                    );
+
+                  const profileSnapshot =
+                    await getDoc(profileRef);
+
+                  let profile = null;
+
+                  if (
+                    profileSnapshot.exists()
+                  ) {
+                    profile =
+                      profileSnapshot.data();
+                  }
+
+                  /*
+                  --------------------------------------------------------------
+                  Si es una cuenta social que todavía no tiene perfil,
+                  creamos uno.
+                  --------------------------------------------------------------
+                  */
+
+                  if (
+                    !profile &&
+                    providerId !== 'password'
+                  ) {
+
+                    profile =
+                      await createSocialProfile(
+                        firebaseUser
+                      );
+                  }
+
+                  /*
+                  --------------------------------------------------------------
+                  Si es una cuenta password antigua sin perfil,
+                  creamos uno mínimo.
+                  --------------------------------------------------------------
+                  */
+
+                  if (
+                    !profile &&
+                    firebaseUser.email
+                  ) {
+
+                    const base =
+                      normalizeNickname(
+                        firebaseUser
+                          .email
+                          .split('@')[0]
+                      )
+                      .replace(
+                        /[^a-z0-9._]/g,
+                        ''
+                      )
+                      .slice(0, 16);
+
+                    const finalBase =
+                      base.length >= 3
+                        ? base
+                        : 'cazador';
+
+                    const nickname =
+                      await generateUniqueNickname(
+                        finalBase,
+                        firebaseUser.uid,
+                        firebaseUser.email
+                      );
+
+                    profile = {
+                      uid:
+                        firebaseUser.uid,
+
+                      email:
+                        firebaseUser.email,
+
+                      nombre:
+                        firebaseUser
+                          .displayName ||
+                        finalBase,
+
+                      nickname,
+
+                      nicknameLower:
+                        nickname,
+
+                      telefono: '',
+
+                      edad: '',
+
+                      sexo: 'Otro',
+
+                      avatar: '👩‍🦰',
+
+                      photoURL:
+                        firebaseUser.photoURL ||
+                        '',
+
+                      provider:
+                        'password',
+
+                      role: 'user',
+
+                      status: 'active',
 
                       emailVerified:
                         Boolean(
                           firebaseUser.emailVerified
                         ),
 
+                      createdAt:
+                        serverTimestamp(),
+
                       updatedAt:
                         serverTimestamp(),
-                    },
-                    {
-                      merge: true,
-                    }
-                  );
-                } catch (
-                  profileUpdateError
-                ) {
-                  console.warn(
-                    'No se pudo actualizar lastLoginAt:',
-                    profileUpdateError
-                  );
-                }
 
-                /*
-                --------------------------------------------------------------
-                Construir objeto final.
-                --------------------------------------------------------------
-                */
+                      lastLoginAt:
+                        serverTimestamp(),
+                    };
 
-                const finalUser = {
-                  ...(profile || {}),
-
-                  uid:
-                    firebaseUser.uid,
-
-                  email:
-                    firebaseUser.email ||
-                    profile?.email ||
-                    '',
-
-                  displayName:
-                    firebaseUser
-                      .displayName ||
-                    profile?.nombre ||
-                    profile?.nickname ||
-                    '',
-
-                  photoURL:
-                    firebaseUser.photoURL ||
-                    profile?.photoURL ||
-                    '',
-
-                  emailVerified:
-                    Boolean(
-                      firebaseUser.emailVerified
-                    ),
-
-                  provider:
-                    providerId,
-                };
-
-                if (mounted) {
-                  setCurrentUser(
-                    finalUser
-                  );
+                    await setDoc(
+                      profileRef,
+                      profile
+                    );
+                  }
 
                   /*
-                  ------------------------------------------------------------
-                  Cargar campos de edición.
-                  ------------------------------------------------------------
+                  --------------------------------------------------------------
+                  Actualizar último acceso.
+                  --------------------------------------------------------------
                   */
 
-                  loadProfileIntoForm(
-                    finalUser
+                  try {
+                    await setDoc(
+                      profileRef,
+                      {
+                        lastLoginAt:
+                          serverTimestamp(),
+
+                        emailVerified:
+                          Boolean(
+                            firebaseUser.emailVerified
+                          ),
+
+                        updatedAt:
+                          serverTimestamp(),
+                      },
+                      {
+                        merge: true,
+                      }
+                    );
+                  } catch (
+                    profileUpdateError
+                  ) {
+                    console.warn(
+                      'No se pudo actualizar lastLoginAt:',
+                      profileUpdateError
+                    );
+                  }
+
+                  /*
+                  --------------------------------------------------------------
+                  Construir objeto final.
+                  --------------------------------------------------------------
+                  */
+
+                  const finalUser = {
+                    ...(profile || {}),
+
+                    uid:
+                      firebaseUser.uid,
+
+                    email:
+                      firebaseUser.email ||
+                      profile?.email ||
+                      '',
+
+                    displayName:
+                      firebaseUser
+                        .displayName ||
+                      profile?.nombre ||
+                      profile?.nickname ||
+                      '',
+
+                    photoURL:
+                      firebaseUser.photoURL ||
+                      profile?.photoURL ||
+                      '',
+
+                    emailVerified:
+                      Boolean(
+                        firebaseUser.emailVerified
+                      ),
+
+                    provider:
+                      providerId,
+                  };
+
+                  if (mounted) {
+                    setCurrentUser(
+                      finalUser
+                    );
+
+                    /*
+                    ------------------------------------------------------------
+                    Cargar campos de edición.
+                    ------------------------------------------------------------
+                    */
+
+                    loadProfileIntoForm(
+                      finalUser
+                    );
+
+                    setAuthReady(true);
+                  }
+
+                } catch (error) {
+
+                  console.error(
+                    'Error cargando sesión Firebase:',
+                    error
                   );
 
-                  setAuthReady(true);
-                }
+                  if (mounted) {
+                    setErrorMsg(
+                      getFirebaseErrorMessage(
+                        error
+                      )
+                    );
 
-              } catch (error) {
-
-                console.error(
-                  'Error cargando sesión Firebase:',
-                  error
-                );
-
-                if (mounted) {
-                  setErrorMsg(
-                    getFirebaseErrorMessage(
-                      error
-                    )
-                  );
-
-                  setCurrentUser(null);
-                  setAuthReady(true);
+                    setCurrentUser(null);
+                    setAuthReady(true);
+                  }
                 }
               }
-            }
+            );
+
+        } catch (error) {
+
+          console.error(
+            'Error iniciando observador Firebase:',
+            error
           );
 
-      } catch (error) {
-
-        console.error(
-          'Error iniciando observador Firebase:',
-          error
-        );
-
-        if (mounted) {
-          setAuthReady(true);
+          if (mounted) {
+            setAuthReady(true);
+          }
         }
-      }
     };
 
     initializeAuthListener();
