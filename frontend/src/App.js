@@ -1347,7 +1347,7 @@ function App() {
           <p className={`text-sm md:text-base max-w-xl mx-auto font-medium ${
             isLight ? 'text-gray-600' : 'text-neutral-400'
           }`}>
-            Mira los productos en acción y adquiere el artículo recomendado. 🚀
+            Mira los productos en action y adquiere el artículo recomendado. 🚀
           </p>
         </div>
         <YoutubeReelsPlayer 
@@ -1435,7 +1435,11 @@ function App() {
             <span className={`font-bold text-[11px] truncate max-w-[65px] text-center ${
               isLight ? 'text-purple-700' : 'text-yellow-400'
             }`}>
-              @{localStorage.getItem('cazaNick') || 'User'}
+              @{
+                typeof currentUser === 'object' && currentUser !== null
+                  ? (currentUser.nickname || currentUser.nombre || 'User')
+                  : (currentUser || localStorage.getItem('cazaNick') || 'User')
+              }
             </span>
           )}
           <button
@@ -1453,7 +1457,7 @@ function App() {
               <span className="text-xl font-black">
                 {localStorage.getItem('cazaAvatar') || 
                   String(
-                    typeof currentUser === 'object' 
+                    typeof currentUser === 'object' && currentUser !== null
                       ? (currentUser.nickname || currentUser.nombre || currentUser.email || 'U') 
                       : currentUser
                   ).charAt(0)}
@@ -1612,7 +1616,15 @@ function App() {
           {mobileTab === 'productos' && renderProductosSection()}
           {mobileTab === 'juegos' && (
             <div className="mb-8">
-              <GamesZone currentUser={currentUser} isLight={isLight} isAuthenticated={isAuthenticated} />
+              <GamesZone 
+                currentUser={
+                  typeof currentUser === 'object' && currentUser !== null
+                    ? (currentUser.nickname || currentUser.nombre || currentUser.email || '')
+                    : (currentUser || '')
+                } 
+                isLight={isLight} 
+                isAuthenticated={isAuthenticated} 
+              />
             </div>
           )}
           {mobileTab === 'reels' && renderReelsSection()}
@@ -1621,7 +1633,15 @@ function App() {
         <>
           {renderCuponesSection()}
           {renderProductosSection()}
-          <GamesZone currentUser={currentUser} isLight={isLight} isAuthenticated={isAuthenticated} />
+          <GamesZone 
+            currentUser={
+              typeof currentUser === 'object' && currentUser !== null
+                ? (currentUser.nickname || currentUser.nombre || currentUser.email || '')
+                : (currentUser || '')
+            } 
+            isLight={isLight} 
+            isAuthenticated={isAuthenticated} 
+          />
           {renderReelsSection()}
         </>
       )}
