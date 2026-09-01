@@ -11,7 +11,6 @@ import {
   ExternalLink,
   Settings,
   User,
-  // Music, // 🎵 Música comentada
   HelpCircle,
   Volume2,
   VolumeX,
@@ -23,9 +22,8 @@ import {
   Share2,
   ChevronUp,
   ChevronDown,
-  Video,
-  ShoppingCart,
   Package,
+  ShoppingCart,
   ShieldCheck,
   Headphones,
   Award,
@@ -40,7 +38,6 @@ import {
 import axios from 'axios';
 import useEmblaCarousel from 'embla-carousel-react';
 import { motion, AnimatePresence } from 'framer-motion';
-// import MusicPlayer from './components/MusicPlayer'; // 🎵 Música comentada
 import GamesZone from './components/GamesZone';
 import ChatbotWidget from './components/ChatbotWidget';
 import ProfileModal from './components/ProfileModal';
@@ -641,6 +638,14 @@ function App() {
   const [currentUser, setCurrentUser] = useState(() => {
     return localStorage.getItem('cazaUser') || null;
   });
+
+  // ESTADO PARA SABER SI EL AVISO DEL TELÉFONO FUE DESCARTADO POR EL USUARIO
+  const [phoneWarningDismissed, setPhoneWarningDismissed] = useState(() => {
+    return sessionStorage.getItem('phoneWarningDismissed') === 'true';
+  });
+
+  // DETERMINAR SI FALTA EL TELÉFONO
+  const missingPhone = typeof currentUser === 'object' && currentUser !== null && (!currentUser.telefono || currentUser.telefono.length !== 10);
 
   useEffect(() => {
     const usuarioGuardado = localStorage.getItem('cazaUser');
@@ -1370,6 +1375,53 @@ function App() {
         </>
       )}
 
+      {/* POP-UP AVISO TORNEO CON OPCIÓN DE ESPECTADOR */}
+      <AnimatePresence>
+        {missingPhone && !showProfilePanel && !phoneWarningDismissed && (
+          <div className="fixed inset-0 bg-black/95 backdrop-blur-md flex items-center justify-center z-[85] p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className={`relative rounded-3xl p-8 max-w-md w-full border text-center shadow-[0_0_40px_rgba(250,204,21,0.2)] ${
+                isLight ? 'bg-white border-yellow-500' : 'bg-neutral-900 border-yellow-500/50'
+              }`}
+            >
+              <div className="w-20 h-20 bg-yellow-400/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-400">
+                <Award className="w-10 h-10 animate-pulse" />
+              </div>
+              <h3 className={`text-2xl font-black mb-3 uppercase tracking-tight ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                ¡Aviso Importante! 🏆
+              </h3>
+              <p className={`text-sm leading-relaxed mb-6 ${isLight ? 'text-gray-700' : 'text-neutral-300'}`}>
+                Para participar activamente en la gamificación y reclamar tus recompensas si quedas en el <strong>Top 5 del torneo mensual</strong>, es indispensable registrar tu <strong>número de teléfono (WhatsApp)</strong> para poder contactarte.
+                <br/><br/>
+                <span className="text-yellow-500 font-black">Si no lo haces, podrás navegar y jugar, pero estarás participando únicamente como espectador.</span>
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => setShowProfilePanel(true)}
+                  className="w-full py-3.5 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl text-sm uppercase transition-all shadow-lg flex items-center justify-center gap-2"
+                >
+                  Completar Perfil Ahora 🚀
+                </button>
+                <button
+                  onClick={() => {
+                    setPhoneWarningDismissed(true);
+                    sessionStorage.setItem('phoneWarningDismissed', 'true');
+                  }}
+                  className={`w-full py-3 font-bold rounded-xl text-xs uppercase transition-all border ${
+                    isLight ? 'bg-gray-100 text-gray-500 hover:bg-gray-200 border-gray-200' : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 border-neutral-700'
+                  }`}
+                >
+                  Entendido, participaré solo como espectador
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {showCommunityPopup && !currentUser && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[90] p-4">
@@ -1444,13 +1496,21 @@ function App() {
           )}
           <button
             onClick={() => setShowProfilePanel(true)}
-            className={`w-12 h-12 rounded-full shadow-2xl flex items-center justify-center overflow-hidden transition-all hover:scale-110 border-2 ${
+            className={`relative w-12 h-12 rounded-full shadow-2xl flex items-center justify-center overflow-hidden transition-all hover:scale-110 border-2 ${
               isLight
                 ? 'bg-white text-purple-600 border-purple-200'
                 : 'bg-neutral-900 text-yellow-400 border-yellow-400/50'
             }`}
             title="Mi Perfil / Login"
           >
+            {/* NOTIFICACIÓN SUTIL DE TELÉFONO FALTANTE */}
+            {missingPhone && (
+              <span className="absolute top-0 right-0 flex h-3.5 w-3.5 z-20" title="Teléfono pendiente para gamificación">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-yellow-500 border-2 border-white"></span>
+              </span>
+            )}
+
             {localStorage.getItem('cazaAvatarImg') ? (
               <img src={localStorage.getItem('cazaAvatarImg')} alt="Perfil" className="w-full h-full object-cover" />
             ) : currentUser ? (
