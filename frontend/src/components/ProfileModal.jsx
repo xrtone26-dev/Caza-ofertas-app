@@ -17,6 +17,7 @@ import {
   ArrowLeft,
   Mail,
   Loader2,
+  // eslint-disable-next-line no-unused-vars
   RefreshCw,
   Camera,
   CheckCircle,
@@ -799,7 +800,7 @@ export default function ProfileModal({
     oldKeys.forEach((key) => {
       try {
         localStorage.removeItem(key);
-      } catch {
+      } catch (err) {
         // Ignorar.
       }
     });
@@ -2209,7 +2210,7 @@ export default function ProfileModal({
         URL.revokeObjectURL(
           customAvatarImg
         );
-      } catch {
+      } catch (err) {
         // Ignorar.
       }
     }
@@ -2570,7 +2571,7 @@ export default function ProfileModal({
           URL.revokeObjectURL(
             customAvatarImg
           );
-        } catch {
+        } catch (err) {
           // Ignorar.
         }
       }
@@ -2616,7 +2617,7 @@ export default function ProfileModal({
             firebaseUser.uid
           );
 
-        } catch {
+        } catch (err) {
           // Ignorar.
         }
       }
@@ -3482,7 +3483,7 @@ export default function ProfileModal({
                                     customAvatarImg
                                   );
 
-                                } catch {
+                                } catch (err) {
                                   // Ignorar.
                                 }
                               }
