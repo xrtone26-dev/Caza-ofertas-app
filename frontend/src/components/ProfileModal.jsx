@@ -2885,7 +2885,7 @@ export default function ProfileModal({
         valid:
           false,
 
-        text:
+          text:
           'La contraseña debe contener 8 caracteres, una mayúscula, una minúscula y un número.',
       };
 
