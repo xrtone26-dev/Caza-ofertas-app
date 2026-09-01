@@ -34,7 +34,9 @@ import { motion } from 'framer-motion';
 import {
   browserLocalPersistence,
   createUserWithEmailAndPassword,
+  EmailAuthProvider,
   onAuthStateChanged,
+  reauthenticateWithCredential,
   reload,
   sendEmailVerification,
   sendPasswordResetEmail,
@@ -42,6 +44,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  updatePassword,
   updateProfile,
 } from 'firebase/auth';
 
@@ -160,7 +163,7 @@ function getFirebaseErrorMessage(error) {
       'No encontramos una cuenta con esos datos.',
 
     'auth/wrong-password':
-      'La contraseña es incorrecta.',
+      'La contraseña actual es incorrecta.',
 
     'auth/invalid-email':
       'El correo electrónico no es válido.',
@@ -321,6 +324,21 @@ export default function ProfileModal({
 
   const [selectedFile, setSelectedFile] =
     useState(null);
+
+  /*
+  ============================================================================
+   CAMBIO DE CONTRASEÑA EN EDICIÓN
+  ============================================================================
+  */
+
+  const [editCurrentPass, setEditCurrentPass] =
+    useState('');
+
+  const [editNewPass, setEditNewPass] =
+    useState('');
+
+  const [editConfirmNewPass, setEditConfirmNewPass] =
+    useState('');
 
   /*
   ============================================================================
@@ -858,6 +876,9 @@ export default function ProfileModal({
     );
 
     setSelectedFile(null);
+    setEditCurrentPass('');
+    setEditNewPass('');
+    setEditConfirmNewPass('');
   }
 
 
@@ -2318,6 +2339,43 @@ export default function ProfileModal({
       return;
     }
 
+    /*
+    --------------------------------------------------------------------------
+    VALIDACIÓN DE CAMBIO DE CONTRASEÑA
+    --------------------------------------------------------------------------
+    */
+
+    const changingPassword =
+      Boolean(
+        editCurrentPass ||
+        editNewPass ||
+        editConfirmNewPass
+      );
+
+    if (changingPassword) {
+
+      if (!editCurrentPass) {
+        setErrorMsg(
+          'Ingresa tu contraseña actual para realizar el cambio.'
+        );
+        return;
+      }
+
+      if (!isStrongPassword(editNewPass)) {
+        setErrorMsg(
+          'La nueva contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula y un número.'
+        );
+        return;
+      }
+
+      if (editNewPass !== editConfirmNewPass) {
+        setErrorMsg(
+          'Las nuevas contraseñas no coinciden.'
+        );
+        return;
+      }
+    }
+
     setLoading(true);
 
     const oldNickname =
@@ -2330,6 +2388,31 @@ export default function ProfileModal({
       false;
 
     try {
+
+      /*
+      ------------------------------------------------------------------------
+      CAMBIO DE CONTRASEÑA EN FIREBASE AUTH
+      ------------------------------------------------------------------------
+      */
+
+      if (changingPassword) {
+
+        const credential =
+          EmailAuthProvider.credential(
+            firebaseUser.email,
+            editCurrentPass
+          );
+
+        await reauthenticateWithCredential(
+          firebaseUser,
+          credential
+        );
+
+        await updatePassword(
+          firebaseUser,
+          editNewPass
+        );
+      }
 
       /*
       ------------------------------------------------------------------------
@@ -2555,6 +2638,9 @@ export default function ProfileModal({
       setSelectedFile(
         null
       );
+      setEditCurrentPass('');
+      setEditNewPass('');
+      setEditConfirmNewPass('');
 
       /*
       ------------------------------------------------------------------------
@@ -3513,6 +3599,102 @@ export default function ProfileModal({
                     </div>
 
                   </div>
+
+
+                  {/* ==============================================================
+                      CAMBIO DE CONTRASEÑA (Solo cuentas con contraseña)
+                  ============================================================== */}
+
+                  {effectiveUser?.provider ===
+                    'password' && (
+
+                    <div className="border-t border-neutral-800 pt-4 mt-4 space-y-3">
+
+                      <p className="text-xs text-yellow-400 font-bold">
+                        🔒 Cambiar Contraseña (Opcional)
+                      </p>
+
+
+                      <div>
+
+                        <label className="text-[11px] text-neutral-400 font-bold">
+                          Contraseña Actual
+                        </label>
+
+                        <input
+                          type="password"
+                          value={
+                            editCurrentPass
+                          }
+                          onChange={(e) =>
+                            setEditCurrentPass(
+                              e.target.value
+                            )
+                          }
+                          disabled={
+                            loading
+                          }
+                          placeholder="Introduce tu contraseña actual"
+                          className="w-full px-3 py-2.5 rounded-xl border bg-neutral-950 border-neutral-700 text-white text-sm focus:outline-none focus:border-yellow-400 disabled:opacity-50"
+                        />
+
+                      </div>
+
+
+                      <div>
+
+                        <label className="text-[11px] text-neutral-400 font-bold">
+                          Nueva Contraseña
+                        </label>
+
+                        <input
+                          type="password"
+                          value={
+                            editNewPass
+                          }
+                          onChange={(e) =>
+                            setEditNewPass(
+                              e.target.value
+                            )
+                          }
+                          disabled={
+                            loading
+                          }
+                          placeholder="Mínimo 8 caracteres, mayúscula y número"
+                          className="w-full px-3 py-2.5 rounded-xl border bg-neutral-950 border-neutral-700 text-white text-sm focus:outline-none focus:border-yellow-400 disabled:opacity-50"
+                        />
+
+                      </div>
+
+
+                      <div>
+
+                        <label className="text-[11px] text-neutral-400 font-bold">
+                          Confirmar Nueva Contraseña
+                        </label>
+
+                        <input
+                          type="password"
+                          value={
+                            editConfirmNewPass
+                          }
+                          onChange={(e) =>
+                            setEditConfirmNewPass(
+                              e.target.value
+                            )
+                          }
+                          disabled={
+                            loading
+                          }
+                          placeholder="Repite la nueva contraseña"
+                          className="w-full px-3 py-2.5 rounded-xl border bg-neutral-950 border-neutral-700 text-white text-sm focus:outline-none focus:border-yellow-400 disabled:opacity-50"
+                        />
+
+                      </div>
+
+                    </div>
+
+                  )}
 
 
                   {/* BOTONES */}
