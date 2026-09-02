@@ -525,14 +525,14 @@ function CountdownTimer({ expiresAt }) {
 
   if (!expiresAt) {
     return (
-      <span className="text-sm font-black text-yellow-400 bg-neutral-950 px-3 py-1.5 rounded-full border-2 border-yellow-400 flex items-center gap-1 shadow-[2px_2px_0px_0px_#ca8a04]">
+      <span className="text-xs md:text-sm font-black text-yellow-400 bg-neutral-950 px-3 py-1.5 rounded-full border-2 border-yellow-400 flex items-center gap-1 shadow-[2px_2px_0px_0px_#ca8a04]">
         ⏰ Permanente
       </span>
     );
   }
 
   return (
-    <span className={`text-sm font-black px-3 py-1.5 rounded-full border-2 flex items-center gap-1 shadow-[2px_2px_0px_0px_#ca8a04] ${
+    <span className={`text-xs md:text-sm font-black px-3 py-1.5 rounded-full border-2 flex items-center gap-1 shadow-[2px_2px_0px_0px_#ca8a04] ${
       timeLeft === 'Expirado' 
         ? 'text-white bg-red-600 border-red-800' 
         : 'text-yellow-400 bg-neutral-950 border-yellow-400'
@@ -639,12 +639,10 @@ function App() {
     return localStorage.getItem('cazaUser') || null;
   });
 
-  // ESTADO PARA SABER SI EL AVISO DEL TELÉFONO FUE DESCARTADO POR EL USUARIO
   const [phoneWarningDismissed, setPhoneWarningDismissed] = useState(() => {
     return sessionStorage.getItem('phoneWarningDismissed') === 'true';
   });
 
-  // DETERMINAR SI FALTA EL TELÉFONO
   const missingPhone = typeof currentUser === 'object' && currentUser !== null && (!currentUser.telefono || currentUser.telefono.length !== 10);
 
   useEffect(() => {
@@ -998,17 +996,18 @@ function App() {
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
       <div className="container mx-auto px-4 mb-8 relative z-20">
-        <div className={`rounded-3xl shadow-xl p-8 backdrop-blur-xl border ${
+        <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
           isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
         }`}>
-          <div className="relative flex items-center justify-center mb-6 px-4">
-            <h2 className={`text-2xl md:text-3xl font-bold text-center px-12 ${
+          {/* TÍTULO Y BOTÓN DE AYUDA LIMPIOS SIN TRASLAPAR */}
+          <div className="relative flex flex-col sm:flex-row items-center justify-between mb-6 gap-3 px-2">
+            <h2 className={`text-xl sm:text-2xl md:text-3xl font-bold text-center sm:text-left ${
               isLight ? 'text-purple-700' : 'text-neutral-100 font-black'
             }`}>
               ✨ Cupones Especiales del dia
             </h2>
             
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 group">
+            <div className="group relative self-end sm:self-auto">
               <button
                 onClick={() => setShowTutorialModal(true)}
                 className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center border-2 transition-all hover:scale-110 shadow-lg ${
@@ -1021,7 +1020,7 @@ function App() {
                 <HelpCircle className="w-5 h-5 md:w-6 md:h-6" />
               </button>
               
-              <div className={`absolute bottom-full right-0 mb-3 w-56 p-2.5 text-xs font-bold text-center rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none shadow-xl transform translate-y-2 group-hover:translate-y-0 z-10 ${
+              <div className={`absolute bottom-full right-0 mb-3 w-56 p-2.5 text-xs font-bold text-center rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none shadow-xl transform translate-y-2 group-hover:translate-y-0 z-30 ${
                 isLight ? 'bg-gray-800 text-white' : 'bg-neutral-800 text-neutral-200 border border-neutral-600'
               }`}>
                 ¿Sabes como usar los cupones / Tienes dudas?
@@ -1056,7 +1055,7 @@ function App() {
           ) : (
             <div className="relative">
               <div className="overflow-hidden" ref={cuponesRef}>
-                <div className="flex gap-6 py-4">
+                <div className="flex gap-4 sm:gap-6 py-4">
                   {filteredCupones.map((cupon) => {
                     const cuponId = getSafeId(cupon) || cupon.title;
                     const currentReaction = userReactions[cuponId];
@@ -1064,39 +1063,40 @@ function App() {
 
                     return (
                       <div key={cuponId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
-                        {/* 🌟 DISEÑO VIP BLACK & GOLD PARA EL CONTENEDOR */}
-                        <div className="h-full bg-gradient-to-b from-neutral-900 to-black border-4 border-yellow-400 rounded-3xl p-4 md:p-5 flex flex-col items-center shadow-[6px_6px_0px_0px_#ca8a04] relative">
+                        {/* 🌟 DISEÑO VIP BLACK & GOLD PARA EL CONTENEDOR (RESPONSIVO Y ESTÉTICO) */}
+                        <div className="h-full bg-gradient-to-b from-neutral-900 to-black border-4 border-yellow-400 rounded-3xl p-4 sm:p-5 flex flex-col items-center shadow-[6px_6px_0px_0px_#ca8a04] relative">
                           
-                          <div className="absolute top-3 right-3 z-10">
+                          {/* CONTENEDOR SUPERIOR PARA EL TEMPORIZADOR SIN ENCIMAR */}
+                          <div className="w-full flex justify-end mb-2">
                             <CountdownTimer expiresAt={cupon.expires_at} />
                           </div>
 
-                          <div className="w-full text-center mt-7 mb-3 flex items-center justify-center gap-2 md:gap-4 relative">
-                            <svg className="w-8 h-8 md:w-10 md:h-10 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-                            <h3 className="text-3xl md:text-4xl font-black text-yellow-400 leading-[1.1] tracking-tighter uppercase drop-shadow-[0_2px_10px_rgba(250,204,21,0.4)]">
+                          <div className="w-full text-center mb-3 flex items-center justify-center gap-2 sm:gap-4 relative">
+                            <svg className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                            <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-yellow-400 leading-[1.1] tracking-tighter uppercase drop-shadow-[0_2px_10px_rgba(250,204,21,0.4)]">
                               CUPÓN<br/>ACTIVO
                             </h3>
-                            <svg className="w-8 h-8 md:w-10 md:h-10 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+                            <svg className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
                           </div>
 
                           {/* CAJA INTERIOR DEL CÓDIGO */}
                           <div className="relative w-full bg-[#0a0a0a] border-4 border-yellow-400 rounded-2xl p-1 mb-4 flex-grow flex flex-col justify-center shadow-inner">
-                            <div className="border-[3px] border-dashed border-yellow-500/50 rounded-xl p-4 flex flex-col items-center justify-center h-full text-center bg-[#0a0a0a] relative z-10">
+                            <div className="border-[3px] border-dashed border-yellow-500/50 rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center h-full text-center bg-[#0a0a0a] relative z-10">
                               
-                              <div className="bg-yellow-400 text-black px-5 py-1.5 rounded-full text-sm font-black uppercase tracking-wider mb-2 max-w-full truncate shadow-[0_0_15px_rgba(250,204,21,0.3)]">
+                              <div className="bg-yellow-400 text-black px-4 py-1 rounded-full text-xs sm:text-sm font-black uppercase tracking-wider mb-2 max-w-full truncate shadow-[0_0_15px_rgba(250,204,21,0.3)]">
                                 {cupon.title || 'NUEVO CUPÓN'}
                               </div>
                               
                               {cupon.code && (
-                                <div className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-2 break-all drop-shadow-md">
+                                <div className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tighter mb-2 break-all drop-shadow-md">
                                   {String(cupon.code).length > 3
                                     ? String(cupon.code).slice(0, 3) + '*'.repeat(String(cupon.code).length - 3)
                                     : cupon.code}
                                 </div>
                               )}
                               
-                              <div className="border-t-[3px] border-yellow-500/20 w-full mx-4 mt-2 pt-2 pb-1">
-                                <div className="text-sm font-black text-gray-300 uppercase tracking-tight flex flex-col gap-1">
+                              <div className="border-t-[3px] border-yellow-500/20 w-full mx-2 mt-2 pt-2 pb-1">
+                                <div className="text-xs sm:text-sm font-black text-gray-300 uppercase tracking-tight flex flex-col gap-1">
                                   {cupon.description ? (
                                     cupon.description.split(/(?=[Dd][Ee][Ss][Cc][Uu][Ee][Nn][Tt][Oo]\s+[Mm][ÁáAa][Xx][Ii][Mm][Oo])/).map((part, i) => (
                                       <span key={i} className="block">{part.trim()}</span>
@@ -1109,8 +1109,8 @@ function App() {
                             </div>
 
                             {/* RECORTES LATERALES DEL TICKET */}
-                            <div className={`absolute top-1/2 -left-5 -translate-y-1/2 w-8 h-8 border-4 border-yellow-400 rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
-                            <div className={`absolute top-1/2 -right-5 -translate-y-1/2 w-8 h-8 border-4 border-yellow-400 rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
+                            <div className={`absolute top-1/2 -left-4 -translate-y-1/2 w-6 h-6 border-4 border-yellow-400 rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
+                            <div className={`absolute top-1/2 -right-4 -translate-y-1/2 w-6 h-6 border-4 border-yellow-400 rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
                           </div>
 
                           <div className="flex justify-between items-center w-full mb-4 px-1 gap-2">
@@ -1149,14 +1149,14 @@ function App() {
                           {cupon.link && (
                             <button
                               onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                              className="w-full bg-yellow-400 hover:bg-yellow-300 text-black rounded-2xl py-2 flex flex-col items-center justify-center transition-transform hover:scale-[1.02] mt-auto border-2 border-yellow-600 shadow-[0_4px_14px_0_rgba(250,204,21,0.4)]"
+                              className="w-full bg-yellow-400 hover:bg-yellow-300 text-black rounded-2xl py-2.5 px-2 flex flex-col items-center justify-center transition-transform hover:scale-[1.02] mt-auto border-2 border-yellow-600 shadow-[0_4px_14px_0_rgba(250,204,21,0.4)]"
                             >
-                              <div className="flex items-center justify-center gap-3 w-full">
-                                <svg className="w-5 h-5 text-black flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-                                <span className="text-xl md:text-2xl font-black tracking-wide uppercase drop-shadow-sm">COPIAR CUPÓN</span>
-                                <svg className="w-5 h-5 text-black flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+                              <div className="flex items-center justify-center gap-2 w-full">
+                                <svg className="w-4 h-4 text-black flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                                <span className="text-lg sm:text-xl md:text-2xl font-black tracking-wide uppercase drop-shadow-sm">COPIAR CUPÓN</span>
+                                <svg className="w-4 h-4 text-black flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
                               </div>
-                              <div className="text-sm md:text-base font-bold tracking-tight -mt-1 opacity-90">
+                              <div className="text-xs sm:text-sm md:text-base font-bold tracking-tight -mt-0.5 opacity-90">
                                 E IR A MERCADO LIBRE
                               </div>
                             </button>
@@ -1173,15 +1173,15 @@ function App() {
                 <>
                   <button
                     onClick={scrollPrevCupones}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-4 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
                   >
-                    <ChevronLeft className="w-6 h-6 font-black" />
+                    <ChevronLeft className="w-5 h-5 font-black" />
                   </button>
                   <button
                     onClick={scrollNextCupones}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-4 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
                   >
-                    <ChevronRight className="w-6 h-6 font-black" />
+                    <ChevronRight className="w-5 h-5 font-black" />
                   </button>
                 </>
               )}
@@ -1503,7 +1503,6 @@ function App() {
             }`}
             title="Mi Perfil / Login"
           >
-            {/* NOTIFICACIÓN SUTIL DE TELÉFONO FALTANTE */}
             {missingPhone && (
               <span className="absolute top-0 right-0 flex h-3.5 w-3.5 z-20" title="Teléfono pendiente para gamificación">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
@@ -1654,7 +1653,7 @@ function App() {
           <div className="bg-neutral-900/90 border border-neutral-800 p-3 rounded-2xl mb-6 shadow-xl grid grid-cols-2 gap-2">
             <button
               onClick={() => setMobileTab('cupones')}
-              className={`py-2.5 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'cupones' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
@@ -1662,7 +1661,7 @@ function App() {
             </button>
             <button
               onClick={() => setMobileTab('productos')}
-              className={`py-2.5 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'productos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
@@ -1670,7 +1669,7 @@ function App() {
             </button>
             <button
               onClick={() => setMobileTab('juegos')}
-              className={`py-2.5 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'juegos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
@@ -1678,7 +1677,7 @@ function App() {
             </button>
             <button
               onClick={() => setMobileTab('reels')}
-              className={`py-2.5 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'reels' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
