@@ -827,7 +827,7 @@ function App() {
     {
       name: 'Telegram',
       icon: FaTelegram,
-      url: 'https://https://t.me/+QFHGS37AyAk5M2Ex',
+      url: 'https://t.me/+QFHGS37AyAk5M2Ex',
       color: 'bg-[#229ED9] hover:bg-[#1a8ac2]',
     },
     {
