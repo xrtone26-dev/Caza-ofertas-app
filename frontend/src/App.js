@@ -663,7 +663,7 @@ function App() {
             setShowCommunityPopup(true);
           }
         }, 60000);
-        return () => clearInterval(timer);
+        return () => clearTimeout(timer);
       }
     }
   }, [currentUser]);
@@ -1511,7 +1511,13 @@ function App() {
               </span>
             )}
 
-            {localStorage.getItem('cazaAvatarImg') ? (
+            {typeof currentUser === 'object' && currentUser !== null && currentUser.photoURL ? (
+              <img src={currentUser.photoURL} alt="Perfil" className="w-full h-full object-cover" />
+            ) : typeof currentUser === 'object' && currentUser !== null && currentUser.avatar ? (
+              <span className="text-xl leading-none">
+                {currentUser.avatar}
+              </span>
+            ) : localStorage.getItem('cazaAvatarImg') ? (
               <img src={localStorage.getItem('cazaAvatarImg')} alt="Perfil" className="w-full h-full object-cover" />
             ) : currentUser ? (
               <span className="text-xl font-black">
