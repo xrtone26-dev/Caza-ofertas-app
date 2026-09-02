@@ -827,7 +827,7 @@ function App() {
     {
       name: 'Telegram',
       icon: FaTelegram,
-      url: 'https://t.me/+K-usKp25iPYzNWUx',
+      url: 'https://https://t.me/LadyOfertas2026',
       color: 'bg-[#229ED9] hover:bg-[#1a8ac2]',
     },
     {
