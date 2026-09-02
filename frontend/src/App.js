@@ -550,6 +550,7 @@ function App() {
   const logoGlareRef = useRef(null);
 
   const [isMobileDevice, setIsMobileDevice] = useState(false);
+  const [mobileTab, setMobileTab] = useState('cupones');
 
   useEffect(() => {
     const checkDevice = () => {
@@ -1648,20 +1649,76 @@ function App() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 mt-6 mb-16 relative z-20 flex flex-col gap-8">
-        {renderCuponesSection()}
-        {renderProductosSection()}
-        <GamesZone 
-          currentUser={
-            typeof currentUser === 'object' && currentUser !== null
-              ? (currentUser.nickname || currentUser.nombre || currentUser.email || '')
-              : (currentUser || '')
-          } 
-          isLight={isLight} 
-          isAuthenticated={isAuthenticated} 
-        />
-        {renderReelsSection()}
-      </div>
+      {isMobileDevice ? (
+        <div className="container mx-auto px-4 mt-6 mb-16 relative z-20">
+          <div className="bg-neutral-900/90 border border-neutral-800 p-3 rounded-2xl mb-6 shadow-xl grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setMobileTab('cupones')}
+              className={`py-2.5 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+                mobileTab === 'cupones' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+              }`}
+            >
+              🎟️ Cupones
+            </button>
+            <button
+              onClick={() => setMobileTab('productos')}
+              className={`py-2.5 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+                mobileTab === 'productos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+              }`}
+            >
+              🔥 Productos
+            </button>
+            <button
+              onClick={() => setMobileTab('juegos')}
+              className={`py-2.5 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+                mobileTab === 'juegos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+              }`}
+            >
+              🎮 Juegos
+            </button>
+            <button
+              onClick={() => setMobileTab('reels')}
+              className={`py-2.5 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+                mobileTab === 'reels' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+              }`}
+            >
+              📺 Pruebas
+            </button>
+          </div>
+
+          {mobileTab === 'cupones' && renderCuponesSection()}
+          {mobileTab === 'productos' && renderProductosSection()}
+          {mobileTab === 'juegos' && (
+            <div className="mb-8">
+              <GamesZone 
+                currentUser={
+                  typeof currentUser === 'object' && currentUser !== null
+                    ? (currentUser.nickname || currentUser.nombre || currentUser.email || '')
+                    : (currentUser || '')
+                } 
+                isLight={isLight} 
+                isAuthenticated={isAuthenticated} 
+              />
+            </div>
+          )}
+          {mobileTab === 'reels' && renderReelsSection()}
+        </div>
+      ) : (
+        <>
+          {renderCuponesSection()}
+          {renderProductosSection()}
+          <GamesZone 
+            currentUser={
+              typeof currentUser === 'object' && currentUser !== null
+                ? (currentUser.nickname || currentUser.nombre || currentUser.email || '')
+                : (currentUser || '')
+            } 
+            isLight={isLight} 
+            isAuthenticated={isAuthenticated} 
+          />
+          {renderReelsSection()}
+        </>
+      )}
 
       {showTutorialModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
