@@ -4362,7 +4362,7 @@ export default function ProfileModal({
                   </button>
 
 
-                  {/* VOLVER */}
+                  /* VOLVER */
 
                   <button
                     type="button"
