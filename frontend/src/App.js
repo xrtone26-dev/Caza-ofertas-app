@@ -550,7 +550,6 @@ function App() {
   const logoGlareRef = useRef(null);
 
   const [isMobileDevice, setIsMobileDevice] = useState(false);
-  const [mobileTab, setMobileTab] = useState('cupones'); // 'cupones' | 'productos' | 'juegos' | 'reels'
 
   useEffect(() => {
     const checkDevice = () => {
@@ -997,18 +996,18 @@ function App() {
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
-      <div className="container mx-auto px-4 mb-8 relative z-25">
+      <div className="container mx-auto px-4 mb-8 relative z-20">
         <div className={`rounded-3xl shadow-xl p-8 backdrop-blur-xl border ${
           isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
         }`}>
           <div className="relative flex items-center justify-center mb-6 px-4">
-            <h2 className={`text-2xl md:text-3xl font-bold text-center px-10 ${
+            <h2 className={`text-2xl md:text-3xl font-bold text-center px-12 ${
               isLight ? 'text-purple-700' : 'text-neutral-100 font-black'
             }`}>
               ✨ Cupones Especiales del dia
             </h2>
             
-            <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 group">
               <button
                 onClick={() => setShowTutorialModal(true)}
                 className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center border-2 transition-all hover:scale-110 shadow-lg ${
@@ -1649,76 +1648,20 @@ function App() {
         </div>
       </div>
 
-      {isMobileDevice ? (
-        <div className="container mx-auto px-4 mt-6 mb-16 relative z-20">
-          <div className="flex overflow-x-auto gap-2 bg-neutral-900/90 border border-neutral-800 p-2 rounded-2xl mb-6 custom-scrollbar shadow-xl">
-            <button
-              onClick={() => setMobileTab('cupones')}
-              className={`flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase transition-all whitespace-nowrap ${
-                mobileTab === 'cupones' ? 'bg-yellow-400 text-black shadow-md' : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              🎟️ Cupones
-            </button>
-            <button
-              onClick={() => setMobileTab('productos')}
-              className={`flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase transition-all whitespace-nowrap ${
-                mobileTab === 'productos' ? 'bg-yellow-400 text-black shadow-md' : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              🔥 Productos
-            </button>
-            <button
-              onClick={() => setMobileTab('juegos')}
-              className={`flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase transition-all whitespace-nowrap ${
-                mobileTab === 'juegos' ? 'bg-yellow-400 text-black shadow-md' : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              🎮 Juegos
-            </button>
-            <button
-              onClick={() => setMobileTab('reels')}
-              className={`flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase transition-all whitespace-nowrap ${
-                mobileTab === 'reels' ? 'bg-yellow-400 text-black shadow-md' : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              📺 Pruebas
-            </button>
-          </div>
-
-          {mobileTab === 'cupones' && renderCuponesSection()}
-          {mobileTab === 'productos' && renderProductosSection()}
-          {mobileTab === 'juegos' && (
-            <div className="mb-8">
-              <GamesZone 
-                currentUser={
-                  typeof currentUser === 'object' && currentUser !== null
-                    ? (currentUser.nickname || currentUser.nombre || currentUser.email || '')
-                    : (currentUser || '')
-                } 
-                isLight={isLight} 
-                isAuthenticated={isAuthenticated} 
-              />
-            </div>
-          )}
-          {mobileTab === 'reels' && renderReelsSection()}
-        </div>
-      ) : (
-        <>
-          {renderCuponesSection()}
-          {renderProductosSection()}
-          <GamesZone 
-            currentUser={
-              typeof currentUser === 'object' && currentUser !== null
-                ? (currentUser.nickname || currentUser.nombre || currentUser.email || '')
-                : (currentUser || '')
-            } 
-            isLight={isLight} 
-            isAuthenticated={isAuthenticated} 
-          />
-          {renderReelsSection()}
-        </>
-      )}
+      <div className="container mx-auto px-4 mt-6 mb-16 relative z-20 flex flex-col gap-8">
+        {renderCuponesSection()}
+        {renderProductosSection()}
+        <GamesZone 
+          currentUser={
+            typeof currentUser === 'object' && currentUser !== null
+              ? (currentUser.nickname || currentUser.nombre || currentUser.email || '')
+              : (currentUser || '')
+          } 
+          isLight={isLight} 
+          isAuthenticated={isAuthenticated} 
+        />
+        {renderReelsSection()}
+      </div>
 
       {showTutorialModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
