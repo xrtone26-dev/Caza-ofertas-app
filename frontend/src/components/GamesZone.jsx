@@ -553,7 +553,7 @@ export default function GamesZone({ currentUser, isLight }) {
       detailText = ` (Líneas: ${tetrisLines}, Nivel: ${tetrisLevel})`;
     }
 
-    const text = `¡Conseguí ${finalScore} puntos en ${gameTitle}!${detailText} 🚀 ¿Puedes superarme? Juega ahora en: https://cazaofertasml.vercel.app`;
+    const text = `¡Conseguí ${finalScore} puntos en ${gameTitle}!${detailText} 🚀 ¿Puedes superarme? Juega ahora en: https://caza-ofertas-app.vercel.app/`;
     if (navigator.share) {
       navigator.share({ title: 'CazaOfertasML Games', text }).catch(() => {});
     } else {
