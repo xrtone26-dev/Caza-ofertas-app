@@ -1481,7 +1481,7 @@ function App() {
         )}
       </AnimatePresence>
 
-      <div className="fixed top-6 right-6 z-[60] flex flex-col items-center gap-3">
+      <div className={`fixed top-6 ${isMobileDevice ? 'right-2' : 'right-6'} z-[60] flex flex-col items-center gap-3`}>
         <div className="flex flex-col items-center gap-1">
           {currentUser && (
             <span className={`font-bold text-[11px] truncate max-w-[65px] text-center ${
@@ -1630,13 +1630,15 @@ function App() {
               CazaOfertasML
             </h1>
 
-            <div className={`inline-block backdrop-blur-sm px-6 py-3 rounded-full ${
-              isLight ? 'bg-white/20' : 'bg-yellow-400/10 border border-yellow-400/30'
-            }`}>
-              <p className="text-white font-semibold text-lg">
-              "No compres caro, Nosotros ya hicimos la busqueda por ti"
-              </p>
-            </div>
+            {!isMobileDevice && (
+              <div className={`inline-block backdrop-blur-sm px-6 py-3 rounded-full ${
+                isLight ? 'bg-white/20' : 'bg-yellow-400/10 border border-yellow-400/30'
+              }`}>
+                <p className="text-white font-semibold text-lg">
+                "No compres caro, Nosotros ya hicimos la busqueda por ti"
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1862,7 +1864,9 @@ function App() {
         setTiktokVideos={setTiktokVideos}
       />
 
-      <ChatbotWidget isLight={isLight} cupones={activeCupones} />
+      <div className={isMobileDevice ? "fixed bottom-4 right-1 z-50 pointer-events-auto" : ""}>
+        <ChatbotWidget isLight={isLight} cupones={activeCupones} isMobileDevice={isMobileDevice} />
+      </div>
     </div>
   );
 }
