@@ -317,7 +317,7 @@ export default function ProfileModal({
     useState('Otro');
 
   const [selectedAvatar, setSelectedAvatar] =
-    useState('👩‍🦰');
+    useState('');
 
   const [customAvatarImg, setCustomAvatarImg] =
     useState('');
@@ -619,7 +619,7 @@ export default function ProfileModal({
 
                       sexo: 'Otro',
 
-                      avatar: '👩‍🦰',
+                      avatar: '',
 
                       photoURL:
                         firebaseUser.photoURL ||
@@ -714,6 +714,10 @@ export default function ProfileModal({
                     photoURL:
                       firebaseUser.photoURL ||
                       profile?.photoURL ||
+                      '',
+
+                    avatar:
+                      profile?.avatar ||
                       '',
 
                     emailVerified:
@@ -867,7 +871,7 @@ export default function ProfileModal({
 
     setSelectedAvatar(
       user.avatar ||
-      '👩‍🦰'
+      ''
     );
 
     setCustomAvatarImg(
@@ -1147,7 +1151,7 @@ export default function ProfileModal({
 
       sexo: 'Otro',
 
-      avatar: '👩‍🦰',
+      avatar: '',
 
       photoURL:
         firebaseUser.photoURL || '',
@@ -1411,7 +1415,7 @@ export default function ProfileModal({
 
           sexo: 'Otro',
 
-          avatar: '👩‍🦰',
+          avatar: '',
 
           photoURL:
             firebaseUser.photoURL ||
@@ -1474,6 +1478,10 @@ export default function ProfileModal({
         photoURL:
           firebaseUser.photoURL ||
           profileData.photoURL ||
+          '',
+
+        avatar:
+          profileData.avatar ||
           '',
 
         emailVerified:
@@ -1600,6 +1608,10 @@ export default function ProfileModal({
         photoURL:
           firebaseUser.photoURL ||
           profileData.photoURL ||
+          '',
+
+        avatar:
+          profileData.avatar ||
           '',
 
         emailVerified:
@@ -1827,7 +1839,7 @@ export default function ProfileModal({
 
         sexo: 'Otro',
 
-        avatar: '👩‍🦰',
+        avatar: '',
 
         photoURL: '',
 
@@ -2438,7 +2450,7 @@ export default function ProfileModal({
 
       /*
       ------------------------------------------------------------------------
-      FOTO
+      FOTO Y AVATAR
       ------------------------------------------------------------------------
       */
 
@@ -2446,11 +2458,9 @@ export default function ProfileModal({
         effectiveUser?.photoURL ||
         '';
 
-      /*
-      ------------------------------------------------------------------------
-      Si hay un archivo nuevo, lo subimos.
-      ------------------------------------------------------------------------
-      */
+      let finalAvatar =
+        selectedAvatar ||
+        '';
 
       if (
         selectedFile
@@ -2461,26 +2471,16 @@ export default function ProfileModal({
             firebaseUser,
             selectedFile
           );
-      }
-
-      /*
-      ------------------------------------------------------------------------
-      Si el usuario eligió emoji:
-      eliminamos foto.
-      ------------------------------------------------------------------------
-      */
-
-      if (
-        !selectedFile &&
-        !customAvatarImg
+        finalAvatar = ''; // Si sube archivo, se limpia el emoji
+      } else if (
+        !customAvatarImg &&
+        selectedAvatar
       ) {
-
+        // Si limpió la foto personalizada para elegir un emoji
         await removeProfilePhoto(
           firebaseUser.uid
         );
-
-        finalPhotoURL =
-          '';
+        finalPhotoURL = '';
       }
 
       /*
@@ -2534,7 +2534,7 @@ export default function ProfileModal({
             editSexo || 'Otro',
 
           avatar:
-            selectedAvatar,
+            finalPhotoURL ? '' : finalAvatar,
 
           photoURL:
             finalPhotoURL,
@@ -2611,7 +2611,7 @@ export default function ProfileModal({
           editSexo || 'Otro',
 
         avatar:
-          selectedAvatar,
+          finalPhotoURL ? '' : finalAvatar,
 
         photoURL:
           finalPhotoURL,
@@ -3094,14 +3094,23 @@ export default function ProfileModal({
                         className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-yellow-400 shadow-md"
                       />
 
-                    ) : (
+                    ) : effectiveUser.avatar ? (
 
                       <span className="text-[4rem] sm:text-[5rem] leading-none">
                         {
-                          effectiveUser.avatar ||
-                          '👩‍🦰'
+                          effectiveUser.avatar
                         }
                       </span>
+
+                    ) : (
+
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-yellow-400/20 border-2 border-yellow-400 flex items-center justify-center text-3xl sm:text-4xl font-black text-yellow-400 uppercase shadow-md">
+                        {
+                          (effectiveUser.nickname ||
+                            effectiveUser.nombre ||
+                            'C').charAt(0)
+                        }
+                      </div>
 
                     )}
 
@@ -3474,11 +3483,21 @@ export default function ProfileModal({
                             className="w-full h-full object-cover"
                           />
 
-                        ) : (
+                        ) : selectedAvatar ? (
 
                           <span className="text-3xl">
                             {
                               selectedAvatar
+                            }
+                          </span>
+
+                        ) : (
+
+                          <span className="text-2xl font-black text-yellow-400 uppercase">
+                            {
+                              (editNick ||
+                                editNombre ||
+                                'C').charAt(0)
                             }
                           </span>
 
@@ -3554,7 +3573,7 @@ export default function ProfileModal({
 
                               /*
                               ------------------------------------------------
-                              Elegir emoji elimina la imagen personalizada.
+                              Elegir emoji limpia la imagen personalizada.
                               ------------------------------------------------
                               */
 
