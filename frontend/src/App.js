@@ -122,7 +122,7 @@ function FeatureCube({ isLight, isMobileDevice }) {
       transform: `rotateY(-90deg) translateZ(${tz}px)`,
       icon: Award,
       title: 'Premios Mensuales',
-      desc: 'Participa in nuestra comunidad, gana puntos y obtén recompensas exclusivas.',
+      desc: 'Participa en nuestra comunidad, gana puntos y obtén recompensas exclusivas.',
       badge: 'Comunidad Activa'
     },
     {
@@ -999,7 +999,6 @@ function App() {
         <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
           isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
         }`}>
-          {/* TÍTULO Y BOTÓN DE AYUDA LIMPIOS SIN TRASLAPAR */}
           <div className="relative flex flex-col sm:flex-row items-center justify-between mb-6 gap-3 px-2">
             <h2 className={`text-xl sm:text-2xl md:text-3xl font-bold text-center sm:text-left ${
               isLight ? 'text-purple-700' : 'text-neutral-100 font-black'
@@ -1063,10 +1062,8 @@ function App() {
 
                     return (
                       <div key={cuponId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
-                        {/* 🌟 DISEÑO ESTÉTICO TIPO TICKET DE CUPÓN */}
                         <div className="h-full bg-gradient-to-b from-neutral-900 via-neutral-950 to-black border-2 sm:border-4 border-yellow-400 rounded-2xl sm:rounded-3xl p-3 sm:p-5 flex flex-col items-center shadow-[4px_4px_0px_0px_#ca8a04] sm:shadow-[6px_6px_0px_0px_#ca8a04] relative">
                           
-                          {/* CABECERA DEL TICKET CON TIEMPO */}
                           <div className="w-full flex items-center justify-between mb-3 px-1 border-b border-yellow-500/20 pb-2">
                             <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-yellow-500/90 flex items-center gap-1">
                               🎟️ VOUCHER OFICIAL
@@ -1074,14 +1071,12 @@ function App() {
                             <CountdownTimer expiresAt={cupon.expires_at} />
                           </div>
 
-                          {/* TÍTULO PRINCIPAL */}
                           <div className="w-full text-center mb-2 px-1">
                             <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-yellow-400 leading-tight tracking-tight uppercase drop-shadow-[0_2px_8px_rgba(250,204,21,0.3)]">
                               {cupon.title || 'CUPÓN EXCLUSIVO'}
                             </h3>
                           </div>
 
-                          {/* CAJA INTERIOR TIPO TICKET CON BORDES PERFORADOS */}
                           <div className="relative w-full bg-[#070707] border-2 sm:border-3 border-dashed border-yellow-400/70 rounded-xl p-2.5 sm:p-4 mb-3 flex-grow flex flex-col justify-center shadow-inner">
                             <div className="flex flex-col items-center justify-center text-center relative z-10">
                               
@@ -1104,12 +1099,10 @@ function App() {
                               </div>
                             </div>
 
-                            {/* MUESCAS LATERALES ESTÉTICAS DE TICKET */}
                             <div className={`absolute top-1/2 -left-3.5 -translate-y-1/2 w-5 h-5 border-2 border-yellow-400 rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
                             <div className={`absolute top-1/2 -right-3.5 -translate-y-1/2 w-5 h-5 border-2 border-yellow-400 rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
                           </div>
 
-                          {/* BOTONES DE REACCIÓN RÁPIDA */}
                           <div className="flex justify-between items-center w-full mb-3 px-1 gap-1.5">
                             <button
                               onClick={() => handleReaction(cuponId, 'like')}
@@ -1143,7 +1136,6 @@ function App() {
                             </button>
                           </div>
 
-                          {/* BOTÓN DE ACCIÓN CTA */}
                           {cupon.link && (
                             <button
                               onClick={() => handleCopiarIrMercadoLibre(cupon)}
@@ -1197,16 +1189,16 @@ function App() {
   const renderProductosSection = () => (
     products.length > 0 && (
       <div className={`container mx-auto px-4 mb-16 relative z-10`}>
-        <div className={`rounded-3xl shadow-xl p-8 backdrop-blur-xl border ${
+        <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
           isLight ? 'bg-white border-gray-100' : 'bg-neutral-900/85 border-neutral-800'
         }`}>
-          <div className="relative flex items-center justify-center mb-6">
-            <h2 className={`text-3xl font-bold text-center ${isLight ? 'text-gray-800' : 'text-neutral-100 font-black'}`}>
+          <div className="relative flex items-center justify-center mb-6 px-2">
+            <h2 className={`text-2xl sm:text-3xl font-bold text-center ${isLight ? 'text-gray-800' : 'text-neutral-100 font-black'}`}>
               🔥 Productos Destacados
             </h2>
           </div>
 
-          <div className="max-w-xl mx-auto mb-8 flex flex-col gap-3">
+          <div className="max-w-xl mx-auto mb-8 flex flex-col gap-3 px-2">
             {searchTerm && (
               <button
                 onClick={() => {
@@ -1221,7 +1213,7 @@ function App() {
             )}
             <div className="flex gap-2 w-full">
               <div className="relative flex-1">
-                <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 ${isLight ? 'text-gray-400' : 'text-neutral-500'}`} />
+                <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${isLight ? 'text-gray-400' : 'text-neutral-500'}`} />
                 <input
                   type="text"
                   value={productSearchInput}
@@ -1232,34 +1224,34 @@ function App() {
                     }
                   }}
                   placeholder="Busca un producto..."
-                  className={`w-full pl-11 pr-4 py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-sm ${
+                  className={`w-full pl-10 sm:pl-11 pr-3 sm:pr-4 py-2.5 sm:py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-xs sm:text-sm ${
                     isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-700 text-neutral-100'
                   }`}
                 />
               </div>
               <button
                 onClick={() => setSearchTerm(productSearchInput)}
-                className={`px-4 py-3 rounded-xl flex items-center justify-center transition-all font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+                className={`px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl flex items-center justify-center transition-all font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
                   isLight ? 'bg-yellow-400 text-black' : 'bg-[#FFEA00] text-black'
                 }`}
                 title="Buscar Producto"
               >
-                <Search className="w-5 h-5" />
+                <Search className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
           </div>
 
           {filteredProducts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className={`text-base mb-4 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+            <div className="text-center py-12 px-2">
+              <p className={`text-sm sm:text-base mb-4 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
                 No encontramos ningún producto local con ese nombre. ¿Quieres buscarlo directamente en Mercado Libre?
               </p>
-              <button onClick={handleSearchOnMercadoLibre} className="bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 rounded-xl font-black text-sm uppercase transition-all shadow-lg">
+              <button onClick={handleSearchOnMercadoLibre} className="bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 rounded-xl font-black text-xs sm:text-sm uppercase transition-all shadow-lg">
                 Buscar "{searchTerm}" en Mercado Libre 🚀
               </button>
             </div>
           ) : (
-            <div className="relative">
+            <div className="relative px-2 sm:px-0">
               <div className="overflow-hidden" ref={emblaRef}>
                 <div className="flex gap-6">
                   {filteredProducts.map((product) => (
@@ -1268,42 +1260,42 @@ function App() {
                         isLight ? 'bg-gradient-to-br from-gray-50 to-white' : 'bg-gradient-to-b from-neutral-900 to-neutral-950 border border-neutral-800'
                       }`}>
                         <div className="relative">
-                          <img src={product.image_url} alt={product.title} className="w-full h-64 object-contain p-2" />
+                          <img src={product.image_url} alt={product.title} className="w-full h-56 sm:h-64 object-contain p-2" />
                           {product.discount_percentage && (
-                            <div className="absolute top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-full font-bold text-lg shadow-lg">
+                            <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-red-500 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-bold text-sm sm:text-lg shadow-lg">
                               -{product.discount_percentage}%
                             </div>
                           )}
                         </div>
-                        <div className="p-6 flex flex-col flex-1">
-                          <h3 className={`text-xl font-bold mb-2 line-clamp-2 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}>{product.title}</h3>
-                          <p className={`mb-4 line-clamp-3 text-sm flex-1 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+                        <div className="p-4 sm:p-6 flex flex-col flex-1">
+                          <h3 className={`text-lg sm:text-xl font-bold mb-2 line-clamp-2 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}>{product.title}</h3>
+                          <p className={`mb-4 line-clamp-3 text-xs sm:text-sm flex-1 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
                             {product.description}
                           </p>
                           <div className="flex items-baseline gap-3 mb-4 mt-auto flex-wrap">
-                            <span className={`text-3xl font-black ${isLight ? 'text-green-600' : 'text-green-400'}`}>
+                            <span className={`text-2xl sm:text-3xl font-black ${isLight ? 'text-green-600' : 'text-green-400'}`}>
                               ${Number(product.discount_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
-                            <span className={`text-lg font-bold line-through ${isLight ? 'text-red-600' : 'text-red-400'}`}>
+                            <span className={`text-base sm:text-lg font-bold line-through ${isLight ? 'text-red-600' : 'text-red-400'}`}>
                               Antes ${Number(product.original_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                           </div>
                           {product.coupon && (
-                            <div className={`border-2 border-dashed rounded-lg p-3 mb-4 ${
+                            <div className={`border-2 border-dashed rounded-lg p-2.5 sm:p-3 mb-4 ${
                               isLight ? 'bg-yellow-50 border-yellow-400' : 'bg-yellow-400/15 border-yellow-400/60'
                             }`}>
-                              <p className={`text-xs mb-1 ${isLight ? 'text-gray-600' : 'text-neutral-400 font-bold'}`}>
+                              <p className={`text-[11px] sm:text-xs mb-1 ${isLight ? 'text-gray-600' : 'text-neutral-400 font-bold'}`}>
                                 Cupón disponible:
                               </p>
-                              <p className={`text-lg font-bold ${isLight ? 'text-yellow-700' : 'text-yellow-400'}`}>
+                              <p className={`text-base sm:text-lg font-bold ${isLight ? 'text-yellow-700' : 'text-yellow-400'}`}>
                                 {product.coupon}
                               </p>
                             </div>
                           )}
-                          <a href={product.affiliate_link || product.link || product.url || '#'} target="_blank" rel="noopener noreferrer" className={`block w-full py-3 rounded-lg font-bold text-center transition-all flex items-center justify-center gap-2 ${
+                          <a href={product.affiliate_link || product.link || product.url || '#'} target="_blank" rel="noopener noreferrer" className={`block w-full py-3 rounded-lg font-bold text-center transition-all flex items-center justify-center gap-2 text-xs sm:text-sm ${
                             isLight ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:shadow-lg' : 'bg-yellow-400 hover:bg-yellow-300 text-black font-black'
                           }`}>
-                            Ver Producto <ExternalLink className="w-5 h-5" />
+                            Ver Producto <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
                           </a>
                         </div>
                       </div>
@@ -1314,11 +1306,11 @@ function App() {
 
               {filteredProducts.length > 1 && (
                 <>
-                  <button onClick={scrollPrev} className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800">
-                    <ChevronLeft className="w-6 h-6" />
+                  <button onClick={scrollPrev} className="absolute left-1 sm:-translate-x-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
+                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 font-black" />
                   </button>
-                  <button onClick={scrollNext} className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800">
-                    <ChevronRight className="w-6 h-6" />
+                  <button onClick={scrollNext} className="absolute right-1 sm:translate-x-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
+                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 font-black" />
                   </button>
                 </>
               )}
