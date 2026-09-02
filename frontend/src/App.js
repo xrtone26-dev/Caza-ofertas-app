@@ -1223,7 +1223,7 @@ function App() {
                       setSearchTerm(productSearchInput);
                     }
                   }}
-                  placeholder="Busca un producto..."
+                  placeholder={isMobileDevice ? "Buscar..." : "Busca un producto..."}
                   className={`w-full pl-10 sm:pl-11 pr-3 sm:pr-4 py-2.5 sm:py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-xs sm:text-sm ${
                     isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-700 text-neutral-100'
                   }`}
@@ -1306,10 +1306,10 @@ function App() {
 
               {filteredProducts.length > 1 && (
                 <>
-                  <button onClick={scrollPrev} className="absolute left-1 sm:-translate-x-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
+                  <button onClick={scrollPrev} className="absolute left-1 sm:-translate-x-4 top-[100px] sm:top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
                     <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 font-black" />
                   </button>
-                  <button onClick={scrollNext} className="absolute right-1 sm:translate-x-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
+                  <button onClick={scrollNext} className="absolute right-1 sm:translate-x-4 top-[100px] sm:top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
                     <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 font-black" />
                   </button>
                 </>
