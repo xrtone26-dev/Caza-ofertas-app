@@ -122,7 +122,7 @@ function FeatureCube({ isLight, isMobileDevice }) {
       transform: `rotateY(-90deg) translateZ(${tz}px)`,
       icon: Award,
       title: 'Premios Mensuales',
-      desc: 'Participa en nuestra comunidad, gana puntos y obtén recompensas exclusivas.',
+      desc: 'Participa in nuestra comunidad, gana puntos y obtén recompensas exclusivas.',
       badge: 'Comunidad Activa'
     },
     {
@@ -525,14 +525,14 @@ function CountdownTimer({ expiresAt }) {
 
   if (!expiresAt) {
     return (
-      <span className="text-xs md:text-sm font-black text-yellow-400 bg-neutral-950 px-3 py-1.5 rounded-full border-2 border-yellow-400 flex items-center gap-1 shadow-[2px_2px_0px_0px_#ca8a04]">
+      <span className="text-[11px] sm:text-xs font-black text-yellow-400 bg-neutral-950 px-2.5 py-1 rounded-full border-2 border-yellow-400 flex items-center gap-1 shadow-[2px_2px_0px_0px_#ca8a04]">
         ⏰ Permanente
       </span>
     );
   }
 
   return (
-    <span className={`text-xs md:text-sm font-black px-3 py-1.5 rounded-full border-2 flex items-center gap-1 shadow-[2px_2px_0px_0px_#ca8a04] ${
+    <span className={`text-[11px] sm:text-xs font-black px-2.5 py-1 rounded-full border-2 flex items-center gap-1 shadow-[2px_2px_0px_0px_#ca8a04] ${
       timeLeft === 'Expirado' 
         ? 'text-white bg-red-600 border-red-800' 
         : 'text-yellow-400 bg-neutral-950 border-yellow-400'
@@ -991,7 +991,7 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES (ESTILO BLACK & GOLD)
+  // SECCIÓN DE CUPONES (ESTILO TICKET / BLACK & GOLD)
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
@@ -1063,101 +1063,97 @@ function App() {
 
                     return (
                       <div key={cuponId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
-                        {/* 🌟 DISEÑO VIP BLACK & GOLD PARA EL CONTENEDOR (RESPONSIVO Y ESTÉTICO) */}
-                        <div className="h-full bg-gradient-to-b from-neutral-900 to-black border-4 border-yellow-400 rounded-3xl p-4 sm:p-5 flex flex-col items-center shadow-[6px_6px_0px_0px_#ca8a04] relative">
+                        {/* 🌟 DISEÑO ESTÉTICO TIPO TICKET DE CUPÓN */}
+                        <div className="h-full bg-gradient-to-b from-neutral-900 via-neutral-950 to-black border-2 sm:border-4 border-yellow-400 rounded-2xl sm:rounded-3xl p-3 sm:p-5 flex flex-col items-center shadow-[4px_4px_0px_0px_#ca8a04] sm:shadow-[6px_6px_0px_0px_#ca8a04] relative">
                           
-                          {/* CONTENEDOR SUPERIOR PARA EL TEMPORIZADOR SIN ENCIMAR */}
-                          <div className="w-full flex justify-end mb-2">
+                          {/* CABECERA DEL TICKET CON TIEMPO */}
+                          <div className="w-full flex items-center justify-between mb-3 px-1 border-b border-yellow-500/20 pb-2">
+                            <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-yellow-500/90 flex items-center gap-1">
+                              🎟️ VOUCHER OFICIAL
+                            </span>
                             <CountdownTimer expiresAt={cupon.expires_at} />
                           </div>
 
-                          <div className="w-full text-center mb-3 flex items-center justify-center gap-2 sm:gap-4 relative">
-                            <svg className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-                            <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-yellow-400 leading-[1.1] tracking-tighter uppercase drop-shadow-[0_2px_10px_rgba(250,204,21,0.4)]">
-                              CUPÓN<br/>ACTIVO
+                          {/* TÍTULO PRINCIPAL */}
+                          <div className="w-full text-center mb-2 px-1">
+                            <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-yellow-400 leading-tight tracking-tight uppercase drop-shadow-[0_2px_8px_rgba(250,204,21,0.3)]">
+                              {cupon.title || 'CUPÓN EXCLUSIVO'}
                             </h3>
-                            <svg className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
                           </div>
 
-                          {/* CAJA INTERIOR DEL CÓDIGO */}
-                          <div className="relative w-full bg-[#0a0a0a] border-4 border-yellow-400 rounded-2xl p-1 mb-4 flex-grow flex flex-col justify-center shadow-inner">
-                            <div className="border-[3px] border-dashed border-yellow-500/50 rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center h-full text-center bg-[#0a0a0a] relative z-10">
+                          {/* CAJA INTERIOR TIPO TICKET CON BORDES PERFORADOS */}
+                          <div className="relative w-full bg-[#070707] border-2 sm:border-3 border-dashed border-yellow-400/70 rounded-xl p-2.5 sm:p-4 mb-3 flex-grow flex flex-col justify-center shadow-inner">
+                            <div className="flex flex-col items-center justify-center text-center relative z-10">
                               
-                              <div className="bg-yellow-400 text-black px-4 py-1 rounded-full text-xs sm:text-sm font-black uppercase tracking-wider mb-2 max-w-full truncate shadow-[0_0_15px_rgba(250,204,21,0.3)]">
-                                {cupon.title || 'NUEVO CUPÓN'}
+                              <div className="text-[10px] sm:text-xs font-bold text-yellow-400/80 uppercase tracking-wider mb-1">
+                                CÓDIGO DE DESCUENTO
                               </div>
                               
                               {cupon.code && (
-                                <div className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tighter mb-2 break-all drop-shadow-md">
+                                <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-wider font-mono bg-neutral-900/90 border border-yellow-400/40 rounded-lg px-3 py-1.5 my-1 w-full truncate shadow-sm">
                                   {String(cupon.code).length > 3
                                     ? String(cupon.code).slice(0, 3) + '*'.repeat(String(cupon.code).length - 3)
                                     : cupon.code}
                                 </div>
                               )}
                               
-                              <div className="border-t-[3px] border-yellow-500/20 w-full mx-2 mt-2 pt-2 pb-1">
-                                <div className="text-xs sm:text-sm font-black text-gray-300 uppercase tracking-tight flex flex-col gap-1">
-                                  {cupon.description ? (
-                                    cupon.description.split(/(?=[Dd][Ee][Ss][Cc][Uu][Ee][Nn][Tt][Oo]\s+[Mm][ÁáAa][Xx][Ii][Mm][Oo])/).map((part, i) => (
-                                      <span key={i} className="block">{part.trim()}</span>
-                                    ))
-                                  ) : (
-                                    <span>COMPRA MÍNIMA APLICABLE</span>
-                                  )}
+                              <div className="border-t border-yellow-500/20 w-full mt-2 pt-2">
+                                <div className="text-[11px] sm:text-xs font-bold text-neutral-300 uppercase tracking-tight leading-relaxed line-clamp-3">
+                                  {cupon.description || 'COMPRA MÍNIMA APLICABLE EN MERCADO LIBRE'}
                                 </div>
                               </div>
                             </div>
 
-                            {/* RECORTES LATERALES DEL TICKET */}
-                            <div className={`absolute top-1/2 -left-4 -translate-y-1/2 w-6 h-6 border-4 border-yellow-400 rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
-                            <div className={`absolute top-1/2 -right-4 -translate-y-1/2 w-6 h-6 border-4 border-yellow-400 rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
+                            {/* MUESCAS LATERALES ESTÉTICAS DE TICKET */}
+                            <div className={`absolute top-1/2 -left-3.5 -translate-y-1/2 w-5 h-5 border-2 border-yellow-400 rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
+                            <div className={`absolute top-1/2 -right-3.5 -translate-y-1/2 w-5 h-5 border-2 border-yellow-400 rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
                           </div>
 
-                          <div className="flex justify-between items-center w-full mb-4 px-1 gap-2">
+                          {/* BOTONES DE REACCIÓN RÁPIDA */}
+                          <div className="flex justify-between items-center w-full mb-3 px-1 gap-1.5">
                             <button
                               onClick={() => handleReaction(cuponId, 'like')}
-                              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-yellow-400 ${
+                              className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] sm:text-xs font-black transition-all border border-yellow-400 ${
                                 currentReaction === 'like'
-                                  ? 'bg-blue-600 text-white shadow-[2px_2px_0px_0px_#ca8a04] scale-105 border-blue-500'
-                                  : 'bg-neutral-900 text-yellow-400 shadow-[2px_2px_0px_0px_#ca8a04] hover:bg-neutral-800'
+                                  ? 'bg-blue-600 text-white shadow-sm scale-105 border-blue-500'
+                                  : 'bg-neutral-900 text-yellow-400 hover:bg-neutral-800'
                               }`}
                             >
                               <span>👍</span><span>{counts.like}</span>
                             </button>
                             <button
                               onClick={() => handleReaction(cuponId, 'dislike')}
-                              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-yellow-400 ${
+                              className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] sm:text-xs font-black transition-all border border-yellow-400 ${
                                 currentReaction === 'dislike'
-                                  ? 'bg-red-600 text-white shadow-[2px_2px_0px_0px_#ca8a04] scale-105 border-red-500'
-                                  : 'bg-neutral-900 text-yellow-400 shadow-[2px_2px_0px_0px_#ca8a04] hover:bg-neutral-800'
+                                  ? 'bg-red-600 text-white shadow-sm scale-105 border-red-500'
+                                  : 'bg-neutral-900 text-yellow-400 hover:bg-neutral-800'
                               }`}
                             >
                               <span>👎</span><span>{counts.dislike}</span>
                             </button>
                             <button
                               onClick={() => handleReaction(cuponId, 'heart')}
-                              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-black transition-all border-2 border-yellow-400 ${
+                              className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] sm:text-xs font-black transition-all border border-yellow-400 ${
                                 currentReaction === 'heart'
-                                  ? 'bg-pink-600 text-white shadow-[2px_2px_0px_0px_#ca8a04] scale-105 border-pink-500'
-                                  : 'bg-neutral-900 text-yellow-400 shadow-[2px_2px_0px_0px_#ca8a04] hover:bg-neutral-800'
+                                  ? 'bg-pink-600 text-white shadow-sm scale-105 border-pink-500'
+                                  : 'bg-neutral-900 text-yellow-400 hover:bg-neutral-800'
                               }`}
                             >
                               <span>❤️</span><span>{counts.heart}</span>
                             </button>
                           </div>
 
+                          {/* BOTÓN DE ACCIÓN CTA */}
                           {cupon.link && (
                             <button
                               onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                              className="w-full bg-yellow-400 hover:bg-yellow-300 text-black rounded-2xl py-2.5 px-2 flex flex-col items-center justify-center transition-transform hover:scale-[1.02] mt-auto border-2 border-yellow-600 shadow-[0_4px_14px_0_rgba(250,204,21,0.4)]"
+                              className="w-full bg-yellow-400 hover:bg-yellow-300 text-black rounded-xl py-2.5 px-2 flex flex-col items-center justify-center transition-transform hover:scale-[1.02] mt-auto border-2 border-yellow-600 shadow-[0_3px_10px_0_rgba(250,204,21,0.3)]"
                             >
                               <div className="flex items-center justify-center gap-2 w-full">
-                                <svg className="w-4 h-4 text-black flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-                                <span className="text-lg sm:text-xl md:text-2xl font-black tracking-wide uppercase drop-shadow-sm">COPIAR CUPÓN</span>
-                                <svg className="w-4 h-4 text-black flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+                                <span className="text-sm sm:text-base md:text-lg font-black tracking-wider uppercase">COPIAR CUPÓN</span>
                               </div>
-                              <div className="text-xs sm:text-sm md:text-base font-bold tracking-tight -mt-0.5 opacity-90">
-                                E IR A MERCADO LIBRE
+                              <div className="text-[10px] sm:text-xs font-bold tracking-tight opacity-90 -mt-0.5">
+                                E IR A MERCADO LIBRE 🚀
                               </div>
                             </button>
                           )}
