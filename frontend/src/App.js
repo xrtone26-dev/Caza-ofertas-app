@@ -550,7 +550,6 @@ function App() {
   const logoGlareRef = useRef(null);
 
   const [isMobileDevice, setIsMobileDevice] = useState(false);
-  const [mobileTab, setMobileTab] = useState('cupones'); // 'cupones' | 'productos' | 'juegos' | 'reels'
 
   useEffect(() => {
     const checkDevice = () => {
@@ -1001,14 +1000,15 @@ function App() {
         <div className={`rounded-3xl shadow-xl p-8 backdrop-blur-xl border ${
           isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
         }`}>
-          <div className="relative flex items-center justify-center mb-6">
-            <h2 className={`text-3xl font-bold text-center ${
+          <div className="relative flex items-center justify-between mb-6 px-1">
+            <div className="w-8 md:w-10"></div>
+            <h2 className={`text-2xl md:text-3xl font-bold text-center flex-1 ${
               isLight ? 'text-purple-700' : 'text-neutral-100 font-black'
             }`}>
               ✨ Cupones Especiales del dia
             </h2>
             
-            <div className="absolute right-0 top-0 group">
+            <div className="relative group flex-shrink-0">
               <button
                 onClick={() => setShowTutorialModal(true)}
                 className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all hover:scale-110 shadow-lg ${
@@ -1032,7 +1032,7 @@ function App() {
 
           <div className="max-w-xl mx-auto mb-8 flex gap-2">
             <div className="relative flex-1">
-              <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 ${
+              <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 md:w-5 h-4 md:h-5 ${
                 isLight ? 'text-gray-400' : 'text-neutral-500'
               }`} />
               <input
@@ -1040,7 +1040,7 @@ function App() {
                 value={couponSearchTerm}
                 onChange={handleCouponSearchChange}
                 placeholder="¿Cuánto planeas gastar?"
-                className={`w-full pl-11 pr-4 py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-sm ${
+                className={`w-full pl-9 md:pl-11 pr-3 py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-xs sm:text-sm ${
                   isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-700 text-neutral-100'
                 }`}
               />
@@ -1481,7 +1481,7 @@ function App() {
         )}
       </AnimatePresence>
 
-      <div className={`fixed top-6 ${isMobileDevice ? 'right-2' : 'right-6'} z-[60] flex flex-col items-center gap-3`}>
+      <div className={`fixed top-6 ${isMobileDevice ? 'right-1' : 'right-6'} z-[60] flex flex-col items-center gap-3 pointer-events-auto`}>
         <div className="flex flex-col items-center gap-1">
           {currentUser && (
             <span className={`font-bold text-[11px] truncate max-w-[65px] text-center ${
@@ -1545,6 +1545,10 @@ function App() {
         >
           <Settings className="w-6 h-6" />
         </button>
+
+        {isMobileDevice && (
+          <ChatbotWidget isLight={isLight} cupones={activeCupones} isMobileDevice={isMobileDevice} />
+        )}
       </div>
 
       <AnimatePresence>
@@ -1644,58 +1648,19 @@ function App() {
       </div>
 
       {isMobileDevice ? (
-        <div className="container mx-auto px-4 mt-6 mb-16 relative z-20">
-          <div className="flex overflow-x-auto gap-2 bg-neutral-900/90 border border-neutral-800 p-2 rounded-2xl mb-6 custom-scrollbar shadow-xl">
-            <button
-              onClick={() => setMobileTab('cupones')}
-              className={`flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase transition-all whitespace-nowrap ${
-                mobileTab === 'cupones' ? 'bg-yellow-400 text-black shadow-md' : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              🎟️ Cupones
-            </button>
-            <button
-              onClick={() => setMobileTab('productos')}
-              className={`flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase transition-all whitespace-nowrap ${
-                mobileTab === 'productos' ? 'bg-yellow-400 text-black shadow-md' : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              🔥 Productos
-            </button>
-            <button
-              onClick={() => setMobileTab('juegos')}
-              className={`flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase transition-all whitespace-nowrap ${
-                mobileTab === 'juegos' ? 'bg-yellow-400 text-black shadow-md' : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              🎮 Juegos
-            </button>
-            <button
-              onClick={() => setMobileTab('reels')}
-              className={`flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase transition-all whitespace-nowrap ${
-                mobileTab === 'reels' ? 'bg-yellow-400 text-black shadow-md' : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              📺 Pruebas
-            </button>
-          </div>
-
-          {mobileTab === 'cupones' && renderCuponesSection()}
-          {mobileTab === 'productos' && renderProductosSection()}
-          {mobileTab === 'juegos' && (
-            <div className="mb-8">
-              <GamesZone 
-                currentUser={
-                  typeof currentUser === 'object' && currentUser !== null
-                    ? (currentUser.nickname || currentUser.nombre || currentUser.email || '')
-                    : (currentUser || '')
-                } 
-                isLight={isLight} 
-                isAuthenticated={isAuthenticated} 
-              />
-            </div>
-          )}
-          {mobileTab === 'reels' && renderReelsSection()}
+        <div className="container mx-auto px-4 mt-6 mb-16 relative z-20 flex flex-col gap-8">
+          {renderCuponesSection()}
+          {renderProductosSection()}
+          <GamesZone 
+            currentUser={
+              typeof currentUser === 'object' && currentUser !== null
+                ? (currentUser.nickname || currentUser.nombre || currentUser.email || '')
+                : (currentUser || '')
+            } 
+            isLight={isLight} 
+            isAuthenticated={isAuthenticated} 
+          />
+          {renderReelsSection()}
         </div>
       ) : (
         <>
@@ -1864,9 +1829,11 @@ function App() {
         setTiktokVideos={setTiktokVideos}
       />
 
-      <div className={isMobileDevice ? "fixed bottom-4 right-1 z-50 pointer-events-auto" : ""}>
-        <ChatbotWidget isLight={isLight} cupones={activeCupones} isMobileDevice={isMobileDevice} />
-      </div>
+      {!isMobileDevice && (
+        <div className="fixed bottom-4 right-4 z-50 pointer-events-auto">
+          <ChatbotWidget isLight={isLight} cupones={activeCupones} isMobileDevice={isMobileDevice} />
+        </div>
+      )}
     </div>
   );
 }
