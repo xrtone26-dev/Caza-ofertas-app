@@ -67,6 +67,7 @@ export default function AdminDashboard({
     coupon: '',
     affiliate_link: '',
     image_url: '',
+    is_exclusive: false,
     active: true,
   });
 
@@ -275,6 +276,7 @@ export default function AdminDashboard({
         coupon: '',
         affiliate_link: '',
         image_url: '',
+        is_exclusive: false,
         active: true,
       });
       loadAllProducts();
@@ -541,9 +543,16 @@ export default function AdminDashboard({
                       className="border-2 rounded-xl p-6 border-gray-300 bg-gray-50"
                     >
                       <div className="flex justify-between items-start mb-3">
-                        <span className="px-3 py-1 rounded-full text-sm font-bold bg-green-200 text-green-800">
-                          📦 Producto
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-1 rounded-full text-sm font-bold bg-green-200 text-green-800">
+                            📦 Producto
+                          </span>
+                          {prod.is_exclusive && (
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-yellow-200 text-yellow-800 border border-yellow-300">
+                              ⭐ Exclusivo / MP
+                            </span>
+                          )}
+                        </div>
                         <div className="flex gap-2">
                           <button
                             onClick={() => {
@@ -990,8 +999,8 @@ export default function AdminDashboard({
                           description: e.target.value,
                         })
                       : setNewProduct({
-                          ...newProduct,
-                          description: e.target.value,
+                            ...newProduct,
+                            description: e.target.value,
                         })
                   }
                   placeholder="Descripción del producto, características, etc."
@@ -1104,6 +1113,29 @@ export default function AdminDashboard({
                   placeholder="https://..."
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={
+                    editingProduct ? !!editingProduct.is_exclusive : newProduct.is_exclusive
+                  }
+                  onChange={(e) =>
+                    editingProduct
+                      ? setEditingProduct({
+                          ...editingProduct,
+                          is_exclusive: e.target.checked,
+                        })
+                      : setNewProduct({
+                            ...newProduct,
+                            is_exclusive: e.target.checked,
+                        })
+                  }
+                  className="w-5 h-5 accent-purple-500"
+                />
+                <label className="text-gray-700 font-bold">
+                  ⭐ Producto Exclusivo / Mercado Pago (Terminales Clip, etc.)
+                </label>
               </div>
               <div className="flex items-center">
                 <input
