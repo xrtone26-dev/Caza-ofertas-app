@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Gamepad2, User, Trophy, Play, Pause, Sparkles, Volume2, VolumeX, RotateCcw, Clock, Lightbulb, Maximize, Minimize, Settings as SettingsIcon, Music, Zap, Award, BarChart3, Share2, Home, Calendar, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCw, ArrowDownToLine } from 'lucide-react';
+import { Gamepad2, User, Trophy, Play, Pause, Sparkles, Volume2, VolumeX, RotateCcw, Clock, Lightbulb, Maximize, Minimize, Settings as SettingsIcon, Music, Zap, Award, BarChart3, Share2, Home, Calendar, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCw } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
 // CONFIGURACIÓN DEL MEMORAMA
 // ---------------------------------------------------------------------------
 const MEMORY_DIFFICULTIES = {
-  'Fácil': { id: 'easy', rows: 4, cols: 4, pairs: 8, gridClass: 'grid-cols-4', maxWidth: 'max-w-[400px]', maxHeight: 'max-h-[400px]' },
-  'Normal': { id: 'normal', rows: 6, cols: 6, pairs: 18, gridClass: 'grid-cols-6', maxWidth: 'max-w-[430px]', maxHeight: 'max-h-[430px]' },
-  'Difícil': { id: 'hard', rows: 8, cols: 8, pairs: 32, gridClass: 'grid-cols-8', maxWidth: 'max-w-[440px]', maxHeight: 'max-h-[440px]' },
-  'Experto': { id: 'expert', rows: 10, cols: 10, pairs: 50, gridClass: 'grid-cols-10', maxWidth: 'max-w-[445px]', maxHeight: 'max-h-[445px]' }
+  'Fácil': { id: 'easy', rows: 4, cols: 4, pairs: 8, gridClass: 'grid-cols-4' },
+  'Normal': { id: 'normal', rows: 6, cols: 6, pairs: 18, gridClass: 'grid-cols-6' },
+  'Difícil': { id: 'hard', rows: 8, cols: 8, pairs: 32, gridClass: 'grid-cols-8' },
+  'Experto': { id: 'expert', rows: 10, cols: 10, pairs: 50, gridClass: 'grid-cols-10' }
 };
 
 const MEMORY_THEMES = {
@@ -2461,18 +2461,13 @@ export default function GamesZone({ currentUser, isLight }) {
 
                   {isMemoryPaused && !isWon && renderUnifiedPauseOverlay(() => setIsMemoryPaused(false), () => setGamePhase('menu'))}
 
-                  {/* CAJA DE MEMORAMA FLEXBOX */}
-                  <div className="flex-1 w-full flex items-center justify-center min-h-0 overflow-hidden mt-2">
-                    <div className={`grid gap-1 sm:gap-1.5 ${MEMORY_DIFFICULTIES[memSettings.diff].gridClass}`}
-                         style={{ 
-                           maxHeight: '100%',
-                           maxWidth: '100%',
-                           aspectRatio: '1 / 1'
-                         }}>
+                  {/* CAJA DE MEMORAMA RECORREGIDA CON TAMAÑO FIJO Y RESPONSIVO */}
+                  <div className="flex-1 w-full flex items-center justify-center min-h-0 overflow-hidden my-auto p-1">
+                    <div className={`grid gap-1 sm:gap-1.5 ${MEMORY_DIFFICULTIES[memSettings.diff].gridClass} w-[300px] h-[300px] sm:w-[360px] sm:h-[360px] aspect-square mx-auto`}>
                       {memoryCards.map((card, idx) => {
                         const isFlipped = card.flipped || memoryMatched.includes(idx) || card.isHint;
                         const cols = MEMORY_DIFFICULTIES[memSettings.diff].cols;
-                        const textSize = cols >= 10 ? 'text-xs sm:text-base md:text-lg' : cols >= 8 ? 'text-sm sm:text-lg md:text-xl' : cols >= 6 ? 'text-base sm:text-2xl md:text-3xl' : 'text-xl sm:text-4xl md:text-5xl';
+                        const textSize = cols >= 10 ? 'text-xs sm:text-sm md:text-base' : cols >= 8 ? 'text-sm sm:text-base md:text-lg' : cols >= 6 ? 'text-base sm:text-xl md:text-2xl' : 'text-xl sm:text-3xl md:text-4xl';
                         
                         return (
                           <div key={card.id} 
