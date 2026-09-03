@@ -784,6 +784,7 @@ function App() {
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
   const [cuponesRef, cuponesApi] = useEmblaCarousel({ loop: true, align: 'start' });
+  const [exclusiveEmblaRef, exclusiveEmblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
 
   useEffect(() => {
     if (!cuponesApi) return;
@@ -801,6 +802,14 @@ function App() {
     return () => clearInterval(autoplay);
   }, [emblaApi]);
 
+  useEffect(() => {
+    if (!exclusiveEmblaApi) return;
+    const autoplay = setInterval(() => {
+      exclusiveEmblaApi.scrollNext();
+    }, 5000);
+    return () => clearInterval(autoplay);
+  }, [exclusiveEmblaApi]);
+
   const scrollPrev = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev();
   }, [emblaApi]);
@@ -816,6 +825,14 @@ function App() {
   const scrollNextCupones = useCallback(() => {
     if (cuponesApi) cuponesApi.scrollNext();
   }, [cuponesApi]);
+
+  const scrollPrevExclusive = useCallback(() => {
+    if (exclusiveEmblaApi) exclusiveEmblaApi.scrollPrev();
+  }, [exclusiveEmblaApi]);
+
+  const scrollNextExclusive = useCallback(() => {
+    if (exclusiveEmblaApi) exclusiveEmblaApi.scrollNext();
+  }, [exclusiveEmblaApi]);
 
   const socialLinks = [
     {
@@ -979,7 +996,11 @@ function App() {
   });
 
   const isLight = themeMode === 'light';
-  const filteredProducts = products.filter(
+  
+  const regularProducts = products.filter(p => !p.is_exclusive);
+  const exclusiveProducts = products.filter(p => p.is_exclusive);
+
+  const filteredProducts = regularProducts.filter(
     (p) =>
       p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (p.description &&
@@ -1187,7 +1208,7 @@ function App() {
   );
 
   const renderProductosSection = () => (
-    products.length > 0 && (
+    regularProducts.length > 0 && (
       <div className={`container mx-auto px-4 mb-16 relative z-10`}>
         <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
           isLight ? 'bg-white border-gray-100' : 'bg-neutral-900/85 border-neutral-800'
@@ -1320,6 +1341,76 @@ function App() {
             isLight ? 'border-gray-200 text-gray-600' : 'border-neutral-800 text-neutral-400'
           }`}>
             ℹ️ Nota informativa: Los precios y la disponibilidad de los productos están sujetos a cambios sin previo aviso, ya que dependen directamente de cada vendedor o tienda asociada.
+          </div>
+        </div>
+      </div>
+    )
+  );
+
+  const renderExclusiveProductsSection = () => (
+    exclusiveProducts.length > 0 && (
+      <div className={`container mx-auto px-4 mb-16 relative z-10`}>
+        <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
+          isLight ? 'bg-white border-yellow-300' : 'bg-neutral-900/85 border-yellow-500/40'
+        }`}>
+          <div className="relative flex items-center justify-center mb-6 px-2">
+            <h2 className={`text-2xl sm:text-3xl font-black text-center flex items-center gap-2 ${isLight ? 'text-yellow-600' : 'text-yellow-400'}`}>
+              ⭐ Productos Exclusivos & Mercado Pago
+            </h2>
+          </div>
+          <p className={`text-center text-xs sm:text-sm mb-8 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+            Terminales Clip, enlaces de referido especiales y productos exclusivos con beneficios directos.
+          </p>
+
+          <div className="relative px-2 sm:px-0">
+            <div className="overflow-hidden" ref={exclusiveEmblaRef}>
+              <div className="flex gap-6">
+                {exclusiveProducts.map((product) => (
+                  <div key={product.id} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
+                    <div className={`rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden h-full flex flex-col border-2 ${
+                      isLight ? 'bg-gradient-to-br from-yellow-50/50 to-white border-yellow-200' : 'bg-gradient-to-b from-neutral-900 to-neutral-950 border-yellow-500/50'
+                    }`}>
+                      <div className="relative">
+                        <img src={product.image_url} alt={product.title} className="w-full h-56 sm:h-64 object-contain p-2" />
+                        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-yellow-400 text-black px-3 py-1.5 rounded-full font-black text-xs shadow-lg border border-black">
+                          ⭐ EXCLUSIVO MP
+                        </div>
+                      </div>
+                      <div className="p-4 sm:p-6 flex flex-col flex-1">
+                        <h3 className={`text-lg sm:text-xl font-bold mb-2 line-clamp-2 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}>{product.title}</h3>
+                        <p className={`mb-4 line-clamp-3 text-xs sm:text-sm flex-1 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+                          {product.description}
+                        </p>
+                        <div className="flex items-baseline gap-3 mb-4 mt-auto flex-wrap">
+                          <span className={`text-2xl sm:text-3xl font-black ${isLight ? 'text-green-600' : 'text-green-400'}`}>
+                            ${Number(product.discount_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                          {product.original_price && (
+                            <span className={`text-base sm:text-lg font-bold line-through ${isLight ? 'text-red-600' : 'text-red-400'}`}>
+                              Antes ${Number(product.original_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          )}
+                        </div>
+                        <a href={product.affiliate_link || product.link || product.url || '#'} target="_blank" rel="noopener noreferrer" className={`block w-full py-3 rounded-lg font-black text-center transition-all flex items-center justify-center gap-2 text-xs sm:text-sm bg-yellow-400 text-black hover:bg-yellow-300 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]`}>
+                          Adquirir Exclusivo <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {exclusiveProducts.length > 1 && (
+              <>
+                <button onClick={scrollPrevExclusive} className="absolute left-1 sm:-translate-x-4 top-[100px] sm:top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
+                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 font-black" />
+                </button>
+                <button onClick={scrollNextExclusive} className="absolute right-1 sm:translate-x-4 top-[100px] sm:top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
+                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 font-black" />
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -1638,10 +1729,10 @@ function App() {
 
       {isMobileDevice ? (
         <div className="container mx-auto px-4 mt-6 mb-16 relative z-20">
-          <div className="bg-neutral-900/90 border border-neutral-800 p-3 rounded-2xl mb-6 shadow-xl grid grid-cols-2 gap-2">
+          <div className="bg-neutral-900/90 border border-neutral-800 p-3 rounded-2xl mb-6 shadow-xl grid grid-cols-2 sm:grid-cols-5 gap-2">
             <button
               onClick={() => setMobileTab('cupones')}
-              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-3 px-2 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'cupones' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
@@ -1649,15 +1740,23 @@ function App() {
             </button>
             <button
               onClick={() => setMobileTab('productos')}
-              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-3 px-2 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'productos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
               🔥 Productos
             </button>
             <button
+              onClick={() => setMobileTab('exclusivos')}
+              className={`py-3 px-2 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+                mobileTab === 'exclusivos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+              }`}
+            >
+              ⭐ Exclusivos
+            </button>
+            <button
               onClick={() => setMobileTab('juegos')}
-              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-3 px-2 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'juegos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
@@ -1665,7 +1764,7 @@ function App() {
             </button>
             <button
               onClick={() => setMobileTab('reels')}
-              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-3 px-2 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'reels' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
@@ -1675,6 +1774,7 @@ function App() {
 
           {mobileTab === 'cupones' && renderCuponesSection()}
           {mobileTab === 'productos' && renderProductosSection()}
+          {mobileTab === 'exclusivos' && renderExclusiveProductsSection()}
           {mobileTab === 'juegos' && (
             <div className="mb-8">
               <GamesZone 
@@ -1704,6 +1804,7 @@ function App() {
             isAuthenticated={isAuthenticated} 
           />
           {renderReelsSection()}
+          {renderExclusiveProductsSection()}
         </>
       )}
 
