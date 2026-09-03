@@ -999,9 +999,19 @@ function App() {
 
   const isLight = themeMode === 'light';
   
-  // Filtros robustos para soportar booleanos o strings en la BD
-  const regularProducts = products.filter(p => !p.is_exclusive || p.is_exclusive === false || p.is_exclusive === 'false' || p.is_exclusive === 0);
-  const exclusiveProducts = products.filter(p => p.is_exclusive === true || p.is_exclusive === 'true' || p.is_exclusive === 1);
+  // Filtros robustos y permisivos para capturar exclusividades en cualquier formato
+  const exclusiveProducts = products.filter(p => 
+    p.is_exclusive === true || 
+    p.is_exclusive === 'true' || 
+    p.is_exclusive === 1 || 
+    p.is_exclusive === '1' || 
+    p.is_exclusive === 'yes' || 
+    p.is_exclusive === 'on' ||
+    p.type === 'exclusive' ||
+    p.category === 'exclusive'
+  );
+
+  const regularProducts = products.filter(p => !exclusiveProducts.includes(p));
 
   const filteredProducts = regularProducts.filter(
     (p) =>
