@@ -2393,7 +2393,7 @@ export default function GamesZone({ currentUser, isLight }) {
                     <div className="flex flex-row items-stretch justify-center gap-1 sm:gap-6 w-full max-w-full mb-2 relative z-10 px-1">
                       {/* Panel Izquierdo (Hold) */}
                       <div className="flex flex-col gap-2 w-14 sm:w-28 bg-neutral-900/90 p-1 sm:p-3 rounded-xl sm:rounded-2xl border border-neutral-800 text-white text-[10px] sm:text-xs">
-                        <span className="font-black text-yellow-400 uppercase tracking-wider text-center text-[8px] sm:text-[10px]">Guardada</span>
+                        <span className="font-black text-yellow-400 uppercase tracking-normal sm:tracking-widest text-center text-[9px] sm:text-xs w-full block">HOLD</span>
                         <div className="w-10 h-10 sm:w-20 sm:h-20 bg-black/50 rounded-lg sm:rounded-xl mx-auto flex items-center justify-center border border-neutral-800 p-1 sm:p-2">
                           {tetrisHold ? (
                             <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${tetrisHold.shape[0].length}, 1fr)` }}>
@@ -2401,7 +2401,7 @@ export default function GamesZone({ currentUser, isLight }) {
                                 <div key={`${ri}-${ci}`} className={`w-2 h-2 sm:w-3.5 sm:h-3.5 rounded-sm ${cell ? '' : 'opacity-0'}`} style={{ backgroundColor: cell ? tetrisHold.color : 'transparent' }} />
                               )))}
                             </div>
-                          ) : <span className="text-[8px] sm:text-[10px] text-neutral-500">Vacío</span>}
+                          ) : <span className="text-[7px] sm:text-[10px] text-neutral-500 uppercase tracking-widest">Vacío</span>}
                         </div>
                         <div className="pt-2 border-t border-neutral-800 space-y-1 mt-auto">
                           <p className="text-[8px] sm:text-[10px] text-neutral-400">Pts: <span className="text-yellow-400 font-black block sm:inline">{score}</span></p>
@@ -2436,7 +2436,7 @@ export default function GamesZone({ currentUser, isLight }) {
 
                       {/* Panel Derecho (Next) */}
                       <div className="flex flex-col gap-2 w-14 sm:w-28 bg-neutral-900/90 p-1 sm:p-3 rounded-xl sm:rounded-2xl border border-neutral-800 text-white text-[10px] sm:text-xs">
-                        <span className="font-black text-yellow-400 uppercase tracking-wider text-center text-[8px] sm:text-[10px]">Siguientes</span>
+                        <span className="font-black text-yellow-400 uppercase tracking-normal sm:tracking-widest text-center text-[9px] sm:text-xs w-full block">NEXT</span>
                         <div className="flex flex-col gap-1 sm:gap-2 overflow-y-auto max-h-[220px] sm:max-h-[340px] pr-1 custom-scrollbar">
                           {tetrisQueue.slice(0, 4).map((piece, idx) => (
                             <div key={idx} className="w-full h-10 sm:h-14 bg-black/50 rounded-lg sm:rounded-xl flex items-center justify-center border border-neutral-800 p-1">
