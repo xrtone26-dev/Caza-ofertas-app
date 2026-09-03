@@ -29,6 +29,7 @@ import {
   Award,
   TrendingDown,
   Star,
+  Check,
 } from 'lucide-react';
 import {
   FaWhatsapp,
@@ -1352,53 +1353,110 @@ function App() {
     exclusiveProducts.length > 0 && (
       <div className={`container mx-auto px-4 mb-16 relative z-10`}>
         <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
-          isLight ? 'bg-white border-yellow-300' : 'bg-neutral-900/85 border-yellow-500/40'
+          isLight ? 'bg-white border-yellow-300' : 'bg-neutral-900/85 border-neutral-800'
         }`}>
           <div className="relative flex items-center justify-center mb-6 px-2">
             <h2 className={`text-2xl sm:text-3xl font-black text-center flex items-center gap-2 ${isLight ? 'text-yellow-600' : 'text-yellow-400'}`}>
-              ⭐ Productos Exclusivos & Mercado Pago
+              ⭐ Terminales y Productos Exclusivos
             </h2>
           </div>
           <p className={`text-center text-xs sm:text-sm mb-8 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-            Terminales Clip, enlaces de referido especiales y productos exclusivos con beneficios directos.
+            Dispositivos oficiales con beneficios directos, meses sin intereses y envío gratis.
           </p>
 
           <div className="relative px-2 sm:px-0">
             <div className="overflow-hidden" ref={exclusiveEmblaRef}>
-              <div className="flex gap-6">
-                {exclusiveProducts.map((product) => (
-                  <div key={product.id} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
-                    <div className={`rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden h-full flex flex-col border-2 ${
-                      isLight ? 'bg-gradient-to-br from-yellow-50/50 to-white border-yellow-200' : 'bg-gradient-to-b from-neutral-900 to-neutral-950 border-yellow-500/50'
-                    }`}>
-                      <div className="relative">
-                        <img src={product.image_url} alt={product.title} className="w-full h-56 sm:h-64 object-contain p-2" />
-                        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-yellow-400 text-black px-3 py-1.5 rounded-full font-black text-xs shadow-lg border border-black">
-                          ⭐ EXCLUSIVO MP
+              <div className="flex gap-6 items-stretch">
+                {exclusiveProducts.map((product) => {
+                  const featureList = product.features ? product.features.split('\n').filter(Boolean) : [];
+                  const specList = product.specs ? product.specs.split('\n').filter(Boolean) : [];
+
+                  return (
+                    <div key={product.id} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0 flex">
+                      <div className={`w-full rounded-3xl shadow-xl transition-all duration-300 overflow-hidden flex flex-col border bg-white text-gray-900 border-gray-200`}>
+                        
+                        {/* Imagen del producto */}
+                        <div className="relative pt-6 px-6 pb-2 text-center bg-white flex justify-center items-center h-56">
+                          <img src={product.image_url} alt={product.title} className="max-h-full max-w-full object-contain drop-shadow-md" />
                         </div>
-                      </div>
-                      <div className="p-4 sm:p-6 flex flex-col flex-1">
-                        <h3 className={`text-lg sm:text-xl font-bold mb-2 line-clamp-2 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}>{product.title}</h3>
-                        <p className={`mb-4 line-clamp-3 text-xs sm:text-sm flex-1 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-                          {product.description}
-                        </p>
-                        <div className="flex items-baseline gap-3 mb-4 mt-auto flex-wrap">
-                          <span className={`text-2xl sm:text-3xl font-black ${isLight ? 'text-green-600' : 'text-green-400'}`}>
-                            ${Number(product.discount_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
-                          {product.original_price && (
-                            <span className={`text-base sm:text-lg font-bold line-through ${isLight ? 'text-red-600' : 'text-red-400'}`}>
-                              Antes ${Number(product.original_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </span>
+
+                        {/* Contenido principal */}
+                        <div className="px-6 pb-6 flex flex-col flex-1 text-center">
+                          <h3 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">{product.title}</h3>
+                          
+                          <p className="text-sm text-gray-600 font-medium mb-6 min-h-[40px] px-2">
+                            {product.description}
+                          </p>
+
+                          {/* Precios y descuento */}
+                          <div className="flex flex-col items-center justify-center mb-1">
+                            <div className="flex items-center gap-2.5">
+                              {product.original_price && (
+                                <span className="text-lg font-bold text-gray-400 line-through">
+                                  ${Number(product.original_price).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                                </span>
+                              )}
+                              {product.discount_percentage && (
+                                <span className="bg-[#00a650] text-white px-2 py-0.5 rounded-md font-bold text-xs tracking-wide">
+                                  {product.discount_percentage}% OFF
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-4xl font-black text-gray-900 my-1 tracking-tight">
+                              ${Number(product.discount_price).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                            </div>
+                          </div>
+
+                          {/* Cuotas sin intereses */}
+                          {product.installments_text && (
+                            <div className="mb-6">
+                              <span className="inline-block bg-[#3483fa] text-white text-xs font-bold px-3 py-1 rounded-md shadow-sm">
+                                {product.installments_text}
+                              </span>
+                            </div>
                           )}
+
+                          {/* Botón Comprar */}
+                          <a 
+                            href={product.affiliate_link || product.link || product.url || '#'} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="w-full bg-[#3483fa] hover:bg-[#2968c8] text-white py-3.5 rounded-xl font-bold text-center transition-all shadow-md text-base uppercase tracking-wide mb-6"
+                          >
+                            Comprar
+                          </a>
+
+                          {/* Lista de características / beneficios con check */}
+                          {featureList.length > 0 && (
+                            <div className="w-full border-t border-gray-200 pt-5 pb-4 text-left flex flex-col gap-3">
+                              {featureList.map((feat, idx) => (
+                                <div key={idx} className="flex items-start gap-3 text-xs font-medium text-gray-700 leading-tight">
+                                  <div className="w-4 h-4 rounded-full bg-[#3483fa]/10 text-[#3483fa] flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <Check size={11} strokeWidth={3} />
+                                  </div>
+                                  <span>{feat}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Lista de especificaciones técnicas con iconos */}
+                          {specList.length > 0 && (
+                            <div className="w-full border-t border-dashed border-gray-200 pt-4 mt-auto text-left flex flex-col gap-2.5">
+                              {specList.map((spec, idx) => (
+                                <div key={idx} className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                                  <span className="text-sm flex-shrink-0">{spec.substring(0, 2)}</span>
+                                  <span className="truncate">{spec.substring(2).trim()}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
                         </div>
-                        <a href={product.affiliate_link || product.link || product.url || '#'} target="_blank" rel="noopener noreferrer" className={`block w-full py-3 rounded-lg font-black text-center transition-all flex items-center justify-center gap-2 text-xs sm:text-sm bg-yellow-400 text-black hover:bg-yellow-300 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]`}>
-                          Adquirir Exclusivo <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </a>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -1968,4 +2026,4 @@ function App() {
   );
 }
 
-export default App;
+export App;
