@@ -999,8 +999,9 @@ function App() {
 
   const isLight = themeMode === 'light';
   
-  const regularProducts = products.filter(p => !p.is_exclusive);
-  const exclusiveProducts = products.filter(p => p.is_exclusive);
+  // Filtros robustos para soportar booleanos o strings en la BD
+  const regularProducts = products.filter(p => !p.is_exclusive || p.is_exclusive === false || p.is_exclusive === 'false' || p.is_exclusive === 0);
+  const exclusiveProducts = products.filter(p => p.is_exclusive === true || p.is_exclusive === 'true' || p.is_exclusive === 1);
 
   const filteredProducts = regularProducts.filter(
     (p) =>
@@ -1350,20 +1351,29 @@ function App() {
   );
 
   const renderExclusiveProductsSection = () => (
-    exclusiveProducts.length > 0 && (
-      <div className={`container mx-auto px-4 mb-16 relative z-10`}>
-        <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
-          isLight ? 'bg-white border-yellow-300' : 'bg-neutral-900/85 border-neutral-800'
-        }`}>
-          <div className="relative flex items-center justify-center mb-6 px-2">
-            <h2 className={`text-2xl sm:text-3xl font-black text-center flex items-center gap-2 ${isLight ? 'text-yellow-600' : 'text-yellow-400'}`}>
-              ⭐ Terminales y Productos Exclusivos
-            </h2>
-          </div>
-          <p className={`text-center text-xs sm:text-sm mb-8 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-            Dispositivos oficiales con beneficios directos, meses sin intereses y envío gratis.
-          </p>
+    <div className={`container mx-auto px-4 mb-16 relative z-10`}>
+      <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
+        isLight ? 'bg-white border-yellow-300' : 'bg-neutral-900/85 border-neutral-800'
+      }`}>
+        <div className="relative flex items-center justify-center mb-6 px-2">
+          <h2 className={`text-2xl sm:text-3xl font-black text-center flex items-center gap-2 ${isLight ? 'text-yellow-600' : 'text-yellow-400'}`}>
+            ⭐ Terminales y Productos Exclusivos
+          </h2>
+        </div>
+        <p className={`text-center text-xs sm:text-sm mb-8 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+          Dispositivos oficiales con beneficios directos, meses sin intereses y envío gratis.
+        </p>
 
+        {exclusiveProducts.length === 0 ? (
+          <div className="text-center py-12 px-4 border-2 border-dashed border-yellow-400/40 rounded-2xl bg-yellow-400/5">
+            <p className={`text-sm sm:text-base font-bold mb-2 ${isLight ? 'text-gray-700' : 'text-yellow-400'}`}>
+              ⚠️ No hay productos exclusivos cargados todavía
+            </p>
+            <p className={`text-xs sm:text-sm ${isLight ? 'text-gray-500' : 'text-neutral-400'}`}>
+              Entra al panel de administración y crea un producto asegurándote de marcar la casilla <strong>⭐ Producto Exclusivo / Terminal</strong>.
+            </p>
+          </div>
+        ) : (
           <div className="relative px-2 sm:px-0">
             <div className="overflow-hidden" ref={exclusiveEmblaRef}>
               <div className="flex gap-6 items-stretch">
@@ -1375,12 +1385,10 @@ function App() {
                     <div key={product.id} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0 flex">
                       <div className={`w-full rounded-3xl shadow-xl transition-all duration-300 overflow-hidden flex flex-col border bg-white text-gray-900 border-gray-200`}>
                         
-                        {/* Imagen del producto */}
                         <div className="relative pt-6 px-6 pb-2 text-center bg-white flex justify-center items-center h-56">
                           <img src={product.image_url} alt={product.title} className="max-h-full max-w-full object-contain drop-shadow-md" />
                         </div>
 
-                        {/* Contenido principal */}
                         <div className="px-6 pb-6 flex flex-col flex-1 text-center">
                           <h3 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">{product.title}</h3>
                           
@@ -1388,7 +1396,6 @@ function App() {
                             {product.description}
                           </p>
 
-                          {/* Precios y descuento */}
                           <div className="flex flex-col items-center justify-center mb-1">
                             <div className="flex items-center gap-2.5">
                               {product.original_price && (
@@ -1407,7 +1414,6 @@ function App() {
                             </div>
                           </div>
 
-                          {/* Cuotas sin intereses */}
                           {product.installments_text && (
                             <div className="mb-6">
                               <span className="inline-block bg-[#3483fa] text-white text-xs font-bold px-3 py-1 rounded-md shadow-sm">
@@ -1416,7 +1422,6 @@ function App() {
                             </div>
                           )}
 
-                          {/* Botón Comprar */}
                           <a 
                             href={product.affiliate_link || product.link || product.url || '#'} 
                             target="_blank" 
@@ -1426,7 +1431,6 @@ function App() {
                             Comprar
                           </a>
 
-                          {/* Lista de características / beneficios con check */}
                           {featureList.length > 0 && (
                             <div className="w-full border-t border-gray-200 pt-5 pb-4 text-left flex flex-col gap-3">
                               {featureList.map((feat, idx) => (
@@ -1440,7 +1444,6 @@ function App() {
                             </div>
                           )}
 
-                          {/* Lista de especificaciones técnicas con iconos */}
                           {specList.length > 0 && (
                             <div className="w-full border-t border-dashed border-gray-200 pt-4 mt-auto text-left flex flex-col gap-2.5">
                               {specList.map((spec, idx) => (
@@ -1471,9 +1474,9 @@ function App() {
               </>
             )}
           </div>
-        </div>
+        )}
       </div>
-    )
+    </div>
   );
 
   const renderReelsSection = () => (
@@ -1513,7 +1516,6 @@ function App() {
         </>
       )}
 
-      {/* POP-UP AVISO TORNEO CON OPCIÓN DE ESPECTADOR */}
       <AnimatePresence>
         {missingPhone && !showProfilePanel && !phoneWarningDismissed && (
           <div className="fixed inset-0 bg-black/95 backdrop-blur-md flex items-center justify-center z-[85] p-4">
