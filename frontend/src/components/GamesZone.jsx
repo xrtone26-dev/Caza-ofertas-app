@@ -1125,7 +1125,6 @@ export default function GamesZone({ currentUser, isLight }) {
         return;
       }
 
-      // Solución Pixelaje: Ajustar canvas según dpr y tamaño real del contenedor
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
       
@@ -1171,7 +1170,7 @@ export default function GamesZone({ currentUser, isLight }) {
       }
 
       const dt = 1 / 60;
-      const gravity = height * 1.8; // Gravedad proporcional al alto de pantalla
+      const gravity = height * 1.8; 
 
       let currentObjects = [...ninjaObjectsRef.current];
 
@@ -1196,7 +1195,6 @@ export default function GamesZone({ currentUser, isLight }) {
         ctx.rotate(obj.rotation);
         ctx.globalAlpha = obj.alpha !== undefined ? obj.alpha : 1;
         
-        // Responsividad: Ajustar tamaños según la pantalla (celular vs PC)
         const scaleFactor = Math.min(1, width / 840);
         ctx.scale(scaleFactor, scaleFactor);
 
@@ -1238,7 +1236,7 @@ export default function GamesZone({ currentUser, isLight }) {
           ninjaLivesRef.current = Math.max(0, ninjaLivesRef.current - 1);
           setNinjaLives(ninjaLivesRef.current);
           if (ninjaLivesRef.current <= 0) {
-            ctx.restore(); // Restore main ctx before finishing
+            ctx.restore(); 
             handleFinishGame(scoreRef.current, false);
             return;
           }
@@ -1307,7 +1305,7 @@ export default function GamesZone({ currentUser, isLight }) {
           trail.shift();
         }
       }
-      ctx.restore(); // Restore global context scale
+      ctx.restore(); 
 
       ninjaGameLoopRef.current = requestAnimationFrame(gameLoop);
     };
@@ -1341,6 +1339,7 @@ export default function GamesZone({ currentUser, isLight }) {
 
   const spawnNinjaWave = (width, height, stage) => {
     const fruitCount = Math.floor(Math.random() * (stage.maxFruits - stage.minFruits + 1)) + stage.minFruits;
+    const gravity = height * 1.8; 
 
     for (let f = 0; f < fruitCount; f++) {
       const isBomb = ninjaMode !== 'zen' && Math.random() * 100 < stage.bombChance;
@@ -1349,8 +1348,13 @@ export default function GamesZone({ currentUser, isLight }) {
       const startX = minX + Math.random() * (maxX - minX);
       const startY = height + 60; 
       const vx = Math.random() * (width * 0.4) - (width * 0.2); 
-      // La altura de lanzamiento depende del alto de pantalla para que suba y baje bien
-      const vy = -(Math.random() * (height * 0.3) + (height * stage.speed * 0.9));
+      
+      // Físicas corregidas: Las frutas siempre subirán para ser visibles
+      // Se calcula la velocidad necesaria para que alcancen el 15%-25% de la parte alta de la pantalla
+      const targetPeak = height * (0.15 + Math.random() * 0.10);
+      const dy = startY - targetPeak;
+      const vy = -Math.sqrt(2 * gravity * dy);
+
       const rotationDegPerSec = Math.random() * 150 - 75;
       const vRot = (rotationDegPerSec * Math.PI) / 180;
 
@@ -1370,7 +1374,6 @@ export default function GamesZone({ currentUser, isLight }) {
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     
-    // Convertir de client bounds a coordenadas reales
     return { 
       x: (clientX - rect.left), 
       y: (clientY - rect.top) 
@@ -1502,7 +1505,6 @@ export default function GamesZone({ currentUser, isLight }) {
     const canvas = clickerCanvasRef.current;
     if (!canvas) return;
     
-    // Solución Pixelaje: Usar dpr
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
     if (canvas.width !== Math.floor(rect.width * dpr) || canvas.height !== Math.floor(rect.height * dpr)) {
@@ -1879,6 +1881,17 @@ export default function GamesZone({ currentUser, isLight }) {
     </div>
   );
 
+  const getContainerHeightClass = () => {
+    if (isFullscreen) return 'h-screen w-screen rounded-none border-none max-h-none min-h-screen';
+    if (isMobile) {
+       // Tetris y 2048 necesitan h-auto para que los botones en pantalla fluyan bien
+       if (activeGame === 'tetris' || activeGame === '2048') return 'h-auto min-h-[65vh] py-4';
+       // Ninja Cut, Clicker y Memory necesitan un límite fijo para la cuadrícula y físicas
+       return 'h-[65vh] min-h-[480px]';
+    }
+    return 'h-[65vh] min-h-[450px] max-h-[520px] sm:h-[520px]';
+  };
+
   return (
     <div className="container mx-auto px-4 mb-16 relative z-10">
       
@@ -1970,19 +1983,14 @@ export default function GamesZone({ currentUser, isLight }) {
 
             <div 
               ref={gameContainerRef} 
-              className={`relative w-full ${
-                // Permitimos que el contenedor crezca automáticamente en celular para que quepan los botones
-                isMobile ? 'h-auto min-h-[60vh]' : 'h-[65vh] min-h-[450px] max-h-[520px] sm:h-[520px]' 
-              } bg-neutral-950 rounded-2xl border flex items-center justify-center shadow-2xl overflow-hidden ${
+              className={`relative w-full ${getContainerHeightClass()} bg-neutral-950 rounded-2xl border flex items-center justify-center shadow-2xl overflow-hidden ${
                 activeGame === 'clicker' ? getClickerThemeClasses() : 'border-neutral-800'
-              } ${
-                isFullscreen ? 'h-screen w-screen rounded-none border-none max-h-none min-h-screen' : ''
               } ${screenRed ? 'ring-4 ring-red-600 animate-pulse' : ''}`}
             >
               {/* BOTÓN DE PANTALLA COMPLETA */}
               <button
                 onClick={toggleFullscreen}
-                className={`absolute top-3 right-3 z-50 p-2 rounded-xl backdrop-blur-sm border shadow-lg transition-all ${activeGame === 'clicker' ? 'bg-black/10 hover:bg-black/20 border-transparent' : 'bg-neutral-800/80 hover:bg-neutral-700 text-yellow-400 border-neutral-700'}`}
+                className={`absolute top-3 right-3 z-[60] p-2 rounded-xl backdrop-blur-sm border shadow-lg transition-all ${activeGame === 'clicker' ? 'bg-black/10 hover:bg-black/20 border-transparent' : 'bg-neutral-800/80 hover:bg-neutral-700 text-yellow-400 border-neutral-700'}`}
                 title="Pantalla Completa"
               >
                 {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
@@ -2547,8 +2555,8 @@ export default function GamesZone({ currentUser, isLight }) {
 
               {/* JUGANDO MEMORY */}
               {activeGame === 'memory' && gamePhase === 'playing' && (
-                <div className="w-full h-full flex flex-col items-center justify-between p-2 sm:p-2.5 relative overflow-hidden">
-                  <div className="w-full max-w-[480px] flex justify-between items-center bg-neutral-900 border border-neutral-800 px-2 sm:px-3 py-1.5 rounded-xl shadow-md text-white font-bold z-10 shrink-0">
+                <div className="w-full h-full flex flex-col p-2 sm:p-4 relative overflow-hidden">
+                  <div className="w-full max-w-[calc(100%-4rem)] mx-auto flex justify-between items-center bg-neutral-900 border border-neutral-800 px-2 sm:px-3 py-1.5 rounded-xl shadow-md text-white font-bold z-10 shrink-0 mb-2">
                     <div className="flex gap-1.5 sm:gap-3 items-center text-[10px] sm:text-xs">
                       <span className="flex items-center gap-1"><Clock size={12} className="text-yellow-400"/> {formatTime(memStats.time)}</span>
                       <span className="flex items-center gap-1 hidden sm:flex"><RotateCcw size={12} className="text-blue-400"/> Mov: {memStats.moves}</span>
@@ -2567,35 +2575,38 @@ export default function GamesZone({ currentUser, isLight }) {
 
                   {isMemoryPaused && !isWon && renderUnifiedPauseOverlay(() => setIsMemoryPaused(false), () => setGamePhase('menu'))}
 
-                  <div className={`grid gap-0.5 sm:gap-1 w-full max-h-[85%] ${MEMORY_DIFFICULTIES[memSettings.diff].maxWidth} ${MEMORY_DIFFICULTIES[memSettings.diff].maxHeight} aspect-square mx-auto items-center justify-center my-auto ${MEMORY_DIFFICULTIES[memSettings.diff].gridClass}`}
-                       style={{ 
-                         gridTemplateColumns: `repeat(${MEMORY_DIFFICULTIES[memSettings.diff].cols}, minmax(0, 1fr))`,
-                         gridTemplateRows: `repeat(${MEMORY_DIFFICULTIES[memSettings.diff].rows}, minmax(0, 1fr))` 
-                       }}>
-                    {memoryCards.map((card, idx) => {
-                      const isFlipped = card.flipped || memoryMatched.includes(idx) || card.isHint;
-                      const cols = MEMORY_DIFFICULTIES[memSettings.diff].cols;
-                      const textSize = cols >= 10 ? 'text-xs sm:text-base md:text-lg' : cols >= 8 ? 'text-sm sm:text-lg md:text-xl' : cols >= 6 ? 'text-base sm:text-2xl md:text-3xl' : 'text-xl sm:text-4xl md:text-5xl';
-                      
-                      return (
-                        <div key={card.id} 
-                             onClick={() => handleFlipCard(idx)}
-                             className={`relative w-full h-full aspect-square cursor-pointer ${card.errorAnim ? 'animate-shake' : ''}`}
-                             style={{ perspective: '1000px' }}>
-                          <div className={`w-full h-full absolute transition-all duration-500 rounded-sm sm:rounded-md shadow-sm border ${memoryMatched.includes(idx) ? 'border-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)]' : 'border-neutral-700'}`}
-                               style={{ transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)', transformOrigin: 'center center' }}>
-                            <div className="absolute w-full h-full backface-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-sm sm:rounded-md flex items-center justify-center overflow-hidden hover:border-yellow-400 transition-colors"
-                                 style={{ backfaceVisibility: 'hidden' }}>
-                              <Sparkles className="absolute text-yellow-400/30 w-1/3 h-1/3" />
-                            </div>
-                            <div className={`absolute w-full h-full backface-hidden rounded-sm sm:rounded-md flex items-center justify-center ${textSize} bg-neutral-100`}
-                                 style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
-                              <span className={memoryMatched.includes(idx) ? 'animate-bounce' : ''}>{card.content}</span>
+                  {/* CAJA DE MEMORAMA FLEXBOX (Previene que se desborde sobre el menú) */}
+                  <div className="flex-1 w-full flex items-center justify-center min-h-0 overflow-hidden">
+                    <div className={`grid gap-0.5 sm:gap-1 ${MEMORY_DIFFICULTIES[memSettings.diff].gridClass}`}
+                         style={{ 
+                           height: 'min(100%, 100vw - 2rem)',
+                           aspectRatio: '1 / 1'
+                         }}>
+                      {memoryCards.map((card, idx) => {
+                        const isFlipped = card.flipped || memoryMatched.includes(idx) || card.isHint;
+                        const cols = MEMORY_DIFFICULTIES[memSettings.diff].cols;
+                        const textSize = cols >= 10 ? 'text-xs sm:text-base md:text-lg' : cols >= 8 ? 'text-sm sm:text-lg md:text-xl' : cols >= 6 ? 'text-base sm:text-2xl md:text-3xl' : 'text-xl sm:text-4xl md:text-5xl';
+                        
+                        return (
+                          <div key={card.id} 
+                               onClick={() => handleFlipCard(idx)}
+                               className={`relative w-full h-full cursor-pointer ${card.errorAnim ? 'animate-shake' : ''}`}
+                               style={{ perspective: '1000px' }}>
+                            <div className={`w-full h-full absolute transition-all duration-500 rounded-sm sm:rounded-md shadow-sm border ${memoryMatched.includes(idx) ? 'border-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)]' : 'border-neutral-700'}`}
+                                 style={{ transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)', transformOrigin: 'center center' }}>
+                              <div className="absolute w-full h-full backface-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-sm sm:rounded-md flex items-center justify-center overflow-hidden hover:border-yellow-400 transition-colors"
+                                   style={{ backfaceVisibility: 'hidden' }}>
+                                <Sparkles className="absolute text-yellow-400/30 w-1/3 h-1/3" />
+                              </div>
+                              <div className={`absolute w-full h-full backface-hidden rounded-sm sm:rounded-md flex items-center justify-center ${textSize} bg-neutral-100`}
+                                   style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+                                <span className={memoryMatched.includes(idx) ? 'animate-bounce' : ''}>{card.content}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
