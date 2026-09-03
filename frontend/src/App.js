@@ -999,24 +999,17 @@ function App() {
 
   const isLight = themeMode === 'light';
   
-  // Filtro inteligente y automático para reconocer terminales y productos exclusivos
-  const exclusiveProducts = products.filter(p => {
-    const title = (p.title || '').toLowerCase();
-    return (
-      p.is_exclusive === true || 
-      p.is_exclusive === 'true' || 
-      p.is_exclusive === 1 || 
-      p.is_exclusive === '1' || 
-      p.is_exclusive === 'yes' || 
-      p.is_exclusive === 'on' ||
-      p.type === 'exclusive' ||
-      p.category === 'exclusive' ||
-      title.includes('point') ||
-      title.includes('terminal') ||
-      title.includes('clip') ||
-      title.includes('mp')
-    );
-  });
+  // Filtro estricto: Únicamente productos marcados explícitamente como exclusivos en administración
+  const exclusiveProducts = products.filter(p => 
+    p.is_exclusive === true || 
+    p.is_exclusive === 'true' || 
+    p.is_exclusive === 1 || 
+    p.is_exclusive === '1' || 
+    p.is_exclusive === 'yes' || 
+    p.is_exclusive === 'on' ||
+    p.type === 'exclusive' ||
+    p.category === 'exclusive'
+  );
 
   const regularProducts = products.filter(p => !exclusiveProducts.includes(p));
 
