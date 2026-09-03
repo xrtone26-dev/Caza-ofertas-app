@@ -999,20 +999,36 @@ function App() {
 
   const isLight = themeMode === 'light';
   
-  // Filtro estricto: Únicamente productos marcados explícitamente como exclusivos en administración
-  const exclusiveProducts = products.filter(p => 
-    p.is_exclusive === true || 
-    p.is_exclusive === 'true' || 
-    p.is_exclusive === 1 || 
-    p.is_exclusive === '1' || 
-    p.is_exclusive === 'yes' || 
-    p.is_exclusive === 'on' ||
-    p.type === 'exclusive' ||
-    p.category === 'exclusive'
-  );
+  // 1. Identificar productos exclusivos (por bandera en BD o por palabras clave automáticas)
+  const exclusiveProducts = products.filter(p => {
+    const title = (p.title || '').toLowerCase();
+    return (
+      p.is_exclusive === true || 
+      p.is_exclusive === 'true' || 
+      p.is_exclusive === 1 || 
+      p.is_exclusive === '1' || 
+      p.is_exclusive === 'yes' || 
+      p.is_exclusive === 'on' ||
+      p.type === 'exclusive' ||
+      p.category === 'exclusive' ||
+      title.includes('point') ||
+      title.includes('terminal') ||
+      title.includes('clip') ||
+      title.includes('smart') ||
+      title.includes('mp')
+    );
+  });
 
-  const regularProducts = products.filter(p => !exclusiveProducts.includes(p));
+  // 2. Extraer de forma segura los IDs únicos de los exclusivos
+  const exclusiveIds = exclusiveProducts.map(p => p.id || p._id || p.offer_id || p.title);
 
+  // 3. Filtrar los normales asegurando que su ID NO exista en la lista de exclusivos
+  const regularProducts = products.filter(p => {
+    const pId = p.id || p._id || p.offer_id || p.title;
+    return !exclusiveIds.includes(pId);
+  });
+
+  // 4. Aplicar el buscador del usuario solo a los productos normales
   const filteredProducts = regularProducts.filter(
     (p) =>
       p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
