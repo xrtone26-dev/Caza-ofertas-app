@@ -69,6 +69,9 @@ export default function AdminDashboard({
     image_url: '',
     is_exclusive: false,
     active: true,
+    installments_text: '',
+    features: '',
+    specs: '',
   });
 
   const formatCurrencyInput = (value) => {
@@ -278,6 +281,9 @@ export default function AdminDashboard({
         image_url: '',
         is_exclusive: false,
         active: true,
+        installments_text: '',
+        features: '',
+        specs: '',
       });
       loadAllProducts();
       if (loadPublicProducts) loadPublicProducts();
@@ -1040,7 +1046,7 @@ export default function AdminDashboard({
               </div>
               <div>
                 <label className="block text-gray-700 font-bold mb-2">
-                  Descripción
+                  Descripción corta (Subtítulo)
                 </label>
                 <textarea
                   value={
@@ -1059,14 +1065,14 @@ export default function AdminDashboard({
                             description: e.target.value,
                         })
                   }
-                  placeholder="Descripción del producto, características, etc."
-                  rows="3"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                  placeholder="Ej: Con chip 4G gratis, WiFi e impresión de recibos."
+                  rows="2"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="block text-gray-700 font-bold mb-2">
+                  <label className="block text-gray-700 font-bold mb-1 text-xs">
                     Precio Original ($)
                   </label>
                   <input
@@ -1088,12 +1094,12 @@ export default function AdminDashboard({
                             original_price: e.target.value,
                           })
                     }
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                    className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 font-bold mb-2">
-                    Precio con Descuento ($)
+                  <label className="block text-gray-700 font-bold mb-1 text-xs">
+                    Precio Oferta ($)
                   </label>
                   <input
                     type="number"
@@ -1114,10 +1120,118 @@ export default function AdminDashboard({
                             discount_price: e.target.value,
                           })
                     }
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                    className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-bold mb-1 text-xs">
+                    % Descuento
+                  </label>
+                  <input
+                    type="number"
+                    value={
+                      editingProduct
+                        ? editingProduct.discount_percentage
+                        : newProduct.discount_percentage
+                    }
+                    onChange={(e) =>
+                      editingProduct
+                        ? setEditingProduct({
+                            ...editingProduct,
+                            discount_percentage: e.target.value,
+                          })
+                        : setNewProduct({
+                            ...newProduct,
+                            discount_percentage: e.target.value,
+                          })
+                    }
+                    placeholder="88"
+                    className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg text-sm"
                   />
                 </div>
               </div>
+
+              <div>
+                <label className="block text-gray-700 font-bold mb-1 text-sm">
+                  Texto de Meses Sin Intereses (Ej: o 6x $88.16 sin intereses)
+                </label>
+                <input
+                  type="text"
+                  value={
+                    editingProduct
+                      ? editingProduct.installments_text || ''
+                      : newProduct.installments_text || ''
+                  }
+                  onChange={(e) =>
+                    editingProduct
+                      ? setEditingProduct({
+                          ...editingProduct,
+                          installments_text: e.target.value,
+                        })
+                      : setNewProduct({
+                            ...newProduct,
+                            installments_text: e.target.value,
+                        })
+                  }
+                  placeholder="o 6x $88.16 sin intereses"
+                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-bold mb-1 text-sm">
+                  Beneficios con palomita (Un beneficio por renglón)
+                </label>
+                <textarea
+                  value={
+                    editingProduct
+                      ? editingProduct.features || ''
+                      : newProduct.features || ''
+                  }
+                  onChange={(e) =>
+                    editingProduct
+                      ? setEditingProduct({
+                          ...editingProduct,
+                          features: e.target.value,
+                        })
+                      : setNewProduct({
+                            ...newProduct,
+                            features: e.target.value,
+                        })
+                  }
+                  placeholder={`Acepta débito, crédito y vales.\nIncluye cuenta digital y tarjeta gratuita.\n1 año de garantía.\nEnvío gratis en 2 hs.*`}
+                  rows="4"
+                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg text-xs font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-bold mb-1 text-sm">
+                  Especificaciones técnicas con iconos (Un renglón por especificación)
+                </label>
+                <textarea
+                  value={
+                    editingProduct
+                      ? editingProduct.specs || ''
+                      : newProduct.specs || ''
+                  }
+                  onChange={(e) =>
+                    editingProduct
+                      ? setEditingProduct({
+                          ...editingProduct,
+                          specs: e.target.value,
+                        })
+                      : setNewProduct({
+                            ...newProduct,
+                            specs: e.target.value,
+                        })
+                  }
+                  placeholder={`📶 Plan de datos 4G gratis y Wi-Fi.\n📄 Recibos impresos, por e-mail y SMS.\n💳 Tarjetas con chip, banda y sin contacto.\n🔋 72 horas de batería.\n📏 175x82x62 mm.\n⚖️ 410 g.`}
+                  rows="4"
+                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg text-xs font-mono"
+                />
+              </div>
+
               <div>
                 <label className="block text-gray-700 font-bold mb-2">
                   URL de la Imagen
@@ -1190,7 +1304,7 @@ export default function AdminDashboard({
                   className="w-5 h-5 accent-purple-500"
                 />
                 <label className="text-gray-700 font-bold">
-                  ⭐ Producto Exclusivo / Mercado Pago (Terminales Clip, etc.)
+                  ⭐ Producto Exclusivo / Terminal (Diseño Tipo Mercado Pago)
                 </label>
               </div>
               <div className="flex items-center">
