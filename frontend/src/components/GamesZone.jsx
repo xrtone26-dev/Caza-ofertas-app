@@ -213,6 +213,7 @@ export default function GamesZone({ currentUser, isLight }) {
   const [tetrisLines, setTetrisLines] = useState(0);
   const [tetrisCombo, setTetrisCombo] = useState(0);
   const [isTetrisPaused, setIsTetrisPaused] = useState(false);
+  const [isFastDropping, setIsFastDropping] = useState(false); // ESTADO PARA VELOCIDAD X5
   const tetrisBagRef = useRef([]);
 
   // Estados Memoria
@@ -775,6 +776,7 @@ export default function GamesZone({ currentUser, isLight }) {
     setTetrisCombo(0);
     updateScore(0);
     setIsTetrisPaused(false);
+    setIsFastDropping(false);
   };
 
   const checkTetrisCollision = (piece, board, offsetX, offsetY) => {
@@ -953,12 +955,20 @@ export default function GamesZone({ currentUser, isLight }) {
 
   useEffect(() => {
     if (activeGame !== 'tetris' || gamePhase !== 'playing' || isTetrisPaused) return;
+    const baseSpeed = getTetrisSpeedMs(tetrisLevel);
+    const activeSpeed = isFastDropping ? baseSpeed / 5 : baseSpeed;
+    
     const interval = setInterval(() => {
-      moveTetrisDown();
-    }, getTetrisSpeedMs(tetrisLevel));
+      if (isFastDropping) {
+        softDropTetris();
+      } else {
+        moveTetrisDown();
+      }
+    }, activeSpeed);
+    
     gameIntervalRef.current = interval;
     return () => clearInterval(interval);
-  }, [activeGame, gamePhase, tetrisCurrent, tetrisGrid, tetrisLevel, isTetrisPaused]);
+  }, [activeGame, gamePhase, tetrisCurrent, tetrisGrid, tetrisLevel, isTetrisPaused, isFastDropping]);
 
   const initMemory = () => {
     const config = MEMORY_DIFFICULTIES[memSettings.diff];
@@ -2380,11 +2390,11 @@ export default function GamesZone({ currentUser, isLight }) {
                   <div className="w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 select-none touch-none relative" onTouchStart={!isMobile ? handleTouchStart : undefined} onTouchEnd={!isMobile ? handleTouchEnd : undefined}>
                     {isTetrisPaused && renderUnifiedPauseOverlay(() => setIsTetrisPaused(false), () => setGamePhase('menu'))}
                     
-                    <div className="flex flex-row items-center justify-center gap-2 sm:gap-6 w-full max-w-full overflow-hidden mb-2 relative z-10">
+                    <div className="flex flex-row items-stretch justify-center gap-1 sm:gap-6 w-full max-w-full mb-2 relative z-10 px-1">
                       {/* Panel Izquierdo (Hold) */}
-                      <div className="flex flex-col gap-2 w-16 sm:w-28 bg-neutral-900/90 p-2 sm:p-3 rounded-2xl border border-neutral-800 text-white text-[10px] sm:text-xs">
+                      <div className="flex flex-col gap-2 w-14 sm:w-28 bg-neutral-900/90 p-1 sm:p-3 rounded-xl sm:rounded-2xl border border-neutral-800 text-white text-[10px] sm:text-xs">
                         <span className="font-black text-yellow-400 uppercase tracking-wider text-center text-[8px] sm:text-[10px]">Guardada</span>
-                        <div className="w-12 h-12 sm:w-20 sm:h-20 bg-black/50 rounded-xl mx-auto flex items-center justify-center border border-neutral-800 p-1 sm:p-2">
+                        <div className="w-10 h-10 sm:w-20 sm:h-20 bg-black/50 rounded-lg sm:rounded-xl mx-auto flex items-center justify-center border border-neutral-800 p-1 sm:p-2">
                           {tetrisHold ? (
                             <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${tetrisHold.shape[0].length}, 1fr)` }}>
                               {tetrisHold.shape.map((row, ri) => row.map((cell, ci) => (
@@ -2408,8 +2418,8 @@ export default function GamesZone({ currentUser, isLight }) {
                           style={{ 
                             gridTemplateColumns: `repeat(${TETRIS_COLS}, minmax(0, 1fr))`, 
                             gridTemplateRows: `repeat(${TETRIS_ROWS}, minmax(0, 1fr))`,
-                            width: isMobile ? '160px' : '200px', // Ajustado ligeramente más pequeño para celular
-                            height: isMobile ? '320px' : '400px'
+                            width: isMobile ? '150px' : '200px',
+                            height: isMobile ? '300px' : '400px'
                           }}
                         >
                           {displayGrid.slice(TETRIS_HIDDEN_ROWS).map((row, r) => row.map((cell, c) => (
@@ -2425,11 +2435,11 @@ export default function GamesZone({ currentUser, isLight }) {
                       </div>
 
                       {/* Panel Derecho (Next) */}
-                      <div className="flex flex-col gap-2 w-16 sm:w-28 bg-neutral-900/90 p-2 sm:p-3 rounded-2xl border border-neutral-800 text-white text-[10px] sm:text-xs">
+                      <div className="flex flex-col gap-2 w-14 sm:w-28 bg-neutral-900/90 p-1 sm:p-3 rounded-xl sm:rounded-2xl border border-neutral-800 text-white text-[10px] sm:text-xs">
                         <span className="font-black text-yellow-400 uppercase tracking-wider text-center text-[8px] sm:text-[10px]">Siguientes</span>
                         <div className="flex flex-col gap-1 sm:gap-2 overflow-y-auto max-h-[220px] sm:max-h-[340px] pr-1 custom-scrollbar">
                           {tetrisQueue.slice(0, 4).map((piece, idx) => (
-                            <div key={idx} className="w-full h-10 sm:h-14 bg-black/50 rounded-xl flex items-center justify-center border border-neutral-800 p-1">
+                            <div key={idx} className="w-full h-10 sm:h-14 bg-black/50 rounded-lg sm:rounded-xl flex items-center justify-center border border-neutral-800 p-1">
                               <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${piece.shape[0].length}, 1fr)` }}>
                                 {piece.shape.map((row, ri) => row.map((cell, ci) => (
                                   <div key={`${ri}-${ci}`} className={`w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 rounded-sm ${cell ? '' : 'opacity-0'}`} style={{ backgroundColor: cell ? piece.color : 'transparent' }} />
@@ -2443,9 +2453,9 @@ export default function GamesZone({ currentUser, isLight }) {
 
                     {/* ON-SCREEN BUTTONS TETRIS MOBILE */}
                     {isMobile && (
-                      <div className="w-full flex justify-between px-2 gap-2 z-10">
+                      <div className="w-full flex justify-between px-2 gap-2 z-10 mt-2">
                         {/* Controles de movimiento */}
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 flex-1 justify-start">
                           <button onClick={() => {
                             if (!checkTetrisCollision(tetrisCurrent, tetrisGrid, -1, 0)) {
                               playSoundEffect('move');
@@ -2453,7 +2463,16 @@ export default function GamesZone({ currentUser, isLight }) {
                             }
                           }} className="bg-neutral-800/90 border border-neutral-700 text-yellow-400 p-3.5 rounded-xl shadow-lg active:bg-neutral-600"><ArrowLeft size={22} /></button>
                           
-                          <button onClick={moveTetrisDown} className="bg-neutral-800/90 border border-neutral-700 text-yellow-400 p-3.5 rounded-xl shadow-lg active:bg-neutral-600"><ArrowDown size={22} /></button>
+                          <button 
+                            onPointerDown={(e) => { e.preventDefault(); setIsFastDropping(true); softDropTetris(); }}
+                            onPointerUp={(e) => { e.preventDefault(); setIsFastDropping(false); }}
+                            onPointerLeave={(e) => { e.preventDefault(); setIsFastDropping(false); }}
+                            onPointerCancel={(e) => { e.preventDefault(); setIsFastDropping(false); }}
+                            className="bg-neutral-800/90 border border-neutral-700 text-yellow-400 p-3.5 rounded-xl shadow-lg active:bg-neutral-600"
+                            style={{ touchAction: 'none' }}
+                          >
+                            <ArrowDown size={22} />
+                          </button>
                           
                           <button onClick={() => {
                             if (!checkTetrisCollision(tetrisCurrent, tetrisGrid, 1, 0)) {
@@ -2464,15 +2483,13 @@ export default function GamesZone({ currentUser, isLight }) {
                         </div>
                         
                         {/* Controles de Acción */}
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 flex-1 justify-end">
                           <button onClick={() => {
                             playSoundEffect('rotate');
                             setTetrisCurrent(prev => rotateTetrisPiece(prev));
                           }} className="bg-blue-600/90 border border-blue-500 text-white p-3.5 rounded-xl shadow-lg active:bg-blue-500"><RotateCw size={22} /></button>
                           
-                          <button onClick={softDropTetris} className="bg-red-600/90 border border-red-500 text-white p-3.5 rounded-xl shadow-lg active:bg-red-500 flex flex-col items-center justify-center font-black text-[10px]"><ArrowDownToLine size={22}/></button>
-
-                          <button onClick={holdTetrisPiece} className="bg-green-600/90 border border-green-500 text-white p-3.5 rounded-xl shadow-lg active:bg-green-500 flex flex-col items-center justify-center font-black text-[9px]">HOLD</button>
+                          <button onClick={holdTetrisPiece} className="bg-green-600/90 border border-green-500 text-white p-3.5 rounded-xl shadow-lg active:bg-green-500 flex flex-col items-center justify-center font-black text-[10px] w-[52px]">HOLD</button>
                         </div>
                       </div>
                     )}
