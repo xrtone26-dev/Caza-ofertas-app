@@ -108,7 +108,7 @@ export default function GamesZone({ currentUser, isLight }) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Estados de XP y Niveles independientes por jugador y más difíciles
+  // Estados de XP y Niveles
   const [playerXP, setPlayerXP] = useState(() => Number(localStorage.getItem('caza_player_xp')) || 96);
   const [playerLevel, setPlayerLevel] = useState(() => Number(localStorage.getItem('caza_player_level')) || 14);
   const [playerCoins, setPlayerCoins] = useState(() => Number(localStorage.getItem('caza_player_coins')) || 2206);
@@ -121,7 +121,7 @@ export default function GamesZone({ currentUser, isLight }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [timeLeftMonth, setTimeLeftMonth] = useState('0d 0h 0m 0s');
 
-  // Récords independientes por cada juego
+  // Récords independientes
   const [highScores, setHighScores] = useState(() => {
     try {
       const saved = localStorage.getItem('caza_arcade_highscores');
@@ -131,7 +131,6 @@ export default function GamesZone({ currentUser, isLight }) {
     }
   });
 
-  // Estado para los Ganadores del Mes almacenados
   const [monthlyWinners, setMonthlyWinners] = useState(() => {
     try {
       const saved = localStorage.getItem('caza_monthly_winners');
@@ -141,7 +140,6 @@ export default function GamesZone({ currentUser, isLight }) {
     }
   });
 
-  // Efecto para actualizar el temporizador del Torneo Mensual y registrar ganadores al cambiar de mes
   useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
@@ -150,7 +148,6 @@ export default function GamesZone({ currentUser, isLight }) {
       const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59);
       const diff = lastDayOfMonth - now;
 
-      // Verificación de cambio de mes para guardar ganadores del mes anterior automáticamente
       const lastSavedMonth = localStorage.getItem('caza_last_saved_month');
       const currentMonthKey = `${currentYear}-${currentMonth}`;
 
@@ -164,8 +161,6 @@ export default function GamesZone({ currentUser, isLight }) {
             const fullMonthKey = `${prevMonthName} ${prevYear}`;
 
             const savedWinners = JSON.parse(localStorage.getItem('caza_monthly_winners')) || {};
-            
-            // Guardar los primeros lugares de cada juego al terminar el mes
             savedWinners[fullMonthKey] = {
               user: currentUser || 'Xrtone26',
               scores: { ...highScores }
@@ -213,7 +208,7 @@ export default function GamesZone({ currentUser, isLight }) {
   const [tetrisLines, setTetrisLines] = useState(0);
   const [tetrisCombo, setTetrisCombo] = useState(0);
   const [isTetrisPaused, setIsTetrisPaused] = useState(false);
-  const [isFastDropping, setIsFastDropping] = useState(false); // ESTADO PARA VELOCIDAD X5
+  const [isFastDropping, setIsFastDropping] = useState(false); 
   const tetrisBagRef = useRef([]);
 
   // Estados Memoria
@@ -270,11 +265,8 @@ export default function GamesZone({ currentUser, isLight }) {
   const clicksTextRef = useRef(null);
   const cpsTextRef = useRef(null);
   const cpsBarRef = useRef(null);
-  const clickerCanvasRef = useRef(null);
   const fpsRef = useRef(null);
   const lastFrameTimeRef = useRef(performance.now());
-  const clickerParticlesRef = useRef([]);
-  const clickerConfettiRef = useRef([]);
   const activeMusicRef = useRef(null);
 
   const gameIntervalRef = useRef(null);
@@ -306,7 +298,6 @@ export default function GamesZone({ currentUser, isLight }) {
         e.preventDefault();
       }
     };
-
     window.addEventListener('keydown', preventDefaultScroll, { passive: false });
     return () => window.removeEventListener('keydown', preventDefaultScroll);
   }, []);
@@ -568,9 +559,6 @@ export default function GamesZone({ currentUser, isLight }) {
     if (ninjaTimerRef.current) clearInterval(ninjaTimerRef.current);
     if (clickerGameLoopRef.current) cancelAnimationFrame(clickerGameLoopRef.current);
     
-    clickerParticlesRef.current = [];
-    clickerConfettiRef.current = [];
-
     const validScore = finalScore !== undefined ? finalScore : scoreRef.current;
     updateScore(validScore);
     setIsWon(won);
@@ -607,9 +595,6 @@ export default function GamesZone({ currentUser, isLight }) {
     if (ninjaTimerRef.current) clearInterval(ninjaTimerRef.current);
     if (clickerGameLoopRef.current) cancelAnimationFrame(clickerGameLoopRef.current);
     
-    clickerParticlesRef.current = [];
-    clickerConfettiRef.current = [];
-
     setActiveGame(gameKey);
     setGamePhase('menu'); 
     updateScore(0);
@@ -626,8 +611,7 @@ export default function GamesZone({ currentUser, isLight }) {
     setIs2048Paused(false);
     setIsTetrisPaused(false);
     setIsMemoryPaused(false);
-    clickerParticlesRef.current = [];
-    clickerConfettiRef.current = [];
+    
     if (activeGame === '2048') init2048();
     if (activeGame === 'tetris') initTetris();
     if (activeGame === 'memory') initMemory();
@@ -1349,8 +1333,6 @@ export default function GamesZone({ currentUser, isLight }) {
       const startY = height + 60; 
       const vx = Math.random() * (width * 0.4) - (width * 0.2); 
       
-      // Físicas corregidas: Las frutas siempre subirán para ser visibles
-      // Se calcula la velocidad necesaria para que alcancen el 15%-25% de la parte alta de la pantalla
       const targetPeak = height * (0.15 + Math.random() * 0.10);
       const dy = startY - targetPeak;
       const vy = -Math.sqrt(2 * gravity * dy);
@@ -1475,75 +1457,7 @@ export default function GamesZone({ currentUser, isLight }) {
     }
   };
 
-  const spawnClickEffect = (x, y) => {
-    for (let i = 0; i < 8; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 4 + 2;
-      clickerParticlesRef.current.push({
-        x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
-        life: 1, color: clickerSettings.theme === 'neon' ? '#0ff' : '#fcd34d', size: Math.random() * 4 + 2
-      });
-    }
-  };
-
-  const spawnConfetti = () => {
-    const canvas = clickerCanvasRef.current;
-    if (!canvas) return;
-    const w = canvas.getBoundingClientRect().width;
-    const h = canvas.getBoundingClientRect().height;
-    for (let i = 0; i < 150; i++) {
-      clickerConfettiRef.current.push({
-        x: Math.random() < 0.5 ? 0 : w, y: h - Math.random() * 100,
-        vx: (Math.random() * 10 + 5) * (Math.random() < 0.5 ? 1 : -1),
-        vy: -(Math.random() * 15 + 10), color: `hsl(${Math.random() * 360}, 100%, 50%)`,
-        size: Math.random() * 8 + 4, angle: Math.random() * 360, rot: (Math.random() - 0.5) * 10
-      });
-    }
-  };
-
-  const drawClickerCanvas = useCallback(() => {
-    const canvas = clickerCanvasRef.current;
-    if (!canvas) return;
-    
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    if (canvas.width !== Math.floor(rect.width * dpr) || canvas.height !== Math.floor(rect.height * dpr)) {
-      canvas.width = Math.floor(rect.width * dpr);
-      canvas.height = Math.floor(rect.height * dpr);
-    }
-    const ctx = canvas.getContext('2d');
-    
-    ctx.save();
-    ctx.scale(dpr, dpr);
-    const width = rect.width;
-    const height = rect.height;
-
-    ctx.clearRect(0, 0, width, height);
-
-    for (let i = clickerParticlesRef.current.length - 1; i >= 0; i--) {
-      let p = clickerParticlesRef.current[i];
-      p.x += p.vx; p.y += p.vy; p.life -= 0.03;
-      p.vx *= 0.95; p.vy *= 0.95;
-      if (p.life <= 0) { clickerParticlesRef.current.splice(i, 1); continue; }
-      ctx.globalAlpha = p.life; ctx.fillStyle = p.color;
-      ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
-    }
-    
-    for (let i = clickerConfettiRef.current.length - 1; i >= 0; i--) {
-      let c = clickerConfettiRef.current[i];
-      c.x += c.vx; c.y += c.vy; c.vy += 0.4; c.angle += c.rot;
-      if (c.y > height) { clickerConfettiRef.current.splice(i, 1); continue; }
-      ctx.globalAlpha = 1; ctx.fillStyle = c.color;
-      ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.angle * Math.PI / 180);
-      ctx.fillRect(-c.size/2, -c.size/2, c.size, c.size); ctx.restore();
-    }
-    
-    ctx.restore();
-  }, [clickerSettings.theme]);
-
   const startClickerCountdown = () => {
-    clickerParticlesRef.current = [];
-    clickerConfettiRef.current = [];
     setGamePhase('clicker-countdown');
     setClickerCountdown(3);
     playSoundEffect('beep');
@@ -1566,8 +1480,6 @@ export default function GamesZone({ currentUser, isLight }) {
     clickerMaxCpsRef.current = 0;
     clickerCpsHistoryRef.current = [];
     clickTimestampsRef.current = [];
-    clickerParticlesRef.current = [];
-    clickerConfettiRef.current = [];
     clickerStartTimeRef.current = performance.now();
     
     setGamePhase('playing');
@@ -1597,7 +1509,6 @@ export default function GamesZone({ currentUser, isLight }) {
 
   const endClickerGame = () => {
     isClickerPlayingRef.current = false;
-    clickerParticlesRef.current = []; 
     playSoundEffect('over');
     const finalClicks = clickerClicksRef.current;
     const finalMaxCps = clickerMaxCpsRef.current;
@@ -1610,7 +1521,7 @@ export default function GamesZone({ currentUser, isLight }) {
     const isNewRecord = finalClicks > clickerStats.highScore;
     updateScore(finalClicks);
     
-    if (isNewRecord) setTimeout(() => { playSoundEffect('record'); spawnConfetti(); }, 500);
+    if (isNewRecord) setTimeout(() => { playSoundEffect('record'); }, 500);
 
     const avg = finalClicks / 60;
     const newAchievements = checkAchievements(finalClicks, finalMaxCps);
@@ -1644,8 +1555,6 @@ export default function GamesZone({ currentUser, isLight }) {
       fpsRef.current.innerText = `${Math.round(1000 / delta)} FPS`;
     }
     lastFrameTimeRef.current = timestamp;
-
-    drawClickerCanvas();
 
     const now = performance.now();
     const elapsed = (now - clickerStartTimeRef.current) / 1000;
@@ -1687,7 +1596,7 @@ export default function GamesZone({ currentUser, isLight }) {
       return; 
     }
     clickerGameLoopRef.current = requestAnimationFrame(clickerLoop);
-  }, [drawClickerCanvas, clickerSettings.showFps, highScores]);
+  }, [clickerSettings.showFps, highScores]);
 
   useEffect(() => {
     let interval;
@@ -1713,24 +1622,6 @@ export default function GamesZone({ currentUser, isLight }) {
 
     playSoundEffect('click');
     if (clickerSettings.vibration && navigator.vibrate) navigator.vibrate(15);
-
-    if (e && (e.type === 'pointerdown' || e.type === 'mousedown' || e.type === 'touchstart')) {
-      const canvas = clickerCanvasRef.current;
-      if (canvas) {
-        const rect = canvas.getBoundingClientRect();
-        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-        const x = clientX - rect.left;
-        const y = clientY - rect.top;
-        spawnClickEffect(x, y);
-      }
-    } else {
-       const canvas = clickerCanvasRef.current;
-       if (canvas) {
-         const rect = canvas.getBoundingClientRect();
-         spawnClickEffect(rect.width / 2, rect.height / 2);
-       }
-    }
   };
 
   useEffect(() => {
@@ -1884,9 +1775,7 @@ export default function GamesZone({ currentUser, isLight }) {
   const getContainerHeightClass = () => {
     if (isFullscreen) return 'h-screen w-screen rounded-none border-none max-h-none min-h-screen';
     if (isMobile) {
-       // Tetris y 2048 necesitan h-auto para que los botones en pantalla fluyan bien
        if (activeGame === 'tetris' || activeGame === '2048') return 'h-auto min-h-[65vh] py-4';
-       // Ninja Cut, Clicker y Memory necesitan un límite fijo para la cuadrícula y físicas
        return 'h-[65vh] min-h-[480px]';
     }
     return 'h-[65vh] min-h-[450px] max-h-[520px] sm:h-[520px]';
@@ -1996,16 +1885,13 @@ export default function GamesZone({ currentUser, isLight }) {
                 {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
               </button>
 
-              {/* CANVAS DE CLICKER */}
-              {activeGame === 'clicker' && (
-                <canvas ref={clickerCanvasRef} className="pointer-events-none absolute inset-0 z-40 w-full h-full" />
-              )}
+              {/* INDICADOR FPS (Clicker) */}
               {activeGame === 'clicker' && clickerSettings.showFps && gamePhase === 'playing' && (
-                <div ref={fpsRef} className="absolute top-3 left-3 text-[10px] font-mono text-green-500 z-50 bg-black/50 px-2 py-1 rounded">0 FPS</div>
+                <div ref={fpsRef} className="absolute top-4 left-4 text-[10px] font-mono text-green-500 z-50 bg-black/50 px-2 py-1 rounded">0 FPS</div>
               )}
               
               {gamePhase === 'menu' && (
-                <div className="absolute inset-0 bg-neutral-900/95 flex flex-col items-center justify-center z-30 p-6 text-center rounded-2xl overflow-y-auto">
+                <div className="absolute inset-0 bg-neutral-900/95 flex flex-col items-center justify-center z-30 p-6 pt-14 text-center rounded-2xl overflow-y-auto">
                   <div className="my-auto flex flex-col items-center py-4">
                     <Gamepad2 className="w-16 h-16 text-yellow-400 mb-4 animate-bounce" />
                     <h3 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">
@@ -2024,7 +1910,7 @@ export default function GamesZone({ currentUser, isLight }) {
               )}
 
               {gamePhase === 'rules' && activeGame !== 'clicker' && (
-                <div className="absolute inset-0 bg-neutral-950 z-40 flex flex-col items-center p-6 sm:p-8 text-white text-center rounded-2xl overflow-y-auto">
+                <div className="absolute inset-0 bg-neutral-950 z-40 flex flex-col items-center p-6 sm:p-8 pt-14 sm:pt-14 text-white text-center rounded-2xl overflow-y-auto">
                   <div className="my-auto w-full flex flex-col items-center py-4">
                     <h3 className="text-2xl font-black text-yellow-400 mb-3 uppercase">Instrucciones</h3>
                     <p className="text-sm text-neutral-300 max-w-md mb-6 leading-relaxed">
@@ -2102,13 +1988,13 @@ export default function GamesZone({ currentUser, isLight }) {
 
               {/* MENU ESPECÍFICO CLICKER */}
               {activeGame === 'clicker' && gamePhase === 'rules' && (
-                <div className="absolute inset-0 flex flex-col z-30 p-6 overflow-y-auto">
+                <div className="absolute inset-0 flex flex-col z-30 p-6 pt-16 overflow-y-auto">
                   <div className="flex justify-between items-center mb-4 shrink-0">
                     <div className="flex items-center gap-2">
                       <Zap className={`w-6 h-6 ${clickerSettings.theme === 'neon' ? 'text-cyan-400' : 'text-blue-500'}`} />
                       <h1 className="text-lg sm:text-xl font-black uppercase tracking-wider">Click Challenge</h1>
                     </div>
-                    <div className="flex gap-2 pr-10">
+                    <div className="flex gap-2">
                       <button onClick={() => setGamePhase('clicker-stats')} className="p-2 bg-black/10 hover:bg-black/20 rounded-xl transition-all" title="Estadísticas"><BarChart3 size={18} /></button>
                       <button onClick={() => setGamePhase('clicker-leaderboard')} className="p-2 bg-black/10 hover:bg-black/20 rounded-xl transition-all" title="Ranking"><Trophy size={18} /></button>
                       <button onClick={() => setGamePhase('clicker-settings')} className="p-2 bg-black/10 hover:bg-black/20 rounded-xl transition-all" title="Ajustes"><SettingsIcon size={18} /></button>
@@ -2251,7 +2137,7 @@ export default function GamesZone({ currentUser, isLight }) {
               {/* JUGANDO CLICKER */}
               {activeGame === 'clicker' && gamePhase === 'playing' && (
                 <div className="w-full h-full flex flex-col items-center justify-between py-4 relative z-20">
-                  <div className="w-full flex justify-between items-start px-4 sm:px-6 pt-10 sm:pt-12">
+                  <div className="w-full flex justify-between items-start px-4 sm:px-6 pt-16 sm:pt-16">
                     <div className="flex flex-col items-start bg-black/10 p-2 sm:p-3 rounded-xl min-w-[100px] sm:min-w-[120px] backdrop-blur-md">
                       <span className="text-[9px] sm:text-[10px] uppercase font-bold opacity-60">Tiempo</span>
                       <span ref={timerTextRef} className="text-3xl sm:text-4xl font-black font-mono tracking-tighter">01:00</span>
@@ -2261,7 +2147,7 @@ export default function GamesZone({ currentUser, isLight }) {
                       <span ref={clicksTextRef} className="text-3xl sm:text-4xl font-black font-mono tracking-tighter text-blue-500">0</span>
                     </div>
                   </div>
-                  <div className="w-full max-w-md px-4 sm:px-6 absolute top-[100px] sm:top-[120px] left-1/2 -translate-x-1/2 pointer-events-none">
+                  <div className="w-full max-w-md px-4 sm:px-6 absolute top-[140px] sm:top-[150px] left-1/2 -translate-x-1/2 pointer-events-none">
                     <div className="flex justify-between text-[9px] sm:text-[10px] font-bold uppercase opacity-60 mb-1">
                       <span>Velocidad Actual</span>
                       <span><span ref={cpsTextRef}>0</span> CPS</span>
@@ -2330,7 +2216,7 @@ export default function GamesZone({ currentUser, isLight }) {
 
               {/* JUGANDO 2048 */}
               {activeGame === '2048' && gamePhase === 'playing' && (
-                <div className="w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 select-none touch-none relative" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+                <div className="w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 pt-14 sm:pt-16 select-none touch-none relative" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
                   {is2048Paused && renderUnifiedPauseOverlay(() => setIs2048Paused(false), () => setGamePhase('menu'))}
                   <div className="flex justify-between items-center w-full max-w-[340px] mb-2 sm:mb-3 px-2">
                     <span className="text-[10px] sm:text-xs font-bold text-neutral-400">{isWon ? '✨ ¡2048 Conseguido! (Infinito)' : 'Combina fichas iguales'}</span>
@@ -2395,7 +2281,7 @@ export default function GamesZone({ currentUser, isLight }) {
                 }
 
                 return (
-                  <div className="w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 select-none touch-none relative" onTouchStart={!isMobile ? handleTouchStart : undefined} onTouchEnd={!isMobile ? handleTouchEnd : undefined}>
+                  <div className="w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 pt-14 sm:pt-16 select-none touch-none relative" onTouchStart={!isMobile ? handleTouchStart : undefined} onTouchEnd={!isMobile ? handleTouchEnd : undefined}>
                     {isTetrisPaused && renderUnifiedPauseOverlay(() => setIsTetrisPaused(false), () => setGamePhase('menu'))}
                     
                     <div className="flex flex-row items-stretch justify-center gap-1 sm:gap-6 w-full max-w-full mb-2 relative z-10 px-1">
@@ -2508,7 +2394,7 @@ export default function GamesZone({ currentUser, isLight }) {
               {/* JUGANDO NINJA CUT */}
               {activeGame === 'ninja' && gamePhase === 'playing' && (
                 <div className="w-full h-full relative select-none touch-none overflow-hidden flex flex-col">
-                  <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-12 sm:right-16 z-20 flex justify-between items-center pointer-events-none px-3 sm:px-4 py-1.5 sm:py-2 bg-black/60 backdrop-blur-md rounded-xl border border-neutral-800 text-white font-bold text-[10px] sm:text-xs">
+                  <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-12 sm:right-16 z-20 flex justify-between items-center pointer-events-none px-3 sm:px-4 py-1.5 sm:py-2 bg-black/60 backdrop-blur-md rounded-xl border border-neutral-800 text-white font-bold text-[10px] sm:text-xs mt-12 sm:mt-0">
                     <div>Puntos: <span className="text-yellow-400 text-xs sm:text-sm font-black">{score}</span></div>
                     {ninjaMode === 'classic' && (
                       <div className="flex gap-0.5 sm:gap-1 items-center">
@@ -2555,7 +2441,7 @@ export default function GamesZone({ currentUser, isLight }) {
 
               {/* JUGANDO MEMORY */}
               {activeGame === 'memory' && gamePhase === 'playing' && (
-                <div className="w-full h-full flex flex-col p-2 sm:p-4 relative overflow-hidden">
+                <div className="w-full h-full flex flex-col p-2 sm:p-4 pt-14 sm:pt-16 relative overflow-hidden">
                   <div className="w-full max-w-[calc(100%-4rem)] mx-auto flex justify-between items-center bg-neutral-900 border border-neutral-800 px-2 sm:px-3 py-1.5 rounded-xl shadow-md text-white font-bold z-10 shrink-0 mb-2">
                     <div className="flex gap-1.5 sm:gap-3 items-center text-[10px] sm:text-xs">
                       <span className="flex items-center gap-1"><Clock size={12} className="text-yellow-400"/> {formatTime(memStats.time)}</span>
@@ -2575,11 +2461,12 @@ export default function GamesZone({ currentUser, isLight }) {
 
                   {isMemoryPaused && !isWon && renderUnifiedPauseOverlay(() => setIsMemoryPaused(false), () => setGamePhase('menu'))}
 
-                  {/* CAJA DE MEMORAMA FLEXBOX (Previene que se desborde sobre el menú) */}
-                  <div className="flex-1 w-full flex items-center justify-center min-h-0 overflow-hidden">
-                    <div className={`grid gap-0.5 sm:gap-1 ${MEMORY_DIFFICULTIES[memSettings.diff].gridClass}`}
+                  {/* CAJA DE MEMORAMA FLEXBOX */}
+                  <div className="flex-1 w-full flex items-center justify-center min-h-0 overflow-hidden mt-2">
+                    <div className={`grid gap-1 sm:gap-1.5 ${MEMORY_DIFFICULTIES[memSettings.diff].gridClass}`}
                          style={{ 
-                           height: 'min(100%, 100vw - 2rem)',
+                           maxHeight: '100%',
+                           maxWidth: '100%',
                            aspectRatio: '1 / 1'
                          }}>
                       {memoryCards.map((card, idx) => {
