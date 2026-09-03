@@ -28,6 +28,7 @@ import {
   Headphones,
   Award,
   TrendingDown,
+  Star,
 } from 'lucide-react';
 import {
   FaWhatsapp,
@@ -1729,10 +1730,10 @@ function App() {
 
       {isMobileDevice ? (
         <div className="container mx-auto px-4 mt-6 mb-16 relative z-20">
-          <div className="bg-neutral-900/90 border border-neutral-800 p-3 rounded-2xl mb-6 shadow-xl grid grid-cols-2 sm:grid-cols-5 gap-2">
+          <div className="bg-neutral-900/90 border border-neutral-800 p-3 rounded-2xl mb-6 shadow-xl grid grid-cols-2 gap-2">
             <button
               onClick={() => setMobileTab('cupones')}
-              className={`py-3 px-2 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'cupones' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
@@ -1740,23 +1741,15 @@ function App() {
             </button>
             <button
               onClick={() => setMobileTab('productos')}
-              className={`py-3 px-2 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'productos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
               🔥 Productos
             </button>
             <button
-              onClick={() => setMobileTab('exclusivos')}
-              className={`py-3 px-2 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
-                mobileTab === 'exclusivos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
-              }`}
-            >
-              ⭐ Exclusivos
-            </button>
-            <button
               onClick={() => setMobileTab('juegos')}
-              className={`py-3 px-2 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'juegos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
@@ -1764,11 +1757,19 @@ function App() {
             </button>
             <button
               onClick={() => setMobileTab('reels')}
-              className={`py-3 px-2 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'reels' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
               📺 Pruebas
+            </button>
+            <button
+              onClick={() => setMobileTab('exclusivos')}
+              className={`col-span-2 py-3.5 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+                mobileTab === 'exclusivos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-yellow-400 hover:bg-neutral-700 border border-yellow-500/40'
+              }`}
+            >
+              ⭐ Productos Exclusivos
             </button>
           </div>
 
