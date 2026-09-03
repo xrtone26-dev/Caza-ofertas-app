@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, Edit2, Trash2, Video, Copy, ShoppingCart, Image as ImageIcon } from 'lucide-react';
+import { X, Plus, Edit2, Trash2, Video, Copy, ShoppingCart, Image as ImageIcon, Star } from 'lucide-react';
 import axios from 'axios';
 
 export const decodeCoupon = (offer) => {
@@ -363,6 +363,9 @@ export default function AdminDashboard({
     }
   };
 
+  const regularAdminProducts = allProducts.filter(p => !p.is_exclusive);
+  const exclusiveAdminProducts = allProducts.filter(p => p.is_exclusive);
+
   return (
     <>
       {showAdminLogin && (
@@ -407,7 +410,7 @@ export default function AdminDashboard({
               </button>
             </div>
             
-            <div className="flex gap-4 mb-6">
+            <div className="flex flex-wrap gap-3 mb-6">
               <button
                 onClick={() => setAdminSection('offers')}
                 className={`px-4 py-2 rounded-lg font-bold ${
@@ -427,6 +430,16 @@ export default function AdminDashboard({
                 }`}
               >
                 Productos
+              </button>
+              <button
+                onClick={() => setAdminSection('exclusive')}
+                className={`px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 ${
+                  adminSection === 'exclusive'
+                    ? 'bg-yellow-500 text-black'
+                    : 'bg-gray-200 text-gray-700'
+                }`}
+              >
+                <Star size={18} /> Exclusivos / MP
               </button>
               <button
                 onClick={() => setAdminSection('videos')}
@@ -537,22 +550,15 @@ export default function AdminDashboard({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {allProducts.map((prod) => (
+                  {regularAdminProducts.map((prod) => (
                     <div
                       key={getSafeId(prod) || prod.title}
                       className="border-2 rounded-xl p-6 border-gray-300 bg-gray-50"
                     >
                       <div className="flex justify-between items-start mb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="px-3 py-1 rounded-full text-sm font-bold bg-green-200 text-green-800">
-                            📦 Producto
-                          </span>
-                          {prod.is_exclusive && (
-                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-yellow-200 text-yellow-800 border border-yellow-300">
-                              ⭐ Exclusivo / MP
-                            </span>
-                          )}
-                        </div>
+                        <span className="px-3 py-1 rounded-full text-sm font-bold bg-green-200 text-green-800">
+                          📦 Producto
+                        </span>
                         <div className="flex gap-2">
                           <button
                             onClick={() => {
@@ -574,6 +580,56 @@ export default function AdminDashboard({
                       <h3 className="text-xl font-bold mb-2">{prod.title}</h3>
                       <p className="text-gray-600 mb-2">
                         ${prod.discount_price} / ${prod.original_price}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {adminSection === 'exclusive' && (
+              <>
+                <button
+                  onClick={() => {
+                    setNewProduct({ ...newProduct, is_exclusive: true });
+                    setShowAddProductModal(true);
+                  }}
+                  className="mb-6 bg-yellow-400 text-black px-6 py-3 rounded-lg font-black hover:bg-yellow-300 transition-all flex items-center gap-2 border-2 border-black"
+                >
+                  <Plus className="w-5 h-5" /> Nuevo Producto Exclusivo / Terminal Clip
+                </button>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {exclusiveAdminProducts.map((prod) => (
+                    <div
+                      key={getSafeId(prod) || prod.title}
+                      className="border-2 rounded-xl p-6 border-yellow-400 bg-yellow-50/50"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <span className="px-3 py-1 rounded-full text-xs font-black bg-yellow-200 text-yellow-900 border border-yellow-400">
+                          ⭐ Exclusivo / Mercado Pago
+                        </span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setEditingProduct(prod);
+                              setShowAddProductModal(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <Edit2 className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProduct(prod)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-bold mb-2">{prod.title}</h3>
+                      <p className="text-gray-600 mb-2 font-bold">
+                        Precio: ${prod.discount_price}
                       </p>
                     </div>
                   ))}
