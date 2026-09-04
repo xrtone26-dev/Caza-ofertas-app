@@ -1444,7 +1444,7 @@ function App() {
           </p>
           <div className="flex flex-wrap gap-4 items-center">
             <a 
-              href="https://mercadolibre.com/sec/1XFPeWr" 
+              href="https://www.mercadopago.com.mx/herramientas-para-vender/lectores-point?code=7XYVCUKISD" 
               target="_blank" 
               rel="noopener noreferrer" 
               className="bg-[#3483fa] hover:bg-[#2968c8] text-white font-black px-6 py-3.5 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black text-sm uppercase transition-transform hover:scale-105"
