@@ -61,7 +61,7 @@ function FeatureCube({ isLight, isMobileDevice }) {
     const elapsed = (time - startTimeRef.current) * 0.001;
     setRotation({
       x: Math.sin(elapsed * 0.6) * 55, 
-      y: elapsed * 35,                               
+      y: elapsed * 35,                                     
       z: Math.sin(elapsed * 0.4) * 20, 
     });
     requestRef.current = requestAnimationFrame(animate);
@@ -1441,95 +1441,103 @@ function App() {
                   const featureList = product.features ? product.features.split('\n').filter(Boolean) : [];
                   const specList = product.specs ? product.specs.split('\n').filter(Boolean) : [];
 
+                  const handleShareProduct = () => {
+                    const title = product.title || product.nombre || 'Terminal Exclusiva';
+                    const link = product.affiliate_link || product.link || product.url || window.location.href;
+                    const text = `¡Mira esta gran oferta en CazaOfertas! 🔥 *${title}* \nEncuéntrala aquí: ${link}`;
+                    if (navigator.share) {
+                      navigator.share({ title, text, url: link }).catch(() => {});
+                    } else {
+                      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+                    }
+                  };
+
                   return (
                     <div key={pId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0 flex">
-                      <div className={`w-full rounded-3xl shadow-xl transition-all duration-300 overflow-hidden flex flex-col border bg-white text-gray-900 border-gray-200 relative`}>
+                      <div className="w-full rounded-3xl shadow-xl transition-all duration-300 overflow-hidden flex flex-col border bg-white text-gray-900 border-gray-200 relative">
                         
-                        {isAuthenticated && (
-                          <button
-                            onClick={() => {
-                              toggleManualExclusive(pId);
-                              setToastMessage('🔄 Producto devuelto a Productos Normales.');
-                              setShowToast(true);
-                            }}
-                            className="absolute top-3 left-3 z-20 bg-gray-900 hover:bg-black text-white font-black text-[10px] px-2.5 py-1 rounded-lg border-2 border-white shadow-md flex items-center gap-1 transition-transform hover:scale-105"
-                            title="Regresar a productos normales"
-                          >
-                            <RefreshCw size={12} /> Mover a Normales
-                          </button>
-                        )}
+                        {/* Botón de Compartir (Reemplaza al botón de mover) */}
+                        <button
+                          onClick={handleShareProduct}
+                          className="absolute top-3 left-3 z-20 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] px-2.5 py-1.5 rounded-lg border-2 border-white shadow-md flex items-center gap-1 transition-transform hover:scale-105"
+                          title="Compartir producto por WhatsApp o Redes Sociales"
+                        >
+                          <Share2 size={12} /> Compartir
+                        </button>
 
-                        <div className="relative pt-6 px-6 pb-2 text-center bg-white flex justify-center items-center h-56">
+                        {/* Imagen de la Terminal */}
+                        <div className="relative pt-8 px-6 pb-2 text-center bg-white flex justify-center items-center h-52">
                           <img src={product.image_url} alt={product.title} className="max-h-full max-w-full object-contain drop-shadow-md" />
                         </div>
 
-                        <div className="px-6 pb-6 flex flex-col flex-1 text-center">
-                          <h3 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">{product.title}</h3>
-                          
-                          <p className="text-sm text-gray-600 font-medium mb-6 min-h-[40px] px-2">
+                        {/* Título y Descripción */}
+                        <div className="px-6 pb-4 text-center">
+                          <h3 className="text-xl font-black text-gray-900 mb-1 tracking-tight">{product.title || product.nombre}</h3>
+                          <p className="text-xs text-gray-600 font-medium line-clamp-2 px-1">
                             {product.description}
                           </p>
+                        </div>
 
-                          <div className="flex flex-col items-center justify-center mb-1">
-                            <div className="flex items-center gap-2.5">
-                              {product.original_price && (
-                                <span className="text-lg font-bold text-gray-400 line-through">
-                                  ${Number(product.original_price).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-                                </span>
-                              )}
-                              {product.discount_percentage && (
-                                <span className="bg-[#00a650] text-white px-2 py-0.5 rounded-md font-bold text-xs tracking-wide">
-                                  {product.discount_percentage}% OFF
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-4xl font-black text-gray-900 my-1 tracking-tight">
-                              ${Number(product.discount_price).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-                            </div>
-                          </div>
-
-                          {product.installments_text && (
-                            <div className="mb-6">
-                              <span className="inline-block bg-[#3483fa] text-white text-xs font-bold px-3 py-1 rounded-md shadow-sm">
-                                {product.installments_text}
+                        {/* Precios, Descuentos y MSI */}
+                        <div className="px-6 text-center mb-4">
+                          <div className="flex items-center justify-center gap-2 mb-1">
+                            {product.original_price > 0 && (
+                              <span className="text-sm font-bold text-gray-400 line-through">
+                                ${Number(product.original_price).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                               </span>
+                            )}
+                            {(product.discount_percentage || product.descuento) && (
+                              <span className="bg-[#00a650] text-white px-2 py-0.5 rounded-md font-bold text-[11px] tracking-wide">
+                                {product.discount_percentage ? `${product.discount_percentage}% OFF` : product.descuento}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-3xl font-black text-gray-900 tracking-tight">
+                            ${Number(product.discount_price || product.precio || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                          </div>
+                          {product.installments_text && (
+                            <div className="text-xs text-gray-600 mt-1 font-medium">
+                              {product.installments_text}
                             </div>
                           )}
+                        </div>
 
+                        {/* Botón Comprar */}
+                        <div className="px-6 mb-5">
                           <a 
                             href={product.affiliate_link || product.link || product.url || '#'} 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            className="w-full bg-[#3483fa] hover:bg-[#2968c8] text-white py-3.5 rounded-xl font-bold text-center transition-all shadow-md text-base uppercase tracking-wide mb-6"
+                            className="w-full bg-[#3483fa] hover:bg-[#2968c8] text-white py-3 rounded-xl font-bold text-center block transition-all shadow-md text-sm uppercase tracking-wide"
                           >
                             Comprar
                           </a>
-
-                          {featureList.length > 0 && (
-                            <div className="w-full border-t border-gray-200 pt-5 pb-4 text-left flex flex-col gap-3">
-                              {featureList.map((feat, idx) => (
-                                <div key={idx} className="flex items-start gap-3 text-xs font-medium text-gray-700 leading-tight">
-                                  <div className="w-4 h-4 rounded-full bg-[#3483fa]/10 text-[#3483fa] flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <Check size={11} strokeWidth={3} />
-                                  </div>
-                                  <span>{feat}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          {specList.length > 0 && (
-                            <div className="w-full border-t border-dashed border-gray-200 pt-4 mt-auto text-left flex flex-col gap-2.5">
-                              {specList.map((spec, idx) => (
-                                <div key={idx} className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
-                                  <span className="text-sm flex-shrink-0">{spec.substring(0, 2)}</span>
-                                  <span className="truncate">{spec.substring(2).trim()}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
                         </div>
+
+                        {/* Beneficios con Palomita */}
+                        {featureList.length > 0 && (
+                          <div className="w-full border-t border-gray-200 px-6 py-4 bg-white text-left flex flex-col gap-2.5">
+                            {featureList.map((feat, idx) => (
+                              <div key={idx} className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
+                                <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
+                                <span className="leading-tight">{feat}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Especificaciones Técnicas con Iconos */}
+                        {specList.length > 0 && (
+                          <div className="w-full border-t border-dashed border-gray-200 px-6 py-4 mt-auto bg-white text-left flex flex-col gap-2.5">
+                            {specList.map((spec, idx) => (
+                              <div key={idx} className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                                <span className="text-sm flex-shrink-0">{spec.substring(0, 2)}</span>
+                                <span className="truncate">{spec.substring(2).trim()}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
                       </div>
                     </div>
                   );
