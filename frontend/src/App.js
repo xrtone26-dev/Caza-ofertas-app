@@ -31,12 +31,29 @@ import {
   Star,
   Check,
   RefreshCw,
+  Wifi,
+  FileText,
+  CreditCard,
+  Battery,
+  BatteryCharging,
+  Maximize2,
+  Scale,
+  Bluetooth,
+  Truck,
+  DollarSign,
+  Calendar,
 } from 'lucide-react';
 import {
   FaWhatsapp,
   FaTelegram,
   FaFacebook,
-  FaYoutube
+  FaYoutube,
+  FaCcVisa,
+  FaCcMastercard,
+  FaCcAmex,
+  FaApplePay,
+  FaGooglePay,
+  FaSamsungPay
 } from "react-icons/fa";
 import axios from 'axios';
 import useEmblaCarousel from 'embla-carousel-react';
@@ -1314,6 +1331,11 @@ function App() {
                 <div className="flex gap-6">
                   {filteredProducts.map((product) => {
                     const pId = getSafeId(product) || product.title;
+                    const origPriceNum = Number(product.original_price || 0);
+                    const formattedOriginalPrice = origPriceNum < 100 && origPriceNum > 0 
+                      ? (origPriceNum * 1000).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+                      : origPriceNum.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
                     return (
                       <div key={pId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
                         <div className={`rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden h-full flex flex-col relative ${
@@ -1350,9 +1372,11 @@ function App() {
                               <span className={`text-2xl sm:text-3xl font-black ${isLight ? 'text-green-600' : 'text-green-400'}`}>
                                 ${Number(product.discount_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </span>
-                              <span className={`text-base sm:text-lg font-bold line-through ${isLight ? 'text-red-600' : 'text-red-400'}`}>
-                                Antes ${Number(product.original_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </span>
+                              {origPriceNum > 0 && (
+                                <span className={`text-base sm:text-lg font-bold line-through ${isLight ? 'text-red-600' : 'text-red-400'}`}>
+                                  Antes ${formattedOriginalPrice}
+                                </span>
+                              )}
                             </div>
                             {product.coupon && (
                               <div className={`border-2 border-dashed rounded-lg p-2.5 sm:p-3 mb-4 ${
@@ -1403,6 +1427,53 @@ function App() {
 
   const renderExclusiveProductsSection = () => (
     <div className={`container mx-auto px-4 mb-16 relative z-10`}>
+      {/* BANNER SUPERIOR DE TERMINALES (IMAGEN 3 Y 4) */}
+      <div className="bg-[#FFE600] rounded-3xl p-6 sm:p-10 mb-8 text-black shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border-4 border-black">
+        <div className="flex flex-col items-start text-left max-w-xl z-10">
+          <span className="bg-black text-yellow-400 font-black text-xs px-3 py-1 rounded-full mb-3 uppercase tracking-wider">
+            Oferta Especial Point
+          </span>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-4 leading-tight">
+            Vende con terminal Point, recibe tu dinero al instante
+          </h2>
+          <p className="font-bold text-sm sm:text-base mb-6 text-black/90">
+            Lleva gratis una Tarjeta Debit Mastercard® para usar tu dinero.
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <a 
+              href="https://mercadolibre.com/sec/1XFPeWr" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="bg-blue-600 hover:bg-blue-700 text-white font-black px-6 py-3.5 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black text-sm uppercase transition-transform hover:scale-105"
+            >
+              Elegir terminal
+            </a>
+            <div className="flex items-center gap-2 font-black text-xs sm:text-sm bg-white/80 px-4 py-3.5 rounded-2xl border-2 border-black">
+              <Truck size={18} /> Llega gratis hoy (*)
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full pt-6 border-t-2 border-black/20 z-10">
+          <div className="flex items-center gap-2 text-xs font-black">
+            <DollarSign size={20} className="text-black flex-shrink-0" />
+            <span>Crédito inmediato y a tu medida</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-black">
+            <Calendar size={20} className="text-black flex-shrink-0" />
+            <span>Sin renta mensual ni RFC.</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-black">
+            <CreditCard size={20} className="text-black flex-shrink-0" />
+            <span>Cuenta digital y tarjeta gratuita.</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-black">
+            <ShoppingCart size={20} className="text-black flex-shrink-0" />
+            <span>Acepta débito, crédito y vales.</span>
+          </div>
+        </div>
+      </div>
+
       <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
         isLight ? 'bg-white border-yellow-300' : 'bg-neutral-900/85 border-neutral-800'
       }`}>
@@ -1427,8 +1498,10 @@ function App() {
               <div className="flex gap-6 items-stretch">
                 {exclusiveProducts.map((product) => {
                   const pId = getSafeId(product) || product.title;
-                  const featureList = product.features ? product.features.split('\n').filter(Boolean) : [];
-                  const specList = product.specs ? product.specs.split('\n').filter(Boolean) : [];
+                  const origPriceNum = Number(product.original_price || 0);
+                  const formattedOriginalPrice = origPriceNum < 100 && origPriceNum > 0 
+                    ? (origPriceNum * 1000).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+                    : origPriceNum.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
                   const handleShareProduct = () => {
                     const title = product.title || product.nombre || 'Terminal Exclusiva';
@@ -1470,9 +1543,9 @@ function App() {
                         {/* Precios, Descuentos y MSI */}
                         <div className="text-center mb-4">
                           <div className="flex items-center justify-center gap-2 mb-1">
-                            {product.original_price > 0 && (
+                            {origPriceNum > 0 && (
                               <span className="text-sm font-bold text-gray-400 line-through">
-                                ${Number(product.original_price).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                                ${formattedOriginalPrice}
                               </span>
                             )}
                             {(product.discount_percentage || product.descuento) && (
@@ -1503,29 +1576,53 @@ function App() {
                           </a>
                         </div>
 
-                        {/* Beneficios con Palomita */}
-                        {featureList.length > 0 && (
-                          <div className="w-full border-t border-gray-200 pt-4 pb-3 bg-white text-left flex flex-col gap-2.5">
-                            {featureList.map((feat, idx) => (
-                              <div key={idx} className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
-                                <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
-                                <span className="leading-tight">{feat}</span>
-                              </div>
-                            ))}
+                        {/* Beneficios con Palomita (Imagen 1) */}
+                        <div className="w-full border-t border-gray-200 pt-4 pb-3 bg-white text-left flex flex-col gap-2.5">
+                          <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
+                            <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
+                            <span className="leading-tight">Acepta débito, crédito y vales.</span>
                           </div>
-                        )}
+                          <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
+                            <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
+                            <span className="leading-tight">Incluye cuenta digital y tarjeta gratuita.</span>
+                          </div>
+                          <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
+                            <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
+                            <span className="leading-tight">1 año de garantía.</span>
+                          </div>
+                          <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
+                            <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
+                            <span className="leading-tight">Envío gratis en 2 hs.</span>
+                          </div>
+                        </div>
 
-                        {/* Especificaciones Técnicas con Iconos */}
-                        {specList.length > 0 && (
-                          <div className="w-full border-t border-dashed border-gray-200 pt-4 pb-3 bg-white text-left flex flex-col gap-2.5">
-                            {specList.map((spec, idx) => (
-                              <div key={idx} className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
-                                <span className="text-sm flex-shrink-0">{spec.substring(0, 2)}</span>
-                                <span className="truncate">{spec.substring(2).trim()}</span>
-                              </div>
-                            ))}
+                        {/* Especificaciones Técnicas con Iconos Exactos (Imagen 2) */}
+                        <div className="w-full border-t border-dashed border-gray-200 pt-4 pb-3 bg-white text-left flex flex-col gap-2.5">
+                          <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                            <Wifi size={16} className="text-blue-500 flex-shrink-0" />
+                            <span className="truncate">Plan de datos 4G gratis y Wi-Fi.</span>
                           </div>
-                        )}
+                          <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                            <FileText size={16} className="text-blue-500 flex-shrink-0" />
+                            <span className="truncate">Recibos impresos, por e-mail y SMS. Rollos gratis.</span>
+                          </div>
+                          <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                            <CreditCard size={16} className="text-blue-500 flex-shrink-0" />
+                            <span className="truncate">Tarjetas con chip, banda y sin contacto.</span>
+                          </div>
+                          <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                            <BatteryCharging size={16} className="text-blue-500 flex-shrink-0" />
+                            <span className="truncate">72 horas de batería.</span>
+                          </div>
+                          <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                            <Maximize2 size={16} className="text-blue-500 flex-shrink-0" />
+                            <span className="truncate">175x82x62 mm.</span>
+                          </div>
+                          <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                            <Scale size={16} className="text-blue-500 flex-shrink-0" />
+                            <span className="truncate">410 g.</span>
+                          </div>
+                        </div>
 
                         {/* Botón Más Información */}
                         <div className="mt-auto pt-3">
@@ -1558,6 +1655,49 @@ function App() {
             )}
           </div>
         )}
+      </div>
+
+      {/* SECCIÓN INFERIOR DE FORMAS DE PAGO Y TASAS (IMAGEN 5) */}
+      <div className={`mt-12 rounded-3xl p-8 sm:p-12 shadow-xl border ${
+        isLight ? 'bg-white border-gray-200 text-gray-800' : 'bg-neutral-900 border-neutral-800 text-neutral-100'
+      }`}>
+        <div className="text-center max-w-2xl mx-auto mb-10">
+          <h3 className="text-2xl sm:text-3xl font-black mb-3">Acepta todas las formas de pago</h3>
+          <p className="text-sm font-medium opacity-80">¡Ofrece a tus clientes pagar en hasta 24 meses sin intereses!</p>
+          
+          <div className="flex flex-wrap items-center justify-center gap-6 mt-6 text-3xl opacity-90">
+            <FaCcVisa title="Visa" className="text-blue-600" />
+            <FaCcMastercard title="Mastercard" className="text-red-500" />
+            <FaCcAmex title="American Express" className="text-cyan-600" />
+            <FaApplePay title="Apple Pay" />
+            <FaGooglePay title="Google Pay" />
+            <FaSamsungPay title="Samsung Pay" />
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-neutral-700/50">
+            <p className="text-xs font-bold uppercase tracking-wider mb-4 opacity-70">Vales de despensa y restaurante</p>
+            <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-black">
+              <span className="px-3 py-1.5 rounded-lg border border-red-500 text-red-500 bg-red-500/10">CARNET</span>
+              <span className="px-3 py-1.5 rounded-lg border border-orange-500 text-orange-500 bg-orange-500/10">Sí Vale</span>
+              <span className="px-3 py-1.5 rounded-lg border border-blue-500 text-blue-500 bg-blue-500/10">Toka</span>
+              <span className="px-3 py-1.5 rounded-lg border border-cyan-500 text-cyan-500 bg-cyan-500/10">Tengo</span>
+              <span className="px-3 py-1.5 rounded-lg border border-red-600 text-red-600 bg-red-600/10">Edenred</span>
+              <span className="px-3 py-1.5 rounded-lg border border-purple-500 text-purple-500 bg-purple-500/10">Pluxee</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-xl mx-auto bg-neutral-950 border-2 border-yellow-400/50 rounded-3xl p-6 sm:p-8 text-center shadow-lg">
+          <h4 className="text-xl sm:text-2xl font-black mb-2 text-yellow-400">Sin renta mensual, solo pagas cuando vendes</h4>
+          <p className="text-xs sm:text-sm mb-6 opacity-80">¡Usa tu terminal sin trámites! No necesitas tener cuenta bancaria ni RFC.</p>
+          
+          <div className="bg-neutral-900 border border-yellow-400/30 rounded-2xl p-4 mb-4">
+            <span className="block text-xs uppercase font-bold text-neutral-400 mb-1">Tasas</span>
+            <span className="text-2xl sm:text-3xl font-black text-white">3.5% <span className="text-yellow-400">+ IVA</span> <span className="text-xs font-normal">por cada venta</span></span>
+          </div>
+          
+          <p className="text-[11px] opacity-70 font-medium">Tu dinero al instante en tu cuenta de Mercado Pago Standard los 365 días del año.</p>
+        </div>
       </div>
     </div>
   );
