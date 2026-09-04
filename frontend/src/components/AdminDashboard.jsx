@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, Edit2, Trash2, Video, Copy, ShoppingCart, Image as ImageIcon, Star } from 'lucide-react';
+import { X, Plus, Edit2, Trash2, Video, Copy, ShoppingCart, Image as ImageIcon, Star, Lock } from 'lucide-react';
 import axios from 'axios';
 
 export const decodeCoupon = (offer) => {
@@ -46,6 +46,10 @@ export default function AdminDashboard({
   const [videoFormUrl, setVideoFormUrl] = useState('');
   const [videoFormBuyUrl, setVideoFormBuyUrl] = useState('');
   const [videoFormImageUrl, setVideoFormImageUrl] = useState('');
+
+  const [loginMode, setLoginMode] = useState('login');
+  const [recoverIdentifier, setRecoverIdentifier] = useState('');
+  const [changePwData, setChangePwData] = useState({ current_password: '', new_password: '' });
 
   const [newOffer, setNewOffer] = useState({
     type: 'cupon',
@@ -117,6 +121,32 @@ export default function AdminDashboard({
     } catch (error) {
       console.error("Error en login:", error);
       alert('Contraseña incorrecta');
+    }
+  };
+
+  const handleRecover = async () => {
+    try {
+      const response = await axios.post(`${API}/admin/recover`, { identifier: recoverIdentifier });
+      if (response.data.success) {
+        alert('¡Bzz bzz! 🐝 Se ha enviado un correo con tu clave provisional. Revisa tu bandeja de entrada.');
+        setLoginMode('login');
+      }
+    } catch (error) {
+      alert('Usuario o correo no encontrado. ¿Seguro que eres el admin? 🥸');
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(`${API}/admin/change-password`, changePwData);
+      if (response.data.success) {
+        alert('¡Contraseña actualizada con éxito! A salvo de los piratas informáticos 🏴‍☠️');
+        setAdminPassword(changePwData.new_password);
+        setChangePwData({ current_password: '', new_password: '' });
+      }
+    } catch (error) {
+      alert('La contraseña actual es incorrecta. 🛑');
     }
   };
 
@@ -386,19 +416,52 @@ export default function AdminDashboard({
                 <X className="w-6 h-6" />
               </button>
             </div>
-            <input
-              type="password"
-              value={adminPassword}
-              onChange={(e) => setAdminPassword(e.target.value)}
-              placeholder="Contraseña de administrador"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg mb-4 text-gray-800 focus:outline-none focus:border-purple-500"
-            />
-            <button
-              onClick={handleAdminLogin}
-              className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:shadow-lg"
-            >
-              Entrar
-            </button>
+            {loginMode === 'login' ? (
+              <>
+                <input
+                  type="password"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  placeholder="Contraseña de administrador"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg mb-4 text-gray-800 focus:outline-none focus:border-purple-500"
+                />
+                <button
+                  onClick={handleAdminLogin}
+                  className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:shadow-lg mb-4"
+                >
+                  Entrar
+                </button>
+                <button
+                  onClick={() => setLoginMode('recover')}
+                  className="w-full text-center text-sm text-purple-600 hover:text-purple-800 font-bold"
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-gray-600 mb-4">Ingresa tu correo o usuario para recuperar el acceso con una clave provisional.</p>
+                <input
+                  type="text"
+                  value={recoverIdentifier}
+                  onChange={(e) => setRecoverIdentifier(e.target.value)}
+                  placeholder="Correo o usuario"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg mb-4 text-gray-800 focus:outline-none focus:border-purple-500"
+                />
+                <button
+                  onClick={handleRecover}
+                  className="w-full bg-yellow-400 text-black border-2 border-black py-3 rounded-lg font-black hover:shadow-lg mb-4 hover:bg-yellow-300 transition-all"
+                >
+                  Recuperar Acceso
+                </button>
+                <button
+                  onClick={() => setLoginMode('login')}
+                  className="w-full text-center text-sm text-gray-600 hover:text-gray-800 font-bold"
+                >
+                  Volver al inicio de sesión
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -457,7 +520,52 @@ export default function AdminDashboard({
               >
                 <Video size={18} /> Videos
               </button>
+              <button
+                onClick={() => setAdminSection('security')}
+                className={`px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 ${
+                  adminSection === 'security'
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-gray-200 text-gray-700'
+                }`}
+              >
+                <Lock size={18} /> Inicio de Sesión
+              </button>
             </div>
+
+            {adminSection === 'security' && (
+              <div className="bg-gray-50 border-2 border-gray-300 rounded-xl p-6">
+                <h3 className="text-xl font-bold mb-4">Cambiar Contraseña</h3>
+                <p className="text-sm text-gray-600 mb-6">Cambia tu contraseña actual o provisional aquí. ¡Mantén segura la cueva del tesoro! 🐝</p>
+                <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-2 text-sm">Contraseña Actual / Provisional</label>
+                    <input
+                      type="password"
+                      value={changePwData.current_password}
+                      onChange={(e) => setChangePwData({ ...changePwData, current_password: e.target.value })}
+                      className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-2 text-sm">Nueva Contraseña</label>
+                    <input
+                      type="password"
+                      value={changePwData.new_password}
+                      onChange={(e) => setChangePwData({ ...changePwData, new_password: e.target.value })}
+                      className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
+                      required
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"
+                  >
+                    Actualizar Contraseña
+                  </button>
+                </form>
+              </div>
+            )}
 
             {adminSection === 'offers' && (
               <>
