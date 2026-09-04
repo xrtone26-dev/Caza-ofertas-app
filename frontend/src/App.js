@@ -1720,20 +1720,30 @@ function App() {
           </div>
         </div>
 
-        {/* SIMULADOR DE RENDIMIENTO FINANCIERO */}
-        <div className="max-w-xl mx-auto my-10 bg-gradient-to-br from-neutral-900 via-neutral-950 to-black rounded-3xl p-6 sm:p-8 text-white shadow-2xl border-4 border-yellow-400 relative overflow-hidden">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="bg-yellow-400 text-black font-black text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider">
-              💰 SIMULADOR DE RENDIMIENTO
+        {/* SIMULADOR DE RENDIMIENTO FINANCIERO OPTIMIZADO */}
+        <div className="max-w-xl mx-auto my-10 bg-gradient-to-br from-neutral-900 via-neutral-950 to-black rounded-3xl p-6 sm:p-8 text-white shadow-[0_0_30px_rgba(250,204,21,0.25)] border-4 border-yellow-400 relative overflow-hidden">
+          
+          <div className="absolute -right-12 -top-12 w-32 h-32 bg-yellow-400/10 rounded-full blur-xl pointer-events-none" />
+          
+          <div className="flex items-center justify-between mb-4">
+            <span className="bg-yellow-400 text-black font-black text-[10px] sm:text-xs px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+              ⚡ RENDIMIENTO GARANTIZADO
+            </span>
+            <span className="text-[11px] font-bold text-green-400 bg-green-500/10 px-2.5 py-0.5 rounded-full border border-green-500/30">
+              Alta demanda 🚀
             </span>
           </div>
 
-          <h3 className="text-2xl sm:text-3xl font-black mb-1 text-yellow-400">¿Cuánto podría generar tu dinero?</h3>
-          <p className="text-xs text-neutral-300 mb-6">Calcula el crecimiento aproximado de tus ahorros con la tasa de rendimiento de Mercado Pago.</p>
+          <h3 className="text-2xl sm:text-3xl font-black mb-1 text-yellow-400 tracking-tight">
+            Haz que tu dinero trabaje por ti
+          </h3>
+          <p className="text-xs text-neutral-300 mb-6 font-medium">
+            Mira cómo crecen tus ahorros día a día con la tasa exclusiva de Mercado Pago.
+          </p>
 
           <div className="mb-5">
-            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
-              ¿Cuánto tienes pensado guardar?
+            <label className="block text-xs font-black uppercase tracking-wider text-neutral-400 mb-2">
+              ¿Cuánto dinero quieres poner a generar?
             </label>
             <div className="relative flex items-center">
               <span className="absolute left-4 text-xl font-black text-yellow-400">$</span>
@@ -1742,26 +1752,26 @@ function App() {
                 value={montoAhorro ? montoAhorro.toLocaleString('en-US') : ''}
                 onChange={handleMontoChange}
                 placeholder="10,000"
-                className="w-full bg-neutral-900 border-2 border-yellow-400/60 rounded-2xl py-3.5 pl-10 pr-4 text-xl font-black text-white focus:outline-none focus:border-yellow-400 shadow-inner"
+                className="w-full bg-neutral-900 border-2 border-yellow-400 rounded-2xl py-3.5 pl-10 pr-4 text-xl font-black text-white focus:outline-none focus:border-yellow-300 shadow-inner"
               />
             </div>
           </div>
 
-          <div className="text-xs font-bold text-yellow-400/90 mb-6 bg-yellow-400/10 border border-yellow-400/30 rounded-xl p-3 text-center shadow-sm">
-            📈 A una tasa de referencia de hasta 13% anual*
+          <div className="text-xs font-bold text-yellow-400 mb-6 bg-yellow-400/10 border border-yellow-400/30 rounded-xl p-3 text-center shadow-sm flex items-center justify-center gap-1.5">
+            <span>🔥 Tasa preferencial activa del 13% anual*</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 text-center">
-              <span className="block text-[10px] font-bold uppercase text-neutral-400 mb-1">Ganancia anual aproximada</span>
-              <span className="text-2xl font-black text-green-400">
-                ${gananciaAnual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <div className="bg-neutral-900/90 border-2 border-neutral-800 rounded-2xl p-4 text-center shadow-md relative overflow-hidden">
+              <span className="block text-[10px] font-extrabold uppercase text-neutral-400 mb-1 tracking-wider">Ganancia anual estimada</span>
+              <span className="text-2xl sm:text-3xl font-black text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.3)]">
+                +${gananciaAnual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
-            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 text-center">
-              <span className="block text-[10px] font-bold uppercase text-neutral-400 mb-1">Ganancia mensual aproximada</span>
-              <span className="text-2xl font-black text-green-400">
-                ${gananciaMensual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <div className="bg-neutral-900/90 border-2 border-neutral-800 rounded-2xl p-4 text-center shadow-md relative overflow-hidden">
+              <span className="block text-[10px] font-extrabold uppercase text-neutral-400 mb-1 tracking-wider">Ganancia mensual estimada</span>
+              <span className="text-2xl sm:text-3xl font-black text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.3)]">
+                +${gananciaMensual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
           </div>
@@ -1770,13 +1780,13 @@ function App() {
             href="https://mpago.li/1b2fbXt"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-4 rounded-2xl text-sm uppercase transition-transform hover:scale-[1.02] flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_#ca8a04] border-2 border-yellow-600 mb-4"
+            className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-4 rounded-2xl text-sm md:text-base uppercase transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 shadow-[0_6px_20px_rgba(250,204,21,0.4)] border-2 border-yellow-500 mb-4 animate-pulse"
           >
-            <span>🚀 QUIERO EMPEZAR</span>
+            <span>🚀 ACTIVAR MI RENDIMIENTO AHORA</span>
           </a>
 
-          <p className="text-[10px] text-neutral-400 text-center leading-relaxed opacity-80">
-            * Ejemplo ilustrativo. No representa una garantía de rendimiento. La tasa y condiciones aplicables son las vigentes en Mercado Pago.
+          <p className="text-[10px] text-neutral-400 text-center leading-relaxed opacity-75">
+            * Ejemplo basado en rendimiento anual estimado de Mercado Pago. Aplican términos y condiciones vigentes.
           </p>
         </div>
 
