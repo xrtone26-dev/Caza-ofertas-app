@@ -1667,13 +1667,13 @@ function App() {
           <h3 className="text-2xl sm:text-3xl font-black mb-3">Acepta todas las formas de pago</h3>
           <p className="text-sm font-medium opacity-80">¡Ofrece a tus clientes pagar en hasta 24 meses sin intereses!</p>
           
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
-            <span className="px-4 py-2 rounded-xl border-2 border-blue-600 text-blue-600 bg-blue-50 font-black text-xs shadow-sm">VISA</span>
-            <span className="px-4 py-2 rounded-xl border-2 border-red-500 text-red-500 bg-red-50 font-black text-xs shadow-sm">Mastercard</span>
-            <span className="px-4 py-2 rounded-xl border-2 border-cyan-600 text-cyan-600 bg-cyan-50 font-black text-xs shadow-sm">AMEX</span>
-            <span className="px-4 py-2 rounded-xl border-2 border-black text-black bg-white font-black text-xs shadow-sm">Apple Pay</span>
-            <span className="px-4 py-2 rounded-xl border-2 border-gray-700 text-gray-800 bg-gray-100 font-black text-xs shadow-sm">Google Pay</span>
-            <span className="px-4 py-2 rounded-xl border-2 border-blue-800 text-blue-900 bg-blue-100 font-black text-xs shadow-sm">Samsung Pay</span>
+          <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
+            <div className="px-4 py-2 bg-white text-black font-black text-xs rounded-xl border-2 border-neutral-300 shadow-sm flex items-center gap-1.5">
+              💳 Tarjetas de crédito y débito
+            </div>
+            <div className="px-4 py-2 bg-white text-black font-black text-xs rounded-xl border-2 border-neutral-300 shadow-sm flex items-center gap-1.5">
+              📱 Códigos QR y Dinero en cuenta
+            </div>
           </div>
 
           <div className="mt-8 pt-6 border-t border-neutral-700/50">
@@ -2220,6 +2220,7 @@ function App() {
                 }`}
               >
                 <span>🌙 Tema Oscuro</span>
+                previousode
                 {themeMode === 'dark' && <span className="font-black">✓</span>}
               </button>
             </div>
