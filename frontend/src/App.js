@@ -1436,9 +1436,6 @@ function App() {
     <div className={`container mx-auto px-4 mb-16 relative z-10`}>
       <div className="bg-[#FFE600] rounded-3xl p-6 sm:p-10 mb-8 text-black shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border-4 border-black">
         <div className="flex flex-col items-start text-left max-w-xl z-10">
-          <span className="bg-black text-yellow-400 font-black text-xs px-3 py-1 rounded-full mb-3 uppercase tracking-wider">
-            OMAR FERNANDO TE ENVIÓ UNA OFERTA PARA TERMINALES POINT
-          </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-4 leading-tight">
             Vende con terminal Point, recibe tu dinero al instante
           </h2>
@@ -1723,20 +1720,7 @@ function App() {
           </div>
         </div>
 
-        {/* 1. SECCIÓN "SIN RENTA MENSUAL..." (UBICADA PRIMERO) */}
-        <div className="max-w-xl mx-auto my-10 bg-neutral-950 border-2 border-yellow-400/50 rounded-3xl p-6 sm:p-8 text-center shadow-lg">
-          <h4 className="text-xl sm:text-2xl font-black mb-2 text-yellow-400">Sin renta mensual, solo pagas cuando vendes</h4>
-          <p className="text-xs sm:text-sm mb-6 opacity-80">¡Usa tu terminal sin trámites! No necesitas tener cuenta bancaria ni RFC.</p>
-          
-          <div className="bg-neutral-900 border border-yellow-400/30 rounded-2xl p-4 mb-4">
-            <span className="block text-xs uppercase font-bold text-neutral-400 mb-1">Tasas</span>
-            <span className="text-2xl sm:text-3xl font-black text-white">3.5% <span className="text-yellow-400">+ IVA</span> <span className="text-xs font-normal">por cada venta</span></span>
-          </div>
-          
-          <p className="text-[11px] opacity-70 font-medium">Tu dinero al instante en tu cuenta de Mercado Pago Standard los 365 días del año.</p>
-        </div>
-
-        {/* 2. SIMULADOR DE RENDIMIENTO FINANCIERO (UBICADO ABAJO) */}
+        {/* SIMULADOR DE RENDIMIENTO FINANCIERO */}
         <div className="max-w-xl mx-auto my-10 bg-gradient-to-br from-neutral-900 via-neutral-950 to-black rounded-3xl p-6 sm:p-8 text-white shadow-2xl border-4 border-yellow-400 relative overflow-hidden">
           <div className="flex items-center gap-2 mb-4">
             <span className="bg-yellow-400 text-black font-black text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider">
