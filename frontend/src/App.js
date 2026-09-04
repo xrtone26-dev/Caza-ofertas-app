@@ -58,19 +58,6 @@ import ChatbotWidget from './components/ChatbotWidget';
 import ProfileModal from './components/ProfileModal';
 import AdminDashboard, { decodeCoupon } from './components/AdminDashboard'; 
 
-import visa from "./assets/payment-logos/visa.svg";
-import mastercard from "./assets/payment-logos/mastercard.svg";
-import amex from "./assets/payment-logos/amex.svg";
-import applePay from "./assets/payment-logos/apple-pay.svg";
-import googlePay from "./assets/payment-logos/google-pay.svg";
-import samsungPay from "./assets/payment-logos/samsung-pay.svg";
-import carnet from "./assets/payment-logos/carnet.svg";
-import siVale from "./assets/payment-logos/si-vale.svg";
-import toka from "./assets/payment-logos/toka.svg";
-import tengo from "./assets/payment-logos/tengo.svg";
-import edenred from "./assets/payment-logos/edenred.svg";
-import pluxee from "./assets/payment-logos/pluxee.svg";
-
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
@@ -1673,72 +1660,38 @@ function App() {
         )}
       </div>
 
-      {/* SECCIÓN INFERIOR DE FORMAS DE PAGO Y TASAS CON LOGOS OFICIALES SVG */}
+      {/* SECCIÓN INFERIOR DE FORMAS DE PAGO Y TASAS CON ESTILOS LIMPIOS Y SEGUROS */}
       <div className={`mt-12 rounded-3xl p-8 sm:p-12 shadow-xl border ${
         isLight ? 'bg-white border-gray-200 text-gray-800' : 'bg-neutral-900 border-neutral-800 text-neutral-100'
       }`}>
         
-        <div className="payment-methods">
-          <h2>Acepta todas las formas de pago</h2>
+        <div className="payment-methods text-center max-w-[850px] mx-auto p-4 sm:p-6">
+          <h3 className="text-2xl sm:text-3xl font-black mb-2">Acepta todas las formas de pago</h3>
 
-          <p className="payment-subtitle">
+          <p className="payment-subtitle mb-6 text-sm sm:text-base opacity-80 font-semibold">
             ¡Ofrece a tus clientes pagar en hasta 24 meses sin intereses!
           </p>
 
-          <div className="payment-logos">
-            <div className="payment-logo">
-              <img src={visa} alt="Visa" />
-            </div>
-
-            <div className="payment-logo">
-              <img src={mastercard} alt="Mastercard" />
-            </div>
-
-            <div className="payment-logo">
-              <img src={amex} alt="American Express" />
-            </div>
-
-            <div className="payment-logo">
-              <img src={applePay} alt="Apple Pay" />
-            </div>
-
-            <div className="payment-logo">
-              <img src={googlePay} alt="Google Pay" />
-            </div>
-
-            <div className="payment-logo">
-              <img src={samsungPay} alt="Samsung Pay" />
-            </div>
+          <div className="payment-logos flex flex-wrap justify-center items-center gap-3">
+            <div className="payment-logo bg-white text-blue-800 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">VISA</div>
+            <div className="payment-logo bg-white text-red-600 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">Mastercard</div>
+            <div className="payment-logo bg-white text-cyan-600 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">AMEX</div>
+            <div className="payment-logo bg-white text-black font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">Apple Pay</div>
+            <div className="payment-logo bg-white text-gray-800 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">Google Pay</div>
+            <div className="payment-logo bg-white text-blue-900 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">Samsung Pay</div>
           </div>
 
-          <div className="payment-divider"></div>
+          <div className="payment-divider w-[92%] h-[1px] bg-neutral-700 my-8 mx-auto"></div>
 
-          <h3>VALES DE DESPENSA Y RESTAURANTE</h3>
+          <h4 className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-neutral-400 mb-4">VALES DE DESPENSA Y RESTAURANTE</h4>
 
-          <div className="voucher-logos">
-            <div className="voucher-logo">
-              <img src={carnet} alt="Carnet" />
-            </div>
-
-            <div className="voucher-logo">
-              <img src={siVale} alt="Sí Vale" />
-            </div>
-
-            <div className="voucher-logo">
-              <img src={toka} alt="Toka" />
-            </div>
-
-            <div className="voucher-logo">
-              <img src={tengo} alt="Tengo" />
-            </div>
-
-            <div className="voucher-logo">
-              <img src={edenred} alt="Edenred" />
-            </div>
-
-            <div className="voucher-logo">
-              <img src={pluxee} alt="Pluxee" />
-            </div>
+          <div className="voucher-logos flex flex-wrap justify-center items-center gap-3">
+            <div className="voucher-logo bg-neutral-950 text-red-500 border border-red-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">CARNET</div>
+            <div className="voucher-logo bg-neutral-950 text-orange-400 border border-orange-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">Sí Vale</div>
+            <div className="voucher-logo bg-neutral-950 text-blue-400 border border-blue-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">Toka</div>
+            <div className="voucher-logo bg-neutral-950 text-cyan-400 border border-cyan-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">Tengo</div>
+            <div className="voucher-logo bg-neutral-950 text-red-500 border border-red-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">Edenred</div>
+            <div className="voucher-logo bg-neutral-950 text-purple-400 border border-purple-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">Pluxee</div>
           </div>
         </div>
 
