@@ -999,10 +999,12 @@ function App() {
 
   const isLight = themeMode === 'light';
   
-  // 1. Identificar productos exclusivos (por bandera en BD o por palabras clave automáticas)
+  // 1. Identificar productos exclusivos (bandera en BD o palabras clave EXACTAS)
   const exclusiveProducts = products.filter(p => {
     const title = (p.title || '').toLowerCase();
-    return (
+    
+    // Verificamos si en la base de datos se le asignó bandera exclusiva
+    const isExclusiveFlag = (
       p.is_exclusive === true || 
       p.is_exclusive === 'true' || 
       p.is_exclusive === 1 || 
@@ -1010,25 +1012,26 @@ function App() {
       p.is_exclusive === 'yes' || 
       p.is_exclusive === 'on' ||
       p.type === 'exclusive' ||
-      p.category === 'exclusive' ||
-      title.includes('point') ||
-      title.includes('terminal') ||
-      title.includes('clip') ||
-      title.includes('smart') ||
-      title.includes('mp')
+      p.category === 'exclusive'
     );
+    
+    // CORRECCIÓN: Utilizamos \b (word boundary) para asegurar que "mp" 
+    // sea una palabra aislada y no un fragmento de "computadora" o "compresión"
+    const hasExclusiveKeyword = /\b(point|terminal|clip|smart|mp|mercado pago)\b/i.test(title);
+
+    return isExclusiveFlag || hasExclusiveKeyword;
   });
 
-  // 2. Extraer de forma segura los IDs únicos de los exclusivos
-  const exclusiveIds = exclusiveProducts.map(p => p.id || p._id || p.offer_id || p.title);
+  // 2. Extraer IDs usando Set para una comparación 100% estricta e infalible
+  const exclusiveIds = new Set(exclusiveProducts.map(p => p.id || p._id || p.offer_id || p.title));
 
-  // 3. Filtrar los normales asegurando que su ID NO exista en la lista de exclusivos
+  // 3. Filtrar normales garantizando matemáticamente que su ID no esté en exclusivos
   const regularProducts = products.filter(p => {
     const pId = p.id || p._id || p.offer_id || p.title;
-    return !exclusiveIds.includes(pId);
+    return !exclusiveIds.has(pId);
   });
 
-  // 4. Aplicar el buscador del usuario solo a los productos normales
+  // 4. Aplicar el buscador a los normales resultantes
   const filteredProducts = regularProducts.filter(
     (p) =>
       p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
