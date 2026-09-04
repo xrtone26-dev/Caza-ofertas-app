@@ -999,39 +999,29 @@ function App() {
 
   const isLight = themeMode === 'light';
   
-  // 1. Identificar productos exclusivos (bandera en BD o palabras clave EXACTAS)
-  const exclusiveProducts = products.filter(p => {
-    const title = (p.title || '').toLowerCase();
-    
-    // Verificamos si en la base de datos se le asignó bandera exclusiva
-    const isExclusiveFlag = (
-      p.is_exclusive === true || 
-      p.is_exclusive === 'true' || 
-      p.is_exclusive === 1 || 
-      p.is_exclusive === '1' || 
-      p.is_exclusive === 'yes' || 
-      p.is_exclusive === 'on' ||
-      p.type === 'exclusive' ||
-      p.category === 'exclusive'
-    );
-    
-    // CORRECCIÓN: Utilizamos \b (word boundary) para asegurar que "mp" 
-    // sea una palabra aislada y no un fragmento de "computadora" o "compresión"
-    const hasExclusiveKeyword = /\b(point|terminal|clip|smart|mp|mercado pago)\b/i.test(title);
+  // 1. FILTRADO ESTRICTO: Únicamente productos marcados explícitamente en base de datos como exclusivos.
+  // Se eliminan por completo las adivinanzas de palabras clave en el título para que ningún producto normal se cuele.
+  const exclusiveProducts = products.filter(p => 
+    p.is_exclusive === true || 
+    p.is_exclusive === 'true' || 
+    p.is_exclusive === 1 || 
+    p.is_exclusive === '1' || 
+    p.is_exclusive === 'yes' || 
+    p.is_exclusive === 'on' ||
+    p.type === 'exclusive' ||
+    p.category === 'exclusive'
+  );
 
-    return isExclusiveFlag || hasExclusiveKeyword;
-  });
-
-  // 2. Extraer IDs usando Set para una comparación 100% estricta e infalible
+  // 2. Extraer IDs únicos usando Set para separación matemática exacta
   const exclusiveIds = new Set(exclusiveProducts.map(p => p.id || p._id || p.offer_id || p.title));
 
-  // 3. Filtrar normales garantizando matemáticamente que su ID no esté en exclusivos
+  // 3. Productos normales: todos los que NO estén incluidos en la lista exclusiva de la BD
   const regularProducts = products.filter(p => {
     const pId = p.id || p._id || p.offer_id || p.title;
     return !exclusiveIds.has(pId);
   });
 
-  // 4. Aplicar el buscador a los normales resultantes
+  // 4. Aplicar el buscador del usuario únicamente a los productos normales
   const filteredProducts = regularProducts.filter(
     (p) =>
       p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
