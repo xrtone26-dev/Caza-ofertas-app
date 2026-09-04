@@ -30,6 +30,7 @@ import {
   TrendingDown,
   Star,
   Check,
+  RefreshCw,
 } from 'lucide-react';
 import {
   FaWhatsapp,
@@ -554,6 +555,23 @@ function App() {
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [mobileTab, setMobileTab] = useState('cupones');
 
+  // Control manual persistente para forzar productos como exclusivos o normales
+  const [manualExclusives, setManualExclusives] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('cazaManualExclusives') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  const toggleManualExclusive = (productId) => {
+    const updated = manualExclusives.includes(productId)
+      ? manualExclusives.filter(id => id !== productId)
+      : [...manualExclusives, productId];
+    setManualExclusives(updated);
+    localStorage.setItem('cazaManualExclusives', JSON.stringify(updated));
+  };
+
   useEffect(() => {
     const checkDevice = () => {
       const isTouch = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -999,25 +1017,46 @@ function App() {
 
   const isLight = themeMode === 'light';
   
-  // 1. FILTRADO 100% ESTRICTO POR BASE DE DATOS (Sin adivinanzas ni palabras en títulos)
-  // Si se creó en el apartado azul, la BD lo marca como exclusivo. Si se creó en rojo, es normal.
-  const exclusiveProducts = products.filter(p => 
-    p.is_exclusive === true || 
-    p.is_exclusive === 'true' || 
-    p.is_exclusive === 1 || 
-    p.is_exclusive === '1' || 
-    p.is_exclusive === 'yes' || 
-    p.is_exclusive === 'on' ||
-    p.type === 'exclusive' ||
-    p.category === 'exclusive'
-  );
+  // 1. FILTRADO ROBUSTO: Reglas automáticas + Control Manual por ID (`manualExclusives`)
+  const exclusiveProducts = products.filter(p => {
+    const pId = getSafeId(p) || p.title;
+    const isManual = manualExclusives.includes(pId);
+    if (isManual) return true;
+
+    const title = (p.title || '').toLowerCase();
+    const type = (p.type || '').toLowerCase();
+    const category = (p.category || '').toLowerCase();
+
+    return (
+      p.is_exclusive === true || 
+      p.is_exclusive === 'true' || 
+      p.is_exclusive === 1 || 
+      p.is_exclusive === '1' || 
+      p.is_exclusive === 'yes' || 
+      p.is_exclusive === 'on' ||
+      p.exclusive === true ||
+      p.exclusive === 'true' ||
+      p.is_terminal === true ||
+      p.is_mp === true ||
+      type.includes('exclusive') || 
+      type.includes('terminal') || 
+      type.includes('mp') ||
+      category.includes('exclusive') || 
+      category.includes('terminal') || 
+      category.includes('mp') ||
+      Boolean(p.features) ||
+      Boolean(p.specs) ||
+      Boolean(p.installments_text) ||
+      /\b(point|smart|terminal|clip|mp)\b/i.test(title)
+    );
+  });
 
   // 2. Extraer IDs únicos utilizando Set para separación matemática exacta
-  const exclusiveIds = new Set(exclusiveProducts.map(p => p.id || p._id || p.offer_id || p.title));
+  const exclusiveIds = new Set(exclusiveProducts.map(p => getSafeId(p) || p.title));
 
   // 3. Productos normales: todos los que no pertenezcan al listado exclusivo
   const regularProducts = products.filter(p => {
-    const pId = p.id || p._id || p.offer_id || p.title;
+    const pId = getSafeId(p) || p.title;
     return !exclusiveIds.has(pId);
   });
 
@@ -1297,53 +1336,70 @@ function App() {
             <div className="relative px-2 sm:px-0">
               <div className="overflow-hidden" ref={emblaRef}>
                 <div className="flex gap-6">
-                  {filteredProducts.map((product) => (
-                    <div key={product.id} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
-                      <div className={`rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden h-full flex flex-col ${
-                        isLight ? 'bg-gradient-to-br from-gray-50 to-white' : 'bg-gradient-to-b from-neutral-900 to-neutral-950 border border-neutral-800'
-                      }`}>
-                        <div className="relative">
-                          <img src={product.image_url} alt={product.title} className="w-full h-56 sm:h-64 object-contain p-2" />
-                          {product.discount_percentage && (
-                            <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-red-500 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-bold text-sm sm:text-lg shadow-lg">
-                              -{product.discount_percentage}%
-                            </div>
+                  {filteredProducts.map((product) => {
+                    const pId = getSafeId(product) || product.title;
+                    return (
+                      <div key={pId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
+                        <div className={`rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden h-full flex flex-col relative ${
+                          isLight ? 'bg-gradient-to-br from-gray-50 to-white' : 'bg-gradient-to-b from-neutral-900 to-neutral-950 border border-neutral-800'
+                        }`}>
+                          {isAuthenticated && (
+                            <button
+                              onClick={() => {
+                                toggleManualExclusive(pId);
+                                setToastMessage('⭐ Producto cambiado a Exclusivos con éxito.');
+                                setShowToast(true);
+                              }}
+                              className="absolute top-3 left-3 z-20 bg-yellow-400 hover:bg-yellow-300 text-black font-black text-[10px] px-2.5 py-1 rounded-lg border-2 border-black shadow-md flex items-center gap-1 transition-transform hover:scale-105"
+                              title="Si este producto debe ser exclusivo, haz clic aquí"
+                            >
+                              <Star size={12} className="fill-black" /> Mover a Exclusivos
+                            </button>
                           )}
-                        </div>
-                        <div className="p-4 sm:p-6 flex flex-col flex-1">
-                          <h3 className={`text-lg sm:text-xl font-bold mb-2 line-clamp-2 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}>{product.title}</h3>
-                          <p className={`mb-4 line-clamp-3 text-xs sm:text-sm flex-1 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-                            {product.description}
-                          </p>
-                          <div className="flex items-baseline gap-3 mb-4 mt-auto flex-wrap">
-                            <span className={`text-2xl sm:text-3xl font-black ${isLight ? 'text-green-600' : 'text-green-400'}`}>
-                              ${Number(product.discount_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </span>
-                            <span className={`text-base sm:text-lg font-bold line-through ${isLight ? 'text-red-600' : 'text-red-400'}`}>
-                              Antes ${Number(product.original_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </span>
+
+                          <div className="relative">
+                            <img src={product.image_url} alt={product.title} className="w-full h-56 sm:h-64 object-contain p-2" />
+                            {product.discount_percentage && (
+                              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-red-500 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-bold text-sm sm:text-lg shadow-lg">
+                                -{product.discount_percentage}%
+                              </div>
+                            )}
                           </div>
-                          {product.coupon && (
-                            <div className={`border-2 border-dashed rounded-lg p-2.5 sm:p-3 mb-4 ${
-                              isLight ? 'bg-yellow-50 border-yellow-400' : 'bg-yellow-400/15 border-yellow-400/60'
-                            }`}>
-                              <p className={`text-[11px] sm:text-xs mb-1 ${isLight ? 'text-gray-600' : 'text-neutral-400 font-bold'}`}>
-                                Cupón disponible:
-                              </p>
-                              <p className={`text-base sm:text-lg font-bold ${isLight ? 'text-yellow-700' : 'text-yellow-400'}`}>
-                                {product.coupon}
-                              </p>
+                          <div className="p-4 sm:p-6 flex flex-col flex-1">
+                            <h3 className={`text-lg sm:text-xl font-bold mb-2 line-clamp-2 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}>{product.title}</h3>
+                            <p className={`mb-4 line-clamp-3 text-xs sm:text-sm flex-1 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+                              {product.description}
+                            </p>
+                            <div className="flex items-baseline gap-3 mb-4 mt-auto flex-wrap">
+                              <span className={`text-2xl sm:text-3xl font-black ${isLight ? 'text-green-600' : 'text-green-400'}`}>
+                                ${Number(product.discount_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                              <span className={`text-base sm:text-lg font-bold line-through ${isLight ? 'text-red-600' : 'text-red-400'}`}>
+                                Antes ${Number(product.original_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
                             </div>
-                          )}
-                          <a href={product.affiliate_link || product.link || product.url || '#'} target="_blank" rel="noopener noreferrer" className={`block w-full py-3 rounded-lg font-bold text-center transition-all flex items-center justify-center gap-2 text-xs sm:text-sm ${
-                            isLight ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:shadow-lg' : 'bg-yellow-400 hover:bg-yellow-300 text-black font-black'
-                          }`}>
-                            Ver Producto <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
-                          </a>
+                            {product.coupon && (
+                              <div className={`border-2 border-dashed rounded-lg p-2.5 sm:p-3 mb-4 ${
+                                isLight ? 'bg-yellow-50 border-yellow-400' : 'bg-yellow-400/15 border-yellow-400/60'
+                              }`}>
+                                <p className={`text-[11px] sm:text-xs mb-1 ${isLight ? 'text-gray-600' : 'text-neutral-400 font-bold'}`}>
+                                  Cupón disponible:
+                                </p>
+                                <p className={`text-base sm:text-lg font-bold ${isLight ? 'text-yellow-700' : 'text-yellow-400'}`}>
+                                  {product.coupon}
+                                </p>
+                              </div>
+                            )}
+                            <a href={product.affiliate_link || product.link || product.url || '#'} target="_blank" rel="noopener noreferrer" className={`block w-full py-3 rounded-lg font-bold text-center transition-all flex items-center justify-center gap-2 text-xs sm:text-sm ${
+                              isLight ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:shadow-lg' : 'bg-yellow-400 hover:bg-yellow-300 text-black font-black'
+                            }`}>
+                              Ver Producto <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
+                            </a>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -1389,7 +1445,7 @@ function App() {
               ⚠️ No hay productos exclusivos cargados todavía
             </p>
             <p className={`text-xs sm:text-sm ${isLight ? 'text-gray-500' : 'text-neutral-400'}`}>
-              Entra al panel de administración y crea un producto asegurándote de marcar la casilla <strong>⭐ Producto Exclusivo / Terminal</strong>.
+              Entra al panel de administración y crea un producto asegurándote de marcar la casilla <strong>⭐ Producto Exclusivo / Terminal</strong> o haz clic en "Mover a Exclusivos" desde la tarjeta del producto.
             </p>
           </div>
         ) : (
@@ -1397,13 +1453,28 @@ function App() {
             <div className="overflow-hidden" ref={exclusiveEmblaRef}>
               <div className="flex gap-6 items-stretch">
                 {exclusiveProducts.map((product) => {
+                  const pId = getSafeId(product) || product.title;
                   const featureList = product.features ? product.features.split('\n').filter(Boolean) : [];
                   const specList = product.specs ? product.specs.split('\n').filter(Boolean) : [];
 
                   return (
-                    <div key={product.id} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0 flex">
-                      <div className={`w-full rounded-3xl shadow-xl transition-all duration-300 overflow-hidden flex flex-col border bg-white text-gray-900 border-gray-200`}>
+                    <div key={pId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0 flex">
+                      <div className={`w-full rounded-3xl shadow-xl transition-all duration-300 overflow-hidden flex flex-col border bg-white text-gray-900 border-gray-200 relative`}>
                         
+                        {isAuthenticated && (
+                          <button
+                            onClick={() => {
+                              toggleManualExclusive(pId);
+                              setToastMessage('🔄 Producto devuelto a Productos Normales.');
+                              setShowToast(true);
+                            }}
+                            className="absolute top-3 left-3 z-20 bg-gray-900 hover:bg-black text-white font-black text-[10px] px-2.5 py-1 rounded-lg border-2 border-white shadow-md flex items-center gap-1 transition-transform hover:scale-105"
+                            title="Regresar a productos normales"
+                          >
+                            <RefreshCw size={12} /> Mover a Normales
+                          </button>
+                        )}
+
                         <div className="relative pt-6 px-6 pb-2 text-center bg-white flex justify-center items-center h-56">
                           <img src={product.image_url} alt={product.title} className="max-h-full max-w-full object-contain drop-shadow-md" />
                         </div>
