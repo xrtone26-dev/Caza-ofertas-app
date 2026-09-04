@@ -58,18 +58,22 @@ import ChatbotWidget from './components/ChatbotWidget';
 import ProfileModal from './components/ProfileModal';
 import AdminDashboard, { decodeCoupon } from './components/AdminDashboard'; 
 
-import visa from "./assets/payment-logos/visa.svg";
-import mastercard from "./assets/payment-logos/mastercard.svg";
-import amex from "./assets/payment-logos/amex.svg";
-import applePay from "./assets/payment-logos/apple-pay.svg";
-import googlePay from "./assets/payment-logos/google-pay.svg";
-import samsungPay from "./assets/payment-logos/samsung-pay.svg";
-import carnet from "./assets/payment-logos/carnet.svg";
-import siVale from "./assets/payment-logos/si-vale.svg";
-import toka from "./assets/payment-logos/toka.svg";
-import tengo from "./assets/payment-logos/tengo.svg";
-import edenred from "./assets/payment-logos/edenred.svg";
-import pluxee from "./assets/payment-logos/pluxee.svg";
+const visa = "https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg";
+const mastercard = "https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg";
+const amex = "https://upload.wikimedia.org/wikipedia/commons/3/30/American_Express_logo_%282018%29.svg";
+const applePay = "https://upload.wikimedia.org/wikipedia/commons/b/b0/Apple_Pay_logo.svg";
+const googlePay = "https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg";
+const samsungPay = "https://upload.wikimedia.org/wikipedia/commons/7/7a/Samsung_Pay_icon.svg";
+
+const createTextBadgeUri = (text, textColor = "#ffffff") => 
+  `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="90" height="30" viewBox="0 0 90 30"><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="${textColor}" font-family="sans-serif" font-weight="900" font-size="11">${text}</text></svg>`;
+
+const carnet = createTextBadgeUri("CARNET", "#ef4444");
+const siVale = createTextBadgeUri("SÍ VALE", "#f97316");
+const toka = createTextBadgeUri("TOKA", "#38bdf8");
+const tengo = createTextBadgeUri("TENGO", "#22d3ee");
+const edenred = createTextBadgeUri("EDENRED", "#ef4444");
+const pluxee = createTextBadgeUri("PLUXEE", "#c084fc");
 
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
@@ -1447,7 +1451,6 @@ function App() {
 
   const renderExclusiveProductsSection = () => (
     <div className={`container mx-auto px-4 mb-16 relative z-10`}>
-      {/* BANNER SUPERIOR DE TERMINALES (IMAGEN 3 Y 4) */}
       <div className="bg-[#FFE600] rounded-3xl p-6 sm:p-10 mb-8 text-black shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border-4 border-black">
         <div className="flex flex-col items-start text-left max-w-xl z-10">
           <span className="bg-black text-yellow-400 font-black text-xs px-3 py-1 rounded-full mb-3 uppercase tracking-wider">
@@ -1546,7 +1549,6 @@ function App() {
                     <div key={pId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0 flex">
                       <div className="w-full rounded-3xl shadow-xl transition-all duration-300 overflow-hidden flex flex-col border bg-white text-gray-900 border-gray-200 relative p-6">
                         
-                        {/* Botón de Compartir */}
                         <button
                           onClick={handleShareProduct}
                           className="absolute top-3 left-3 z-20 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] px-2.5 py-1.5 rounded-lg border-2 border-white shadow-md flex items-center gap-1 transition-transform hover:scale-105"
@@ -1555,12 +1557,10 @@ function App() {
                           <Share2 size={12} /> Compartir
                         </button>
 
-                        {/* Imagen de la Terminal */}
                         <div className="relative pt-6 px-4 pb-2 text-center bg-white flex justify-center items-center h-48">
                           <img src={product.image_url} alt={product.title} className="max-h-full max-w-full object-contain drop-shadow-md" />
                         </div>
 
-                        {/* Título y Descripción */}
                         <div className="pb-3 text-center">
                           <h3 className="text-xl font-black text-gray-900 mb-1 tracking-tight">{product.title || product.nombre}</h3>
                           <p className="text-xs text-gray-600 font-medium line-clamp-2 px-1">
@@ -1568,7 +1568,6 @@ function App() {
                           </p>
                         </div>
 
-                        {/* Precios, Descuentos y MSI */}
                         <div className="text-center mb-4">
                           <div className="flex items-center justify-center gap-2 mb-1">
                             {origPriceNum > 0 && (
@@ -1592,7 +1591,6 @@ function App() {
                           )}
                         </div>
 
-                        {/* Botón Comprar */}
                         <div className="mb-4">
                           <a 
                             href={product.affiliate_link || product.link || product.url || '#'} 
@@ -1604,7 +1602,6 @@ function App() {
                           </a>
                         </div>
 
-                        {/* Beneficios con Palomita (Imagen 1) */}
                         <div className="w-full border-t border-gray-200 pt-4 pb-3 bg-white text-left flex flex-col gap-2.5">
                           <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
                             <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
@@ -1624,7 +1621,6 @@ function App() {
                           </div>
                         </div>
 
-                        {/* Especificaciones Técnicas con Iconos Exactos (Imagen 2) */}
                         <div className="w-full border-t border-dashed border-gray-200 pt-4 pb-3 bg-white text-left flex flex-col gap-2.5">
                           <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
                             <Wifi size={16} className="text-blue-500 flex-shrink-0" />
@@ -1652,7 +1648,6 @@ function App() {
                           </div>
                         </div>
 
-                        {/* Botón Más Información */}
                         <div className="mt-auto pt-3">
                           <a
                             href={product.affiliate_link || product.link || product.url || '#'}
@@ -1685,7 +1680,6 @@ function App() {
         )}
       </div>
 
-      {/* SECCIÓN INFERIOR DE FORMAS DE PAGO Y TASAS CON ESTILOS LIMPIOS Y SEGUROS */}
       <div className={`mt-12 rounded-3xl p-8 sm:p-12 shadow-xl border ${
         isLight ? 'bg-white border-gray-200 text-gray-800' : 'bg-neutral-900 border-neutral-800 text-neutral-100'
       }`}>
@@ -1744,7 +1738,6 @@ function App() {
           </div>
         </div>
 
-        {/* NUEVO SIMULADOR DE RENDIMIENTO FINANCIERO DE MERCADO PAGO */}
         <div className="max-w-xl mx-auto my-10 bg-gradient-to-br from-neutral-900 via-neutral-950 to-black rounded-3xl p-6 sm:p-8 text-white shadow-2xl border-4 border-yellow-400 relative overflow-hidden">
           <div className="flex items-center gap-2 mb-4">
             <span className="bg-yellow-400 text-black font-black text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider">
