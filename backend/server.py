@@ -29,6 +29,9 @@ class Product(BaseModel):
     image_url: Optional[str] = None
     active: bool = True
     is_exclusive: Optional[bool] = False
+    installments_text: Optional[str] = None
+    features: Optional[str] = None
+    specs: Optional[str] = None
     created_at: Optional[datetime] = None
 
 class ProductCreate(BaseModel):
@@ -47,6 +50,9 @@ class ProductCreate(BaseModel):
     image_url: Optional[str] = None
     active: bool = True
     is_exclusive: Optional[bool] = False
+    installments_text: Optional[str] = None
+    features: Optional[str] = None
+    specs: Optional[str] = None
     created_at: Optional[datetime] = None
 
 class ProductUpdate(BaseModel):
@@ -64,6 +70,9 @@ class ProductUpdate(BaseModel):
     image_url: Optional[str] = None
     active: Optional[bool] = None
     is_exclusive: Optional[bool] = None
+    installments_text: Optional[str] = None
+    features: Optional[str] = None
+    specs: Optional[str] = None
 
 class Offer(BaseModel):
     id: Optional[str] = None
