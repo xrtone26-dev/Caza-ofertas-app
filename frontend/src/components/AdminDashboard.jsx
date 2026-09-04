@@ -1,3 +1,4 @@
+// Archivo: src/components/AdminDashboard.js
 import React, { useState } from 'react';
 import { X, Plus, Edit2, Trash2, Video, Copy, ShoppingCart, Image as ImageIcon, Star, Lock } from 'lucide-react';
 import axios from 'axios';
@@ -79,9 +80,15 @@ export default function AdminDashboard({
   });
 
   const formatCurrencyInput = (value) => {
-    const rawDigits = value.replace(/\D/g, '');
+    if (value === undefined || value === null) return '';
+    const rawDigits = String(value).replace(/\D/g, '');
     if (!rawDigits) return '';
     return '$' + Number(rawDigits).toLocaleString('en-US');
+  };
+
+  const parsePrice = (value) => {
+    if (value === undefined || value === null || value === '') return 0.0;
+    return parseFloat(String(value).replace(/,/g, ''));
   };
 
   const loadAllOffers = async () => {
@@ -289,8 +296,8 @@ export default function AdminDashboard({
         ...newProduct,
         id: 'prod_' + Date.now(),
         created_at: new Date().toISOString(),
-        original_price: newProduct.original_price !== '' && newProduct.original_price != null ? parseFloat(newProduct.original_price) : 0.0,
-        discount_price: newProduct.discount_price !== '' && newProduct.discount_price != null ? parseFloat(newProduct.discount_price) : 0.0,
+        original_price: parsePrice(newProduct.original_price),
+        discount_price: parsePrice(newProduct.discount_price),
         discount_percentage: newProduct.discount_percentage !== '' && newProduct.discount_percentage != null
           ? parseInt(newProduct.discount_percentage)
           : null,
@@ -329,15 +336,8 @@ export default function AdminDashboard({
       if (!productId) return;
       const updateData = { ...updates };
       
-      if (updateData.original_price !== '' && updateData.original_price != null)
-        updateData.original_price = parseFloat(updateData.original_price);
-      else
-        updateData.original_price = 0.0;
-
-      if (updateData.discount_price !== '' && updateData.discount_price != null)
-        updateData.discount_price = parseFloat(updateData.discount_price);
-      else
-        updateData.discount_price = 0.0;
+      updateData.original_price = parsePrice(updateData.original_price);
+      updateData.discount_price = parsePrice(updateData.discount_price);
 
       if (updateData.discount_percentage !== '' && updateData.discount_percentage != null)
         updateData.discount_percentage = parseInt(updateData.discount_percentage);
@@ -409,8 +409,8 @@ export default function AdminDashboard({
   return (
     <>
       {showAdminLogin && (
-        <div className="fixed inset-0 bg-black/55 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full text-gray-800">
+        <div className="fixed inset-0 bg-black/55 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full text-gray-800 shadow-2xl relative">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold">🔐 Acceso Administrador</h2>
               <button
@@ -471,13 +471,13 @@ export default function AdminDashboard({
       )}
 
       {showAdminPanel && isAuthenticated && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto text-gray-800">
-            <div className="flex justify-between items-center mb-6">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto text-gray-800 shadow-2xl relative">
+            <div className="flex justify-between items-center mb-6 sticky top-0 bg-white z-10 pb-4 border-b">
               <h2 className="text-2xl font-bold">🛠️ Panel de Administración</h2>
               <button
                 onClick={() => setShowAdminPanel(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 bg-gray-100 p-2 rounded-full"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -602,13 +602,13 @@ export default function AdminDashboard({
                               });
                               setShowAddOfferModal(true);
                             }}
-                            className="text-blue-600 hover:text-blue-800"
+                            className="text-blue-600 hover:text-blue-800 bg-blue-100 p-1.5 rounded-lg"
                           >
                             <Edit2 className="w-5 h-5" />
                           </button>
                           <button
                             onClick={() => handleDeleteOffer(offer)}
-                            className="text-red-600 hover:text-red-800"
+                            className="text-red-600 hover:text-red-800 bg-red-100 p-1.5 rounded-lg"
                           >
                             <Trash2 className="w-5 h-5" />
                           </button>
@@ -619,7 +619,7 @@ export default function AdminDashboard({
                       {offer.code && (
                         <p className="text-sm text-gray-500">
                           Código:{' '}
-                          <span className="font-bold">{offer.code}</span>
+                          <span className="font-bold text-black">{offer.code}</span>
                         </p>
                       )}
                       {offer.min_purchase !== undefined && offer.min_purchase !== null && (
@@ -637,7 +637,7 @@ export default function AdminDashboard({
                           Link: {offer.link}
                         </p>
                       )}
-                      <p className="text-xs text-gray-400 mt-2">
+                      <p className="text-xs text-gray-500 mt-2 font-semibold">
                         Estado: {offer.active ? 'Activo ✓' : 'Inactivo'}
                       </p>
                     </div>
@@ -680,24 +680,28 @@ export default function AdminDashboard({
                         <div className="flex gap-2">
                           <button
                             onClick={() => {
-                              setEditingProduct(prod);
+                              setEditingProduct({
+                                ...prod,
+                                original_price: prod.original_price ? prod.original_price.toString() : '',
+                                discount_price: prod.discount_price ? prod.discount_price.toString() : '',
+                              });
                               setShowAddProductModal(true);
                             }}
-                            className="text-blue-600 hover:text-blue-800"
+                            className="text-blue-600 hover:text-blue-800 bg-blue-100 p-1.5 rounded-lg"
                           >
                             <Edit2 className="w-5 h-5" />
                           </button>
                           <button
                             onClick={() => handleDeleteProduct(prod)}
-                            className="text-red-600 hover:text-red-800"
+                            className="text-red-600 hover:text-red-800 bg-red-100 p-1.5 rounded-lg"
                           >
                             <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
                       </div>
                       <h3 className="text-xl font-bold mb-2">{prod.title}</h3>
-                      <p className="text-gray-600 mb-2">
-                        ${prod.discount_price} / ${prod.original_price}
+                      <p className="text-gray-600 mb-2 font-semibold">
+                        ${Number(prod.discount_price).toLocaleString('en-US')} / <span className="line-through text-gray-400">${Number(prod.original_price).toLocaleString('en-US')}</span>
                       </p>
                     </div>
                   ))}
@@ -714,7 +718,7 @@ export default function AdminDashboard({
                   }}
                   className="mb-6 bg-yellow-400 text-black px-6 py-3 rounded-lg font-black hover:bg-yellow-300 transition-all flex items-center gap-2 border-2 border-black"
                 >
-                  <Plus className="w-5 h-5" /> Nuevo Producto Exclusivo / Terminal Clip
+                  <Plus className="w-5 h-5" /> Nuevo Producto Exclusivo / Terminal
                 </button>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -730,24 +734,28 @@ export default function AdminDashboard({
                         <div className="flex gap-2">
                           <button
                             onClick={() => {
-                              setEditingProduct(prod);
+                              setEditingProduct({
+                                ...prod,
+                                original_price: prod.original_price ? prod.original_price.toString() : '',
+                                discount_price: prod.discount_price ? prod.discount_price.toString() : '',
+                              });
                               setShowAddProductModal(true);
                             }}
-                            className="text-blue-600 hover:text-blue-800"
+                            className="text-blue-600 hover:text-blue-800 bg-blue-100 p-1.5 rounded-lg"
                           >
                             <Edit2 className="w-5 h-5" />
                           </button>
                           <button
                             onClick={() => handleDeleteProduct(prod)}
-                            className="text-red-600 hover:text-red-800"
+                            className="text-red-600 hover:text-red-800 bg-red-100 p-1.5 rounded-lg"
                           >
                             <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
                       </div>
                       <h3 className="text-xl font-bold mb-2">{prod.title}</h3>
-                      <p className="text-gray-600 mb-2 font-bold">
-                        Precio: ${prod.discount_price}
+                      <p className="text-gray-800 mb-2 font-black text-lg">
+                        ${Number(prod.discount_price).toLocaleString('en-US')} <span className="line-through text-gray-400 text-sm font-medium ml-2">${Number(prod.original_price).toLocaleString('en-US')}</span>
                       </p>
                     </div>
                   ))}
@@ -784,16 +792,16 @@ export default function AdminDashboard({
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start mb-1">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-200 text-yellow-800">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-200 text-yellow-800 border border-yellow-300">
                               🎬 Video Probado
                             </span>
                             <div className="flex gap-1">
                               <button
                                 onClick={() => handleCopyVideoLinkAdmin(video.id)}
-                                className="text-yellow-600 hover:text-yellow-800 p-1"
+                                className="text-yellow-600 hover:text-yellow-800 bg-yellow-100 p-1 rounded-md"
                                 title="Copiar Link Único"
                               >
-                                <Copy size={16} />
+                                <Copy size={14} />
                               </button>
                               <button
                                 onClick={() => {
@@ -804,22 +812,22 @@ export default function AdminDashboard({
                                   setVideoFormImageUrl(video.imageUrl || video.image_url || '');
                                   setShowAddVideoModal(true);
                                 }}
-                                className="text-blue-600 hover:text-blue-800 p-1"
+                                className="text-blue-600 hover:text-blue-800 bg-blue-100 p-1 rounded-md"
                                 title="Editar"
                               >
-                                <Edit2 size={16} />
+                                <Edit2 size={14} />
                               </button>
                               <button
                                 onClick={() => handleDeleteVideoAdmin(video.id)}
-                                className="text-red-600 hover:text-red-800 p-1"
+                                className="text-red-600 hover:text-red-800 bg-red-100 p-1 rounded-md"
                                 title="Eliminar"
                               >
-                                <Trash2 size={16} />
+                                <Trash2 size={14} />
                               </button>
                             </div>
                           </div>
                           <h4 className="font-bold text-gray-800 text-sm truncate">{video.title}</h4>
-                          <p className="text-xs text-blue-600 truncate font-semibold flex items-center gap-1">
+                          <p className="text-xs text-blue-600 truncate font-semibold flex items-center gap-1 mt-1">
                             <ShoppingCart size={10} /> Compra ML asignado
                           </p>
                         </div>
@@ -835,8 +843,8 @@ export default function AdminDashboard({
       )}
 
       {showDeleteAllProductsModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[80] p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center text-gray-800 shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[110] p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center text-gray-800 shadow-2xl relative">
             <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-200">
               <Trash2 className={`w-8 h-8 ${isDeletingAll ? 'animate-bounce' : ''}`} />
             </div>
@@ -872,15 +880,15 @@ export default function AdminDashboard({
       )}
 
       {showAddVideoModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[70] p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full text-gray-800 relative">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[110] p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full text-gray-800 shadow-2xl relative">
             <button
               onClick={() => setShowAddVideoModal(false)}
-              className="absolute top-6 right-6 text-gray-500 hover:text-gray-800"
+              className="absolute top-6 right-6 text-gray-500 hover:text-gray-800 bg-gray-100 p-1.5 rounded-full"
             >
               <X className="w-5 h-5" />
             </button>
-            <h3 className="text-2xl font-bold mb-4">
+            <h3 className="text-2xl font-bold mb-4 pr-8">
               {editingVideo ? 'Editar Video y Producto' : 'Cargar Video y Vista Previa'}
             </h3>
             <form onSubmit={handleSaveVideoAdmin} className="space-y-4">
@@ -936,18 +944,18 @@ export default function AdminDashboard({
       )}
 
       {showAddOfferModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto text-gray-800 relative">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[110] p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto text-gray-800 shadow-2xl relative">
             <button
               onClick={() => {
                 setShowAddOfferModal(false);
                 setEditingOffer(null);
               }}
-              className="absolute top-6 right-6 text-gray-500 hover:text-gray-800"
+              className="absolute top-6 right-6 text-gray-500 hover:text-gray-800 bg-gray-100 p-1.5 rounded-full"
             >
               <X className="w-5 h-5" />
             </button>
-            <h2 className="text-2xl font-bold mb-4">
+            <h2 className="text-2xl font-bold mb-4 pr-8">
               {editingOffer ? 'Editar Cupón' : 'Agregar Cupón'}
             </h2>
             <div className="space-y-4">
@@ -1027,7 +1035,8 @@ export default function AdminDashboard({
                       : newOffer.min_purchase || ''
                   }
                   onChange={(e) => {
-                    const formatted = formatCurrencyInput(e.target.value);
+                    const rawDigits = e.target.value.replace(/\D/g, '');
+                    const formatted = rawDigits ? '$' + Number(rawDigits).toLocaleString('en-US') : '';
                     if (editingOffer) {
                       setEditingOffer({ ...editingOffer, min_purchase: formatted });
                     } else {
@@ -1110,7 +1119,7 @@ export default function AdminDashboard({
                   setShowAddOfferModal(false);
                   setEditingOffer(null);
                 }}
-                className="w-full bg-gray-300 text-gray-800 py-3 rounded-lg font-bold"
+                className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 py-3 rounded-lg font-bold transition-all"
               >
                 Cancelar
               </button>
@@ -1120,19 +1129,19 @@ export default function AdminDashboard({
       )}
 
       {showAddProductModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto text-gray-800 relative">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[110] p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto text-gray-800 shadow-2xl relative">
             <button
               onClick={() => {
                 setShowAddProductModal(false);
                 setEditingProduct(null);
               }}
-              className="absolute top-6 right-6 text-gray-500 hover:text-gray-800"
+              className="absolute top-6 right-6 text-gray-500 hover:text-gray-800 bg-gray-100 p-1.5 rounded-full"
               aria-label="Cerrar modal"
             >
               <X className="w-6 h-6" />
             </button>
-            <h2 className="text-2xl font-bold mb-4">
+            <h2 className="text-2xl font-bold mb-4 pr-8">
               {editingProduct ? 'Editar Producto' : 'Agregar Producto'}
             </h2>
             <div className="space-y-4">
@@ -1188,24 +1197,25 @@ export default function AdminDashboard({
                     Precio Original ($)
                   </label>
                   <input
-                    type="number"
-                    step="0.01"
+                    type="text"
                     value={
                       editingProduct
                         ? editingProduct.original_price
                         : newProduct.original_price
                     }
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const val = e.target.value;
                       editingProduct
                         ? setEditingProduct({
                             ...editingProduct,
-                            original_price: e.target.value,
+                            original_price: val,
                           })
                         : setNewProduct({
                             ...newProduct,
-                            original_price: e.target.value,
+                            original_price: val,
                           })
-                    }
+                    }}
+                    placeholder="4499"
                     className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg text-sm"
                   />
                 </div>
@@ -1214,24 +1224,25 @@ export default function AdminDashboard({
                     Precio Oferta ($)
                   </label>
                   <input
-                    type="number"
-                    step="0.01"
+                    type="text"
                     value={
                       editingProduct
                         ? editingProduct.discount_price
                         : newProduct.discount_price
                     }
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const val = e.target.value;
                       editingProduct
                         ? setEditingProduct({
                             ...editingProduct,
-                            discount_price: e.target.value,
+                            discount_price: val,
                           })
                         : setNewProduct({
                             ...newProduct,
-                            discount_price: e.target.value,
+                            discount_price: val,
                           })
-                    }
+                    }}
+                    placeholder="529"
                     className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg text-sm"
                   />
                 </div>
@@ -1319,8 +1330,9 @@ export default function AdminDashboard({
 
               <div>
                 <label className="block text-gray-700 font-bold mb-1 text-sm">
-                  Especificaciones técnicas con iconos (Un renglón por especificación)
+                  Especificaciones técnicas (Un renglón por especificación)
                 </label>
+                <p className="text-[10px] text-gray-500 mb-2 leading-tight">No necesitas poner emojis, el sistema detectará palabras clave (Plan de datos, Recibos, Tarjetas, batería, mm, g, celular, Bluetooth) y agregará el ícono azul automáticamente.</p>
                 <textarea
                   value={
                     editingProduct
@@ -1338,7 +1350,7 @@ export default function AdminDashboard({
                             specs: e.target.value,
                         })
                   }
-                  placeholder={`📶 Plan de datos 4G gratis y Wi-Fi.\n📄 Recibos impresos, por e-mail y SMS.\n💳 Tarjetas con chip, banda y sin contacto.\n🔋 72 horas de batería.\n📏 175x82x62 mm.\n⚖️ 410 g.`}
+                  placeholder={`Plan de datos 4G gratis y Wi-Fi.\nRecibos impresos, por e-mail y SMS.\nTarjetas con chip, banda y sin contacto.\n72 horas de batería.\n175x82x62 mm.\n410 g.`}
                   rows="4"
                   className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg text-xs font-mono"
                 />
