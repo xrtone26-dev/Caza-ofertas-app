@@ -289,9 +289,9 @@ export default function AdminDashboard({
         ...newProduct,
         id: 'prod_' + Date.now(),
         created_at: new Date().toISOString(),
-        original_price: parseFloat(newProduct.original_price),
-        discount_price: parseFloat(newProduct.discount_price),
-        discount_percentage: newProduct.discount_percentage
+        original_price: newProduct.original_price !== '' && newProduct.original_price != null ? parseFloat(newProduct.original_price) : 0.0,
+        discount_price: newProduct.discount_price !== '' && newProduct.discount_price != null ? parseFloat(newProduct.discount_price) : 0.0,
+        discount_percentage: newProduct.discount_percentage !== '' && newProduct.discount_percentage != null
           ? parseInt(newProduct.discount_percentage)
           : null,
       };
@@ -328,17 +328,21 @@ export default function AdminDashboard({
       const productId = getSafeId(productOrId);
       if (!productId) return;
       const updateData = { ...updates };
+      
       if (updateData.original_price !== '' && updateData.original_price != null)
         updateData.original_price = parseFloat(updateData.original_price);
+      else
+        updateData.original_price = 0.0;
+
       if (updateData.discount_price !== '' && updateData.discount_price != null)
         updateData.discount_price = parseFloat(updateData.discount_price);
-      if (
-        updateData.discount_percentage !== '' &&
-        updateData.discount_percentage != null
-      )
-        updateData.discount_percentage = parseInt(
-          updateData.discount_percentage
-        );
+      else
+        updateData.discount_price = 0.0;
+
+      if (updateData.discount_percentage !== '' && updateData.discount_percentage != null)
+        updateData.discount_percentage = parseInt(updateData.discount_percentage);
+      else
+        updateData.discount_percentage = null;
 
       await axios.patch(
         `${API}/admin/products/${productId}?password=${adminPassword}`,
