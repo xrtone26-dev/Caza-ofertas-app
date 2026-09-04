@@ -555,7 +555,6 @@ function App() {
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [mobileTab, setMobileTab] = useState('cupones');
 
-  // Control manual persistente para forzar productos como exclusivos o normales
   const [manualExclusives, setManualExclusives] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('cazaManualExclusives') || '[]');
@@ -1017,7 +1016,6 @@ function App() {
 
   const isLight = themeMode === 'light';
   
-  // 1. FILTRADO CORREGIDO: Únicamente bandera de base de datos o selección manual de admin.
   const exclusiveProducts = products.filter(p => {
     const pId = getSafeId(p) || p.title;
     const isManual = manualExclusives.includes(pId);
@@ -1035,16 +1033,13 @@ function App() {
     );
   });
 
-  // 2. Extraer IDs únicos utilizando Set para separación matemática exacta
   const exclusiveIds = new Set(exclusiveProducts.map(p => getSafeId(p) || p.title));
 
-  // 3. Productos normales: todos los que no pertenezcan al listado exclusivo
   const regularProducts = products.filter(p => {
     const pId = getSafeId(p) || p.title;
     return !exclusiveIds.has(pId);
   });
 
-  // 4. Aplicar el buscador del usuario únicamente a los productos normales
   const filteredProducts = regularProducts.filter(
     (p) =>
       p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1056,9 +1051,6 @@ function App() {
     ? 'min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-800 relative overflow-x-hidden font-sans'
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
-  // ==========================================
-  // SECCIÓN DE CUPONES (ESTILO TICKET / BLACK & GOLD)
-  // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
       <div className="container mx-auto px-4 mb-8 relative z-20">
@@ -1428,9 +1420,6 @@ function App() {
             <p className={`text-sm sm:text-base font-bold mb-2 ${isLight ? 'text-gray-700' : 'text-yellow-400'}`}>
               ⚠️ No hay productos exclusivos cargados todavía
             </p>
-            <p className={`text-xs sm:text-sm ${isLight ? 'text-gray-500' : 'text-neutral-400'}`}>
-              Entra al panel de administración y crea un producto asegurándote de marcar la casilla <strong>⭐ Producto Exclusivo / Terminal</strong> o haz clic en "Mover a Exclusivos" desde la tarjeta del producto.
-            </p>
           </div>
         ) : (
           <div className="relative px-2 sm:px-0">
@@ -1454,9 +1443,9 @@ function App() {
 
                   return (
                     <div key={pId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0 flex">
-                      <div className="w-full rounded-3xl shadow-xl transition-all duration-300 overflow-hidden flex flex-col border bg-white text-gray-900 border-gray-200 relative">
+                      <div className="w-full rounded-3xl shadow-xl transition-all duration-300 overflow-hidden flex flex-col border bg-white text-gray-900 border-gray-200 relative p-6">
                         
-                        {/* Botón de Compartir (Reemplaza al botón de mover) */}
+                        {/* Botón de Compartir */}
                         <button
                           onClick={handleShareProduct}
                           className="absolute top-3 left-3 z-20 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] px-2.5 py-1.5 rounded-lg border-2 border-white shadow-md flex items-center gap-1 transition-transform hover:scale-105"
@@ -1466,12 +1455,12 @@ function App() {
                         </button>
 
                         {/* Imagen de la Terminal */}
-                        <div className="relative pt-8 px-6 pb-2 text-center bg-white flex justify-center items-center h-52">
+                        <div className="relative pt-6 px-4 pb-2 text-center bg-white flex justify-center items-center h-48">
                           <img src={product.image_url} alt={product.title} className="max-h-full max-w-full object-contain drop-shadow-md" />
                         </div>
 
                         {/* Título y Descripción */}
-                        <div className="px-6 pb-4 text-center">
+                        <div className="pb-3 text-center">
                           <h3 className="text-xl font-black text-gray-900 mb-1 tracking-tight">{product.title || product.nombre}</h3>
                           <p className="text-xs text-gray-600 font-medium line-clamp-2 px-1">
                             {product.description}
@@ -1479,7 +1468,7 @@ function App() {
                         </div>
 
                         {/* Precios, Descuentos y MSI */}
-                        <div className="px-6 text-center mb-4">
+                        <div className="text-center mb-4">
                           <div className="flex items-center justify-center gap-2 mb-1">
                             {product.original_price > 0 && (
                               <span className="text-sm font-bold text-gray-400 line-through">
@@ -1503,7 +1492,7 @@ function App() {
                         </div>
 
                         {/* Botón Comprar */}
-                        <div className="px-6 mb-5">
+                        <div className="mb-4">
                           <a 
                             href={product.affiliate_link || product.link || product.url || '#'} 
                             target="_blank" 
@@ -1516,7 +1505,7 @@ function App() {
 
                         {/* Beneficios con Palomita */}
                         {featureList.length > 0 && (
-                          <div className="w-full border-t border-gray-200 px-6 py-4 bg-white text-left flex flex-col gap-2.5">
+                          <div className="w-full border-t border-gray-200 pt-4 pb-3 bg-white text-left flex flex-col gap-2.5">
                             {featureList.map((feat, idx) => (
                               <div key={idx} className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
                                 <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
@@ -1528,7 +1517,7 @@ function App() {
 
                         {/* Especificaciones Técnicas con Iconos */}
                         {specList.length > 0 && (
-                          <div className="w-full border-t border-dashed border-gray-200 px-6 py-4 mt-auto bg-white text-left flex flex-col gap-2.5">
+                          <div className="w-full border-t border-dashed border-gray-200 pt-4 pb-3 bg-white text-left flex flex-col gap-2.5">
                             {specList.map((spec, idx) => (
                               <div key={idx} className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
                                 <span className="text-sm flex-shrink-0">{spec.substring(0, 2)}</span>
@@ -1537,6 +1526,18 @@ function App() {
                             ))}
                           </div>
                         )}
+
+                        {/* Botón Más Información */}
+                        <div className="mt-auto pt-3">
+                          <a
+                            href={product.affiliate_link || product.link || product.url || '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full bg-[#e8f0fe] hover:bg-[#d2e3fc] text-[#1a73e8] py-3 rounded-xl font-bold text-center block transition-all text-xs uppercase tracking-wide"
+                          >
+                            Más información
+                          </a>
+                        </div>
 
                       </div>
                     </div>
