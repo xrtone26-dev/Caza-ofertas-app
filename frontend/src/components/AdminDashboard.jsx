@@ -377,29 +377,19 @@ export default function AdminDashboard({
 
   const handleDeleteAllProducts = async () => {
     setIsDeletingAll(true);
-    let errores = 0;
-    
-    for (const prod of allProducts) {
-      const productId = getSafeId(prod);
-      if (productId) {
-        try {
-          await axios.delete(`${API}/admin/products/${productId}?password=${adminPassword}`);
-        } catch (error) {
-          console.error("Error al eliminar el producto:", productId, error);
-          errores++;
-        }
-      }
-    }
-    
-    loadAllProducts();
-    if (loadPublicProducts) loadPublicProducts();
-    setShowDeleteAllProductsModal(false);
-    setIsDeletingAll(false);
-
-    if (errores > 0) {
-      alert(`Se han eliminado la mayoría, pero hubo problemas con ${errores} producto(s). Intenta vaciar la lista nuevamente.`);
-    } else {
-      alert('¡Todos los productos han sido eliminados correctamente!');
+    try {
+      const response = await axios.delete(`${API}/admin/products`, {
+        params: { password: adminPassword }
+      });
+      loadAllProducts();
+      if (loadPublicProducts) loadPublicProducts();
+      setShowDeleteAllProductsModal(false);
+      alert(response.data.message || '¡Lista vaciada con éxito! Tus terminales exclusivas están a salvo.');
+    } catch (error) {
+      console.error("Error al vaciar productos normales:", error);
+      alert('Error al vaciar la lista de productos.');
+    } finally {
+      setIsDeletingAll(false);
     }
   };
 
@@ -656,11 +646,11 @@ export default function AdminDashboard({
                     <Plus className="w-5 h-5" /> Nuevo Producto
                   </button>
 
-                  {allProducts.length > 0 && (
+                  {regularAdminProducts.length > 0 && (
                     <button
                       onClick={() => setShowDeleteAllProductsModal(true)}
                       className="bg-red-100 text-red-600 hover:bg-red-200 px-4 py-3 rounded-lg font-bold transition-all flex items-center gap-2 border border-red-200"
-                      title="Eliminar todos los productos"
+                      title="Vaciar Lista"
                     >
                       <Trash2 className="w-5 h-5" /> Vaciar Lista
                     </button>
@@ -849,12 +839,12 @@ export default function AdminDashboard({
               <Trash2 className={`w-8 h-8 ${isDeletingAll ? 'animate-bounce' : ''}`} />
             </div>
             <h3 className="text-2xl font-black mb-2">
-              {isDeletingAll ? 'Borrando...' : '¿Vaciar Productos?'}
+              {isDeletingAll ? 'Borrando...' : '¿Vaciar Productos Normales?'}
             </h3>
             <p className="text-gray-600 mb-6 font-medium text-sm">
               {isDeletingAll 
-                ? 'Por favor espera unos segundos mientras limpiamos tu inventario. No cierres esta ventana.' 
-                : `Estás a punto de eliminar TODOS (${allProducts.length}) los productos de tu carrusel. Esta acción no se puede deshacer.`}
+                ? 'Por favor espera unos segundos mientras limpiamos tu inventario normal. Tus terminales exclusivas están blindadas y seguras.' 
+                : `Estás a punto de eliminar TODOS los productos normales (${regularAdminProducts.length}). Tus terminales exclusivas se mantendrán intactas.`}
             </p>
             <div className="flex gap-3">
               <button
@@ -864,7 +854,7 @@ export default function AdminDashboard({
                   isDeletingAll ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'
                 }`}
               >
-                {isDeletingAll ? 'Procesando...' : 'Sí, eliminar todo'}
+                {isDeletingAll ? 'Procesando...' : 'Sí, vaciar normales'}
               </button>
               {!isDeletingAll && (
                 <button
@@ -1182,8 +1172,8 @@ export default function AdminDashboard({
                           description: e.target.value,
                         })
                       : setNewProduct({
-                            ...newProduct,
-                            description: e.target.value,
+                          ...newProduct,
+                          description: e.target.value,
                         })
                   }
                   placeholder="Ej: Con chip 4G gratis, WiFi e impresión de recibos."
@@ -1292,8 +1282,8 @@ export default function AdminDashboard({
                           installments_text: e.target.value,
                         })
                       : setNewProduct({
-                            ...newProduct,
-                            installments_text: e.target.value,
+                          ...newProduct,
+                          installments_text: e.target.value,
                         })
                   }
                   placeholder="o 6x $88.16 sin intereses"
@@ -1318,8 +1308,8 @@ export default function AdminDashboard({
                           features: e.target.value,
                         })
                       : setNewProduct({
-                            ...newProduct,
-                            features: e.target.value,
+                          ...newProduct,
+                          features: e.target.value,
                         })
                   }
                   placeholder={`Acepta débito, crédito y vales.\nIncluye cuenta digital y tarjeta gratuita.\n1 año de garantía.\nEnvío gratis en 2 hs.*`}
@@ -1346,8 +1336,8 @@ export default function AdminDashboard({
                           specs: e.target.value,
                         })
                       : setNewProduct({
-                            ...newProduct,
-                            specs: e.target.value,
+                          ...newProduct,
+                          specs: e.target.value,
                         })
                   }
                   placeholder={`Plan de datos 4G gratis y Wi-Fi.\nRecibos impresos, por e-mail y SMS.\nTarjetas con chip, banda y sin contacto.\n72 horas de batería.\n175x82x62 mm.\n410 g.`}
@@ -1374,8 +1364,8 @@ export default function AdminDashboard({
                           image_url: e.target.value,
                         })
                       : setNewProduct({
-                            ...newProduct,
-                            image_url: e.target.value,
+                          ...newProduct,
+                          image_url: e.target.value,
                         })
                   }
                   placeholder="https://..."
@@ -1400,8 +1390,8 @@ export default function AdminDashboard({
                           affiliate_link: e.target.value,
                         })
                       : setNewProduct({
-                            ...newProduct,
-                            affiliate_link: e.target.value,
+                          ...newProduct,
+                          affiliate_link: e.target.value,
                         })
                   }
                   placeholder="https://..."
@@ -1421,8 +1411,8 @@ export default function AdminDashboard({
                           is_exclusive: e.target.checked,
                         })
                       : setNewProduct({
-                            ...newProduct,
-                            is_exclusive: e.target.checked,
+                          ...newProduct,
+                          is_exclusive: e.target.checked,
                         })
                   }
                   className="w-5 h-5 accent-purple-500"
@@ -1444,8 +1434,8 @@ export default function AdminDashboard({
                           active: e.target.checked,
                         })
                       : setNewProduct({
-                            ...newProduct,
-                            active: e.target.checked,
+                          ...newProduct,
+                          active: e.target.checked,
                         })
                   }
                   className="w-5 h-5 mr-3 accent-purple-500"
