@@ -1,4 +1,8 @@
 import os
+import smtplib
+from email.mime.text import MIMEText
+import random
+import string
 from fastapi import FastAPI, APIRouter, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
@@ -79,6 +83,13 @@ class OfferUpdate(BaseModel):
 class AdminLoginRequest(BaseModel):
     password: str
 
+class RecoverRequest(BaseModel):
+    identifier: str
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
 class ChatRequest(BaseModel):
     message: str
     history: Optional[List[dict]] = []
@@ -99,10 +110,24 @@ api_router = APIRouter()
 
 MONGO_URL = os.getenv("MONGO_URL", "tu_cadena_de_conexion_aqui")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Caza-Ofertas2026")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@cazaofertas.com")
 BOT_API_KEY = os.getenv("BOT_API_KEY", "CazaOfertas_SuperSecretKey_2026")
 
 client = AsyncIOMotorClient(MONGO_URL)
 db = client.cazaofertas
+
+async def get_admin_password():
+    config = await db.config.find_one({"_id": "admin_settings"})
+    if config and "password" in config:
+        return config["password"]
+    return ADMIN_PASSWORD
+
+async def set_admin_password(new_password):
+    await db.config.update_one(
+        {"_id": "admin_settings"},
+        {"$set": {"password": new_password}},
+        upsert=True
+    )
 
 @app.on_event("startup")
 async def setup_database_indexes():
@@ -200,7 +225,7 @@ async def ai_chat_endpoint(data: ChatRequest):
         db_context += "1. MASCARAR CÓDIGOS EN EL TEXTO: Al mencionar un cupón en tu respuesta, nunca escribas el código completo explícitamente. Escríbelo enmascarado con asteriscos (ej: TERC* or BRON*), asegurándote de incluir el código real en tu texto de referencia interna para que la tarjeta interactiva lo detecte y active el botón.\n"
         db_context += "2. FLUJO OBLIGATORIO DE CUPONES: Si el usuario pregunta por cupones o descuentos, responde primero pidiendo el monto: 'Permíteme revisar 🧐. ¿Cuál es el monto del producto que pretendes comprar para buscar un cupón acorde a tu producto?'.\n"
         db_context += "3. FILTRADO: Cuando el usuario responda con el monto, verifica si hay un cupón que aplique. Si aplica, preséntalo mencionando su título y el código enmascarado (ej: TERC*) para desplegar la tarjeta interactiva.\n"
-        db_context += "4. PROHIBIDO ENVIAR ENLACES: Nunca pegues URLs sueltas en tu respuesta[cite: 6].\n"
+        db_context += "4. PROHIBIDO ENVIAR ENLACES: Nunca pegues URLs sueltas en tu respuesta.\n"
 
         ai_client = Groq(api_key=GROQ_API_KEY)
         messages = []
@@ -263,13 +288,50 @@ async def bot_create_offer(offer: OfferCreate, x_api_key: Optional[str] = Header
 # ========== RUTAS DE ADMINISTRACIÓN ==========
 @api_router.post("/admin/login")
 async def admin_login(request: AdminLoginRequest):
-    if request.password == ADMIN_PASSWORD:
+    current_pw = await get_admin_password()
+    if request.password == current_pw:
         return {"success": True, "message": "Autenticado correctamente"}
     raise HTTPException(status_code=401, detail="Contraseña incorrecta")
 
+@api_router.post("/admin/recover")
+async def recover_admin_password(request: RecoverRequest):
+    if request.identifier != ADMIN_EMAIL and request.identifier != "admin":
+        raise HTTPException(status_code=404, detail="Usuario o correo no encontrado")
+    
+    temp_password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+    await set_admin_password(temp_password)
+    
+    try:
+        msg = MIMEText(f"¡Al rescate! 🦸‍♂️ Tu clave provisional es: {temp_password}\nUna vez dentro, en la pestaña de inicio de sesión, recuerda cambiar tu contraseña.")
+        msg['Subject'] = 'Recuperación de contraseña - CazaOfertas'
+        msg['From'] = os.getenv("SMTP_USER", "noreply@cazaofertas.com")
+        msg['To'] = ADMIN_EMAIL
+        
+        smtp_server = os.getenv("SMTP_SERVER")
+        if smtp_server:
+            with smtplib.SMTP(smtp_server, int(os.getenv("SMTP_PORT", 587))) as server:
+                server.starttls()
+                server.login(os.getenv("SMTP_USER"), os.getenv("SMTP_PASSWORD"))
+                server.send_message(msg)
+        else:
+            print(f"🐝 Bzz bzz! (Simulando envío a {ADMIN_EMAIL}) Tu clave provisional es {temp_password}")
+    except Exception as e:
+        print(f"Error enviando correo: {e}")
+        
+    return {"success": True, "message": "Correo enviado con clave provisional"}
+
+@api_router.post("/admin/change-password")
+async def change_password(request: ChangePasswordRequest):
+    current_valid = await get_admin_password()
+    if request.current_password != current_valid:
+        raise HTTPException(status_code=401, detail="Contraseña actual incorrecta")
+    await set_admin_password(request.new_password)
+    return {"success": True, "message": "Contraseña actualizada exitosamente"}
+
 @api_router.get("/admin/products")
 async def get_admin_products(password: str):
-    if password != ADMIN_PASSWORD:
+    current_pw = await get_admin_password()
+    if password != current_pw:
         raise HTTPException(status_code=401, detail="No autorizado")
     cursor = db.products.find({})
     products = []
@@ -280,7 +342,8 @@ async def get_admin_products(password: str):
 
 @api_router.post("/admin/products")
 async def create_product(product: ProductCreate, password: str):
-    if password != ADMIN_PASSWORD:
+    current_pw = await get_admin_password()
+    if password != current_pw:
         raise HTTPException(status_code=401, detail="No autorizado")
     prod_dict = product.model_dump()
     if not prod_dict.get("created_at"):
@@ -290,7 +353,8 @@ async def create_product(product: ProductCreate, password: str):
 
 @api_router.patch("/admin/products/{product_id}")
 async def update_product(product_id: str, product_data: ProductUpdate, password: str):
-    if password != ADMIN_PASSWORD:
+    current_pw = await get_admin_password()
+    if password != current_pw:
         raise HTTPException(status_code=401, detail="No autorizado")
     
     update_dict = {k: v for k, v in product_data.model_dump().items() if v is not None}
@@ -312,7 +376,8 @@ async def update_product(product_id: str, product_data: ProductUpdate, password:
 
 @api_router.delete("/admin/products/{product_id}")
 async def delete_product(product_id: str, password: str):
-    if password != ADMIN_PASSWORD:
+    current_pw = await get_admin_password()
+    if password != current_pw:
         raise HTTPException(status_code=401, detail="No autorizado")
     result = await db.products.delete_one(get_query_id(product_id))
     if result.deleted_count == 0:
@@ -321,7 +386,8 @@ async def delete_product(product_id: str, password: str):
 
 @api_router.get("/admin/offers")
 async def get_admin_offers(password: str):
-    if password != ADMIN_PASSWORD:
+    current_pw = await get_admin_password()
+    if password != current_pw:
         raise HTTPException(status_code=401, detail="No autorizado")
     cursor = db.offers.find({})
     offers = []
@@ -332,7 +398,8 @@ async def get_admin_offers(password: str):
 
 @api_router.post("/admin/offers")
 async def create_offer(offer: OfferCreate, password: str):
-    if password != ADMIN_PASSWORD:
+    current_pw = await get_admin_password()
+    if password != current_pw:
         raise HTTPException(status_code=401, detail="No autorizado")
     offer_dict = offer.model_dump()
     await db.offers.insert_one(offer_dict)
@@ -340,7 +407,8 @@ async def create_offer(offer: OfferCreate, password: str):
 
 @api_router.patch("/admin/offers/{offer_id}")
 async def update_offer(offer_id: str, offer_data: OfferUpdate, password: str):
-    if password != ADMIN_PASSWORD:
+    current_pw = await get_admin_password()
+    if password != current_pw:
         raise HTTPException(status_code=401, detail="No autorizado")
     
     update_dict = {k: v for k, v in offer_data.model_dump().items() if v is not None}
@@ -354,7 +422,8 @@ async def update_offer(offer_id: str, offer_data: OfferUpdate, password: str):
 
 @api_router.delete("/admin/offers/{offer_id}")
 async def delete_offer(offer_id: str, password: str):
-    if password != ADMIN_PASSWORD:
+    current_pw = await get_admin_password()
+    if password != current_pw:
         raise HTTPException(status_code=401, detail="No autorizado")
     result = await db.offers.delete_one(get_query_id(offer_id))
     if result.deleted_count == 0:
