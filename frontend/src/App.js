@@ -1490,7 +1490,7 @@ function App() {
       }`}>
         <div className="relative flex items-center justify-center mb-6 px-2">
           <h2 className={`text-2xl sm:text-3xl font-black text-center flex items-center gap-2 ${isLight ? 'text-yellow-600' : 'text-yellow-400'}`}>
-            ⭐ Terminales y Productos Exclusivos
+             Terminales y Productos Exclusivos
           </h2>
         </div>
         <p className={`text-center text-xs sm:text-sm mb-8 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
@@ -1730,7 +1730,7 @@ function App() {
               ⚡ RENDIMIENTO GARANTIZADO
             </span>
             <span className="text-[11px] font-bold text-green-400 bg-green-500/10 px-2.5 py-0.5 rounded-full border border-green-500/30">
-              Alta demanda 🚀
+              Alta demanda 
             </span>
           </div>
 
@@ -1782,7 +1782,7 @@ function App() {
             rel="noopener noreferrer"
             className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-4 rounded-2xl text-sm md:text-base uppercase transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 shadow-[0_6px_20px_rgba(250,204,21,0.4)] border-2 border-yellow-500 mb-4 animate-pulse"
           >
-            <span>🚀 ACTIVAR MI RENDIMIENTO AHORA</span>
+            <span>ACTIVAR MI RENDIMIENTO AHORA</span>
           </a>
 
           <p className="text-[10px] text-neutral-400 text-center leading-relaxed opacity-75">
