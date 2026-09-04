@@ -61,7 +61,7 @@ function FeatureCube({ isLight, isMobileDevice }) {
     const elapsed = (time - startTimeRef.current) * 0.001;
     setRotation({
       x: Math.sin(elapsed * 0.6) * 55, 
-      y: elapsed * 35,                             
+      y: elapsed * 35,                               
       z: Math.sin(elapsed * 0.4) * 20, 
     });
     requestRef.current = requestAnimationFrame(animate);
