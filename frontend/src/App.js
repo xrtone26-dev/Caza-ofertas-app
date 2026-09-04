@@ -999,8 +999,8 @@ function App() {
 
   const isLight = themeMode === 'light';
   
-  // 1. FILTRADO ESTRICTO: Únicamente productos marcados explícitamente en base de datos como exclusivos.
-  // Se eliminan por completo las adivinanzas de palabras clave en el título para que ningún producto normal se cuele.
+  // 1. FILTRADO 100% ESTRICTO POR BASE DE DATOS (Sin adivinanzas ni palabras en títulos)
+  // Si se creó en el apartado azul, la BD lo marca como exclusivo. Si se creó en rojo, es normal.
   const exclusiveProducts = products.filter(p => 
     p.is_exclusive === true || 
     p.is_exclusive === 'true' || 
@@ -1012,10 +1012,10 @@ function App() {
     p.category === 'exclusive'
   );
 
-  // 2. Extraer IDs únicos usando Set para separación matemática exacta
+  // 2. Extraer IDs únicos utilizando Set para separación matemática exacta
   const exclusiveIds = new Set(exclusiveProducts.map(p => p.id || p._id || p.offer_id || p.title));
 
-  // 3. Productos normales: todos los que NO estén incluidos en la lista exclusiva de la BD
+  // 3. Productos normales: todos los que no pertenezcan al listado exclusivo
   const regularProducts = products.filter(p => {
     const pId = p.id || p._id || p.offer_id || p.title;
     return !exclusiveIds.has(pId);
