@@ -58,23 +58,6 @@ import ChatbotWidget from './components/ChatbotWidget';
 import ProfileModal from './components/ProfileModal';
 import AdminDashboard, { decodeCoupon } from './components/AdminDashboard'; 
 
-const visa = "https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg";
-const mastercard = "https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg";
-const amex = "https://upload.wikimedia.org/wikipedia/commons/3/30/American_Express_logo_%282018%29.svg";
-const applePay = "https://upload.wikimedia.org/wikipedia/commons/b/b0/Apple_Pay_logo.svg";
-const googlePay = "https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg";
-const samsungPay = "https://upload.wikimedia.org/wikipedia/commons/7/7a/Samsung_Pay_icon.svg";
-
-const createTextBadgeUri = (text, textColor = "#ffffff") => 
-  `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="90" height="30" viewBox="0 0 90 30"><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="${textColor}" font-family="sans-serif" font-weight="900" font-size="11">${text}</text></svg>`;
-
-const carnet = createTextBadgeUri("CARNET", "#ef4444");
-const siVale = createTextBadgeUri("SÍ VALE", "#f97316");
-const toka = createTextBadgeUri("TOKA", "#38bdf8");
-const tengo = createTextBadgeUri("TENGO", "#22d3ee");
-const edenred = createTextBadgeUri("EDENRED", "#ef4444");
-const pluxee = createTextBadgeUri("PLUXEE", "#c084fc");
-
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
@@ -1692,23 +1675,25 @@ function App() {
           </p>
 
           <div className="payment-logos flex flex-wrap justify-center items-center gap-3">
-            <div className="payment-logo bg-white text-blue-800 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">
-              <img src={visa} alt="Visa" className="max-h-7 object-contain" />
+            <div className="payment-logo bg-white text-blue-700 font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center">
+              VISA
             </div>
-            <div className="payment-logo bg-white text-red-600 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">
-              <img src={mastercard} alt="Mastercard" className="max-h-7 object-contain" />
+            <div className="payment-logo bg-white text-red-600 font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center gap-1">
+              <span className="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
+              <span className="w-3 h-3 rounded-full bg-yellow-500 inline-block -ml-2 opacity-85"></span>
+              <span className="text-black ml-1">mastercard</span>
             </div>
-            <div className="payment-logo bg-white text-cyan-600 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">
-              <img src={amex} alt="American Express" className="max-h-7 object-contain" />
+            <div className="payment-logo bg-white text-cyan-700 font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center">
+              AMERICAN EXPRESS
             </div>
-            <div className="payment-logo bg-white text-black font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">
-              <img src={applePay} alt="Apple Pay" className="max-h-7 object-contain" />
+            <div className="payment-logo bg-white text-black font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center">
+               Pay
             </div>
-            <div className="payment-logo bg-white text-gray-800 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">
-              <img src={googlePay} alt="Google Pay" className="max-h-7 object-contain" />
+            <div className="payment-logo bg-white text-gray-800 font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center">
+              G Pay
             </div>
-            <div className="payment-logo bg-white text-blue-900 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">
-              <img src={samsungPay} alt="Samsung Pay" className="max-h-7 object-contain" />
+            <div className="payment-logo bg-white text-blue-900 font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center">
+              Samsung Pay
             </div>
           </div>
 
@@ -1717,27 +1702,41 @@ function App() {
           <h4 className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-neutral-400 mb-4">VALES DE DESPENSA Y RESTAURANTE</h4>
 
           <div className="voucher-logos flex flex-wrap justify-center items-center gap-3">
-            <div className="voucher-logo bg-neutral-950 text-red-500 border border-red-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">
-              <img src={carnet} alt="Carnet" className="max-h-7 object-contain" />
+            <div className="voucher-logo bg-neutral-900 text-red-400 border border-red-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
+              CARNET
             </div>
-            <div className="voucher-logo bg-neutral-950 text-orange-400 border border-orange-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">
-              <img src={siVale} alt="Sí Vale" className="max-h-7 object-contain" />
+            <div className="voucher-logo bg-neutral-900 text-orange-400 border border-orange-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
+              SÍ VALE
             </div>
-            <div className="voucher-logo bg-neutral-950 text-blue-400 border border-blue-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">
-              <img src={toka} alt="Toka" className="max-h-7 object-contain" />
+            <div className="voucher-logo bg-neutral-900 text-sky-400 border border-sky-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
+              TOKA
             </div>
-            <div className="voucher-logo bg-neutral-950 text-cyan-400 border border-cyan-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">
-              <img src={tengo} alt="Tengo" className="max-h-7 object-contain" />
+            <div className="voucher-logo bg-neutral-900 text-cyan-400 border border-cyan-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
+              TENGO
             </div>
-            <div className="voucher-logo bg-neutral-950 text-red-500 border border-red-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">
-              <img src={edenred} alt="Edenred" className="max-h-7 object-contain" />
+            <div className="voucher-logo bg-neutral-900 text-red-500 border border-red-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
+              EDENRED
             </div>
-            <div className="voucher-logo bg-neutral-950 text-purple-400 border border-purple-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">
-              <img src={pluxee} alt="Pluxee" className="max-h-7 object-contain" />
+            <div className="voucher-logo bg-neutral-900 text-purple-400 border border-purple-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
+              PLUXEE
             </div>
           </div>
         </div>
 
+        {/* 1. SECCIÓN "SIN RENTA MENSUAL..." (UBICADA PRIMERO) */}
+        <div className="max-w-xl mx-auto my-10 bg-neutral-950 border-2 border-yellow-400/50 rounded-3xl p-6 sm:p-8 text-center shadow-lg">
+          <h4 className="text-xl sm:text-2xl font-black mb-2 text-yellow-400">Sin renta mensual, solo pagas cuando vendes</h4>
+          <p className="text-xs sm:text-sm mb-6 opacity-80">¡Usa tu terminal sin trámites! No necesitas tener cuenta bancaria ni RFC.</p>
+          
+          <div className="bg-neutral-900 border border-yellow-400/30 rounded-2xl p-4 mb-4">
+            <span className="block text-xs uppercase font-bold text-neutral-400 mb-1">Tasas</span>
+            <span className="text-2xl sm:text-3xl font-black text-white">3.5% <span className="text-yellow-400">+ IVA</span> <span className="text-xs font-normal">por cada venta</span></span>
+          </div>
+          
+          <p className="text-[11px] opacity-70 font-medium">Tu dinero al instante en tu cuenta de Mercado Pago Standard los 365 días del año.</p>
+        </div>
+
+        {/* 2. SIMULADOR DE RENDIMIENTO FINANCIERO (UBICADO ABAJO) */}
         <div className="max-w-xl mx-auto my-10 bg-gradient-to-br from-neutral-900 via-neutral-950 to-black rounded-3xl p-6 sm:p-8 text-white shadow-2xl border-4 border-yellow-400 relative overflow-hidden">
           <div className="flex items-center gap-2 mb-4">
             <span className="bg-yellow-400 text-black font-black text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider">
@@ -1797,17 +1796,6 @@ function App() {
           </p>
         </div>
 
-        <div className="max-w-xl mx-auto bg-neutral-950 border-2 border-yellow-400/50 rounded-3xl p-6 sm:p-8 text-center shadow-lg">
-          <h4 className="text-xl sm:text-2xl font-black mb-2 text-yellow-400">Sin renta mensual, solo pagas cuando vendes</h4>
-          <p className="text-xs sm:text-sm mb-6 opacity-80">¡Usa tu terminal sin trámites! No necesitas tener cuenta bancaria ni RFC.</p>
-          
-          <div className="bg-neutral-900 border border-yellow-400/30 rounded-2xl p-4 mb-4">
-            <span className="block text-xs uppercase font-bold text-neutral-400 mb-1">Tasas</span>
-            <span className="text-2xl sm:text-3xl font-black text-white">3.5% <span className="text-yellow-400">+ IVA</span> <span className="text-xs font-normal">por cada venta</span></span>
-          </div>
-          
-          <p className="text-[11px] opacity-70 font-medium">Tu dinero al instante en tu cuenta de Mercado Pago Standard los 365 días del año.</p>
-        </div>
       </div>
     </div>
   );
