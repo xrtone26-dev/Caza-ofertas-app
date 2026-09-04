@@ -13,70 +13,96 @@ from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from groq import Groq
 
-# ========== MODELOS ==========
 class Product(BaseModel):
-    id: str
-    title: str
+    id: Optional[str] = None
+    title: Optional[str] = None
+    nombre: Optional[str] = None
     description: Optional[str] = None
-    original_price: float
-    discount_price: float
+    original_price: Optional[float] = 0.0
+    discount_price: Optional[float] = 0.0
+    precio: Optional[str] = None
     discount_percentage: Optional[int] = None
+    descuento: Optional[str] = None
     coupon: Optional[str] = None
     affiliate_link: Optional[str] = None
+    link: Optional[str] = None
     image_url: Optional[str] = None
-    active: bool
+    active: bool = True
+    is_exclusive: Optional[bool] = False
     created_at: Optional[datetime] = None
 
 class ProductCreate(BaseModel):
-    id: str
-    title: str
+    id: Optional[str] = None
+    title: Optional[str] = None
+    nombre: Optional[str] = None
     description: Optional[str] = None
-    original_price: float
-    discount_price: float
+    original_price: Optional[float] = 0.0
+    discount_price: Optional[float] = 0.0
+    precio: Optional[str] = None
     discount_percentage: Optional[int] = None
+    descuento: Optional[str] = None
     coupon: Optional[str] = None
     affiliate_link: Optional[str] = None
+    link: Optional[str] = None
     image_url: Optional[str] = None
     active: bool = True
+    is_exclusive: Optional[bool] = False
     created_at: Optional[datetime] = None
 
 class ProductUpdate(BaseModel):
     title: Optional[str] = None
+    nombre: Optional[str] = None
     description: Optional[str] = None
     original_price: Optional[float] = None
     discount_price: Optional[float] = None
+    precio: Optional[str] = None
     discount_percentage: Optional[int] = None
+    descuento: Optional[str] = None
     coupon: Optional[str] = None
     affiliate_link: Optional[str] = None
+    link: Optional[str] = None
     image_url: Optional[str] = None
     active: Optional[bool] = None
+    is_exclusive: Optional[bool] = None
 
 class Offer(BaseModel):
-    id: str
-    type: str
-    title: str
+    id: Optional[str] = None
+    nombre: Optional[str] = None
+    descuento: Optional[str] = None
+    precio: Optional[str] = None
+    link: Optional[str] = None
+    is_exclusive: Optional[bool] = False
+    type: Optional[str] = "oferta"
+    title: Optional[str] = None
     description: Optional[str] = None
     code: Optional[str] = None
-    link: Optional[str] = None
-    active: bool
+    active: Optional[bool] = True
     expires_at: Optional[datetime] = None
 
 class OfferCreate(BaseModel):
-    id: str
-    type: str
-    title: str
+    id: Optional[str] = None
+    nombre: Optional[str] = None
+    descuento: Optional[str] = None
+    precio: Optional[str] = None
+    link: Optional[str] = None
+    is_exclusive: Optional[bool] = False
+    type: Optional[str] = "oferta"
+    title: Optional[str] = None
     description: Optional[str] = None
     code: Optional[str] = None
-    link: Optional[str] = None
-    active: bool = True
+    active: Optional[bool] = True
     expires_at: Optional[datetime] = None
 
 class OfferUpdate(BaseModel):
+    nombre: Optional[str] = None
+    descuento: Optional[str] = None
+    precio: Optional[str] = None
+    link: Optional[str] = None
+    is_exclusive: Optional[bool] = None
     type: Optional[str] = None
     title: Optional[str] = None
     description: Optional[str] = None
     code: Optional[str] = None
-    link: Optional[str] = None
     active: Optional[bool] = None
     expires_at: Optional[datetime] = None
 
@@ -95,7 +121,6 @@ class ChatRequest(BaseModel):
     history: Optional[List[dict]] = []
     systemPrompt: Optional[str] = None 
 
-# ========== CONFIGURACIÓN ==========
 app = FastAPI()
 
 app.add_middleware(
@@ -142,7 +167,6 @@ def get_query_id(item_id: str):
     except InvalidId:
         return {"id": item_id}
 
-# ========== RUTAS PÚBLICAS ==========
 @api_router.get("/products")
 async def get_products():
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
@@ -183,7 +207,6 @@ async def get_offers(type: Optional[str] = None):
         offers.append(doc)
     return offers
 
-# ========== EL CEREBRO DE LA IA CON SUPERPODERES (GROQ) ==========
 @api_router.post("/chat")
 async def ai_chat_endpoint(data: ChatRequest):
     GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
@@ -193,8 +216,8 @@ async def ai_chat_endpoint(data: ChatRequest):
     
     try:
         active_products = await db.products.find({"active": True}).to_list(length=100)
-        
         all_offers = await db.offers.find({"active": True}).to_list(length=100)
+        
         now = datetime.utcnow()
         active_offers = []
         for o in all_offers:
@@ -213,29 +236,27 @@ async def ai_chat_endpoint(data: ChatRequest):
         if active_products:
             db_context += "PRODUCTOS:\n"
             for p in active_products:
-                db_context += f"- {p.get('title')}: Precio Descuento ${p.get('discount_price')}. Link real: {p.get('affiliate_link')}\n"
+                p_title = p.get('nombre') or p.get('title') or 'Producto'
+                p_price = p.get('precio') or p.get('discount_price') or 'N/A'
+                p_link = p.get('link') or p.get('affiliate_link') or 'N/A'
+                db_context += f"- {p_title}: Precio ${p_price}. Link real: {p_link}\n"
         if active_offers:
-            db_context += "\nCUPONES VIGENTES REALES (UTILIZA EXCLUSIVAMENTE ESTOS DATOS):\n"
+            db_context += "\nOFERTAS Y PROMOCIONES VIGENTES:\n"
             for o in active_offers:
-                db_context += f"- Título: {o.get('title')}, Condiciones/Descripción: {o.get('description')}, Código real: '{o.get('code', 'N/A')}', Link real: {o.get('link')}\n"
+                nombre = o.get('nombre') or o.get('title') or 'Oferta'
+                precio = o.get('precio') or 'N/A'
+                descuento = o.get('descuento') or 'N/A'
+                link = o.get('link') or 'N/A'
+                is_excl = o.get('is_exclusive', False)
+                db_context += f"- Producto: {nombre}, Precio: {precio}, Descuento: {descuento}, Exclusivo: {is_excl}, Link: {link}\n"
         else:
-            db_context += "\nCUPONES VIGENTES: NO HAY NINGÚN CUPÓN ACTIVO EN ESTE MOMENTO EN LA BASE DE DATOS.\n"
-        
-        db_context += "\n--- REGLAS ESTRICTAS PARA TUS RESPUESTAS ---\n"
-        db_context += "1. MASCARAR CÓDIGOS EN EL TEXTO: Al mencionar un cupón en tu respuesta, nunca escribas el código completo explícitamente. Escríbelo enmascarado con asteriscos (ej: TERC* or BRON*), asegurándote de incluir el código real en tu texto de referencia interna para que la tarjeta interactiva lo detecte y active el botón.\n"
-        db_context += "2. FLUJO OBLIGATORIO DE CUPONES: Si el usuario pregunta por cupones o descuentos, responde primero pidiendo el monto: 'Permíteme revisar 🧐. ¿Cuál es el monto del producto que pretendes comprar para buscar un cupón acorde a tu producto?'.\n"
-        db_context += "3. FILTRADO: Cuando el usuario responda con el monto, verifica si hay un cupón que aplique. Si aplica, preséntalo mencionando su título y el código enmascarado (ej: TERC*) para desplegar la tarjeta interactiva.\n"
-        db_context += "4. PROHIBIDO ENVIAR ENLACES: Nunca pegues URLs sueltas en tu respuesta.\n"
+            db_context += "\nOFERTAS VIGENTES: NO HAY NINGUNA OFERTA ACTIVA EN ESTE MOMENTO.\n"
 
         ai_client = Groq(api_key=GROQ_API_KEY)
-        messages = []
-        
-        base_prompt = data.systemPrompt if data.systemPrompt else "Eres un asistente experto de CazaOfertasML."
-        messages.append({"role": "system", "content": base_prompt + db_context})
+        messages = [{"role": "system", "content": (data.systemPrompt if data.systemPrompt else "Eres un asistente experto de CazaOfertasML.") + db_context}]
         
         for msg in data.history:
-            role = "user" if msg["sender"] == "user" else "assistant"
-            messages.append({"role": role, "content": msg["text"]})
+            messages.append({"role": "user" if msg["sender"] == "user" else "assistant", "content": msg["text"]})
             
         chat_completion = ai_client.chat.completions.create(
             messages=messages,
@@ -250,7 +271,6 @@ async def ai_chat_endpoint(data: ChatRequest):
         print(f"Error en AI: {str(e)}")
         return {"reply": "¡Uy! Mi procesador está un poco saturado cazando ofertas en este momento. 😅 ¿Puedes intentarlo de nuevo en unos segundos?"}
 
-# ========== RUTAS EXCLUSIVAS PARA EL BOT (INTELLIJ IDEA) ==========
 @api_router.post("/api/bot/products")
 async def bot_create_product(product: ProductCreate, x_api_key: Optional[str] = Header(None)):
     if x_api_key != BOT_API_KEY:
@@ -260,16 +280,8 @@ async def bot_create_product(product: ProductCreate, x_api_key: Optional[str] = 
     if not prod_dict.get("created_at"):
         prod_dict["created_at"] = datetime.utcnow()
         
-    if prod_dict.get('original_price') and prod_dict.get('discount_price') and prod_dict['original_price'] > 0:
-        orig = prod_dict['original_price']
-        disc = prod_dict['discount_price']
-        prod_dict['discount_percentage'] = int(((orig - disc) / orig) * 100)
-
-    await db.products.update_one(
-        {"id": prod_dict["id"]}, 
-        {"$set": prod_dict}, 
-        upsert=True
-    )
+    filter_query = {"id": prod_dict["id"]} if prod_dict.get("id") else {"nombre": prod_dict.get("nombre")}
+    await db.products.update_one(filter_query, {"$set": prod_dict}, upsert=True)
     return {"success": True, "message": "Producto sincronizado por el bot exitosamente"}
 
 @api_router.post("/api/bot/offers")
@@ -278,14 +290,10 @@ async def bot_create_offer(offer: OfferCreate, x_api_key: Optional[str] = Header
         raise HTTPException(status_code=401, detail="No autorizado: API Key incorrecta")
     
     offer_dict = offer.model_dump()
-    await db.offers.update_one(
-        {"id": offer_dict["id"]}, 
-        {"$set": offer_dict}, 
-        upsert=True
-    )
-    return {"success": True, "message": "Cupón sincronizado por el bot exitosamente"}
+    filter_query = {"id": offer_dict["id"]} if offer_dict.get("id") else {"nombre": offer_dict.get("nombre")}
+    await db.offers.update_one(filter_query, {"$set": offer_dict}, upsert=True)
+    return {"success": True, "message": "Oferta sincronizada por el bot exitosamente"}
 
-# ========== RUTAS DE ADMINISTRACIÓN ==========
 @api_router.post("/admin/login")
 async def admin_login(request: AdminLoginRequest):
     current_pw = await get_admin_password()
@@ -295,17 +303,21 @@ async def admin_login(request: AdminLoginRequest):
 
 @api_router.post("/admin/recover")
 async def recover_admin_password(request: RecoverRequest):
-    if request.identifier != ADMIN_EMAIL and request.identifier != "admin":
+    config = await db.config.find_one({"_id": "admin_settings"})
+    stored_email = config.get("email", ADMIN_EMAIL) if config else ADMIN_EMAIL
+    stored_username = config.get("username", "admin") if config else "admin"
+
+    if request.identifier != stored_email and request.identifier != stored_username:
         raise HTTPException(status_code=404, detail="Usuario o correo no encontrado")
     
     temp_password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
     await set_admin_password(temp_password)
     
     try:
-        msg = MIMEText(f"¡Al rescate! 🦸‍♂️ Tu clave provisional es: {temp_password}\nUna vez dentro, en la pestaña de inicio de sesión, recuerda cambiar tu contraseña.")
+        msg = MIMEText(f"¡Al rescate! 🦸‍♂️ Tu usuario es: {stored_username} y tu clave provisional es: {temp_password}\nUna vez dentro, en la pestaña de inicio de sesión, recuerda cambiar tu contraseña.")
         msg['Subject'] = 'Recuperación de contraseña - CazaOfertas'
-        msg['From'] = os.getenv("SMTP_USER", "noreply@cazaofertas.com")
-        msg['To'] = ADMIN_EMAIL
+        msg['From'] = os.getenv("SMTP_USER", stored_email)
+        msg['To'] = stored_email
         
         smtp_server = os.getenv("SMTP_SERVER")
         if smtp_server:
@@ -314,7 +326,7 @@ async def recover_admin_password(request: RecoverRequest):
                 server.login(os.getenv("SMTP_USER"), os.getenv("SMTP_PASSWORD"))
                 server.send_message(msg)
         else:
-            print(f"🐝 Bzz bzz! (Simulando envío a {ADMIN_EMAIL}) Tu clave provisional es {temp_password}")
+            print(f"🐝 Bzz bzz! (Simulando envío a {stored_email}) Usuario: {stored_username}, Clave provisional: {temp_password}")
     except Exception as e:
         print(f"Error enviando correo: {e}")
         
@@ -360,14 +372,6 @@ async def update_product(product_id: str, product_data: ProductUpdate, password:
     update_dict = {k: v for k, v in product_data.model_dump().items() if v is not None}
     if not update_dict:
         raise HTTPException(status_code=400, detail="No hay datos para actualizar")
-    
-    if 'original_price' in update_dict or 'discount_price' in update_dict:
-        product = await db.products.find_one(get_query_id(product_id), {"_id": 0})
-        if product:
-            original = update_dict.get('original_price', product.get('original_price', 0))
-            discount = update_dict.get('discount_price', product.get('discount_price', 0))
-            if original > 0:
-                update_dict['discount_percentage'] = int(((original - discount) / original) * 100)
     
     result = await db.products.update_one(get_query_id(product_id), {"$set": update_dict})
     if result.matched_count == 0:
@@ -427,7 +431,7 @@ async def delete_offer(offer_id: str, password: str):
         raise HTTPException(status_code=401, detail="No autorizado")
     result = await db.offers.delete_one(get_query_id(offer_id))
     if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Oferta no encontrado")
+        raise HTTPException(status_code=404, detail="Oferta no encontrada")
     return {"success": True, "message": "Oferta eliminada"}
 
 app.include_router(api_router)
