@@ -58,6 +58,19 @@ import ChatbotWidget from './components/ChatbotWidget';
 import ProfileModal from './components/ProfileModal';
 import AdminDashboard, { decodeCoupon } from './components/AdminDashboard'; 
 
+import visa from "./assets/payment-logos/visa.svg";
+import mastercard from "./assets/payment-logos/mastercard.svg";
+import amex from "./assets/payment-logos/amex.svg";
+import applePay from "./assets/payment-logos/apple-pay.svg";
+import googlePay from "./assets/payment-logos/google-pay.svg";
+import samsungPay from "./assets/payment-logos/samsung-pay.svg";
+import carnet from "./assets/payment-logos/carnet.svg";
+import siVale from "./assets/payment-logos/si-vale.svg";
+import toka from "./assets/payment-logos/toka.svg";
+import tengo from "./assets/payment-logos/tengo.svg";
+import edenred from "./assets/payment-logos/edenred.svg";
+import pluxee from "./assets/payment-logos/pluxee.svg";
+
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
@@ -1660,32 +1673,71 @@ function App() {
         )}
       </div>
 
-      {/* SECCIÓN INFERIOR DE FORMAS DE PAGO Y TASAS (CON VALES ACTUALIZADOS) */}
+      {/* SECCIÓN INFERIOR DE FORMAS DE PAGO Y TASAS CON LOGOS OFICIALES SVG */}
       <div className={`mt-12 rounded-3xl p-8 sm:p-12 shadow-xl border ${
         isLight ? 'bg-white border-gray-200 text-gray-800' : 'bg-neutral-900 border-neutral-800 text-neutral-100'
       }`}>
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <h3 className="text-2xl sm:text-3xl font-black mb-3">Acepta todas las formas de pago</h3>
-          <p className="text-sm font-medium opacity-80">¡Ofrece a tus clientes pagar en hasta 24 meses sin intereses!</p>
-          
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
-            <span className="px-4 py-2 rounded-xl border-2 border-blue-600 text-blue-600 bg-blue-50 font-black text-xs shadow-sm">VISA</span>
-            <span className="px-4 py-2 rounded-xl border-2 border-red-500 text-red-500 bg-red-50 font-black text-xs shadow-sm">Mastercard</span>
-            <span className="px-4 py-2 rounded-xl border-2 border-cyan-600 text-cyan-600 bg-cyan-50 font-black text-xs shadow-sm">AMEX</span>
-            <span className="px-4 py-2 rounded-xl border-2 border-black text-black bg-white font-black text-xs shadow-sm">Apple Pay</span>
-            <span className="px-4 py-2 rounded-xl border-2 border-gray-700 text-gray-800 bg-gray-100 font-black text-xs shadow-sm">Google Pay</span>
-            <span className="px-4 py-2 rounded-xl border-2 border-blue-800 text-blue-900 bg-blue-100 font-black text-xs shadow-sm">Samsung Pay</span>
+        
+        <div className="payment-methods">
+          <h2>Acepta todas las formas de pago</h2>
+
+          <p className="payment-subtitle">
+            ¡Ofrece a tus clientes pagar en hasta 24 meses sin intereses!
+          </p>
+
+          <div className="payment-logos">
+            <div className="payment-logo">
+              <img src={visa} alt="Visa" />
+            </div>
+
+            <div className="payment-logo">
+              <img src={mastercard} alt="Mastercard" />
+            </div>
+
+            <div className="payment-logo">
+              <img src={amex} alt="American Express" />
+            </div>
+
+            <div className="payment-logo">
+              <img src={applePay} alt="Apple Pay" />
+            </div>
+
+            <div className="payment-logo">
+              <img src={googlePay} alt="Google Pay" />
+            </div>
+
+            <div className="payment-logo">
+              <img src={samsungPay} alt="Samsung Pay" />
+            </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-neutral-700/50">
-            <p className="text-xs font-bold uppercase tracking-wider mb-4 opacity-70">Vales de despensa y restaurante</p>
-            <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-black">
-              <span className="px-4 py-2 rounded-xl border-2 border-red-600 text-red-500 bg-red-950/40 shadow-sm">CARNET</span>
-              <span className="px-4 py-2 rounded-xl border-2 border-orange-500 text-orange-400 bg-orange-950/40 shadow-sm">Sí Vale</span>
-              <span className="px-4 py-2 rounded-xl border-2 border-blue-600 text-blue-400 bg-blue-950/40 shadow-sm">Toka</span>
-              <span className="px-4 py-2 rounded-xl border-2 border-cyan-500 text-cyan-400 bg-cyan-950/40 shadow-sm">Tengo</span>
-              <span className="px-4 py-2 rounded-xl border-2 border-red-600 text-red-500 bg-red-950/40 shadow-sm">Edenred</span>
-              <span className="px-4 py-2 rounded-xl border-2 border-purple-500 text-purple-400 bg-purple-950/40 shadow-sm">Pluxee</span>
+          <div className="payment-divider"></div>
+
+          <h3>VALES DE DESPENSA Y RESTAURANTE</h3>
+
+          <div className="voucher-logos">
+            <div className="voucher-logo">
+              <img src={carnet} alt="Carnet" />
+            </div>
+
+            <div className="voucher-logo">
+              <img src={siVale} alt="Sí Vale" />
+            </div>
+
+            <div className="voucher-logo">
+              <img src={toka} alt="Toka" />
+            </div>
+
+            <div className="voucher-logo">
+              <img src={tengo} alt="Tengo" />
+            </div>
+
+            <div className="voucher-logo">
+              <img src={edenred} alt="Edenred" />
+            </div>
+
+            <div className="voucher-logo">
+              <img src={pluxee} alt="Pluxee" />
             </div>
           </div>
         </div>
@@ -1745,7 +1797,7 @@ function App() {
           <p className={`text-sm md:text-base max-w-xl mx-auto font-medium ${
             isLight ? 'text-gray-600' : 'text-neutral-400'
           }`}>
-            Mira los productos en action y adquiere el artículo recomendado. 🚀
+            Mira los productos in action y adquiere el artículo recomendado. 🚀
           </p>
         </div>
         <YoutubeReelsPlayer 
@@ -1844,7 +1896,7 @@ function App() {
               </h3>
 
               <p className="text-sm leading-relaxed mb-6 opacity-90">
-                Tenemos beneficios exclusivos para ti. Jugando, interactuando y descubriendo ofertas en nossa plataforma, podrás <strong>ganar premios cada mes</strong> si te encuentras entre los usuarios con mayor actividad.
+                Tenemos beneficios exclusivos para ti. Jugando, interactuando y descubriendo ofertas en nuestra plataforma, podrás <strong>ganar premios cada mes</strong> si te encuentras entre los usuarios con mayor actividad.
               </p>
 
               <div className="flex gap-3">
