@@ -58,6 +58,19 @@ import ChatbotWidget from './components/ChatbotWidget';
 import ProfileModal from './components/ProfileModal';
 import AdminDashboard, { decodeCoupon } from './components/AdminDashboard'; 
 
+import visa from "./assets/payment-logos/visa.svg";
+import mastercard from "./assets/payment-logos/mastercard.svg";
+import amex from "./assets/payment-logos/amex.svg";
+import applePay from "./assets/payment-logos/apple-pay.svg";
+import googlePay from "./assets/payment-logos/google-pay.svg";
+import samsungPay from "./assets/payment-logos/samsung-pay.svg";
+import carnet from "./assets/payment-logos/carnet.svg";
+import siVale from "./assets/payment-logos/si-vale.svg";
+import toka from "./assets/payment-logos/toka.svg";
+import tengo from "./assets/payment-logos/tengo.svg";
+import edenred from "./assets/payment-logos/edenred.svg";
+import pluxee from "./assets/payment-logos/pluxee.svg";
+
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
@@ -566,6 +579,18 @@ function App() {
 
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [mobileTab, setMobileTab] = useState('cupones');
+
+  // Estado para el simulador de rendimiento financiero
+  const [montoAhorro, setMontoAhorro] = useState(10000);
+
+  const handleMontoChange = (e) => {
+    const rawDigits = e.target.value.replace(/\D/g, '');
+    setMontoAhorro(rawDigits === '' ? 0 : Number(rawDigits));
+  };
+
+  const tasaAnual = 0.13;
+  const gananciaAnual = montoAhorro * tasaAnual;
+  const gananciaMensual = gananciaAnual / 12;
 
   const [manualExclusives, setManualExclusives] = useState(() => {
     try {
@@ -1673,12 +1698,24 @@ function App() {
           </p>
 
           <div className="payment-logos flex flex-wrap justify-center items-center gap-3">
-            <div className="payment-logo bg-white text-blue-800 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">VISA</div>
-            <div className="payment-logo bg-white text-red-600 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">Mastercard</div>
-            <div className="payment-logo bg-white text-cyan-600 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">AMEX</div>
-            <div className="payment-logo bg-white text-black font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">Apple Pay</div>
-            <div className="payment-logo bg-white text-gray-800 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">Google Pay</div>
-            <div className="payment-logo bg-white text-blue-900 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">Samsung Pay</div>
+            <div className="payment-logo bg-white text-blue-800 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">
+              <img src={visa} alt="Visa" className="max-h-7 object-contain" />
+            </div>
+            <div className="payment-logo bg-white text-red-600 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">
+              <img src={mastercard} alt="Mastercard" className="max-h-7 object-contain" />
+            </div>
+            <div className="payment-logo bg-white text-cyan-600 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">
+              <img src={amex} alt="American Express" className="max-h-7 object-contain" />
+            </div>
+            <div className="payment-logo bg-white text-black font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">
+              <img src={applePay} alt="Apple Pay" className="max-h-7 object-contain" />
+            </div>
+            <div className="payment-logo bg-white text-gray-800 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">
+              <img src={googlePay} alt="Google Pay" className="max-h-7 object-contain" />
+            </div>
+            <div className="payment-logo bg-white text-blue-900 font-black px-4 py-2 rounded-xl shadow-sm border border-gray-200">
+              <img src={samsungPay} alt="Samsung Pay" className="max-h-7 object-contain" />
+            </div>
           </div>
 
           <div className="payment-divider w-[92%] h-[1px] bg-neutral-700 my-8 mx-auto"></div>
@@ -1686,39 +1723,85 @@ function App() {
           <h4 className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-neutral-400 mb-4">VALES DE DESPENSA Y RESTAURANTE</h4>
 
           <div className="voucher-logos flex flex-wrap justify-center items-center gap-3">
-            <div className="voucher-logo bg-neutral-950 text-red-500 border border-red-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">CARNET</div>
-            <div className="voucher-logo bg-neutral-950 text-orange-400 border border-orange-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">Sí Vale</div>
-            <div className="voucher-logo bg-neutral-950 text-blue-400 border border-blue-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">Toka</div>
-            <div className="voucher-logo bg-neutral-950 text-cyan-400 border border-cyan-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">Tengo</div>
-            <div className="voucher-logo bg-neutral-950 text-red-500 border border-red-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">Edenred</div>
-            <div className="voucher-logo bg-neutral-950 text-purple-400 border border-purple-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">Pluxee</div>
+            <div className="voucher-logo bg-neutral-950 text-red-500 border border-red-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">
+              <img src={carnet} alt="Carnet" className="max-h-7 object-contain" />
+            </div>
+            <div className="voucher-logo bg-neutral-950 text-orange-400 border border-orange-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">
+              <img src={siVale} alt="Sí Vale" className="max-h-7 object-contain" />
+            </div>
+            <div className="voucher-logo bg-neutral-950 text-blue-400 border border-blue-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">
+              <img src={toka} alt="Toka" className="max-h-7 object-contain" />
+            </div>
+            <div className="voucher-logo bg-neutral-950 text-cyan-400 border border-cyan-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">
+              <img src={tengo} alt="Tengo" className="max-h-7 object-contain" />
+            </div>
+            <div className="voucher-logo bg-neutral-950 text-red-500 border border-red-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">
+              <img src={edenred} alt="Edenred" className="max-h-7 object-contain" />
+            </div>
+            <div className="voucher-logo bg-neutral-950 text-purple-400 border border-purple-900/50 font-black px-3.5 py-2 rounded-xl shadow-sm text-xs">
+              <img src={pluxee} alt="Pluxee" className="max-h-7 object-contain" />
+            </div>
           </div>
         </div>
 
-        {/* NUEVA SECCIÓN: ELIGE E INVITA CON TU LINK OFICIAL */}
-        <div className="max-w-xl mx-auto my-10 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 rounded-3xl p-6 sm:p-8 text-black shadow-2xl border-4 border-black relative overflow-hidden">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
-            <div className="flex flex-col text-left">
-              <span className="bg-black text-yellow-400 font-black text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider self-start mb-2 shadow-sm">
-                ¡Elige e Invita! 🚀
-              </span>
-              <h3 className="text-2xl font-black mb-1">Gana $100 por cada contacto</h3>
-              <p className="text-xs font-bold text-black/80 mb-4 leading-relaxed">
-                Comparte tu enlace de Mercado Pago y obtén recompensas por cada amigo que empiece a usar la app.
-              </p>
-              <a
-                href="https://api.whatsapp.com/send?text=%C2%A1Hola%21%20%C3%9Anete%20a%20Mercado%20Pago%20con%20mi%20enlace%20exclusivo%20y%20disfruta%20de%20incre%C3%ADbles%20beneficios%3A%20https%3A%2F%2Fmpago.li%2F1b2fbXt"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-black hover:bg-neutral-900 text-yellow-400 font-black px-5 py-3 rounded-xl text-xs uppercase transition-transform hover:scale-105 flex items-center justify-center gap-2 shadow-md border-2 border-black self-start"
-              >
-                <span>💬 Invitar por WhatsApp</span>
-              </a>
-            </div>
-            <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-2xl border-4 border-black flex items-center justify-center flex-shrink-0 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <Smartphone className="w-12 h-12 text-black animate-pulse" />
+        {/* NUEVO SIMULADOR DE RENDIMIENTO FINANCIERO DE MERCADO PAGO */}
+        <div className="max-w-xl mx-auto my-10 bg-gradient-to-br from-neutral-900 via-neutral-950 to-black rounded-3xl p-6 sm:p-8 text-white shadow-2xl border-4 border-yellow-400 relative overflow-hidden">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="bg-yellow-400 text-black font-black text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider">
+              💰 SIMULADOR DE RENDIMIENTO
+            </span>
+          </div>
+
+          <h3 className="text-2xl sm:text-3xl font-black mb-1 text-yellow-400">¿Cuánto podría generar tu dinero?</h3>
+          <p className="text-xs text-neutral-300 mb-6">Calcula el crecimiento aproximado de tus ahorros con la tasa de rendimiento de Mercado Pago.</p>
+
+          <div className="mb-5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
+              ¿Cuánto tienes pensado guardar?
+            </label>
+            <div className="relative flex items-center">
+              <span className="absolute left-4 text-xl font-black text-yellow-400">$</span>
+              <input
+                type="text"
+                value={montoAhorro ? montoAhorro.toLocaleString('en-US') : ''}
+                onChange={handleMontoChange}
+                placeholder="10,000"
+                className="w-full bg-neutral-900 border-2 border-yellow-400/60 rounded-2xl py-3.5 pl-10 pr-4 text-xl font-black text-white focus:outline-none focus:border-yellow-400 shadow-inner"
+              />
             </div>
           </div>
+
+          <div className="text-xs font-bold text-yellow-400/90 mb-6 bg-yellow-400/10 border border-yellow-400/30 rounded-xl p-3 text-center shadow-sm">
+            📈 A una tasa de referencia de hasta 13% anual*
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 text-center">
+              <span className="block text-[10px] font-bold uppercase text-neutral-400 mb-1">Ganancia anual aproximada</span>
+              <span className="text-2xl font-black text-green-400">
+                ${gananciaAnual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 text-center">
+              <span className="block text-[10px] font-bold uppercase text-neutral-400 mb-1">Ganancia mensual aproximada</span>
+              <span className="text-2xl font-black text-green-400">
+                ${gananciaMensual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+          </div>
+
+          <a
+            href="https://mpago.li/1b2fbXt"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-4 rounded-2xl text-sm uppercase transition-transform hover:scale-[1.02] flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_#ca8a04] border-2 border-yellow-600 mb-4"
+          >
+            <span>🚀 QUIERO EMPEZAR</span>
+          </a>
+
+          <p className="text-[10px] text-neutral-400 text-center leading-relaxed opacity-80">
+            * Ejemplo ilustrativo. No representa una garantía de rendimiento. La tasa y condiciones aplicables son las vigentes en Mercado Pago.
+          </p>
         </div>
 
         <div className="max-w-xl mx-auto bg-neutral-950 border-2 border-yellow-400/50 rounded-3xl p-6 sm:p-8 text-center shadow-lg">
