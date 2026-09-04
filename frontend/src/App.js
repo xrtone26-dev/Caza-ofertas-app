@@ -1425,7 +1425,7 @@ function App() {
       <div className="bg-[#FFE600] rounded-3xl p-6 sm:p-10 mb-8 text-black shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border-4 border-black">
         <div className="flex flex-col items-start text-left max-w-xl z-10">
           <span className="bg-black text-yellow-400 font-black text-xs px-3 py-1 rounded-full mb-3 uppercase tracking-wider">
-            Oferta Especial Point
+            OMAR FERNANDO TE ENVIÓ UNA OFERTA PARA TERMINALES POINT
           </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-4 leading-tight">
             Vende con terminal Point, recibe tu dinero al instante
@@ -1433,25 +1433,33 @@ function App() {
           <p className="font-bold text-sm sm:text-base mb-6 text-black/90">
             Lleva gratis una Tarjeta Debit Mastercard® para usar tu dinero.
           </p>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 items-center">
             <a 
               href="https://mercadolibre.com/sec/1XFPeWr" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="bg-blue-600 hover:bg-blue-700 text-white font-black px-6 py-3.5 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black text-sm uppercase transition-transform hover:scale-105"
+              className="bg-[#3483fa] hover:bg-[#2968c8] text-white font-black px-6 py-3.5 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black text-sm uppercase transition-transform hover:scale-105"
             >
               Elegir terminal
             </a>
-            <div className="flex items-center gap-2 font-black text-xs sm:text-sm bg-white/80 px-4 py-3.5 rounded-2xl border-2 border-black">
+            <div className="flex items-center gap-2 font-black text-xs sm:text-sm bg-white px-4 py-3.5 rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <Truck size={18} /> Llega gratis hoy (*)
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full pt-6 border-t-2 border-black/20 z-10">
+        <div className="z-10 flex justify-center">
+          <img 
+            src="https://http2.mlstatic.com/storage/pog-cm-admin/calm-assets/multi-mlm-hero--b6703c46.png" 
+            alt="Terminales Point Mercado Pago" 
+            className="max-w-[280px] sm:max-w-[360px] md:max-w-[420px] h-auto object-contain drop-shadow-xl"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full pt-6 border-t-2 border-black/20 z-10 md:col-span-2">
           <div className="flex items-center gap-2 text-xs font-black">
             <DollarSign size={20} className="text-black flex-shrink-0" />
-            <span>Crédito inmediato y a tu medida</span>
+            <span>Crédito inmediato y a tu medida²</span>
           </div>
           <div className="flex items-center gap-2 text-xs font-black">
             <Calendar size={20} className="text-black flex-shrink-0" />
