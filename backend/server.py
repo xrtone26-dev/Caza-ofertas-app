@@ -397,6 +397,22 @@ async def delete_product(product_id: str, password: str):
         raise HTTPException(status_code=404, detail="Producto no encontrado")
     return {"success": True, "message": "Producto eliminado"}
 
+@api_router.delete("/admin/products")
+async def clear_non_exclusive_products(password: str):
+    current_pw = await get_admin_password()
+    if password != current_pw:
+        raise HTTPException(status_code=401, detail="No autorizado")
+    
+    # 🔒 BLINDAJE TOTAL: Elimina exclusivamente los productos normales o sin bandera.
+    # Las terminales exclusivas (is_exclusive: true) quedan completamente intocables.
+    result = await db.products.delete_many({
+        "$or": [
+            {"is_exclusive": False},
+            {"is_exclusive": {"$exists": False}}
+        ]
+    })
+    return {"success": True, "message": f"{result.deleted_count} productos normales eliminados. Terminales exclusivas protegidas."}
+
 @api_router.get("/admin/offers")
 async def get_admin_offers(password: str):
     current_pw = await get_admin_password()
@@ -441,6 +457,6 @@ async def delete_offer(offer_id: str, password: str):
     result = await db.offers.delete_one(get_query_id(offer_id))
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Oferta no encontrada")
-    return {"success": True, "message": "Oferta eliminada"}
+    return {"success": True, "message": "Oferta eliminado"}
 
 app.include_router(api_router)
