@@ -42,6 +42,7 @@ import {
   Truck,
   DollarSign,
   Calendar,
+  Smartphone,
 } from 'lucide-react';
 import {
   FaWhatsapp,
@@ -1659,7 +1660,7 @@ function App() {
         )}
       </div>
 
-      {/* SECCIÓN INFERIOR DE FORMAS DE PAGO Y TASAS (IMAGEN 5) */}
+      {/* SECCIÓN INFERIOR DE FORMAS DE PAGO Y TASAS (CON VALES ACTUALIZADOS) */}
       <div className={`mt-12 rounded-3xl p-8 sm:p-12 shadow-xl border ${
         isLight ? 'bg-white border-gray-200 text-gray-800' : 'bg-neutral-900 border-neutral-800 text-neutral-100'
       }`}>
@@ -1667,24 +1668,50 @@ function App() {
           <h3 className="text-2xl sm:text-3xl font-black mb-3">Acepta todas las formas de pago</h3>
           <p className="text-sm font-medium opacity-80">¡Ofrece a tus clientes pagar en hasta 24 meses sin intereses!</p>
           
-          <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
-            <div className="px-4 py-2 bg-white text-black font-black text-xs rounded-xl border-2 border-neutral-300 shadow-sm flex items-center gap-1.5">
-              💳 Tarjetas de crédito y débito
-            </div>
-            <div className="px-4 py-2 bg-white text-black font-black text-xs rounded-xl border-2 border-neutral-300 shadow-sm flex items-center gap-1.5">
-              📱 Códigos QR y Dinero en cuenta
-            </div>
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
+            <span className="px-4 py-2 rounded-xl border-2 border-blue-600 text-blue-600 bg-blue-50 font-black text-xs shadow-sm">VISA</span>
+            <span className="px-4 py-2 rounded-xl border-2 border-red-500 text-red-500 bg-red-50 font-black text-xs shadow-sm">Mastercard</span>
+            <span className="px-4 py-2 rounded-xl border-2 border-cyan-600 text-cyan-600 bg-cyan-50 font-black text-xs shadow-sm">AMEX</span>
+            <span className="px-4 py-2 rounded-xl border-2 border-black text-black bg-white font-black text-xs shadow-sm">Apple Pay</span>
+            <span className="px-4 py-2 rounded-xl border-2 border-gray-700 text-gray-800 bg-gray-100 font-black text-xs shadow-sm">Google Pay</span>
+            <span className="px-4 py-2 rounded-xl border-2 border-blue-800 text-blue-900 bg-blue-100 font-black text-xs shadow-sm">Samsung Pay</span>
           </div>
 
           <div className="mt-8 pt-6 border-t border-neutral-700/50">
             <p className="text-xs font-bold uppercase tracking-wider mb-4 opacity-70">Vales de despensa y restaurante</p>
             <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-black">
-              <span className="px-3.5 py-1.5 rounded-lg border border-red-500 text-red-500 bg-red-500/10">CARNET</span>
-              <span className="px-3.5 py-1.5 rounded-lg border border-orange-500 text-orange-500 bg-orange-500/10">Sí Vale</span>
-              <span className="px-3.5 py-1.5 rounded-lg border border-blue-500 text-blue-500 bg-blue-500/10">Toka</span>
-              <span className="px-3.5 py-1.5 rounded-lg border border-cyan-500 text-cyan-500 bg-cyan-500/10">Tengo</span>
-              <span className="px-3.5 py-1.5 rounded-lg border border-red-600 text-red-600 bg-red-600/10">Edenred</span>
-              <span className="px-3.5 py-1.5 rounded-lg border border-purple-500 text-purple-500 bg-purple-500/10">Pluxee</span>
+              <span className="px-4 py-2 rounded-xl border-2 border-red-600 text-red-500 bg-red-950/40 shadow-sm">CARNET</span>
+              <span className="px-4 py-2 rounded-xl border-2 border-orange-500 text-orange-400 bg-orange-950/40 shadow-sm">Sí Vale</span>
+              <span className="px-4 py-2 rounded-xl border-2 border-blue-600 text-blue-400 bg-blue-950/40 shadow-sm">Toka</span>
+              <span className="px-4 py-2 rounded-xl border-2 border-cyan-500 text-cyan-400 bg-cyan-950/40 shadow-sm">Tengo</span>
+              <span className="px-4 py-2 rounded-xl border-2 border-red-600 text-red-500 bg-red-950/40 shadow-sm">Edenred</span>
+              <span className="px-4 py-2 rounded-xl border-2 border-purple-500 text-purple-400 bg-purple-950/40 shadow-sm">Pluxee</span>
+            </div>
+          </div>
+        </div>
+
+        {/* NUEVA SECCIÓN: ELIGE E INVITA CON TU LINK OFICIAL */}
+        <div className="max-w-xl mx-auto my-10 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 rounded-3xl p-6 sm:p-8 text-black shadow-2xl border-4 border-black relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
+            <div className="flex flex-col text-left">
+              <span className="bg-black text-yellow-400 font-black text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider self-start mb-2 shadow-sm">
+                ¡Elige e Invita! 🚀
+              </span>
+              <h3 className="text-2xl font-black mb-1">Gana $100 por cada contacto</h3>
+              <p className="text-xs font-bold text-black/80 mb-4 leading-relaxed">
+                Comparte tu enlace de Mercado Pago y obtén recompensas por cada amigo que empiece a usar la app.
+              </p>
+              <a
+                href="https://api.whatsapp.com/send?text=%C2%A1Hola%21%20%C3%9Anete%20a%20Mercado%20Pago%20con%20mi%20enlace%20exclusivo%20y%20disfruta%20de%20incre%C3%ADbles%20beneficios%3A%20https%3A%2F%2Fmpago.li%2F1b2fbXt"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-black hover:bg-neutral-900 text-yellow-400 font-black px-5 py-3 rounded-xl text-xs uppercase transition-transform hover:scale-105 flex items-center justify-center gap-2 shadow-md border-2 border-black self-start"
+              >
+                <span>💬 Invitar por WhatsApp</span>
+              </a>
+            </div>
+            <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-2xl border-4 border-black flex items-center justify-center flex-shrink-0 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <Smartphone className="w-12 h-12 text-black animate-pulse" />
             </div>
           </div>
         </div>
@@ -2220,7 +2247,6 @@ function App() {
                 }`}
               >
                 <span>🌙 Tema Oscuro</span>
-                previousode
                 {themeMode === 'dark' && <span className="font-black">✓</span>}
               </button>
             </div>
