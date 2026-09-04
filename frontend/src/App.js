@@ -1017,15 +1017,11 @@ function App() {
 
   const isLight = themeMode === 'light';
   
-  // 1. FILTRADO ROBUSTO: Reglas automáticas + Control Manual por ID (`manualExclusives`)
+  // 1. FILTRADO CORREGIDO: Únicamente bandera de base de datos o selección manual de admin.
   const exclusiveProducts = products.filter(p => {
     const pId = getSafeId(p) || p.title;
     const isManual = manualExclusives.includes(pId);
     if (isManual) return true;
-
-    const title = (p.title || '').toLowerCase();
-    const type = (p.type || '').toLowerCase();
-    const category = (p.category || '').toLowerCase();
 
     return (
       p.is_exclusive === true || 
@@ -1035,19 +1031,7 @@ function App() {
       p.is_exclusive === 'yes' || 
       p.is_exclusive === 'on' ||
       p.exclusive === true ||
-      p.exclusive === 'true' ||
-      p.is_terminal === true ||
-      p.is_mp === true ||
-      type.includes('exclusive') || 
-      type.includes('terminal') || 
-      type.includes('mp') ||
-      category.includes('exclusive') || 
-      category.includes('terminal') || 
-      category.includes('mp') ||
-      Boolean(p.features) ||
-      Boolean(p.specs) ||
-      Boolean(p.installments_text) ||
-      /\b(point|smart|terminal|clip|mp)\b/i.test(title)
+      p.exclusive === 'true'
     );
   });
 
