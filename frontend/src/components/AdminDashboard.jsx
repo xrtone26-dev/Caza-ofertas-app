@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { X, Plus, Edit2, Trash2, Video, Copy, ShoppingCart, Image as ImageIcon, Star, Lock, Sparkles, CreditCard } from 'lucide-react';
 import axios from 'axios';
+import CouponsAdminBank from './CouponsAdminBank';
 
 export const decodeCoupon = (offer) => {
   let expires_at = offer.expires_at;
@@ -41,20 +42,6 @@ export default function AdminDashboard({
   
   const [showAddPromoModal, setShowAddPromoModal] = useState(false);
   const [editingPromo, setEditingPromo] = useState(null);
-
-  // Estados para Cupones Bancarios
-  const [showAddBankCouponModal, setShowAddBankCouponModal] = useState(false);
-  const [editingBankCoupon, setEditingBankCoupon] = useState(null);
-  const [newBankCoupon, setNewBankCoupon] = useState({
-    type: 'bancario',
-    banco: '',
-    tipo: '',
-    code: '',
-    discount: '',
-    min_purchase: '',
-    tope: '',
-    active: true,
-  });
   
   const [showDeleteAllProductsModal, setShowDeleteAllProductsModal] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false); 
@@ -321,43 +308,6 @@ export default function AdminDashboard({
     }
   };
 
-  // Funciones para Cupones Bancarios
-  const handleCreateBankCoupon = async () => {
-    try {
-      const couponData = {
-        ...newBankCoupon,
-        type: 'bancario',
-        id: 'bank_' + Date.now(),
-      };
-      await axios.post(`${API}/admin/offers?password=${adminPassword}`, couponData);
-      setShowAddBankCouponModal(false);
-      setNewBankCoupon({
-        type: 'bancario', banco: '', tipo: '', code: '', discount: '', min_purchase: '', tope: '', active: true,
-      });
-      loadAllOffers();
-      if (loadPublicOffers) loadPublicOffers();
-    } catch (error) {
-      console.error("Error al crear cupón bancario:", error);
-      alert('Error al crear cupón bancario');
-    }
-  };
-
-  const handleUpdateBankCoupon = async (couponOrId, updates) => {
-    try {
-      const couponId = getSafeId(couponOrId);
-      if (!couponId) return;
-      const updateData = { ...updates, type: 'bancario' };
-      await axios.patch(`${API}/admin/offers/${couponId}?password=${adminPassword}`, updateData);
-      loadAllOffers();
-      if (loadPublicOffers) loadPublicOffers();
-      setEditingBankCoupon(null);
-      setShowAddBankCouponModal(false);
-    } catch (error) {
-      console.error("Error al actualizar cupón bancario:", error);
-      alert('Error al actualizar cupón bancario');
-    }
-  };
-
   const handleCreateProduct = async () => {
     try {
       const productData = {
@@ -502,7 +452,6 @@ export default function AdminDashboard({
   };
 
   const regularAdminOffers = allOffers.filter(o => o.type !== 'bancario');
-  const bankAdminOffers = allOffers.filter(o => o.type === 'bancario');
 
   const regularAdminProducts = allProducts.filter(p => !p.is_exclusive && !p.is_promo_card);
   const exclusiveAdminProducts = allProducts.filter(p => p.is_exclusive && !p.is_promo_card);
@@ -769,60 +718,12 @@ export default function AdminDashboard({
             )}
 
             {adminSection === 'bank' && (
-              <>
-                <button
-                  onClick={() => {
-                    setEditingBankCoupon(null);
-                    setNewBankCoupon({
-                      type: 'bancario', banco: '', tipo: '', code: '', discount: '', min_purchase: '', tope: '', active: true,
-                    });
-                    setShowAddBankCouponModal(true);
-                  }}
-                  className="mb-6 bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg"
-                >
-                  <Plus className="w-5 h-5" /> Nuevo Cupón Bancario
-                </button>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {bankAdminOffers.map((bCoupon) => (
-                    <div
-                      key={getSafeId(bCoupon) || bCoupon.code}
-                      className="border-2 rounded-xl p-6 border-blue-300 bg-blue-50/50"
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <span className="px-3 py-1 rounded-full text-xs font-black bg-blue-200 text-blue-900 border border-blue-400 uppercase">
-                          💳 {bCoupon.banco || 'Banco'}
-                        </span>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              setEditingBankCoupon({ ...bCoupon });
-                              setShowAddBankCouponModal(true);
-                            }}
-                            className="text-blue-600 hover:text-blue-800 bg-blue-100 p-1.5 rounded-lg"
-                          >
-                            <Edit2 className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteOffer(bCoupon)}
-                            className="text-red-600 hover:text-red-800 bg-red-100 p-1.5 rounded-lg"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-bold mb-1">{bCoupon.discount}</h3>
-                      <p className="text-gray-600 text-sm font-semibold mb-2">{bCoupon.tipo}</p>
-                      <p className="text-sm text-gray-500 font-mono">
-                        Código: <span className="font-bold text-black uppercase">{bCoupon.code}</span>
-                      </p>
-                      <div className="flex justify-between text-xs text-gray-600 font-bold mt-3 pt-2 border-t border-blue-200">
-                        <span>Compra Mínima: {bCoupon.min_purchase}</span>
-                        <span>Tope: {bCoupon.tope}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
+              <CouponsAdminBank 
+                API={API} 
+                adminPassword={adminPassword} 
+                getSafeId={getSafeId} 
+                loadPublicOffers={loadPublicOffers} 
+              />
             )}
 
             {adminSection === 'products' && (
@@ -1183,129 +1084,6 @@ export default function AdminDashboard({
         </div>
       )}
 
-      {/* MODAL PARA CUPONES BANCARIOS */}
-      {showAddBankCouponModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[110] p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto text-gray-800 shadow-2xl relative border-t-8 border-blue-600">
-            <button
-              onClick={() => {
-                setShowAddBankCouponModal(false);
-                setEditingBankCoupon(null);
-              }}
-              className="absolute top-6 right-6 text-gray-500 hover:text-gray-800 bg-gray-100 p-1.5 rounded-full"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <h2 className="text-2xl font-black mb-4 pr-8 text-blue-600">
-              {editingBankCoupon ? 'Editar Cupón Bancario' : 'Nuevo Cupón Bancario'}
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-gray-700 font-bold mb-1 text-sm">Banco Oficial</label>
-                <select
-                  value={editingBankCoupon ? editingBankCoupon.banco : newBankCoupon.banco}
-                  onChange={(e) => editingBankCoupon ? setEditingBankCoupon({ ...editingBankCoupon, banco: e.target.value }) : setNewBankCoupon({ ...newBankCoupon, banco: e.target.value })}
-                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:border-blue-500 bg-white"
-                >
-                  <option value="">-- Selecciona el Banco --</option>
-                  <option value="Mercado Pago">Mercado Pago</option>
-                  <option value="Banamex">Banamex</option>
-                  <option value="American Express">American Express</option>
-                  <option value="HSBC">HSBC</option>
-                  <option value="Afirme">Afirme</option>
-                  <option value="Openbank">Openbank</option>
-                  <option value="Mifel">Mifel</option>
-                  <option value="BBVA">BBVA</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-gray-700 font-bold mb-1 text-sm">Tipo de Promoción (Ej. Meses sin Tarjeta)</label>
-                <input
-                  type="text"
-                  value={editingBankCoupon ? editingBankCoupon.tipo : newBankCoupon.tipo}
-                  onChange={(e) => editingBankCoupon ? setEditingBankCoupon({ ...editingBankCoupon, tipo: e.target.value }) : setNewBankCoupon({ ...newBankCoupon, tipo: e.target.value })}
-                  placeholder="Ej: Tarjetas Banamex"
-                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:border-blue-500 text-sm"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-700 font-bold mb-1 text-sm">Código del Cupón</label>
-                  <input
-                    type="text"
-                    value={editingBankCoupon ? editingBankCoupon.code : newBankCoupon.code}
-                    onChange={(e) => editingBankCoupon ? setEditingBankCoupon({ ...editingBankCoupon, code: e.target.value }) : setNewBankCoupon({ ...newBankCoupon, code: e.target.value })}
-                    placeholder="MESES99"
-                    className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:border-blue-500 text-sm font-mono uppercase font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700 font-bold mb-1 text-sm">Descuento (Ej. 10% OFF)</label>
-                  <input
-                    type="text"
-                    value={editingBankCoupon ? editingBankCoupon.discount : newBankCoupon.discount}
-                    onChange={(e) => editingBankCoupon ? setEditingBankCoupon({ ...editingBankCoupon, discount: e.target.value }) : setNewBankCoupon({ ...newBankCoupon, discount: e.target.value })}
-                    placeholder="10% OFF"
-                    className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:border-blue-500 text-sm font-bold text-blue-600"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-700 font-bold mb-1 text-sm">Compra Mínima</label>
-                  <input
-                    type="text"
-                    value={editingBankCoupon ? editingBankCoupon.min_purchase : newBankCoupon.min_purchase}
-                    onChange={(e) => editingBankCoupon ? setEditingBankCoupon({ ...editingBankCoupon, min_purchase: e.target.value }) : setNewBankCoupon({ ...newBankCoupon, min_purchase: e.target.value })}
-                    placeholder="$2,500"
-                    className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:border-blue-500 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700 font-bold mb-1 text-sm">Tope de Descuento</label>
-                  <input
-                    type="text"
-                    value={editingBankCoupon ? editingBankCoupon.tope : newBankCoupon.tope}
-                    onChange={(e) => editingBankCoupon ? setEditingBankCoupon({ ...editingBankCoupon, tope: e.target.value }) : setNewBankCoupon({ ...newBankCoupon, tope: e.target.value })}
-                    placeholder="$500"
-                    className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:border-blue-500 text-sm"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center pt-2">
-                <input
-                  type="checkbox"
-                  checked={editingBankCoupon ? editingBankCoupon.active : newBankCoupon.active}
-                  onChange={(e) => editingBankCoupon ? setEditingBankCoupon({ ...editingBankCoupon, active: e.target.checked }) : setNewBankCoupon({ ...newBankCoupon, active: e.target.checked })}
-                  className="w-5 h-5 mr-3 accent-blue-600"
-                />
-                <label className="text-gray-700 font-bold text-sm">Activo (visible en el carrusel bancario)</label>
-              </div>
-
-              <button
-                onClick={() => {
-                  if (editingBankCoupon) {
-                    const cleanUpdates = { ...editingBankCoupon };
-                    const idKeys = ['id', '_id', 'product_id', 'offer_id', 'Id', 'ID', 'uuid', 'created_at'];
-                    idKeys.forEach((k) => delete cleanUpdates[k]);
-                    handleUpdateBankCoupon(editingBankCoupon, cleanUpdates);
-                  } else {
-                    handleCreateBankCoupon();
-                  }
-                }}
-                className="w-full bg-blue-600 text-white py-3.5 rounded-xl font-black hover:bg-blue-700 transition-all shadow-lg mt-2"
-              >
-                {editingBankCoupon ? 'Actualizar Cupón Bancario' : 'Guardar Cupón Bancario'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {showAddOfferModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[110] p-4">
           <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto text-gray-800 shadow-2xl relative">
@@ -1570,7 +1348,6 @@ export default function AdminDashboard({
         </div>
       )}
 
-      {/* MODAL PARA PROMOS ESPECIALES */}
       {showAddPromoModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[110] p-4">
           <div className="bg-white rounded-3xl p-8 max-w-xl w-full max-h-[90vh] overflow-y-auto text-gray-800 shadow-2xl relative border-t-8 border-blue-500">
@@ -1646,7 +1423,6 @@ export default function AdminDashboard({
                 </div>
               </div>
 
-              {/* CUPONES */}
               <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl space-y-3">
                 <h4 className="font-bold text-blue-800 text-sm">Configuración de Cupones Múltiples</h4>
                 <div className="grid grid-cols-2 gap-4">
@@ -1693,7 +1469,6 @@ export default function AdminDashboard({
                 </div>
               </div>
 
-              {/* BENEFICIOS EXTRAS */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-gray-700 font-bold mb-1 text-sm">Texto MSI (Icono Tarjeta)</label>
@@ -1717,7 +1492,6 @@ export default function AdminDashboard({
                 </div>
               </div>
 
-              {/* AFILIADO */}
               <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl space-y-3">
                 <h4 className="font-bold text-gray-800 text-sm">Textos Afiliado & Link</h4>
                 <div>
