@@ -2171,12 +2171,7 @@ function App() {
 
           {mobileTab === 'cupones' && renderCuponesSection()}
           {mobileTab === 'productos' && renderProductosSection()}
-          {mobileTab === 'exclusivos' && (
-            <>
-              {renderExclusiveProductsSection()}
-              {renderNewSection()}
-            </>
-          )}
+          {mobileTab === 'exclusivos' && renderExclusiveProductsSection()}
           {mobileTab === 'juegos' && (
             <div className="mb-8">
               <GamesZone 
@@ -2190,14 +2185,18 @@ function App() {
               />
             </div>
           )}
-          {mobileTab === 'reels' && renderReelsSection()}
+          {mobileTab === 'reels' && (
+            <>
+              {renderReelsSection()}
+              {renderNewSection()}
+            </>
+          )}
         </div>
       ) : (
         <>
           {renderCuponesSection()}
           {renderProductosSection()}
           {renderExclusiveProductsSection()}
-          {renderNewSection()}
           <GamesZone 
             currentUser={
               typeof currentUser === 'object' && currentUser !== null
@@ -2208,6 +2207,7 @@ function App() {
             isAuthenticated={isAuthenticated} 
           />
           {renderReelsSection()}
+          {renderNewSection()}
         </>
       )}
 
