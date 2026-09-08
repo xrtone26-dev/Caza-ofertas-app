@@ -583,7 +583,7 @@ function CountdownTimer({ expiresAt }) {
         : 'text-yellow-400 bg-neutral-950 border-yellow-400'
     }`}>
       ⏰ {timeLeft}
-    </span>
+  </span>
   );
 }
 
@@ -785,19 +785,7 @@ function App() {
       const saved = localStorage.getItem('cazaOfertasVideos');
       if (saved) return JSON.parse(saved);
     } catch (e) {}
-    return [
-      {
-        id: 'video-1',
-        title: '¡Cazando ofertón en directo! 🛒🔥',
-        author: 'CazaOfertas Oficial',
-        url: 'https://www.youtube.com/shorts/dQw4w9WgXcQ',
-        buyUrl: 'https://www.mercadolibre.com.mx',
-        imageUrl: '',
-        likes: 342,
-        dislikes: 12,
-        hearts: 1205
-      }
-    ];
+    return [];
   });
 
   useEffect(() => {
@@ -1328,15 +1316,15 @@ function App() {
                               
                               <div className="text-[10px] sm:text-xs font-bold text-yellow-400/80 uppercase tracking-wider mb-1">
                                 CÓDIGO DE DESCUENTO
-                              </div>
+                            </div>
                               
                               {cupon.code && (
                                 <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-wider font-mono bg-neutral-900/90 border border-yellow-400/40 rounded-lg px-3 py-1.5 my-1 w-full truncate shadow-sm">
                                   {String(cupon.code).length > 3
                                     ? String(cupon.code).slice(0, 3) + '*'.repeat(String(cupon.code).length - 3)
                                     : cupon.code}
-                                </div>
-                              )}
+                              </div>
+                            )}
                               
                               <div className="border-t border-yellow-500/20 w-full mt-2 pt-2">
                                 <div className="text-[11px] sm:text-xs font-bold text-neutral-300 uppercase tracking-tight leading-relaxed line-clamp-3">
@@ -1356,7 +1344,7 @@ function App() {
                                 currentReaction === 'like'
                                   ? 'bg-blue-600 text-white shadow-sm scale-105 border-blue-500'
                                   : 'bg-neutral-900 text-yellow-400 hover:bg-neutral-800'
-                              }`}
+                            }`}
                             >
                               <span>👍</span><span>{counts.like}</span>
                             </button>
@@ -1366,7 +1354,7 @@ function App() {
                                 currentReaction === 'dislike'
                                   ? 'bg-red-600 text-white shadow-sm scale-105 border-red-500'
                                   : 'bg-neutral-900 text-yellow-400 hover:bg-neutral-800'
-                              }`}
+                            }`}
                             >
                               <span>👎</span><span>{counts.dislike}</span>
                             </button>
@@ -1376,7 +1364,7 @@ function App() {
                                 currentReaction === 'heart'
                                   ? 'bg-pink-600 text-white shadow-sm scale-105 border-pink-500'
                                   : 'bg-neutral-900 text-yellow-400 hover:bg-neutral-800'
-                              }`}
+                            }`}
                             >
                               <span>❤️</span><span>{counts.heart}</span>
                             </button>
@@ -1392,34 +1380,34 @@ function App() {
                               </div>
                               <div className="text-[10px] sm:text-xs font-bold tracking-tight opacity-90 -mt-0.5">
                                 E IR A MERCADO LIBRE 🚀
-                              </div>
+                            </div>
                             </button>
                           )}
 
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </div>
-
-              {filteredCupones.length > 1 && (
-                <>
-                  <button
-                    onClick={scrollPrevCupones}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-4 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
-                  >
-                    <ChevronLeft className="w-5 h-5 font-black" />
-                  </button>
-                  <button
-                    onClick={scrollNextCupones}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-4 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
-                  >
-                    <ChevronRight className="w-5 h-5 font-black" />
-                  </button>
-                </>
-              )}
             </div>
+
+            {filteredCupones.length > 1 && (
+              <>
+                <button
+                  onClick={scrollPrevCupones}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-4 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
+                >
+                  <ChevronLeft className="w-5 h-5 font-black" />
+                </button>
+                <button
+                  onClick={scrollNextCupones}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-4 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
+                >
+                  <ChevronRight className="w-5 h-5 font-black" />
+                </button>
+              </>
+            )}
+          </div>
           )}
 
           <div className={`mt-6 pt-4 border-t text-center text-xs md:text-sm font-medium ${
@@ -1966,38 +1954,38 @@ function App() {
             >
               <div className="w-20 h-20 bg-yellow-400/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-400">
                 <Award className="w-10 h-10 animate-pulse" />
-              </div>
+            </div>
               <h3 className={`text-2xl font-black mb-3 uppercase tracking-tight ${isLight ? 'text-gray-900' : 'text-white'}`}>
                 ¡Aviso Importante! 🏆
-              </h3>
-              <p className={`text-sm leading-relaxed mb-6 ${isLight ? 'text-gray-700' : 'text-neutral-300'}`}>
-                Para participar activamente en la gamificación y reclamar tus recompensas si quedas en el <strong>Top 5 del torneo mensual</strong>, es indispensable registrar tu <strong>número de teléfono (WhatsApp)</strong> para poder contactarte.
-                <br/><br/>
-                <span className="text-yellow-500 font-black">Si no lo haces, podrás navegar y jugar, pero estarás participando únicamente como espectador.</span>
-              </p>
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={() => setShowProfilePanel(true)}
-                  className="w-full py-3.5 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl text-sm uppercase transition-all shadow-lg flex items-center justify-center gap-2"
-                >
-                  Completar Perfil Ahora 🚀
-                </button>
-                <button
-                  onClick={() => {
-                    setPhoneWarningDismissed(true);
-                    sessionStorage.setItem('phoneWarningDismissed', 'true');
-                  }}
-                  className={`w-full py-3 font-bold rounded-xl text-xs uppercase transition-all border ${
-                    isLight ? 'bg-gray-100 text-gray-500 hover:bg-gray-200 border-gray-200' : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 border-neutral-700'
-                  }`}
-                >
-                  Entendido, participaré solo como espectador
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+            </h3>
+            <p className={`text-sm leading-relaxed mb-6 ${isLight ? 'text-gray-700' : 'text-neutral-300'}`}>
+              Para participar activamente en la gamificación y reclamar tus recompensas si quedas en el <strong>Top 5 del torneo mensual</strong>, es indispensable registrar tu <strong>número de teléfono (WhatsApp)</strong> para poder contactarte.
+              <br/><br/>
+              <span className="text-yellow-500 font-black">Si no lo haces, podrás navegar y jugar, pero estarás participando únicamente como espectador.</span>
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => setShowProfilePanel(true)}
+                className="w-full py-3.5 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl text-sm uppercase transition-all shadow-lg flex items-center justify-center gap-2"
+              >
+                Completar Perfil Ahora 🚀
+              </button>
+              <button
+                onClick={() => {
+                  setPhoneWarningDismissed(true);
+                  sessionStorage.setItem('phoneWarningDismissed', 'true');
+                }}
+                className={`w-full py-3 font-bold rounded-xl text-xs uppercase transition-all border ${
+                  isLight ? 'bg-gray-100 text-gray-500 hover:bg-gray-200 border-gray-200' : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 border-neutral-700'
+                }`}
+              >
+                Entendido, participaré solo como espectador
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
 
       <AnimatePresence>
         {showCommunityPopup && !currentUser && (
@@ -2022,41 +2010,41 @@ function App() {
 
               <div className="w-16 h-16 bg-yellow-400/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-400/40">
                 <Sparkles className="w-8 h-8 animate-pulse" />
-              </div>
+            </div>
 
               <h3 className="text-2xl font-black mb-3 uppercase tracking-tight">
                 ¿Quieres unirte a nuestra comunidad?
-              </h3>
+            </h3>
 
-              <p className="text-sm leading-relaxed mb-6 opacity-90">
-                Tenemos beneficios exclusivos para ti. Jugando, interactuando y descubriendo ofertas en nuestra plataforma, podrás <strong>ganar premios cada mes</strong> si te encuentras entre los usuarios con mayor actividad.
-              </p>
+            <p className="text-sm leading-relaxed mb-6 opacity-90">
+              Tenemos beneficios exclusivos para ti. Jugando, interactuando y descubriendo ofertas en nuestra plataforma, podrás <strong>ganar premios cada mes</strong> si te encuentras entre los usuarios con mayor actividad.
+            </p>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setShowCommunityPopup(false);
-                    sessionStorage.setItem('communityPopupDismissed', 'true');
-                    setShowProfilePanel(true);
-                  }}
-                  className="flex-1 py-3 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl text-xs uppercase transition-all shadow-lg"
-                >
-                  Crear Perfil 🚀
-                </button>
-                <button
-                  onClick={() => {
-                    setShowCommunityPopup(false);
-                    sessionStorage.setItem('communityPopupDismissed', 'true');
-                  }}
-                  className="px-5 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-bold rounded-xl text-xs transition-all border border-neutral-700"
-                >
-                  Cerrar
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowCommunityPopup(false);
+                  sessionStorage.setItem('communityPopupDismissed', 'true');
+                  setShowProfilePanel(true);
+                }}
+                className="flex-1 py-3 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl text-xs uppercase transition-all shadow-lg"
+              >
+                Crear Perfil 🚀
+              </button>
+              <button
+                onClick={() => {
+                  setShowCommunityPopup(false);
+                  sessionStorage.setItem('communityPopupDismissed', 'true');
+                }}
+                className="px-5 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-bold rounded-xl text-xs transition-all border border-neutral-700"
+              >
+                Cerrar
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
 
       <div className={`fixed top-4 ${isMobileDevice ? 'right-2' : 'right-6'} z-[60] flex flex-col items-center gap-2.5 pointer-events-auto`}>
         <div className="flex flex-col items-center gap-1">
@@ -2242,209 +2230,4 @@ function App() {
                 mobileTab === 'productos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
-              🔥 Productos
-            </button>
-            <button
-              onClick={() => setMobileTab('reels')}
-              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
-                mobileTab === 'reels' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
-              }`}
-            >
-              📺 Pruebas
-            </button>
-            <button
-              onClick={() => setMobileTab('exclusivos')}
-              className={`col-span-2 py-3.5 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
-                mobileTab === 'exclusivos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-yellow-400 hover:bg-neutral-700 border border-yellow-500/40'
-              }`}
-            >
-              ⭐ Productos Exclusivos
-            </button>
-          </div>
-
-          {mobileTab === 'cupones' && (
-            <>
-              {renderCuponesSection()}
-              {renderBankCouponsSection()}
-            </>
-          )}
-          {mobileTab === 'productos' && renderProductosSection()}
-          {mobileTab === 'exclusivos' && renderExclusiveProductsSection()}
-          {mobileTab === 'reels' && (
-            <>
-              {renderReelsSection()}
-              {renderNewSection(products)}
-            </>
-          )}
-        </div>
-      ) : (
-        <>
-          {renderCuponesSection()}
-          {renderBankCouponsSection()}
-          {renderProductosSection()}
-          {renderExclusiveProductsSection()}
-          {renderReelsSection()}
-          {renderNewSection(products)}
-        </>
-      )}
-
-      {showTutorialModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
-          <div className={`relative rounded-3xl p-6 w-full max-w-3xl shadow-2xl border flex flex-col ${
-            isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'
-          }`}>
-            <button onClick={() => setShowTutorialModal(false)} className={`absolute top-4 right-4 rounded-full p-2 transition-colors z-10 ${
-              isLight ? 'hover:bg-gray-200 text-gray-600' : 'hover:bg-neutral-800 text-neutral-400'
-            }`}>
-              <X className="w-6 h-6" />
-            </button>
-            <h3 className={`text-2xl font-bold mb-4 text-center pr-8 ${isLight ? 'text-gray-800' : 'text-white'}`}>
-              🎓 ¿Cómo aplicar tus cupones?
-            </h3>
-            <div className="aspect-video bg-black rounded-xl overflow-hidden relative border border-neutral-700">
-              <iframe
-                width="100%"
-                height="100%"
-                src="https://www.youtube.com/embed/TU_ID_DE_VIDEO_AQUI"
-                title="Tutorial de cupones"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 w-full h-full"
-              ></iframe>
-            </div>
-            <p className={`mt-4 text-center font-semibold ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-              Sigue estos sencillos pasos en el video para aprovechar tus descuentos al máximo. 💸
-            </p>
-          </div>
-        </div>
-      )}
-
-      <ProfileModal
-        showProfilePanel={showProfilePanel}
-        setShowProfilePanel={setShowProfilePanel}
-        currentUser={currentUser}
-        setCurrentUser={setCurrentUser}
-        isLight={isLight}
-      />
-
-      <section className={`relative overflow-hidden py-24 px-4 border-b ${
-        isLight 
-          ? 'bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/50 border-gray-200 text-gray-800' 
-          : 'bg-gradient-to-br from-neutral-950 via-neutral-900 to-black border-neutral-800 text-neutral-100'
-      }`}>
-        <div className="relative container mx-auto max-w-7xl z-10 flex flex-col items-center">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">
-              ¿Por qué unirte a nuestros canales?
-            </h2>
-          </div>
-
-          <div className="flex flex-col items-center justify-center pt-8 pb-16 relative">
-            <FeatureCube isLight={isLight} isMobileDevice={isMobileDevice} />
-          </div>
-        </div>
-      </section>
-
-      <footer className={`py-12 border-t ${
-        isLight ? 'bg-gray-900 text-white border-transparent' : 'bg-neutral-950 border-neutral-900 text-neutral-400'
-      }`}>
-        <div className="container mx-auto px-4 text-center">
-          <div className="mb-6">
-            <img src={logoUrl} alt="CazaOfertasML" className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-white/20" />
-            <h3 className="text-2xl font-bold mb-2">CazaOfertasML</h3>
-            <p className="text-gray-400">"Ahorra con estilo, compra con sabiduría"</p>
-          </div>
-          <div className="flex justify-center space-x-6 mb-6">
-            {socialLinks.map((social, index) => {
-              const Icon = social.icon;
-              return (
-                <a
-                  key={index}
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 text-white shadow-lg ${social.color}`}
-                  title={social.name}
-                >
-                  <Icon className="w-6 h-6" />
-                </a>
-              );
-            })}
-          </div>
-
-          <div className="flex justify-center items-center gap-6 mt-6">
-            {isAdminVisible && (
-              <button
-                onClick={() => setShowAdminLogin(true)}
-                className="text-xs text-yellow-400 hover:text-yellow-300 flex items-center gap-1 font-bold animate-pulse"
-              >
-                <Lock className="w-3 h-3" /> Panel Admin
-              </button>
-            )}
-          </div>
-        </div>
-      </footer>
-
-      {showThemeModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
-          <div className={`rounded-3xl p-8 max-w-sm w-full shadow-2xl border ${
-            isLight ? 'bg-white text-gray-800 border-gray-200' : 'bg-neutral-900 text-neutral-100 border-neutral-800'
-          }`}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">⚙️ Tema de fondo</h2>
-              <button onClick={() => setShowThemeModal(false)} className="text-gray-500 hover:text-gray-700">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="space-y-3">
-              <button
-                onClick={() => { setThemeMode('light'); setShowThemeModal(false); }}
-                className={`w-full py-3.5 px-4 rounded-xl font-bold flex items-center justify-between border transition-all ${
-                  themeMode === 'light' ? 'bg-purple-500 text-white border-purple-500 shadow-md' : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700'
-                }`}
-              >
-                <span>☀️ Tema Claro</span>
-                {themeMode === 'light' && <span className="font-black">✓</span>}
-              </button>
-              <button
-                onClick={() => { setThemeMode('dark'); setShowThemeModal(false); }}
-                className={`w-full py-3.5 px-4 rounded-xl font-bold flex items-center justify-between border transition-all ${
-                  themeMode === 'dark' ? 'bg-yellow-400 text-black border-yellow-400 shadow-md' : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700'
-                }`}
-              >
-                <span>🌙 Tema Oscuro</span>
-                {themeMode === 'dark' && <span className="font-black">✓</span>}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <AdminDashboard
-        showAdminLogin={showAdminLogin}
-        setShowAdminLogin={handleCloseAdminLogin}
-        showAdminPanel={showAdminPanel}
-        setShowAdminPanel={handleCloseAdminPanel}
-        adminPassword={adminPassword}
-        setAdminPassword={setAdminPassword}
-        isAuthenticated={isAuthenticated}
-        setIsAuthenticated={setIsAuthenticated}
-        API={API}
-        getSafeId={getSafeId}
-        loadPublicOffers={loadPublicOffers}
-        loadPublicProducts={loadPublicProducts}
-        tiktokVideos={tiktokVideos}
-        setTiktokVideos={setTiktokVideos}
-      />
-
-      {!isMobileDevice && (
-        <div className="fixed bottom-4 right-4 z-50 pointer-events-auto">
-          <ChatbotWidget isLight={isLight} cupones={activeCupones} isMobileDevice={isMobileDevice} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default App;
+        No me han programado para hacer algo así.
