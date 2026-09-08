@@ -957,9 +957,11 @@ function App() {
     }
   };
 
+  // EMBLA REFS
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
   const [cuponesRef, cuponesApi] = useEmblaCarousel({ loop: true, align: 'start' });
   const [exclusiveEmblaRef, exclusiveEmblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
+  const [bankCouponsRef, bankCouponsApi] = useEmblaCarousel({ loop: true, align: 'start' });
 
   useEffect(() => {
     if (!cuponesApi) return;
@@ -985,6 +987,14 @@ function App() {
     return () => clearInterval(autoplay);
   }, [exclusiveEmblaApi]);
 
+  useEffect(() => {
+    if (!bankCouponsApi) return;
+    const autoplay = setInterval(() => {
+      bankCouponsApi.scrollNext();
+    }, 4500); 
+    return () => clearInterval(autoplay);
+  }, [bankCouponsApi]);
+
   const scrollPrev = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev();
   }, [emblaApi]);
@@ -1008,6 +1018,14 @@ function App() {
   const scrollNextExclusive = useCallback(() => {
     if (exclusiveEmblaApi) exclusiveEmblaApi.scrollNext();
   }, [exclusiveEmblaApi]);
+
+  const scrollPrevBank = useCallback(() => {
+    if (bankCouponsApi) bankCouponsApi.scrollPrev();
+  }, [bankCouponsApi]);
+
+  const scrollNextBank = useCallback(() => {
+    if (bankCouponsApi) bankCouponsApi.scrollNext();
+  }, [bankCouponsApi]);
 
   const socialLinks = [
     {
@@ -1106,6 +1124,47 @@ function App() {
         window.location.href = 'https://www.mercadolibre.com.mx';
       }
     }, 5000);
+  };
+
+  const handleCopiarCuponBancario = (code) => {
+    if (code) {
+      navigator.clipboard.writeText(code);
+    }
+    playSniperSound();
+    setToastMessage(`¡Cupón bancario ${code} copiado! Aplícalo en tu método de pago al finalizar tu compra en Mercado Libre.`);
+    setShowToast(true);
+
+    setTimeout(() => {
+      setShowToast(false);
+      window.open('https://www.mercadolibre.com.mx', '_blank');
+    }, 4000);
+  };
+
+  // ==========================================
+  // DATOS ESTÁTICOS DE CUPONES BANCARIOS
+  // ==========================================
+  const bankCouponsData = [
+    { id: 'b1', bank: 'Mercado Pago', type: 'Meses sin Tarjeta', code: 'MESES99', discount: '10% OFF', min: '$2,500', tope: '$500' },
+    { id: 'b2', bank: 'Mercado Pago', type: 'TC Mercado Pago', code: 'TCMP99', discount: '10% OFF', min: '$4,000', tope: '$500' },
+    { id: 'b3', bank: 'Banamex', type: 'Tarjetas Banamex', code: 'BNMX99', discount: '10% OFF', min: '$3,500', tope: '$500' },
+    { id: 'b4', bank: 'HSBC', type: 'Tarjetas HSBC', code: 'HSBC99', discount: '10% OFF', min: '$3,500', tope: '$500' },
+    { id: 'b5', bank: 'American Express', type: 'Tarjetas AMEX', code: 'AMEX99', discount: '10% OFF', min: '$4,500', tope: '$500' },
+    { id: 'b6', bank: 'Afirme', type: 'Tarjetas Afirme', code: 'AFRM99', discount: '10% OFF', min: '$2,500', tope: '$1,000' },
+    { id: 'b7', bank: 'Mifel', type: 'Tarjetas Mifel', code: 'MIFE99', discount: '10% OFF', min: '$2,500', tope: '$500' },
+    { id: 'b8', bank: 'Openbank', type: 'Tarjetas Openbank', code: 'OPBA99', discount: '15% OFF', min: '$2,500', tope: '$500' }
+  ];
+
+  const getBankLogo = (bankName) => {
+    const name = bankName.toLowerCase();
+    if (name.includes('mercado pago')) return 'https://th.bing.com/th/id/R.785d6c65df0bd600fb7d7e62e3fdd8ab?rik=BQ5v8Bb651iUlw&pid=ImgRaw&r=0';
+    if (name.includes('banamex')) return 'https://th.bing.com/th/id/OIP.9yKtM4rn-915bx7prqaUggHaEK?w=287&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3';
+    if (name.includes('american express') || name.includes('amex')) return 'https://th.bing.com/th/id/OIP.aejxZDH8dT3Q7pQ8GBLV_AHaHa?w=168&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3';
+    if (name.includes('hsbc')) return 'https://th.bing.com/th/id/OIP.Ix39nFbuOx7MpdMKzIEaEQHaGQ?w=184&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3';
+    if (name.includes('afirme')) return 'https://th.bing.com/th/id/OIP.2x-3YlN4cvY-i7ae_z4dEgHaHa?w=162&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3';
+    if (name.includes('openbank')) return 'https://th.bing.com/th/id/OIP.xpiMsSUMGdcmcPQHhs7WdQHaFj?w=222&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3';
+    if (name.includes('mifel')) return 'https://th.bing.com/th/id/OIP.BhfLXoOtKE01pdO09R4BswHaDw?w=324&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3';
+    if (name.includes('bbva')) return 'https://th.bing.com/th/id/OIP.FvS3UJifeACu0boHa8DzsAHaCN?w=298&h=104&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3';
+    return 'https://th.bing.com/th/id/OIP.FvS3UJifeACu0boHa8DzsAHaCN?w=298&h=104&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3'; // Fallback
   };
 
   const activeCupones = cupones.filter((cupon) => {
@@ -1371,6 +1430,96 @@ function App() {
         </div>
       </div>
     )
+  );
+
+  const renderBankCouponsSection = () => (
+    <div className="container mx-auto px-4 mb-8 relative z-20">
+      <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
+        isLight ? 'bg-white border-blue-200' : 'bg-neutral-900/85 border-neutral-800'
+      }`}>
+        <div className="relative flex flex-col sm:flex-row items-center justify-between mb-6 gap-3 px-2">
+          <h2 className={`text-xl sm:text-2xl md:text-3xl font-bold text-center sm:text-left flex items-center gap-2 ${
+            isLight ? 'text-blue-700' : 'text-neutral-100 font-black'
+          }`}>
+            💳 Cupones Bancarios
+          </h2>
+        </div>
+
+        <div className="relative">
+          <div className="overflow-hidden" ref={bankCouponsRef}>
+            <div className="flex gap-4 sm:gap-6 py-4">
+              {bankCouponsData.map((cupon) => (
+                <div key={cupon.id} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
+                  <div className="h-full bg-gradient-to-b from-neutral-900 via-neutral-950 to-black border-2 sm:border-4 border-[#3483fa] rounded-2xl sm:rounded-3xl p-3 sm:p-5 flex flex-col items-center shadow-[4px_4px_0px_0px_#3483fa] sm:shadow-[6px_6px_0px_0px_#3483fa] relative">
+                    
+                    <div className="w-full flex items-center justify-between mb-3 px-1 border-b border-[#3483fa]/20 pb-3">
+                      <img src={getBankLogo(cupon.bank)} alt={cupon.bank} className="h-6 sm:h-8 object-contain bg-white rounded px-1.5 py-0.5" />
+                      <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#3483fa] flex items-center gap-1 text-right">
+                        {cupon.type}
+                      </span>
+                    </div>
+
+                    <div className="w-full text-center mb-2 px-1">
+                      <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight tracking-tight uppercase drop-shadow-[0_2px_8px_rgba(52,131,250,0.4)]">
+                        {cupon.discount}
+                      </h3>
+                    </div>
+
+                    <div className="relative w-full bg-[#070707] border-2 sm:border-3 border-dashed border-[#3483fa]/70 rounded-xl p-2.5 sm:p-4 mb-3 flex-grow flex flex-col justify-center shadow-inner">
+                      <div className="flex flex-col items-center justify-center text-center relative z-10">
+                        <div className="text-[10px] sm:text-xs font-bold text-[#3483fa]/80 uppercase tracking-wider mb-1">
+                          CÓDIGO BANCARIO
+                        </div>
+                        <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-wider font-mono bg-neutral-900/90 border border-[#3483fa]/40 rounded-lg px-3 py-1.5 my-1 w-full truncate shadow-sm">
+                          {cupon.code}
+                        </div>
+                        <div className="border-t border-[#3483fa]/20 w-full mt-2 pt-2">
+                          <div className="text-[11px] sm:text-xs font-bold text-neutral-300 uppercase tracking-tight leading-relaxed">
+                            COMPRA MÍNIMA: {cupon.min} | TOPE: {cupon.tope}
+                          </div>
+                        </div>
+                      </div>
+                      <div className={`absolute top-1/2 -left-3.5 -translate-y-1/2 w-5 h-5 border-2 border-[#3483fa] rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
+                      <div className={`absolute top-1/2 -right-3.5 -translate-y-1/2 w-5 h-5 border-2 border-[#3483fa] rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
+                    </div>
+
+                    <button
+                      onClick={() => handleCopiarCuponBancario(cupon.code)}
+                      className="w-full bg-[#3483fa] hover:bg-[#2968c8] text-white rounded-xl py-2.5 px-2 flex flex-col items-center justify-center transition-transform hover:scale-[1.02] mt-auto border-2 border-[#1e5eb8] shadow-[0_3px_10px_0_rgba(52,131,250,0.3)]"
+                    >
+                      <div className="flex items-center justify-center gap-2 w-full">
+                        <span className="text-sm sm:text-base md:text-lg font-black tracking-wider uppercase">COPIAR CUPÓN</span>
+                      </div>
+                      <div className="text-[10px] sm:text-xs font-bold tracking-tight opacity-90 -mt-0.5">
+                        E IR A MERCADO LIBRE 🚀
+                      </div>
+                    </button>
+
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {bankCouponsData.length > 1 && (
+            <>
+              <button
+                onClick={scrollPrevBank}
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-4 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
+              >
+                <ChevronLeft className="w-5 h-5 font-black" />
+              </button>
+              <button
+                onClick={scrollNextBank}
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-4 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
+              >
+                <ChevronRight className="w-5 h-5 font-black" />
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 
   const renderProductosSection = () => (
@@ -2095,14 +2244,6 @@ function App() {
             >
               🔥 Productos
             </button>
-            {/* <button
-              onClick={() => setMobileTab('juegos')}
-              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
-                mobileTab === 'juegos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
-              }`}
-            >
-              🎮 Juegos
-            </button> */}
             <button
               onClick={() => setMobileTab('reels')}
               className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
@@ -2121,22 +2262,14 @@ function App() {
             </button>
           </div>
 
-          {mobileTab === 'cupones' && renderCuponesSection()}
+          {mobileTab === 'cupones' && (
+            <>
+              {renderCuponesSection()}
+              {renderBankCouponsSection()}
+            </>
+          )}
           {mobileTab === 'productos' && renderProductosSection()}
           {mobileTab === 'exclusivos' && renderExclusiveProductsSection()}
-          {/* {mobileTab === 'juegos' && (
-            <div className="mb-8">
-              <GamesZone 
-                currentUser={
-                  typeof currentUser === 'object' && currentUser !== null
-                    ? (currentUser.nickname || currentUser.nombre || currentUser.email || '')
-                    : (currentUser || '')
-                } 
-                isLight={isLight} 
-                isAuthenticated={isAuthenticated} 
-              />
-            </div>
-          )} */}
           {mobileTab === 'reels' && (
             <>
               {renderReelsSection()}
@@ -2147,17 +2280,9 @@ function App() {
       ) : (
         <>
           {renderCuponesSection()}
+          {renderBankCouponsSection()}
           {renderProductosSection()}
           {renderExclusiveProductsSection()}
-          {/* <GamesZone 
-            currentUser={
-              typeof currentUser === 'object' && currentUser !== null
-                ? (currentUser.nickname || currentUser.nombre || currentUser.email || '')
-                : (currentUser || '')
-            } 
-            isLight={isLight} 
-            isAuthenticated={isAuthenticated} 
-          /> */}
           {renderReelsSection()}
           {renderNewSection(products)}
         </>
