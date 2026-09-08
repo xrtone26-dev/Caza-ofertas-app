@@ -53,7 +53,6 @@ import {
 import axios from 'axios';
 import useEmblaCarousel from 'embla-carousel-react';
 import { motion, AnimatePresence } from 'framer-motion';
-// import GamesZone from './components/GamesZone';
 import ChatbotWidget from './components/ChatbotWidget';
 import ProfileModal from './components/ProfileModal';
 import AdminDashboard, { decodeCoupon } from './components/AdminDashboard'; 
@@ -62,7 +61,7 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
 // ==========================================
-// FUNCIÓN UTILITARIA (MovidA afuera para uso global)
+// FUNCIÓN UTILITARIA
 // ==========================================
 export const getSafeId = (item) => {
   if (!item) return null;
@@ -92,7 +91,7 @@ export const getSafeId = (item) => {
 };
 
 // ==========================================
-// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS (ADAPTABLE MÓVIL)
+// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS
 // ==========================================
 function FeatureCube({ isLight, isMobileDevice }) {
   const [rotation, setRotation] = useState({ x: 0, y: 0, z: 0 });
@@ -103,7 +102,7 @@ function FeatureCube({ isLight, isMobileDevice }) {
     const elapsed = (time - startTimeRef.current) * 0.001;
     setRotation({
       x: Math.sin(elapsed * 0.6) * 55, 
-      y: elapsed * 35,                                     
+      y: elapsed * 35,                             
       z: Math.sin(elapsed * 0.4) * 20, 
     });
     requestRef.current = requestAnimationFrame(animate);
@@ -530,7 +529,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
 }
 
 // ==========================================
-// DISEÑO BLACK & GOLD PARA EL TEMPORIZADOR
+// TEMPORIZADOR
 // ==========================================
 function CountdownTimer({ expiresAt }) {
   const [timeLeft, setTimeLeft] = useState('');
@@ -588,7 +587,7 @@ function CountdownTimer({ expiresAt }) {
 }
 
 // ==========================================
-// COMPONENTE PROMO ESTILO SAMSUNG
+// COMPONENTE PROMO
 // ==========================================
 function renderNewSection(products = []) {
   const promoProducts = products.filter(p => p.is_promo_card && p.active !== false);
@@ -605,7 +604,6 @@ function renderNewSection(products = []) {
         return (
           <div key={pId} className="max-w-[420px] w-full bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100 mb-8 font-sans">
             
-            {/* Cabecera / Imagen */}
             <div className="bg-[#594d6e] relative pt-8 pb-4 px-6 text-center text-white min-h-[260px] flex flex-col items-center overflow-hidden">
               <h3 className="text-2xl font-bold tracking-tight mb-0.5">{promo.title}</h3>
               <p className="text-sm font-semibold text-blue-200 mb-6 flex items-center gap-1 justify-center">
@@ -618,11 +616,9 @@ function renderNewSection(products = []) {
                   className="w-full max-w-[280px] object-contain drop-shadow-2xl z-10 relative scale-110 mt-2" 
                 />
               )}
-              {/* Resplandor de fondo estilo Samsung */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
             </div>
 
-            {/* Contenido */}
             <div className="p-8 text-center bg-white">
               <h4 className="text-xl font-black text-black mb-4 tracking-tight">{promo.model_capacity}</h4>
 
@@ -634,7 +630,6 @@ function renderNewSection(products = []) {
                 </div>
               </div>
 
-              {/* Cupones */}
               <div className="flex items-center justify-center gap-2 mb-6">
                 <div className="flex-1 border-2 border-dashed border-blue-400 rounded-xl py-2.5 px-1 flex flex-col items-center justify-center bg-blue-50/30">
                   <span className="text-[10px] font-bold text-blue-600 mb-1 text-center leading-none">{promo.coupon1_desc}</span>
@@ -651,13 +646,11 @@ function renderNewSection(products = []) {
                 </div>
               </div>
 
-              {/* Precio Final */}
               <div className="mb-6">
                 <p className="text-black font-black text-xs mb-1">Precio final con descuentos aplicados</p>
                 <div className="text-[#5578F4] font-black text-5xl tracking-tight py-1">${finalPrice}</div>
               </div>
 
-              {/* Beneficios */}
               <div className="flex items-center justify-center gap-8 py-5 border-t border-b border-gray-300 mt-2 mb-5">
                 <div className="flex items-center gap-3">
                   <CreditCard size={32} className="text-[#5578F4] flex-shrink-0" strokeWidth={1.5} />
@@ -675,13 +668,11 @@ function renderNewSection(products = []) {
                 </div>
               </div>
 
-              {/* Afiliado */}
               <div className="mb-6 flex flex-col gap-0.5">
                 <p className="text-[#5578F4] font-black text-[13px]">{promo.affiliate_earning}</p>
                 <p className="text-[#5578F4] text-[11px] font-bold opacity-80">{promo.affiliate_desc}</p>
               </div>
 
-              {/* Botón Comprar */}
               <div className="mt-2">
                 <a
                   href={promo.affiliate_link || promo.link || '#'}
@@ -1128,9 +1119,6 @@ function App() {
     }, 4000);
   };
 
-  // ==========================================
-  // DATOS ESTÁTICOS DE CUPONES BANCARIOS
-  // ==========================================
   const bankCouponsData = [
     { id: 'b1', bank: 'Mercado Pago', type: 'Meses sin Tarjeta', code: 'MESES99', discount: '10% OFF', min: '$2,500', tope: '$500' },
     { id: 'b2', bank: 'Mercado Pago', type: 'TC Mercado Pago', code: 'TCMP99', discount: '10% OFF', min: '$4,000', tope: '$500' },
@@ -1151,8 +1139,7 @@ function App() {
     if (name.includes('afirme')) return 'https://th.bing.com/th/id/OIP.2x-3YlN4cvY-i7ae_z4dEgHaHa?w=162&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3';
     if (name.includes('openbank')) return 'https://th.bing.com/th/id/OIP.xpiMsSUMGdcmcPQHhs7WdQHaFj?w=222&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3';
     if (name.includes('mifel')) return 'https://th.bing.com/th/id/OIP.BhfLXoOtKE01pdO09R4BswHaDw?w=324&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3';
-    if (name.includes('bbva')) return 'https://th.bing.com/th/id/OIP.FvS3UJifeACu0boHa8DzsAHaCN?w=298&h=104&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3';
-    return 'https://th.bing.com/th/id/OIP.FvS3UJifeACu0boHa8DzsAHaCN?w=298&h=104&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3'; // Fallback
+    return 'https://th.bing.com/th/id/OIP.FvS3UJifeACu0boHa8DzsAHaCN?w=298&h=104&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3';
   };
 
   const activeCupones = cupones.filter((cupon) => {
@@ -1316,15 +1303,15 @@ function App() {
                               
                               <div className="text-[10px] sm:text-xs font-bold text-yellow-400/80 uppercase tracking-wider mb-1">
                                 CÓDIGO DE DESCUENTO
-                            </div>
+                              </div>
                               
                               {cupon.code && (
                                 <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-wider font-mono bg-neutral-900/90 border border-yellow-400/40 rounded-lg px-3 py-1.5 my-1 w-full truncate shadow-sm">
                                   {String(cupon.code).length > 3
                                     ? String(cupon.code).slice(0, 3) + '*'.repeat(String(cupon.code).length - 3)
                                     : cupon.code}
-                              </div>
-                            )}
+                                </div>
+                              )}
                               
                               <div className="border-t border-yellow-500/20 w-full mt-2 pt-2">
                                 <div className="text-[11px] sm:text-xs font-bold text-neutral-300 uppercase tracking-tight leading-relaxed line-clamp-3">
@@ -1344,7 +1331,7 @@ function App() {
                                 currentReaction === 'like'
                                   ? 'bg-blue-600 text-white shadow-sm scale-105 border-blue-500'
                                   : 'bg-neutral-900 text-yellow-400 hover:bg-neutral-800'
-                            }`}
+                              }`}
                             >
                               <span>👍</span><span>{counts.like}</span>
                             </button>
@@ -1354,7 +1341,7 @@ function App() {
                                 currentReaction === 'dislike'
                                   ? 'bg-red-600 text-white shadow-sm scale-105 border-red-500'
                                   : 'bg-neutral-900 text-yellow-400 hover:bg-neutral-800'
-                            }`}
+                              }`}
                             >
                               <span>👎</span><span>{counts.dislike}</span>
                             </button>
@@ -1364,7 +1351,7 @@ function App() {
                                 currentReaction === 'heart'
                                   ? 'bg-pink-600 text-white shadow-sm scale-105 border-pink-500'
                                   : 'bg-neutral-900 text-yellow-400 hover:bg-neutral-800'
-                            }`}
+                              }`}
                             >
                               <span>❤️</span><span>{counts.heart}</span>
                             </button>
@@ -1380,34 +1367,34 @@ function App() {
                               </div>
                               <div className="text-[10px] sm:text-xs font-bold tracking-tight opacity-90 -mt-0.5">
                                 E IR A MERCADO LIBRE 🚀
-                            </div>
+                              </div>
                             </button>
                           )}
 
                         </div>
-                    </div>
-                  );
-                })}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
 
-            {filteredCupones.length > 1 && (
-              <>
-                <button
-                  onClick={scrollPrevCupones}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-4 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
-                >
-                  <ChevronLeft className="w-5 h-5 font-black" />
-                </button>
-                <button
-                  onClick={scrollNextCupones}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-4 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
-                >
-                  <ChevronRight className="w-5 h-5 font-black" />
-                </button>
-              </>
-            )}
-          </div>
+              {filteredCupones.length > 1 && (
+                <>
+                  <button
+                    onClick={scrollPrevCupones}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-4 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
+                  >
+                    <ChevronLeft className="w-5 h-5 font-black" />
+                  </button>
+                  <button
+                    onClick={scrollNextCupones}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-4 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-10 text-gray-800 border-2 border-black"
+                  >
+                    <ChevronRight className="w-5 h-5 font-black" />
+                  </button>
+                </>
+              )}
+            </div>
           )}
 
           <div className={`mt-6 pt-4 border-t text-center text-xs md:text-sm font-medium ${
@@ -1732,7 +1719,7 @@ function App() {
       }`}>
         <div className="relative flex items-center justify-center mb-6 px-2">
           <h2 className={`text-2xl sm:text-3xl font-black text-center flex items-center gap-2 ${isLight ? 'text-yellow-600' : 'text-yellow-400'}`}>
-             Terminales y Productos Exclusivos
+              Terminales y Productos Exclusivos
           </h2>
         </div>
         <p className={`text-center text-xs sm:text-sm mb-8 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
@@ -1954,38 +1941,38 @@ function App() {
             >
               <div className="w-20 h-20 bg-yellow-400/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-400">
                 <Award className="w-10 h-10 animate-pulse" />
-            </div>
+              </div>
               <h3 className={`text-2xl font-black mb-3 uppercase tracking-tight ${isLight ? 'text-gray-900' : 'text-white'}`}>
                 ¡Aviso Importante! 🏆
-            </h3>
-            <p className={`text-sm leading-relaxed mb-6 ${isLight ? 'text-gray-700' : 'text-neutral-300'}`}>
-              Para participar activamente en la gamificación y reclamar tus recompensas si quedas en el <strong>Top 5 del torneo mensual</strong>, es indispensable registrar tu <strong>número de teléfono (WhatsApp)</strong> para poder contactarte.
-              <br/><br/>
-              <span className="text-yellow-500 font-black">Si no lo haces, podrás navegar y jugar, pero estarás participando únicamente como espectador.</span>
-            </p>
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={() => setShowProfilePanel(true)}
-                className="w-full py-3.5 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl text-sm uppercase transition-all shadow-lg flex items-center justify-center gap-2"
-              >
-                Completar Perfil Ahora 🚀
-              </button>
-              <button
-                onClick={() => {
-                  setPhoneWarningDismissed(true);
-                  sessionStorage.setItem('phoneWarningDismissed', 'true');
-                }}
-                className={`w-full py-3 font-bold rounded-xl text-xs uppercase transition-all border ${
-                  isLight ? 'bg-gray-100 text-gray-500 hover:bg-gray-200 border-gray-200' : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 border-neutral-700'
-                }`}
-              >
-                Entendido, participaré solo como espectador
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+              </h3>
+              <p className={`text-sm leading-relaxed mb-6 ${isLight ? 'text-gray-700' : 'text-neutral-300'}`}>
+                Para participar activamente en la gamificación y reclamar tus recompensas si quedas en el <strong>Top 5 del torneo mensual</strong>, es indispensable registrar tu <strong>número de teléfono (WhatsApp)</strong> para poder contactarte.
+                <br/><br/>
+                <span className="text-yellow-500 font-black">Si no lo haces, podrás navegar y jugar, pero estarás participando únicamente como espectador.</span>
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => setShowProfilePanel(true)}
+                  className="w-full py-3.5 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl text-sm uppercase transition-all shadow-lg flex items-center justify-center gap-2"
+                >
+                  Completar Perfil Ahora 🚀
+                </button>
+                <button
+                  onClick={() => {
+                    setPhoneWarningDismissed(true);
+                    sessionStorage.setItem('phoneWarningDismissed', 'true');
+                  }}
+                  className={`w-full py-3 font-bold rounded-xl text-xs uppercase transition-all border ${
+                    isLight ? 'bg-gray-100 text-gray-500 hover:bg-gray-200 border-gray-200' : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 border-neutral-700'
+                  }`}
+                >
+                  Entendido, participaré solo como espectador
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showCommunityPopup && !currentUser && (
@@ -2010,41 +1997,41 @@ function App() {
 
               <div className="w-16 h-16 bg-yellow-400/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-400/40">
                 <Sparkles className="w-8 h-8 animate-pulse" />
-            </div>
+              </div>
 
               <h3 className="text-2xl font-black mb-3 uppercase tracking-tight">
                 ¿Quieres unirte a nuestra comunidad?
-            </h3>
+              </h3>
 
-            <p className="text-sm leading-relaxed mb-6 opacity-90">
-              Tenemos beneficios exclusivos para ti. Jugando, interactuando y descubriendo ofertas en nuestra plataforma, podrás <strong>ganar premios cada mes</strong> si te encuentras entre los usuarios con mayor actividad.
-            </p>
+              <p className="text-sm leading-relaxed mb-6 opacity-90">
+                Tenemos beneficios exclusivos para ti. Jugando, interactuando y descubriendo ofertas en nuestra plataforma, podrás <strong>ganar premios cada mes</strong> si te encuentras entre los usuarios con mayor actividad.
+              </p>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowCommunityPopup(false);
-                  sessionStorage.setItem('communityPopupDismissed', 'true');
-                  setShowProfilePanel(true);
-                }}
-                className="flex-1 py-3 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl text-xs uppercase transition-all shadow-lg"
-              >
-                Crear Perfil 🚀
-              </button>
-              <button
-                onClick={() => {
-                  setShowCommunityPopup(false);
-                  sessionStorage.setItem('communityPopupDismissed', 'true');
-                }}
-                className="px-5 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-bold rounded-xl text-xs transition-all border border-neutral-700"
-              >
-                Cerrar
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowCommunityPopup(false);
+                    sessionStorage.setItem('communityPopupDismissed', 'true');
+                    setShowProfilePanel(true);
+                  }}
+                  className="flex-1 py-3 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl text-xs uppercase transition-all shadow-lg"
+                >
+                  Crear Perfil 🚀
+                </button>
+                <button
+                  onClick={() => {
+                    setShowCommunityPopup(false);
+                    sessionStorage.setItem('communityPopupDismissed', 'true');
+                  }}
+                  className="px-5 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-bold rounded-xl text-xs transition-all border border-neutral-700"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <div className={`fixed top-4 ${isMobileDevice ? 'right-2' : 'right-6'} z-[60] flex flex-col items-center gap-2.5 pointer-events-auto`}>
         <div className="flex flex-col items-center gap-1">
@@ -2230,4 +2217,194 @@ function App() {
                 mobileTab === 'productos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
-        No me han programado para hacer algo así.
+              🔥 Productos
+            </button>
+          </div>
+
+          {mobileTab === 'cupones' ? (
+            <>
+              {renderCuponesSection()}
+              {renderBankCouponsSection()}
+            </>
+          ) : (
+            <>
+              {renderNewSection(products)}
+              {renderProductosSection()}
+              {renderExclusiveProductsSection()}
+              {renderReelsSection()}
+            </>
+          )}
+        </div>
+      ) : (
+        <>
+          {renderCuponesSection()}
+          {renderBankCouponsSection()}
+          {renderNewSection(products)}
+          {renderProductosSection()}
+          {renderExclusiveProductsSection()}
+          {renderReelsSection()}
+        </>
+      )}
+
+      <footer className={`py-12 border-t mt-20 ${
+        isLight ? 'bg-white border-gray-200 text-gray-600' : 'bg-neutral-900 border-neutral-800 text-neutral-400'
+      }`}>
+        <div className="container mx-auto px-4 flex flex-col items-center text-center">
+          <div className="flex items-center gap-4 mb-6">
+            {socialLinks.map((social) => {
+              const Icon = social.icon;
+              return (
+                <a
+                  key={social.name}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`w-12 h-12 rounded-full text-white flex items-center justify-center transition-transform hover:scale-110 shadow-lg ${social.color}`}
+                  title={social.name}
+                >
+                  <Icon className="w-6 h-6" />
+                </a>
+              );
+            })}
+          </div>
+          <p className="text-sm font-bold">
+            © {new Date().getFullYear()} CazaOfertasML. Todos los derechos reservados. Desarrollado con pasión para encontrar los mejores precios.
+          </p>
+        </div>
+      </footer>
+
+      <AnimatePresence>
+        {showProfilePanel && (
+          <ProfileModal
+            isOpen={showProfilePanel}
+            onClose={() => setShowProfilePanel(false)}
+            currentUser={currentUser}
+            setCurrentUser={setCurrentUser}
+            setToastMessage={setToastMessage}
+            setShowToast={setShowToast}
+            isLight={isLight}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showThemeModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className={`rounded-3xl p-6 max-w-sm w-full border shadow-2xl ${
+                isLight ? 'bg-white border-gray-200 text-gray-800' : 'bg-neutral-900 border-neutral-800 text-neutral-100'
+              }`}
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-black">Selecciona el Tema</h3>
+                <button onClick={() => setShowThemeModal(false)} className="text-gray-400 hover:text-white">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => {
+                    setThemeMode('dark');
+                    localStorage.setItem('cazaTheme', 'dark');
+                    setShowThemeModal(false);
+                  }}
+                  className={`p-4 rounded-2xl border-2 font-black text-sm uppercase transition-all flex flex-col items-center gap-2 ${
+                    themeMode === 'dark' ? 'border-yellow-400 bg-yellow-400/10 text-yellow-400' : 'border-neutral-700 bg-neutral-800 text-neutral-400'
+                  }`}
+                >
+                  <span className="text-2xl">🌙</span> Oscuro
+                </button>
+                <button
+                  onClick={() => {
+                    setThemeMode('light');
+                    localStorage.setItem('cazaTheme', 'light');
+                    setShowThemeModal(false);
+                  }}
+                  className={`p-4 rounded-2xl border-2 font-black text-sm uppercase transition-all flex flex-col items-center gap-2 ${
+                    themeMode === 'light' ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-gray-200 bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  <span className="text-2xl">☀️</span> Claro
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showTutorialModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className={`rounded-3xl p-6 max-w-md w-full border shadow-2xl ${
+                isLight ? 'bg-white border-gray-200 text-gray-800' : 'bg-neutral-900 border-neutral-800 text-neutral-100'
+              }`}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-black">¿Cómo usar los cupones?</h3>
+                <button onClick={() => setShowTutorialModal(false)} className="text-gray-400 hover:text-white">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="flex flex-col gap-3 text-sm font-medium opacity-90 mb-6">
+                <p>1. Copia el código de descuento haciendo clic en el botón correspondiente.</p>
+                <p>2. Serás redirigido a Mercado Libre al producto o tienda oficial.</p>
+                <p>3. Pega el código al momento de realizar tu pago para aplicar la rebaja.</p>
+              </div>
+              <button
+                onClick={() => setShowTutorialModal(false)}
+                className="w-full py-3 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl text-xs uppercase"
+              >
+                ¡Entendido!
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {isAdminVisible && (
+        <div className="fixed bottom-6 left-6 z-[70]">
+          <button
+            onClick={() => setShowAdminPanel(true)}
+            className="bg-yellow-400 hover:bg-yellow-300 text-black px-5 py-3 rounded-2xl font-black text-xs uppercase shadow-2xl border-2 border-black flex items-center gap-2 animate-bounce"
+          >
+            ⚙️ Panel Admin
+          </button>
+        </div>
+      )}
+
+      {showAdminPanel && (
+        <AdminDashboard
+          onClose={() => handleCloseAdminPanel(false)}
+          products={products}
+          setProducts={setProducts}
+          cupones={cupones}
+          setCupones={setCupones}
+          descuentos={descuentos}
+          setDescuentos={setDescuentos}
+          tiktokVideos={tiktokVideos}
+          setTiktokVideos={setTiktokVideos}
+          isAdminAuthorized={true}
+        />
+      )}
+    </div>
+  );
+}
+
+export default App;
