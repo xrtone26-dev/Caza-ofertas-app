@@ -1,6 +1,6 @@
 // Archivo: src/components/AdminDashboard.js
 import React, { useState } from 'react';
-import { X, Plus, Edit2, Trash2, Video, Copy, ShoppingCart, Image as ImageIcon, Star, Lock } from 'lucide-react';
+import { X, Plus, Edit2, Trash2, Video, Copy, ShoppingCart, Image as ImageIcon, Star, Lock, Sparkles } from 'lucide-react';
 import axios from 'axios';
 
 export const decodeCoupon = (offer) => {
@@ -35,8 +35,12 @@ export default function AdminDashboard({
   const [adminSection, setAdminSection] = useState('offers');
   const [showAddOfferModal, setShowAddOfferModal] = useState(false);
   const [editingOffer, setEditingOffer] = useState(null);
+  
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  
+  const [showAddPromoModal, setShowAddPromoModal] = useState(false);
+  const [editingPromo, setEditingPromo] = useState(null);
   
   const [showDeleteAllProductsModal, setShowDeleteAllProductsModal] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false); 
@@ -77,6 +81,26 @@ export default function AdminDashboard({
     installments_text: '',
     features: '',
     specs: '',
+  });
+
+  const [newPromo, setNewPromo] = useState({
+    title: '',
+    promo_subtitle: '',
+    model_capacity: '',
+    original_price: '',
+    discount_price: '',
+    coupon1_desc: '',
+    coupon1_code: '',
+    coupon2_desc: '',
+    coupon2_code: '',
+    msi_text: '',
+    shipping_text: '',
+    affiliate_earning: '',
+    affiliate_desc: '',
+    affiliate_link: '',
+    image_url: '',
+    is_promo_card: true,
+    active: true
   });
 
   const formatCurrencyInput = (value) => {
@@ -229,14 +253,7 @@ export default function AdminDashboard({
       );
       setShowAddOfferModal(false);
       setNewOffer({
-        type: 'cupon',
-        title: '',
-        description: '',
-        code: '',
-        min_purchase: '',
-        link: '',
-        expires_at: '',
-        active: true,
+        type: 'cupon', title: '', description: '', code: '', min_purchase: '', link: '', expires_at: '', active: true,
       });
       loadAllOffers();
       if (loadPublicOffers) loadPublicOffers();
@@ -308,19 +325,9 @@ export default function AdminDashboard({
       );
       setShowAddProductModal(false);
       setNewProduct({
-        title: '',
-        description: '',
-        original_price: '',
-        discount_price: '',
-        discount_percentage: '',
-        coupon: '',
-        affiliate_link: '',
-        image_url: '',
-        is_exclusive: false,
-        active: true,
-        installments_text: '',
-        features: '',
-        specs: '',
+        title: '', description: '', original_price: '', discount_price: '', discount_percentage: '',
+        coupon: '', affiliate_link: '', image_url: '', is_exclusive: false, active: true,
+        installments_text: '', features: '', specs: '',
       });
       loadAllProducts();
       if (loadPublicProducts) loadPublicProducts();
@@ -358,10 +365,60 @@ export default function AdminDashboard({
     }
   };
 
+  const handleCreatePromo = async () => {
+    try {
+      const promoData = {
+        ...newPromo,
+        id: 'promo_' + Date.now(),
+        created_at: new Date().toISOString(),
+        original_price: parsePrice(newPromo.original_price),
+        discount_price: parsePrice(newPromo.discount_price),
+      };
+      await axios.post(
+        `${API}/admin/products?password=${adminPassword}`,
+        promoData
+      );
+      setShowAddPromoModal(false);
+      setNewPromo({
+        title: '', promo_subtitle: '', model_capacity: '', original_price: '', discount_price: '',
+        coupon1_desc: '', coupon1_code: '', coupon2_desc: '', coupon2_code: '', msi_text: '', shipping_text: '',
+        affiliate_earning: '', affiliate_desc: '', affiliate_link: '', image_url: '', is_promo_card: true, active: true
+      });
+      loadAllProducts();
+      if (loadPublicProducts) loadPublicProducts();
+    } catch (error) {
+      console.error("Error al crear promo:", error);
+      alert('Error al crear promoción');
+    }
+  };
+
+  const handleUpdatePromo = async (promoOrId, updates) => {
+    try {
+      const promoId = getSafeId(promoOrId);
+      if (!promoId) return;
+      const updateData = { ...updates };
+      
+      updateData.original_price = parsePrice(updateData.original_price);
+      updateData.discount_price = parsePrice(updateData.discount_price);
+
+      await axios.patch(
+        `${API}/admin/products/${promoId}?password=${adminPassword}`,
+        updateData
+      );
+      loadAllProducts();
+      if (loadPublicProducts) loadPublicProducts();
+      setEditingPromo(null);
+      setShowAddPromoModal(false);
+    } catch (error) {
+      console.error("Error al actualizar promo:", error);
+      alert('Error al actualizar promoción');
+    }
+  };
+
   const handleDeleteProduct = async (productOrId) => {
     const productId = getSafeId(productOrId);
     if (!productId) return;
-    if (window.confirm('¿Estás seguro de eliminar este producto?')) {
+    if (window.confirm('¿Estás seguro de eliminar este ítem?')) {
       try {
         await axios.delete(
           `${API}/admin/products/${productId}?password=${adminPassword}`
@@ -369,8 +426,8 @@ export default function AdminDashboard({
         loadAllProducts();
         if (loadPublicProducts) loadPublicProducts();
       } catch (error) {
-        console.error("Error al eliminar producto:", error);
-        alert('Error al eliminar producto');
+        console.error("Error al eliminar:", error);
+        alert('Error al eliminar');
       }
     }
   };
@@ -393,8 +450,9 @@ export default function AdminDashboard({
     }
   };
 
-  const regularAdminProducts = allProducts.filter(p => !p.is_exclusive);
-  const exclusiveAdminProducts = allProducts.filter(p => p.is_exclusive);
+  const regularAdminProducts = allProducts.filter(p => !p.is_exclusive && !p.is_promo_card);
+  const exclusiveAdminProducts = allProducts.filter(p => p.is_exclusive && !p.is_promo_card);
+  const promoAdminProducts = allProducts.filter(p => p.is_promo_card);
 
   return (
     <>
@@ -503,6 +561,16 @@ export default function AdminDashboard({
                 }`}
               >
                 <Star size={18} /> Exclusivos / MP
+              </button>
+              <button
+                onClick={() => setAdminSection('promos')}
+                className={`px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 ${
+                  adminSection === 'promos'
+                    ? 'bg-blue-600 text-white shadow-lg'
+                    : 'bg-gray-200 text-gray-700'
+                }`}
+              >
+                <Sparkles size={18} /> Promos Especiales
               </button>
               <button
                 onClick={() => setAdminSection('videos')}
@@ -753,6 +821,67 @@ export default function AdminDashboard({
               </>
             )}
 
+            {adminSection === 'promos' && (
+              <>
+                <button
+                  onClick={() => {
+                    setNewPromo({
+                      title: '', promo_subtitle: '', model_capacity: '', original_price: '', discount_price: '',
+                      coupon1_desc: '', coupon1_code: '', coupon2_desc: '', coupon2_code: '', msi_text: '', shipping_text: '',
+                      affiliate_earning: '', affiliate_desc: '', affiliate_link: '', image_url: '', is_promo_card: true, active: true
+                    });
+                    setEditingPromo(null);
+                    setShowAddPromoModal(true);
+                  }}
+                  className="mb-6 bg-blue-600 text-white px-6 py-3 rounded-lg font-black hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg"
+                >
+                  <Plus className="w-5 h-5" /> Crear Promo Especial (Estilo Tarjeta)
+                </button>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {promoAdminProducts.map((prod) => (
+                    <div
+                      key={getSafeId(prod) || prod.title}
+                      className="border-2 rounded-xl p-6 border-blue-400 bg-blue-50/50"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <span className="px-3 py-1 rounded-full text-xs font-black bg-blue-200 text-blue-900 border border-blue-400">
+                          🌟 Promo Especial
+                        </span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setEditingPromo({
+                                ...prod,
+                                original_price: prod.original_price ? prod.original_price.toString() : '',
+                                discount_price: prod.discount_price ? prod.discount_price.toString() : '',
+                              });
+                              setShowAddPromoModal(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-800 bg-blue-100 p-1.5 rounded-lg"
+                          >
+                            <Edit2 className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProduct(prod)}
+                            className="text-red-600 hover:text-red-800 bg-red-100 p-1.5 rounded-lg"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-bold mb-2">{prod.title}</h3>
+                      <p className="text-gray-800 mb-2 font-black text-lg">
+                        ${Number(prod.discount_price).toLocaleString('en-US')} 
+                        <span className="line-through text-gray-400 text-sm font-medium ml-2">${Number(prod.original_price).toLocaleString('en-US')}</span>
+                      </p>
+                      <p className="text-xs text-blue-600 font-bold">Cupones: {prod.coupon1_code} & {prod.coupon2_code}</p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
             {adminSection === 'videos' && (
               <>
                 <button
@@ -950,80 +1079,40 @@ export default function AdminDashboard({
             </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Título
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Título</label>
                 <input
                   type="text"
                   value={editingOffer ? editingOffer.title : newOffer.title}
-                  onChange={(e) =>
-                    editingOffer
-                      ? setEditingOffer({
-                          ...editingOffer,
-                          title: e.target.value,
-                        })
-                      : setNewOffer({ ...newOffer, title: e.target.value })
-                  }
+                  onChange={(e) => editingOffer ? setEditingOffer({ ...editingOffer, title: e.target.value }) : setNewOffer({ ...newOffer, title: e.target.value })}
                   placeholder="Ej: Descuento en artículos seleccionados"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Descripción
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Descripción</label>
                 <textarea
-                  value={
-                    editingOffer
-                      ? editingOffer.description
-                      : newOffer.description
-                  }
-                  onChange={(e) =>
-                    editingOffer
-                      ? setEditingOffer({
-                          ...editingOffer,
-                          description: e.target.value,
-                        })
-                      : setNewOffer({
-                          ...newOffer,
-                          description: e.target.value,
-                        })
-                  }
+                  value={editingOffer ? editingOffer.description : newOffer.description}
+                  onChange={(e) => editingOffer ? setEditingOffer({ ...editingOffer, description: e.target.value }) : setNewOffer({ ...newOffer, description: e.target.value })}
                   placeholder="Descripción detallada del cupón"
                   rows="3"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Código (opcional)
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Código (opcional)</label>
                 <input
                   type="text"
                   value={editingOffer ? editingOffer.code : newOffer.code}
-                  onChange={(e) =>
-                    editingOffer
-                      ? setEditingOffer({
-                          ...editingOffer,
-                          code: e.target.value,
-                        })
-                      : setNewOffer({ ...newOffer, code: e.target.value })
-                  }
+                  onChange={(e) => editingOffer ? setEditingOffer({ ...editingOffer, code: e.target.value }) : setNewOffer({ ...newOffer, code: e.target.value })}
                   placeholder="Ej: CUPON50"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Mínimo de Compra ($)
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Mínimo de Compra ($)</label>
                 <input
                   type="text"
-                  value={
-                    editingOffer
-                      ? editingOffer.min_purchase || ''
-                      : newOffer.min_purchase || ''
-                  }
+                  value={editingOffer ? editingOffer.min_purchase || '' : newOffer.min_purchase || ''}
                   onChange={(e) => {
                     const rawDigits = e.target.value.replace(/\D/g, '');
                     const formatted = rawDigits ? '$' + Number(rawDigits).toLocaleString('en-US') : '';
@@ -1038,45 +1127,20 @@ export default function AdminDashboard({
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Fecha y Hora de Expiración (Caducidad)
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Fecha y Hora de Expiración</label>
                 <input
                   type="datetime-local"
-                  value={
-                    editingOffer
-                      ? editingOffer.expires_at || ''
-                      : newOffer.expires_at || ''
-                  }
-                  onChange={(e) =>
-                    editingOffer
-                      ? setEditingOffer({
-                          ...editingOffer,
-                          expires_at: e.target.value,
-                        })
-                      : setNewOffer({
-                          ...newOffer,
-                          expires_at: e.target.value,
-                        })
-                  }
+                  value={editingOffer ? editingOffer.expires_at || '' : newOffer.expires_at || ''}
+                  onChange={(e) => editingOffer ? setEditingOffer({ ...editingOffer, expires_at: e.target.value }) : setNewOffer({ ...newOffer, expires_at: e.target.value })}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Enlace / Link (opcional)
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Enlace / Link (opcional)</label>
                 <input
                   type="text"
                   value={editingOffer ? editingOffer.link : newOffer.link}
-                  onChange={(e) =>
-                    editingOffer
-                      ? setEditingOffer({
-                          ...editingOffer,
-                          link: e.target.value,
-                        })
-                      : setNewOffer({ ...newOffer, link: e.target.value })
-                  }
+                  onChange={(e) => editingOffer ? setEditingOffer({ ...editingOffer, link: e.target.value }) : setNewOffer({ ...newOffer, link: e.target.value })}
                   placeholder="https://..."
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
@@ -1085,15 +1149,7 @@ export default function AdminDashboard({
                 onClick={() => {
                   if (editingOffer) {
                     const cleanUpdates = { ...editingOffer, type: 'cupon' };
-                    const idKeys = [
-                      'id',
-                      '_id',
-                      'offer_id',
-                      'product_id',
-                      'Id',
-                      'ID',
-                      'uuid',
-                    ];
+                    const idKeys = ['id', '_id', 'offer_id', 'product_id', 'Id', 'ID', 'uuid'];
                     idKeys.forEach((k) => delete cleanUpdates[k]);
                     handleUpdateOffer(editingOffer, cleanUpdates);
                   } else {
@@ -1103,15 +1159,6 @@ export default function AdminDashboard({
                 className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"
               >
                 {editingOffer ? 'Actualizar Cupón' : 'Guardar Cupón'}
-              </button>
-              <button
-                onClick={() => {
-                  setShowAddOfferModal(false);
-                  setEditingOffer(null);
-                }}
-                className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 py-3 rounded-lg font-bold transition-all"
-              >
-                Cancelar
               </button>
             </div>
           </div>
@@ -1127,7 +1174,6 @@ export default function AdminDashboard({
                 setEditingProduct(null);
               }}
               className="absolute top-6 right-6 text-gray-500 hover:text-gray-800 bg-gray-100 p-1.5 rounded-full"
-              aria-label="Cerrar modal"
             >
               <X className="w-6 h-6" />
             </button>
@@ -1136,46 +1182,19 @@ export default function AdminDashboard({
             </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Título del Producto
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Título del Producto</label>
                 <input
                   type="text"
-                  value={
-                    editingProduct ? editingProduct.title : newProduct.title
-                  }
-                  onChange={(e) =>
-                    editingProduct
-                      ? setEditingProduct({
-                          ...editingProduct,
-                          title: e.target.value,
-                        })
-                      : setNewProduct({ ...newProduct, title: e.target.value })
-                  }
+                  value={editingProduct ? editingProduct.title : newProduct.title}
+                  onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, title: e.target.value }) : setNewProduct({ ...newProduct, title: e.target.value })}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Descripción corta (Subtítulo)
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Descripción corta (Subtítulo)</label>
                 <textarea
-                  value={
-                    editingProduct
-                      ? editingProduct.description
-                      : newProduct.description
-                  }
-                  onChange={(e) =>
-                    editingProduct
-                      ? setEditingProduct({
-                          ...editingProduct,
-                          description: e.target.value,
-                        })
-                      : setNewProduct({
-                          ...newProduct,
-                          description: e.target.value,
-                        })
-                  }
+                  value={editingProduct ? editingProduct.description : newProduct.description}
+                  onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, description: e.target.value }) : setNewProduct({ ...newProduct, description: e.target.value })}
                   placeholder="Ej: Con chip 4G gratis, WiFi e impresión de recibos."
                   rows="2"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
@@ -1183,81 +1202,31 @@ export default function AdminDashboard({
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="block text-gray-700 font-bold mb-1 text-xs">
-                    Precio Original ($)
-                  </label>
+                  <label className="block text-gray-700 font-bold mb-1 text-xs">Precio Original ($)</label>
                   <input
                     type="text"
-                    value={
-                      editingProduct
-                        ? editingProduct.original_price
-                        : newProduct.original_price
-                    }
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      editingProduct
-                        ? setEditingProduct({
-                            ...editingProduct,
-                            original_price: val,
-                          })
-                        : setNewProduct({
-                            ...newProduct,
-                            original_price: val,
-                          })
-                    }}
+                    value={editingProduct ? editingProduct.original_price : newProduct.original_price}
+                    onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, original_price: e.target.value }) : setNewProduct({ ...newProduct, original_price: e.target.value })}
                     placeholder="4499"
                     className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 font-bold mb-1 text-xs">
-                    Precio Oferta ($)
-                  </label>
+                  <label className="block text-gray-700 font-bold mb-1 text-xs">Precio Oferta ($)</label>
                   <input
                     type="text"
-                    value={
-                      editingProduct
-                        ? editingProduct.discount_price
-                        : newProduct.discount_price
-                    }
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      editingProduct
-                        ? setEditingProduct({
-                            ...editingProduct,
-                            discount_price: val,
-                          })
-                        : setNewProduct({
-                            ...newProduct,
-                            discount_price: val,
-                          })
-                    }}
+                    value={editingProduct ? editingProduct.discount_price : newProduct.discount_price}
+                    onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, discount_price: e.target.value }) : setNewProduct({ ...newProduct, discount_price: e.target.value })}
                     placeholder="529"
                     className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 font-bold mb-1 text-xs">
-                    % Descuento
-                  </label>
+                  <label className="block text-gray-700 font-bold mb-1 text-xs">% Descuento</label>
                   <input
                     type="number"
-                    value={
-                      editingProduct
-                        ? editingProduct.discount_percentage
-                        : newProduct.discount_percentage
-                    }
-                    onChange={(e) =>
-                      editingProduct
-                        ? setEditingProduct({
-                            ...editingProduct,
-                            discount_percentage: e.target.value,
-                          })
-                        : setNewProduct({
-                            ...newProduct,
-                            discount_percentage: e.target.value,
-                          })
-                    }
+                    value={editingProduct ? editingProduct.discount_percentage : newProduct.discount_percentage}
+                    onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, discount_percentage: e.target.value }) : setNewProduct({ ...newProduct, discount_percentage: e.target.value })}
                     placeholder="88"
                     className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg text-sm"
                   />
@@ -1265,199 +1234,83 @@ export default function AdminDashboard({
               </div>
 
               <div>
-                <label className="block text-gray-700 font-bold mb-1 text-sm">
-                  Texto de Meses Sin Intereses (Ej: o 6x $88.16 sin intereses)
-                </label>
+                <label className="block text-gray-700 font-bold mb-1 text-sm">Texto de Meses Sin Intereses</label>
                 <input
                   type="text"
-                  value={
-                    editingProduct
-                      ? editingProduct.installments_text || ''
-                      : newProduct.installments_text || ''
-                  }
-                  onChange={(e) =>
-                    editingProduct
-                      ? setEditingProduct({
-                          ...editingProduct,
-                          installments_text: e.target.value,
-                        })
-                      : setNewProduct({
-                          ...newProduct,
-                          installments_text: e.target.value,
-                        })
-                  }
+                  value={editingProduct ? editingProduct.installments_text || '' : newProduct.installments_text || ''}
+                  onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, installments_text: e.target.value }) : setNewProduct({ ...newProduct, installments_text: e.target.value })}
                   placeholder="o 6x $88.16 sin intereses"
                   className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-gray-700 font-bold mb-1 text-sm">
-                  Beneficios con palomita (Un beneficio por renglón)
-                </label>
+                <label className="block text-gray-700 font-bold mb-1 text-sm">Beneficios con palomita (Un beneficio por renglón)</label>
                 <textarea
-                  value={
-                    editingProduct
-                      ? editingProduct.features || ''
-                      : newProduct.features || ''
-                  }
-                  onChange={(e) =>
-                    editingProduct
-                      ? setEditingProduct({
-                          ...editingProduct,
-                          features: e.target.value,
-                        })
-                      : setNewProduct({
-                          ...newProduct,
-                          features: e.target.value,
-                        })
-                  }
-                  placeholder={`Acepta débito, crédito y vales.\nIncluye cuenta digital y tarjeta gratuita.\n1 año de garantía.\nEnvío gratis en 2 hs.*`}
+                  value={editingProduct ? editingProduct.features || '' : newProduct.features || ''}
+                  onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, features: e.target.value }) : setNewProduct({ ...newProduct, features: e.target.value })}
+                  placeholder={`Acepta débito, crédito y vales.\n1 año de garantía.`}
                   rows="4"
                   className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg text-xs font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-gray-700 font-bold mb-1 text-sm">
-                  Especificaciones técnicas (Un renglón por especificación)
-                </label>
-                <p className="text-[10px] text-gray-500 mb-2 leading-tight">No necesitas poner emojis, el sistema detectará palabras clave (Plan de datos, Recibos, Tarjetas, batería, mm, g, celular, Bluetooth) y agregará el ícono azul automáticamente.</p>
+                <label className="block text-gray-700 font-bold mb-1 text-sm">Especificaciones técnicas (Un renglón por especificación)</label>
                 <textarea
-                  value={
-                    editingProduct
-                      ? editingProduct.specs || ''
-                      : newProduct.specs || ''
-                  }
-                  onChange={(e) =>
-                    editingProduct
-                      ? setEditingProduct({
-                          ...editingProduct,
-                          specs: e.target.value,
-                        })
-                      : setNewProduct({
-                          ...newProduct,
-                          specs: e.target.value,
-                        })
-                  }
-                  placeholder={`Plan de datos 4G gratis y Wi-Fi.\nRecibos impresos, por e-mail y SMS.\nTarjetas con chip, banda y sin contacto.\n72 horas de batería.\n175x82x62 mm.\n410 g.`}
+                  value={editingProduct ? editingProduct.specs || '' : newProduct.specs || ''}
+                  onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, specs: e.target.value }) : setNewProduct({ ...newProduct, specs: e.target.value })}
+                  placeholder={`Plan de datos 4G gratis y Wi-Fi.\n72 horas de batería.`}
                   rows="4"
                   className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg text-xs font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  URL de la Imagen
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">URL de la Imagen</label>
                 <input
                   type="text"
-                  value={
-                    editingProduct
-                      ? editingProduct.image_url
-                      : newProduct.image_url
-                  }
-                  onChange={(e) =>
-                    editingProduct
-                      ? setEditingProduct({
-                          ...editingProduct,
-                          image_url: e.target.value,
-                        })
-                      : setNewProduct({
-                          ...newProduct,
-                          image_url: e.target.value,
-                        })
-                  }
+                  value={editingProduct ? editingProduct.image_url : newProduct.image_url}
+                  onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, image_url: e.target.value }) : setNewProduct({ ...newProduct, image_url: e.target.value })}
                   placeholder="https://..."
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  Enlace de Afiliado / Link del Producto
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">Enlace de Afiliado / Link del Producto</label>
                 <input
                   type="text"
-                  value={
-                    editingProduct
-                      ? editingProduct.affiliate_link || editingProduct.link || editingProduct.url || ''
-                      : newProduct.affiliate_link
-                  }
-                  onChange={(e) =>
-                    editingProduct
-                      ? setEditingProduct({
-                          ...editingProduct,
-                          affiliate_link: e.target.value,
-                        })
-                      : setNewProduct({
-                          ...newProduct,
-                          affiliate_link: e.target.value,
-                        })
-                  }
+                  value={editingProduct ? editingProduct.affiliate_link || editingProduct.link || editingProduct.url || '' : newProduct.affiliate_link}
+                  onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, affiliate_link: e.target.value }) : setNewProduct({ ...newProduct, affiliate_link: e.target.value })}
                   placeholder="https://..."
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
+              
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
-                  checked={
-                    editingProduct ? !!editingProduct.is_exclusive : newProduct.is_exclusive
-                  }
-                  onChange={(e) =>
-                    editingProduct
-                      ? setEditingProduct({
-                          ...editingProduct,
-                          is_exclusive: e.target.checked,
-                        })
-                      : setNewProduct({
-                          ...newProduct,
-                          is_exclusive: e.target.checked,
-                        })
-                  }
+                  checked={editingProduct ? !!editingProduct.is_exclusive : newProduct.is_exclusive}
+                  onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, is_exclusive: e.target.checked }) : setNewProduct({ ...newProduct, is_exclusive: e.target.checked })}
                   className="w-5 h-5 accent-purple-500"
                 />
-                <label className="text-gray-700 font-bold">
-                  ⭐ Producto Exclusivo / Terminal (Diseño Tipo Mercado Pago)
-                </label>
+                <label className="text-gray-700 font-bold">⭐ Producto Exclusivo / Terminal</label>
               </div>
               <div className="flex items-center">
                 <input
                   type="checkbox"
-                  checked={
-                    editingProduct ? editingProduct.active : newProduct.active
-                  }
-                  onChange={(e) =>
-                    editingProduct
-                      ? setEditingProduct({
-                          ...editingProduct,
-                          active: e.target.checked,
-                        })
-                      : setNewProduct({
-                          ...newProduct,
-                          active: e.target.checked,
-                        })
-                  }
+                  checked={editingProduct ? editingProduct.active : newProduct.active}
+                  onChange={(e) => editingProduct ? setEditingProduct({ ...editingProduct, active: e.target.checked }) : setNewProduct({ ...newProduct, active: e.target.checked })}
                   className="w-5 h-5 mr-3 accent-purple-500"
                 />
-                <label className="text-gray-700 font-bold">
-                  Activo (visible en carrusel)
-                </label>
+                <label className="text-gray-700 font-bold">Activo (visible en carrusel)</label>
               </div>
+
               <button
                 onClick={() => {
                   if (editingProduct) {
                     const cleanUpdates = { ...editingProduct };
-                    const idKeys = [
-                      'id',
-                      '_id',
-                      'product_id',
-                      'offer_id',
-                      'Id',
-                      'ID',
-                      'uuid',
-                      'created_at',
-                    ];
+                    const idKeys = ['id', '_id', 'product_id', 'offer_id', 'Id', 'ID', 'uuid', 'created_at'];
                     idKeys.forEach((k) => delete cleanUpdates[k]);
                     handleUpdateProduct(editingProduct, cleanUpdates);
                   } else {
@@ -1467,6 +1320,222 @@ export default function AdminDashboard({
                 className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all"
               >
                 {editingProduct ? 'Actualizar Producto' : 'Crear Producto'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* NUEVO MODAL PARA PROMOS ESPECIALES */}
+      {showAddPromoModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[110] p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-xl w-full max-h-[90vh] overflow-y-auto text-gray-800 shadow-2xl relative border-t-8 border-blue-500">
+            <button
+              onClick={() => {
+                setShowAddPromoModal(false);
+                setEditingPromo(null);
+              }}
+              className="absolute top-6 right-6 text-gray-500 hover:text-gray-800 bg-gray-100 p-1.5 rounded-full"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <h2 className="text-2xl font-black mb-1 pr-8 text-blue-600">
+              {editingPromo ? 'Editar Promo Especial' : 'Nueva Promo Especial'}
+            </h2>
+            <p className="text-sm font-medium text-gray-500 mb-6">Configura la tarjeta promocional idéntica al diseño de la imagen.</p>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700 font-bold mb-1 text-sm">Título Principal</label>
+                  <input
+                    type="text"
+                    value={editingPromo ? editingPromo.title : newPromo.title}
+                    onChange={(e) => editingPromo ? setEditingPromo({ ...editingPromo, title: e.target.value }) : setNewPromo({ ...newPromo, title: e.target.value })}
+                    placeholder="Galaxy Z Fold8 Ultra"
+                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-bold mb-1 text-sm">Subtítulo Superior</label>
+                  <input
+                    type="text"
+                    value={editingPromo ? editingPromo.promo_subtitle : newPromo.promo_subtitle}
+                    onChange={(e) => editingPromo ? setEditingPromo({ ...editingPromo, promo_subtitle: e.target.value }) : setNewPromo({ ...newPromo, promo_subtitle: e.target.value })}
+                    placeholder="Galaxy AI ✨"
+                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-bold mb-1 text-sm">Texto del Modelo / Capacidad</label>
+                <input
+                  type="text"
+                  value={editingPromo ? editingPromo.model_capacity : newPromo.model_capacity}
+                  onChange={(e) => editingPromo ? setEditingPromo({ ...editingPromo, model_capacity: e.target.value }) : setNewPromo({ ...newPromo, model_capacity: e.target.value })}
+                  placeholder="Z Fold8 Ultra 512 GB"
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 font-bold"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700 font-bold mb-1 text-sm">Precio Inicial (Tachado)</label>
+                  <input
+                    type="text"
+                    value={editingPromo ? editingPromo.original_price : newPromo.original_price}
+                    onChange={(e) => editingPromo ? setEditingPromo({ ...editingPromo, original_price: e.target.value }) : setNewPromo({ ...newPromo, original_price: e.target.value })}
+                    placeholder="50999"
+                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-bold mb-1 text-sm">Precio Final</label>
+                  <input
+                    type="text"
+                    value={editingPromo ? editingPromo.discount_price : newPromo.discount_price}
+                    onChange={(e) => editingPromo ? setEditingPromo({ ...editingPromo, discount_price: e.target.value }) : setNewPromo({ ...newPromo, discount_price: e.target.value })}
+                    placeholder="29834"
+                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 text-blue-600 font-black"
+                  />
+                </div>
+              </div>
+
+              {/* CUPONES */}
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl space-y-3">
+                <h4 className="font-bold text-blue-800 text-sm">Configuración de Cupones Múltiples</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1 text-[11px]">Texto Cupón 1</label>
+                    <input
+                      type="text"
+                      value={editingPromo ? editingPromo.coupon1_desc : newPromo.coupon1_desc}
+                      onChange={(e) => editingPromo ? setEditingPromo({ ...editingPromo, coupon1_desc: e.target.value }) : setNewPromo({ ...newPromo, coupon1_desc: e.target.value })}
+                      placeholder="35% dto. con cupón"
+                      className="w-full px-3 py-1.5 border-2 border-white rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1 text-[11px]">Código Cupón 1</label>
+                    <input
+                      type="text"
+                      value={editingPromo ? editingPromo.coupon1_code : newPromo.coupon1_code}
+                      onChange={(e) => editingPromo ? setEditingPromo({ ...editingPromo, coupon1_code: e.target.value }) : setNewPromo({ ...newPromo, coupon1_code: e.target.value })}
+                      placeholder="FF8CLUB_35"
+                      className="w-full px-3 py-1.5 border-2 border-white rounded-lg text-xs font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1 text-[11px]">Texto Cupón 2</label>
+                    <input
+                      type="text"
+                      value={editingPromo ? editingPromo.coupon2_desc : newPromo.coupon2_desc}
+                      onChange={(e) => editingPromo ? setEditingPromo({ ...editingPromo, coupon2_desc: e.target.value }) : setNewPromo({ ...newPromo, coupon2_desc: e.target.value })}
+                      placeholder="10% dto. con cupón"
+                      className="w-full px-3 py-1.5 border-2 border-white rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1 text-[11px]">Código Cupón 2</label>
+                    <input
+                      type="text"
+                      value={editingPromo ? editingPromo.coupon2_code : newPromo.coupon2_code}
+                      onChange={(e) => editingPromo ? setEditingPromo({ ...editingPromo, coupon2_code: e.target.value }) : setNewPromo({ ...newPromo, coupon2_code: e.target.value })}
+                      placeholder="LIVESEM"
+                      className="w-full px-3 py-1.5 border-2 border-white rounded-lg text-xs font-bold"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* BENEFICIOS EXTRAS */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700 font-bold mb-1 text-sm">Texto MSI (Icono Tarjeta)</label>
+                  <input
+                    type="text"
+                    value={editingPromo ? editingPromo.msi_text : newPromo.msi_text}
+                    onChange={(e) => editingPromo ? setEditingPromo({ ...editingPromo, msi_text: e.target.value }) : setNewPromo({ ...newPromo, msi_text: e.target.value })}
+                    placeholder="Hasta 24 MSI*"
+                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-bold mb-1 text-sm">Texto Envío (Icono Camión)</label>
+                  <input
+                    type="text"
+                    value={editingPromo ? editingPromo.shipping_text : newPromo.shipping_text}
+                    onChange={(e) => editingPromo ? setEditingPromo({ ...editingPromo, shipping_text: e.target.value }) : setNewPromo({ ...newPromo, shipping_text: e.target.value })}
+                    placeholder="Envío gratis"
+                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* AFILIADO */}
+              <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl space-y-3">
+                <h4 className="font-bold text-gray-800 text-sm">Textos Afiliado & Link</h4>
+                <div>
+                  <input
+                    type="text"
+                    value={editingPromo ? editingPromo.affiliate_earning : newPromo.affiliate_earning}
+                    onChange={(e) => editingPromo ? setEditingPromo({ ...editingPromo, affiliate_earning: e.target.value }) : setNewPromo({ ...newPromo, affiliate_earning: e.target.value })}
+                    placeholder="Gana el 5% por cada venta"
+                    className="w-full px-3 py-2 border-2 border-white rounded-lg text-sm mb-2"
+                  />
+                  <input
+                    type="text"
+                    value={editingPromo ? editingPromo.affiliate_desc : newPromo.affiliate_desc}
+                    onChange={(e) => editingPromo ? setEditingPromo({ ...editingPromo, affiliate_desc: e.target.value }) : setNewPromo({ ...newPromo, affiliate_desc: e.target.value })}
+                    placeholder="Comparte tu enlace y multiplica tus ganancias."
+                    className="w-full px-3 py-2 border-2 border-white rounded-lg text-sm mb-2"
+                  />
+                  <input
+                    type="text"
+                    value={editingPromo ? editingPromo.affiliate_link || editingPromo.link || '' : newPromo.affiliate_link}
+                    onChange={(e) => editingPromo ? setEditingPromo({ ...editingPromo, affiliate_link: e.target.value }) : setNewPromo({ ...newPromo, affiliate_link: e.target.value })}
+                    placeholder="Link de compra (Ej: https://...)"
+                    className="w-full px-3 py-2 border-2 border-blue-200 rounded-lg text-sm font-bold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-bold mb-2">URL de la Imagen (Renderiza sobre el morado)</label>
+                <input
+                  type="text"
+                  value={editingPromo ? editingPromo.image_url : newPromo.image_url}
+                  onChange={(e) => editingPromo ? setEditingPromo({ ...editingPromo, image_url: e.target.value }) : setNewPromo({ ...newPromo, image_url: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={editingPromo ? editingPromo.active : newPromo.active}
+                  onChange={(e) => editingPromo ? setEditingPromo({ ...editingPromo, active: e.target.checked }) : setNewPromo({ ...newPromo, active: e.target.checked })}
+                  className="w-5 h-5 mr-3 accent-blue-500"
+                />
+                <label className="text-gray-700 font-bold">Activo (Visible en el inicio)</label>
+              </div>
+
+              <button
+                onClick={() => {
+                  if (editingPromo) {
+                    const cleanUpdates = { ...editingPromo };
+                    const idKeys = ['id', '_id', 'product_id', 'offer_id', 'Id', 'ID', 'uuid', 'created_at'];
+                    idKeys.forEach((k) => delete cleanUpdates[k]);
+                    handleUpdatePromo(editingPromo, cleanUpdates);
+                  } else {
+                    handleCreatePromo();
+                  }
+                }}
+                className="w-full bg-blue-600 text-white py-4 rounded-xl font-black hover:bg-blue-700 transition-all shadow-lg"
+              >
+                {editingPromo ? 'Actualizar Promo Especial' : 'Guardar Promo Especial'}
               </button>
             </div>
           </div>
