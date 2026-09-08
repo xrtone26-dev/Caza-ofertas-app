@@ -53,7 +53,7 @@ import {
 import axios from 'axios';
 import useEmblaCarousel from 'embla-carousel-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import GamesZone from './components/GamesZone';
+// import GamesZone from './components/GamesZone';
 import ChatbotWidget from './components/ChatbotWidget';
 import ProfileModal from './components/ProfileModal';
 import AdminDashboard, { decodeCoupon } from './components/AdminDashboard'; 
@@ -2239,14 +2239,14 @@ function App() {
             >
               🔥 Productos
             </button>
-            <button
+            {/* <button
               onClick={() => setMobileTab('juegos')}
               className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'juegos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
               🎮 Juegos
-            </button>
+            </button> */}
             <button
               onClick={() => setMobileTab('reels')}
               className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
@@ -2268,7 +2268,7 @@ function App() {
           {mobileTab === 'cupones' && renderCuponesSection()}
           {mobileTab === 'productos' && renderProductosSection()}
           {mobileTab === 'exclusivos' && renderExclusiveProductsSection()}
-          {mobileTab === 'juegos' && (
+          {/* {mobileTab === 'juegos' && (
             <div className="mb-8">
               <GamesZone 
                 currentUser={
@@ -2280,7 +2280,7 @@ function App() {
                 isAuthenticated={isAuthenticated} 
               />
             </div>
-          )}
+          )} */}
           {mobileTab === 'reels' && (
             <>
               {renderReelsSection()}
@@ -2293,7 +2293,7 @@ function App() {
           {renderCuponesSection()}
           {renderProductosSection()}
           {renderExclusiveProductsSection()}
-          <GamesZone 
+          {/* <GamesZone 
             currentUser={
               typeof currentUser === 'object' && currentUser !== null
                 ? (currentUser.nickname || currentUser.nombre || currentUser.email || '')
@@ -2301,7 +2301,7 @@ function App() {
             } 
             isLight={isLight} 
             isAuthenticated={isAuthenticated} 
-          />
+          /> */}
           {renderReelsSection()}
           {renderNewSection(products)}
         </>
