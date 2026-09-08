@@ -1,3 +1,6 @@
+import React from 'react';
+
+/*
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Gamepad2, User, Trophy, Play, Pause, Sparkles, Volume2, VolumeX, RotateCcw, Clock, Lightbulb, Maximize, Minimize, Settings as SettingsIcon, Music, Zap, Award, BarChart3, Share2, Home, Calendar, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCw } from 'lucide-react';
 
@@ -2451,10 +2454,10 @@ export default function GamesZone({ currentUser, isLight }) {
                     <div className="text-[10px] sm:text-xs">Pts: <span className="text-yellow-400 font-black">{score}</span></div>
                     <div className="flex gap-1 sm:gap-2">
                        <button onClick={useMemoryHint} disabled={memStats.hints === 0 || isMemoryPaused} className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 rounded-lg flex items-center gap-1 text-[10px] sm:text-xs border border-yellow-500/30">
-                         <Lightbulb size={12} className="text-yellow-400" /> <span className="hidden sm:inline">({memStats.hints})</span>
+                          <Lightbulb size={12} className="text-yellow-400" /> <span className="hidden sm:inline">({memStats.hints})</span>
                        </button>
                        <button onClick={() => setIsMemoryPaused(!isMemoryPaused)} className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 rounded-lg flex items-center gap-1 text-[10px] sm:text-xs text-yellow-400">
-                         <Pause size={12} /> <span className="hidden sm:inline">Pausa</span>
+                          <Pause size={12} /> <span className="hidden sm:inline">Pausa</span>
                        </button>
                     </div>
                   </div>
@@ -2465,8 +2468,8 @@ export default function GamesZone({ currentUser, isLight }) {
                   <div className="flex-1 w-full flex items-center justify-center min-h-0 overflow-hidden my-auto p-1">
                     <div className="grid gap-1 sm:gap-1.5 w-[280px] h-[280px] sm:w-[360px] sm:h-[360px] aspect-square mx-auto"
                          style={{ 
-                           gridTemplateColumns: `repeat(${MEMORY_DIFFICULTIES[memSettings.diff].cols}, minmax(0, 1fr))`, 
-                           gridTemplateRows: `repeat(${MEMORY_DIFFICULTIES[memSettings.diff].rows}, minmax(0, 1fr))` 
+                            gridTemplateColumns: `repeat(${MEMORY_DIFFICULTIES[memSettings.diff].cols}, minmax(0, 1fr))`, 
+                            gridTemplateRows: `repeat(${MEMORY_DIFFICULTIES[memSettings.diff].rows}, minmax(0, 1fr))` 
                          }}>
                       {memoryCards.map((card, idx) => {
                         const isFlipped = card.flipped || memoryMatched.includes(idx) || card.isHint;
@@ -2476,7 +2479,7 @@ export default function GamesZone({ currentUser, isLight }) {
                         return (
                           <div key={card.id} 
                                onClick={() => handleFlipCard(idx)}
-                               className={`relative w-full h-full cursor-pointer ${card.errorAnim ? 'animate-shake' : ''}`}
+                               className={`w-full h-full cursor-pointer ${card.errorAnim ? 'animate-shake' : ''}`}
                                style={{ perspective: '1000px' }}>
                             <div className={`w-full h-full absolute transition-all duration-500 rounded-sm sm:rounded-md shadow-sm border ${memoryMatched.includes(idx) ? 'border-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)]' : 'border-neutral-700'}`}
                                  style={{ transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)', transformOrigin: 'center center' }}>
@@ -2507,7 +2510,7 @@ export default function GamesZone({ currentUser, isLight }) {
                       <div className="flex gap-2 mb-4">
                          {[1, 2, 3].map(star => (
                            <div key={star} className={`text-3xl sm:text-4xl ${star <= memoryStars ? 'text-yellow-400 scale-110 drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]' : 'text-neutral-700 opacity-50'} transition-all duration-500 transform`}>
-                              ⭐
+                             ⭐
                            </div>
                          ))}
                       </div>
@@ -2602,4 +2605,9 @@ export default function GamesZone({ currentUser, isLight }) {
       `}} />
     </div>
   );
+}
+*/
+
+export default function GamesZone({ currentUser, isLight }) {
+  return null;
 }
