@@ -62,6 +62,36 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
 // ==========================================
+// FUNCIÓN UTILITARIA (MovidA afuera para uso global)
+// ==========================================
+export const getSafeId = (item) => {
+  if (!item) return null;
+  if (typeof item === 'string' || typeof item === 'number')
+    return String(item);
+  const keysToTry = ['id','_id','offer_id','product_id','Id','ID','uuid','key'];
+  for (let key of keysToTry) {
+    if (item[key] !== undefined && item[key] !== null) {
+      const val = item[key];
+      if (typeof val === 'string' || typeof val === 'number')
+        return String(val);
+      if (typeof val === 'object' && val.$oid) return String(val.$oid);
+      if (typeof val === 'object' && typeof val.toString === 'function') {
+        const res = val.toString();
+        if (res !== '[object Object]') return res;
+      }
+    }
+  }
+  const anyIdKey = Object.keys(item).find((k) => k.toLowerCase().includes('id'));
+  if (anyIdKey && item[anyIdKey] !== undefined && item[anyIdKey] !== null) {
+    const val = item[anyIdKey];
+    if (typeof val === 'string' || typeof val === 'number')
+      return String(val);
+    if (typeof val === 'object' && val.$oid) return String(val.$oid);
+  }
+  return null;
+};
+
+// ==========================================
 // COMPONENTE 3D: CUBO DE CARACTERÍSTICAS (ADAPTABLE MÓVIL)
 // ==========================================
 function FeatureCube({ isLight, isMobileDevice }) {
@@ -558,22 +588,115 @@ function CountdownTimer({ expiresAt }) {
 }
 
 // ==========================================
-// COMPONENTE VIP DE ATERRIZAJE (NUEVA SECCIÓN)
+// COMPONENTE PROMO ESTILO SAMSUNG
 // ==========================================
-function renderNewSection() {
+function renderNewSection(products = []) {
+  const promoProducts = products.filter(p => p.is_promo_card && p.active !== false);
+
+  if (promoProducts.length === 0) return null; 
+
   return (
-    <div className="container mx-auto px-4 mb-16 relative z-10 text-center flex flex-col items-center">
-      <div className="bg-gradient-to-r from-pink-500 to-yellow-500 rounded-3xl p-8 shadow-2xl border-4 border-black transform hover:scale-105 transition-all max-w-4xl w-full">
-        <h2 className="text-3xl md:text-5xl font-black text-white mb-4 drop-shadow-md uppercase tracking-widest">
-          💰 ¡VIP Área Lista! 💰
-        </h2>
-        <p className="text-xl font-bold text-white mb-4">
-          ¡Tu nueva sección se posiciona exactamente donde termina Mercado Libre y Terminal Point! 
-        </p>
-        <p className="text-sm md:text-base text-white/95 font-medium bg-black/30 p-4 rounded-xl border border-white/20">
-          (Nota robótica: Mis sensores acoplan perfectamente este componente sin alterar ni una sola línea previa de tu majestuoso código).
-        </p>
-      </div>
+    <div className="container mx-auto px-4 mb-16 relative z-10 flex flex-col items-center">
+      {promoProducts.map((promo) => {
+        const origPrice = Number(promo.original_price || 0).toLocaleString('en-US');
+        const finalPrice = Number(promo.discount_price || 0).toLocaleString('en-US');
+        const pId = getSafeId(promo) || promo.title;
+
+        return (
+          <div key={pId} className="max-w-[420px] w-full bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100 mb-8 font-sans">
+            
+            {/* Cabecera / Imagen */}
+            <div className="bg-[#594d6e] relative pt-8 pb-4 px-6 text-center text-white min-h-[260px] flex flex-col items-center overflow-hidden">
+              <h3 className="text-2xl font-bold tracking-tight mb-0.5">{promo.title}</h3>
+              <p className="text-sm font-semibold text-blue-200 mb-6 flex items-center gap-1 justify-center">
+                {promo.promo_subtitle}
+              </p>
+              {promo.image_url && (
+                <img 
+                  src={promo.image_url} 
+                  alt={promo.title} 
+                  className="w-full max-w-[280px] object-contain drop-shadow-2xl z-10 relative scale-110 mt-2" 
+                />
+              )}
+              {/* Resplandor de fondo estilo Samsung */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+            </div>
+
+            {/* Contenido */}
+            <div className="p-8 text-center bg-white">
+              <h4 className="text-xl font-black text-black mb-4 tracking-tight">{promo.model_capacity}</h4>
+
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <span className="text-gray-600 font-medium text-sm">Precio inicial</span>
+                <div className="relative inline-block ml-1">
+                  <span className="text-blue-600 font-black text-2xl">${origPrice}</span>
+                  <div className="absolute top-1/2 left-[-10%] w-[120%] h-[3px] bg-red-500 rotate-[-12deg] transform -translate-y-1/2 shadow-sm"></div>
+                </div>
+              </div>
+
+              {/* Cupones */}
+              <div className="flex items-center justify-center gap-2 mb-6">
+                <div className="flex-1 border-2 border-dashed border-blue-400 rounded-xl py-2.5 px-1 flex flex-col items-center justify-center bg-blue-50/30">
+                  <span className="text-[10px] font-bold text-blue-600 mb-1 text-center leading-none">{promo.coupon1_desc}</span>
+                  <span className="text-blue-600 font-black tracking-widest text-sm leading-none">{promo.coupon1_code}</span>
+                </div>
+                
+                <div className="w-7 h-7 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center font-black flex-shrink-0 text-sm border-2 border-blue-200 shadow-sm">
+                  +
+                </div>
+                
+                <div className="flex-1 border-2 border-dashed border-blue-400 rounded-xl py-2.5 px-1 flex flex-col items-center justify-center bg-blue-50/30">
+                  <span className="text-[10px] font-bold text-blue-600 mb-1 text-center leading-none">{promo.coupon2_desc}</span>
+                  <span className="text-blue-600 font-black tracking-widest text-sm leading-none">{promo.coupon2_code}</span>
+                </div>
+              </div>
+
+              {/* Precio Final */}
+              <div className="mb-6">
+                <p className="text-black font-black text-xs mb-1">Precio final con descuentos aplicados</p>
+                <div className="text-[#5578F4] font-black text-5xl tracking-tight py-1">${finalPrice}</div>
+              </div>
+
+              {/* Beneficios */}
+              <div className="flex items-center justify-center gap-8 py-5 border-t border-b border-gray-300 mt-2 mb-5">
+                <div className="flex items-center gap-3">
+                  <CreditCard size={32} className="text-[#5578F4] flex-shrink-0" strokeWidth={1.5} />
+                  <div className="flex flex-col text-left">
+                    <span className="text-[10px] text-gray-500 font-black uppercase leading-none tracking-wider mb-0.5">Hasta</span>
+                    <span className="text-black font-black text-[15px] leading-none">{promo.msi_text}</span>
+                  </div>
+                </div>
+                <div className="w-[1px] h-10 bg-gray-300"></div>
+                <div className="flex items-center gap-3">
+                  <Truck size={32} className="text-[#5578F4] flex-shrink-0" strokeWidth={1.5} />
+                  <div className="flex flex-col text-left">
+                    <span className="text-black font-black text-[15px] leading-none">{promo.shipping_text}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Afiliado */}
+              <div className="mb-6 flex flex-col gap-0.5">
+                <p className="text-[#5578F4] font-black text-[13px]">{promo.affiliate_earning}</p>
+                <p className="text-[#5578F4] text-[11px] font-bold opacity-80">{promo.affiliate_desc}</p>
+              </div>
+
+              {/* Botón Comprar */}
+              <div className="mt-2">
+                <a
+                  href={promo.affiliate_link || promo.link || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 bg-[#5578F4] hover:bg-blue-700 text-white font-black py-4 px-6 rounded-2xl text-sm uppercase tracking-wider transition-all shadow-[0_8px_20px_rgba(85,120,244,0.4)] hover:shadow-[0_8px_25px_rgba(85,120,244,0.6)] hover:-translate-y-1"
+                >
+                  <ShoppingCart size={18} /> Comprar Ahora
+                </a>
+              </div>
+
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -925,33 +1048,6 @@ function App() {
     },
   ];
 
-  const getSafeId = (item) => {
-    if (!item) return null;
-    if (typeof item === 'string' || typeof item === 'number')
-      return String(item);
-    const keysToTry = ['id','_id','offer_id','product_id','Id','ID','uuid','key'];
-    for (let key of keysToTry) {
-      if (item[key] !== undefined && item[key] !== null) {
-        const val = item[key];
-        if (typeof val === 'string' || typeof val === 'number')
-          return String(val);
-        if (typeof val === 'object' && val.$oid) return String(val.$oid);
-        if (typeof val === 'object' && typeof val.toString === 'function') {
-          const res = val.toString();
-          if (res !== '[object Object]') return res;
-        }
-      }
-    }
-    const anyIdKey = Object.keys(item).find((k) => k.toLowerCase().includes('id'));
-    if (anyIdKey && item[anyIdKey] !== undefined && item[anyIdKey] !== null) {
-      const val = item[anyIdKey];
-      if (typeof val === 'string' || typeof val === 'number')
-        return String(val);
-      if (typeof val === 'object' && val.$oid) return String(val.$oid);
-    }
-    return null;
-  };
-
   useEffect(() => {
     loadPublicOffers();
     loadPublicProducts();
@@ -1082,7 +1178,7 @@ function App() {
 
   const regularProducts = products.filter(p => {
     const pId = getSafeId(p) || p.title;
-    return !exclusiveIds.has(pId);
+    return !exclusiveIds.has(pId) && !p.is_promo_card;
   });
 
   const filteredProducts = regularProducts.filter(
@@ -2188,7 +2284,7 @@ function App() {
           {mobileTab === 'reels' && (
             <>
               {renderReelsSection()}
-              {renderNewSection()}
+              {renderNewSection(products)}
             </>
           )}
         </div>
@@ -2207,7 +2303,7 @@ function App() {
             isAuthenticated={isAuthenticated} 
           />
           {renderReelsSection()}
-          {renderNewSection()}
+          {renderNewSection(products)}
         </>
       )}
 
