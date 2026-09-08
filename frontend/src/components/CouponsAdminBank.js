@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Plus, Edit2, Trash2 } from 'lucide-react';
 import axios from 'axios';
 
-export default function CouponsAdminBank({ API, adminPassword, getSafeId, loadPublicOffers }) {
+export default function CouponsAdminBank({ API, adminPassword, getSafeId, loadPublicOffers, loadPublicProducts }) {
   const [bankCoupons, setBankCoupons] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState(null);
@@ -21,10 +21,19 @@ export default function CouponsAdminBank({ API, adminPassword, getSafeId, loadPu
 
   const loadBankCoupons = async () => {
     try {
-      const response = await axios.get(`${API}/admin/offers`, {
-        params: { password: adminPassword },
-      });
-      const onlyBank = response.data.filter(o => o.type === 'bancario');
+      // Consultamos tanto ofertas como productos para asegurar que detecte todos los cupones bancarios existentes
+      const [offersRes, productsRes] = await Promise.all([
+        axios.get(`${API}/admin/offers`, { params: { password: adminPassword, t: Date.now() } }).catch(() => ({ data: [] })),
+        axios.get(`${API}/admin/products`, { params: { password: adminPassword, t: Date.now() } }).catch(() => ({ data: [] }))
+      ]);
+
+      const combined = [
+        ...(offersRes.data || []),
+        ...(productsRes.data || [])
+      ];
+
+      // Filtramos los que tengan type 'bancario' o tengan definido el campo 'banco'
+      const onlyBank = combined.filter(o => o.type === 'bancario' || o.banco);
       setBankCoupons(onlyBank);
     } catch (error) {
       console.error("Error al cargar cupones bancarios:", error);
@@ -43,9 +52,15 @@ export default function CouponsAdminBank({ API, adminPassword, getSafeId, loadPu
         id: editingCoupon ? getSafeId(editingCoupon) : 'bank_' + Date.now(),
       };
 
+      const couponId = editingCoupon ? getSafeId(editingCoupon) : null;
+
       if (editingCoupon) {
-        const couponId = getSafeId(editingCoupon);
-        await axios.patch(`${API}/admin/offers/${couponId}?password=${adminPassword}`, couponData);
+        // Intentamos actualizar en ofertas; si falla o pertenecía a productos, probamos en productos
+        try {
+          await axios.patch(`${API}/admin/offers/${couponId}?password=${adminPassword}`, couponData);
+        } catch {
+          await axios.patch(`${API}/admin/products/${couponId}?password=${adminPassword}`, couponData);
+        }
       } else {
         await axios.post(`${API}/admin/offers?password=${adminPassword}`, couponData);
       }
@@ -64,6 +79,7 @@ export default function CouponsAdminBank({ API, adminPassword, getSafeId, loadPu
       });
       loadBankCoupons();
       if (loadPublicOffers) loadPublicOffers();
+      if (loadPublicProducts) loadPublicProducts();
     } catch (error) {
       alert('Error al guardar cupón bancario');
     }
@@ -74,9 +90,14 @@ export default function CouponsAdminBank({ API, adminPassword, getSafeId, loadPu
     if (!couponId) return;
     if (window.confirm('¿Estás seguro de eliminar este cupón bancario?')) {
       try {
-        await axios.delete(`${API}/admin/offers/${couponId}?password=${adminPassword}`);
+        try {
+          await axios.delete(`${API}/admin/offers/${couponId}?password=${adminPassword}`);
+        } catch {
+          await axios.delete(`${API}/admin/products/${couponId}?password=${adminPassword}`);
+        }
         loadBankCoupons();
         if (loadPublicOffers) loadPublicOffers();
+        if (loadPublicProducts) loadPublicProducts();
       } catch (error) {
         alert('Error al eliminar cupón bancario');
       }
@@ -105,44 +126,48 @@ export default function CouponsAdminBank({ API, adminPassword, getSafeId, loadPu
         <Plus className="w-5 h-5" /> Nuevo Cupón Bancario
       </button>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {bankCoupons.map((coupon) => (
-          <div key={getSafeId(coupon) || coupon.code} className="border-2 rounded-xl p-6 border-blue-300 bg-blue-50/50">
-            <div className="flex justify-between items-start mb-3">
-              <span className="px-3 py-1 rounded-full text-xs font-black bg-blue-200 text-blue-900 border border-blue-400 uppercase">
-                💳 {coupon.banco || 'Banco'}
-              </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    setEditingCoupon(coupon);
-                    setNewBankCoupon({ ...coupon });
-                    setShowModal(true);
-                  }}
-                  className="text-blue-600 hover:text-blue-800 bg-blue-100 p-1.5 rounded-lg"
-                >
-                  <Edit2 className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => handleDelete(coupon)}
-                  className="text-red-600 hover:text-red-800 bg-red-100 p-1.5 rounded-lg"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
+      {bankCoupons.length === 0 ? (
+        <p className="text-gray-500 italic p-4 bg-gray-50 rounded-xl border">No hay cupones bancarios registrados o sincronizados aún. Da clic en "Nuevo Cupón Bancario" para agregar uno.</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {bankCoupons.map((coupon) => (
+            <div key={getSafeId(coupon) || coupon.code} className="border-2 rounded-xl p-6 border-blue-300 bg-blue-50/50">
+              <div className="flex justify-between items-start mb-3">
+                <span className="px-3 py-1 rounded-full text-xs font-black bg-blue-200 text-blue-900 border border-blue-400 uppercase">
+                  💳 {coupon.banco || 'Banco'}
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setEditingCoupon(coupon);
+                      setNewBankCoupon({ ...coupon });
+                      setShowModal(true);
+                    }}
+                    className="text-blue-600 hover:text-blue-800 bg-blue-100 p-1.5 rounded-lg"
+                  >
+                    <Edit2 className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(coupon)}
+                    className="text-red-600 hover:text-red-800 bg-red-100 p-1.5 rounded-lg"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+              <h3 className="text-xl font-bold mb-1">{coupon.discount}</h3>
+              <p className="text-gray-600 text-sm font-semibold mb-2">{coupon.tipo}</p>
+              <p className="text-sm text-gray-500 font-mono">
+                Código: <span className="font-bold text-black uppercase">{coupon.code}</span>
+              </p>
+              <div className="flex justify-between text-xs text-gray-600 font-bold mt-3 pt-2 border-t border-blue-200">
+                <span>Compra Mínima: {coupon.min_purchase}</span>
+                <span>Tope: {coupon.tope}</span>
               </div>
             </div>
-            <h3 className="text-xl font-bold mb-1">{coupon.discount}</h3>
-            <p className="text-gray-600 text-sm font-semibold mb-2">{coupon.tipo}</p>
-            <p className="text-sm text-gray-500 font-mono">
-              Código: <span className="font-bold text-black uppercase">{coupon.code}</span>
-            </p>
-            <div className="flex justify-between text-xs text-gray-600 font-bold mt-3 pt-2 border-t border-blue-200">
-              <span>Compra Mínima: {coupon.min_purchase}</span>
-              <span>Tope: {coupon.tope}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[110] p-4">
