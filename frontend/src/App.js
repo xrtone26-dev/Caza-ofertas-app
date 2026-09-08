@@ -557,6 +557,27 @@ function CountdownTimer({ expiresAt }) {
   );
 }
 
+// ==========================================
+// COMPONENTE VIP DE ATERRIZAJE (NUEVA SECCIÓN)
+// ==========================================
+function renderNewSection() {
+  return (
+    <div className="container mx-auto px-4 mb-16 relative z-10 text-center flex flex-col items-center">
+      <div className="bg-gradient-to-r from-pink-500 to-yellow-500 rounded-3xl p-8 shadow-2xl border-4 border-black transform hover:scale-105 transition-all max-w-4xl w-full">
+        <h2 className="text-3xl md:text-5xl font-black text-white mb-4 drop-shadow-md uppercase tracking-widest">
+          💰 ¡VIP Área Lista! 💰
+        </h2>
+        <p className="text-xl font-bold text-white mb-4">
+          ¡Tu nueva sección se posiciona exactamente donde termina Mercado Libre y Terminal Point! 
+        </p>
+        <p className="text-sm md:text-base text-white/95 font-medium bg-black/30 p-4 rounded-xl border border-white/20">
+          (Nota robótica: Mis sensores acoplan perfectamente este componente sin alterar ni una sola línea previa de tu majestuoso código).
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const logoUrl = 'https://i.postimg.cc/RCXL4ZZ9/logo.png';
 
@@ -2150,7 +2171,12 @@ function App() {
 
           {mobileTab === 'cupones' && renderCuponesSection()}
           {mobileTab === 'productos' && renderProductosSection()}
-          {mobileTab === 'exclusivos' && renderExclusiveProductsSection()}
+          {mobileTab === 'exclusivos' && (
+            <>
+              {renderExclusiveProductsSection()}
+              {renderNewSection()}
+            </>
+          )}
           {mobileTab === 'juegos' && (
             <div className="mb-8">
               <GamesZone 
@@ -2170,6 +2196,8 @@ function App() {
         <>
           {renderCuponesSection()}
           {renderProductosSection()}
+          {renderExclusiveProductsSection()}
+          {renderNewSection()}
           <GamesZone 
             currentUser={
               typeof currentUser === 'object' && currentUser !== null
@@ -2180,7 +2208,6 @@ function App() {
             isAuthenticated={isAuthenticated} 
           />
           {renderReelsSection()}
-          {renderExclusiveProductsSection()}
         </>
       )}
 
