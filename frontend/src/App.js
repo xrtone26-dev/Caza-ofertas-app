@@ -102,7 +102,7 @@ function FeatureCube({ isLight, isMobileDevice }) {
     const elapsed = (time - startTimeRef.current) * 0.001;
     setRotation({
       x: Math.sin(elapsed * 0.6) * 55, 
-      y: elapsed * 35,                             
+      y: elapsed * 35,                                  
       z: Math.sin(elapsed * 0.4) * 20, 
     });
     requestRef.current = requestAnimationFrame(animate);
@@ -789,8 +789,15 @@ function App() {
   const [descuentos, setDescuentos] = useState([]);
   const [cupones, setCupones] = useState([]);
   
+  // FIX: Safely parse `currentUser` from localStorage so it's parsed as an object if stored as JSON!
   const [currentUser, setCurrentUser] = useState(() => {
-    return localStorage.getItem('cazaUser') || null;
+    const saved = localStorage.getItem('cazaUser');
+    if (!saved) return null;
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return saved;
+    }
   });
 
   const [phoneWarningDismissed, setPhoneWarningDismissed] = useState(() => {
@@ -802,7 +809,11 @@ function App() {
   useEffect(() => {
     const usuarioGuardado = localStorage.getItem('cazaUser');
     if (usuarioGuardado) {
-      setCurrentUser(usuarioGuardado);
+      try {
+        setCurrentUser(JSON.parse(usuarioGuardado));
+      } catch {
+        setCurrentUser(usuarioGuardado);
+      }
     }
   }, []);
 
