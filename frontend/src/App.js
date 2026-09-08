@@ -1,5 +1,3 @@
-OK entonces eliminamelos para quedarme solo con los que se crean desde ese panel de admin
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 import {
