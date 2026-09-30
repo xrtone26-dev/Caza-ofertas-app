@@ -337,7 +337,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
   };
 
   const handleShareOption = (platform) => {
-    const text = `¡Mira este producto probado en CazaOfertas! "${currentVideo.title}":`;
+    const text = `¡Mira este producto probado en CapiBara! "${currentVideo.title}":`;
     if (platform === 'whatsapp') {
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + shareUrl)}`, '_blank');
     } else if (platform === 'telegram') {
@@ -488,7 +488,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
             <div className="w-8 h-8 rounded-full bg-yellow-400 text-black font-black flex items-center justify-center text-xs border-2 border-black">
               {currentVideo.author ? currentVideo.author.charAt(0) : 'C'}
             </div>
-            <span className={`text-xs font-bold ${isLight ? 'text-purple-700' : 'text-cyan-400'}`}>@{currentVideo.author || 'CazaOfertas'}</span>
+            <span className={`text-xs font-bold ${isLight ? 'text-purple-700' : 'text-cyan-400'}`}>@{currentVideo.author || 'CapiBara'}</span>
           </div>
           <p className={`text-sm font-black drop-shadow-md line-clamp-1 ${isLight ? 'text-purple-900' : 'text-cyan-400'}`}>{currentVideo.title}</p>
         </div>
@@ -794,7 +794,7 @@ function App() {
   
   const [tiktokVideos, setTiktokVideos] = useState(() => {
     try {
-      const saved = localStorage.getItem('cazaOfertasVideos');
+      const saved = localStorage.getItem('CapiBaraVideos');
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     return [
@@ -1634,7 +1634,7 @@ function App() {
                   const handleShareProduct = () => {
                     const title = product.title || product.nombre || 'Terminal Exclusiva';
                     const link = product.affiliate_link || product.link || product.url || window.location.href;
-                    const text = `¡Mira esta gran oferta en CazaOfertas! 🔥 *${title}* \nEncuéntrala aquí: ${link}`;
+                    const text = `¡Mira esta gran oferta en CapiBaraML! 🔥 *${title}* \nEncuéntrala aquí: ${link}`;
                     if (navigator.share) {
                       navigator.share({ title, text, url: link }).catch(() => {});
                     } else {
@@ -2204,7 +2204,7 @@ function App() {
             </div>
 
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
-              CazaOfertasML
+              CapiBaraML
             </h1>
 
             {!isMobileDevice && (
