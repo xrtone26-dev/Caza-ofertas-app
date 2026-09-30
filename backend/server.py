@@ -275,7 +275,6 @@ async def ai_chat_endpoint(data: ChatRequest):
         if data.message:
             messages.append({"role": "user", "content": data.message})
             
-        # 🚀 MODELO ACTUALIZADO Y DISPONIBLE EN GROQ
         chat_completion = await ai_client.chat.completions.create(
             messages=messages,
             model="llama-3.1-8b-instant",
@@ -288,7 +287,8 @@ async def ai_chat_endpoint(data: ChatRequest):
     except Exception as e:
         error_msg = str(e)
         print(f"Error detallado en AI: {error_msg}")
-        return {"reply": "¡Uy! Mi procesador está un poco saturado cazando ofertas en este momento. 😅 ¿Puedes intentarlo de nuevo en unos segundos?"}
+        # 🔍 MODO DEBUG: Retornamos el error exacto a la pantalla para verlo de inmediato
+        return {"reply": f"⚠️ [Debug Error Real]: {error_msg}"}
 
 @api_router.post("/api/bot/products")
 async def bot_create_product(product: ProductCreate, x_api_key: Optional[str] = Header(None)):
@@ -465,6 +465,6 @@ async def delete_offer(offer_id: str, password: str):
     result = await db.offers.delete_one(get_query_id(offer_id))
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Oferta no encontrada")
-    return {"success": True, "message": "Oferta eliminado"}
+    return {"success": "Mnesaje", "message": "Oferta eliminado"}
 
 app.include_router(api_router)
