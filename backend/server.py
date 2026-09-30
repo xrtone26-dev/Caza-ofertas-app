@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from groq import Groq
+from groq import Groq, AsyncGroq  # 🚀 IMPORTACIÓN ACTUALIZADA: Agregamos AsyncGroq
 
 class Product(BaseModel):
     id: Optional[str] = None
@@ -261,13 +261,15 @@ async def ai_chat_endpoint(data: ChatRequest):
         else:
             db_context += "\nOFERTAS VIGENTES: NO HAY NINGUNA OFERTA ACTIVA EN ESTE MOMENTO.\n"
 
-        ai_client = Groq(api_key=GROQ_API_KEY)
+        # 🚀 CÓDIGO CORREGIDO: Usamos AsyncGroq en lugar de Groq
+        ai_client = AsyncGroq(api_key=GROQ_API_KEY)
         messages = [{"role": "system", "content": (data.systemPrompt if data.systemPrompt else "Eres un asistente experto de CazaOfertasML.") + db_context}]
         
         for msg in data.history:
             messages.append({"role": "user" if msg["sender"] == "user" else "assistant", "content": msg["text"]})
             
-        chat_completion = ai_client.chat.completions.create(
+        # 🚀 CÓDIGO CORREGIDO: Usamos await para no bloquear el servidor
+        chat_completion = await ai_client.chat.completions.create(
             messages=messages,
             model="llama-3.3-70b-versatile",
             temperature=0.2,
@@ -277,7 +279,8 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": chat_completion.choices[0].message.content}
 
     except Exception as e:
-        print(f"Error en AI: {str(e)}")
+        # 🚀 LOG MEJORADO: Ahora sabrás exactamente qué falla si ocurre un error
+        print(f"Error en AI (Ojo aquí Admin): {str(e)}")
         return {"reply": "¡Uy! Mi procesador está un poco saturado cazando ofertas en este momento. 😅 ¿Puedes intentarlo de nuevo en unos segundos?"}
 
 @api_router.post("/api/bot/products")
