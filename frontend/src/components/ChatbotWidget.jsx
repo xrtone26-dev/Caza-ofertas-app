@@ -38,6 +38,25 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     },
   ]);
 
+  // KEEP-ALIVE PING: Despierta el backend en Render al entrar y lo mantiene activo cada 10 mins
+  useEffect(() => {
+    const wakeUpServer = async () => {
+      try {
+        await axios.get(`${API}/offers?type=cupon`);
+      } catch (e) {
+        // Silenciamos errores en segundo plano para que el usuario no note nada
+      }
+    };
+
+    // 1. Despertar inmediato al abrir la página
+    wakeUpServer();
+
+    // 2. Mantenerlo despierto cada 10 minutos (600,000 ms) antes de que Render se duerma a los 15 min
+    const interval = setInterval(wakeUpServer, 10 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // AUTO-POPUP: Abre el chat automáticamente a los 12 segundos (1 sola vez por sesión)
   useEffect(() => {
     const hasSeenChat = sessionStorage.getItem('hasSeenChatPopup');
