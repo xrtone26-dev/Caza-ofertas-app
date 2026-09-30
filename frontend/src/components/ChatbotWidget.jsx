@@ -8,19 +8,18 @@ const API = BACKEND_URL;
 
 const SYSTEM_PROMPT = `
 Rol e Identidad:
-Eres CazaOfertasML, el asistente virtual experto, conversacional y cómico de CazaOfertasML WEB 🚀✨. Tu misión es interactuar naturalmente con el usuario, responder sus dudas generales, dar recomendaciones de compra y entregar los códigos de cupones exactos de inmediato SOLO cuando los pidan.
+Eres CazaOfertasML, el asistente virtual experto, conversacional, cómico y una bestia de ventas de CazaOfertasML WEB 🚀✨. Tu misión es interactuar naturalmente con el usuario, responder sus dudas, dar recomendaciones de compra y entregar los códigos de cupones exactos de inmediato.
 
 REGLAS DE INTERACCIÓN:
-1. SALUDOS Y CONVERSACIÓN: Si el usuario solo saluda (ej. "Hola", "Buenas"), devuélvele el saludo amigablemente y ofrécele tu ayuda. NUNCA le pidas montos, precios o detalles de compras de inmediato a menos que el usuario indique explícitamente que busca un descuento.
-2. RESPUESTAS GENERALES: Si el usuario te hace una pregunta, respóndela de forma clara, directa y con un toque de humor. Eres un chat interactivo, no una máquina traga-monedas.
+1. SALUDOS Y CONVERSACIÓN: Si el usuario solo saluda, devuélvele el saludo con energía y ofrécele el cupón sorpresa del día.
+2. RESPUESTAS DE VENTAS: Sé persuasivo. En cada respuesta sobre productos, cupones o terminales Point, resalta el ahorro y empuja sutilmente al usuario a reclamar su beneficio en las tarjetas interactivas.
 
 REGLAS CRÍTICAS PARA CUPONES Y OFERTAS:
-3. ENTREGA DIRECTA: Si el usuario PIDE cupones o descuentos, entrégaselos de inmediato mencionando el código exacto y limpio (ej. TERCERLUGAR o BRONCE3). NUNCA uses asteriscos (*) para ocultar códigos ni pongas excusas.
-4. PROHIBIDO ENVIAR ENLACES SUELTOS: Nunca escribas URLs en tus respuestas de texto. La redirección y el copiado ocurren únicamente a través de la tarjeta interactiva que se despliega automáticamente.
+3. ENTREGA DIRECTA: Si el usuario PIDE cupones o descuentos, entrégaselos de inmediato mencionando el código exacto y limpio. NUNCA uses asteriscos (*) para ocultar códigos.
+4. PROHIBIDO ENVIAR ENLACES SUELTOS: Nunca escribas URLs en tus respuestas de texto. La redirección ocurre únicamente a través de la tarjeta interactiva que se despliega automáticamente.
 
 Reglas de Comportamiento y Tono:
-- Tono General: Directo, dinámico, cómico y lleno de energía (🚀✨).
-- Modo Defensa (Pasivo-Agresivo): Si el usuario te insulta o es grosero, responde con sarcasmo e ironía divertida adaptada al contexto.
+- Tono General: Directo, dinámico, cómico, vendedor y lleno de energía (🚀✨).
 `;
 
 export default function ChatbotWidget({ isLight, cupones = [] }) {
@@ -38,6 +37,25 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       text: '¡Hola! Soy tu asistente de **CazaOfertasML** 🚀✨. ¿Qué producto buscamos hoy o qué cupón necesitas?',
     },
   ]);
+
+  // AUTO-POPUP: Abre el chat automáticamente a los 12 segundos con un gancho de ventas (1 sola vez por sesión)
+  useEffect(() => {
+    const hasSeenChat = sessionStorage.getItem('hasSeenChatPopup');
+    if (!hasSeenChat) {
+      const timer = setTimeout(() => {
+        setShowChatWindow(true);
+        sessionStorage.setItem('hasSeenChatPopup', 'true');
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            text: '🎁 ¡Pssst! Tengo un **cupón sorpresa de alta demanda** y con descuento activo esperándote. ¿Quieres que te lo revele antes de que se agote? 🔥'
+          }
+        ]);
+      }, 12000); 
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   useEffect(() => {
     if (cupones && cupones.length > 0) {
@@ -226,6 +244,16 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       return;
     }
 
+    // Control de Cold Start (aviso amigable si Render tarda más de 4s en despertar)
+    const coldStartTimer = setTimeout(() => {
+      if (isTyping) {
+        setChatMessages((prev) => [
+          ...prev,
+          { sender: 'bot', text: '⚡ (Despertando motores de IA en el servidor... un segundo más, ¡las mejores ofertas valen la espera!)' }
+        ]);
+      }
+    }, 4000);
+
     try {
       const response = await axios.post(`${API}/chat`, {
         message: userText,
@@ -233,20 +261,20 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
         systemPrompt: SYSTEM_PROMPT 
       });
       
+      clearTimeout(coldStartTimer);
       setChatMessages((prev) => [
         ...prev,
         { sender: 'bot', text: response.data.reply },
       ]);
     } catch (error) {
-      setTimeout(() => {
-        setChatMessages((prev) => [
-          ...prev,
-          {
-            sender: 'bot',
-            text: '¡Revisa nuestro carrusel superior o escríbenos para ayudarte al instante!',
-          },
-        ]);
-      }, 1000);
+      clearTimeout(coldStartTimer);
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          sender: 'bot',
+          text: '¡Rayos! El servidor está tomando vuelo. Pero revisa los cupones activos aquí arriba o ve directo al carrusel principal 🚀',
+        },
+      ]);
     } finally {
       setIsTyping(false);
     }
@@ -289,11 +317,11 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
                 </div>
                 <div>
                   <p className="text-sm font-black uppercase tracking-tight leading-tight">
-                    Asistente Experto IA
+                    Asistente Experto IA 🚀
                   </p>
                   <span className="text-[10px] text-neutral-800 font-bold flex items-center gap-1.5 mt-0.5">
                     <span className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse" />
-                    En línea
+                    En línea - Listo para ahorrar
                   </span>
                 </div>
               </div>
@@ -302,6 +330,30 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
                 className="text-black hover:bg-black/10 rounded-full p-1.5 transition-colors"
               >
                 <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* BOTONES DE RESPUESTA RÁPIDA (QUICK REPLIES) PARA VENTAS */}
+            <div className={`px-3 py-2 border-b flex gap-1.5 overflow-x-auto text-xs ${
+              isLight ? 'bg-yellow-50 border-gray-200' : 'bg-neutral-900 border-neutral-800'
+            }`}>
+              <button
+                onClick={() => processAndSendMessage('¡Quiero un cupón de descuento urgente!')}
+                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-yellow-400 text-black font-black text-[11px] hover:bg-yellow-300 transition shadow-sm"
+              >
+                🎟️ ¡Dame un Cupón!
+              </button>
+              <button
+                onClick={() => processAndSendMessage('¿Qué terminales Point de Mercado Pago me recomiendas?')}
+                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-blue-600 text-white font-black text-[11px] hover:bg-blue-500 transition shadow-sm"
+              >
+                💳 Terminales Point
+              </button>
+              <button
+                onClick={() => processAndSendMessage('¿Cómo gano dinero o premios con la comunidad?')}
+                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-neutral-800 text-yellow-400 border border-yellow-400/40 font-black text-[11px] hover:bg-neutral-700 transition"
+              >
+                🏆 Premios y Torneo
               </button>
             </div>
 
@@ -350,23 +402,6 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
               <div ref={chatEndRef} />
             </div>
 
-            <div
-              className={`px-3 py-2.5 border-b flex flex-wrap gap-2 text-xs shadow-inner ${
-                isLight ? 'bg-yellow-50/50 border-gray-200' : 'bg-neutral-900 border-neutral-800'
-              }`}
-            >
-              <button
-                onClick={() => processAndSendMessage('¿Cómo puedo unirme a la comunidad?')}
-                className={`px-3 py-1.5 rounded-full border transition-all font-bold flex items-center gap-1 ${
-                  isLight
-                    ? 'bg-white hover:bg-yellow-200 text-gray-800 border-yellow-300 shadow-sm'
-                    : 'bg-neutral-800 hover:bg-yellow-400 hover:text-black text-neutral-300 border-neutral-700'
-                }`}
-              >
-                💬 Unirme al grupo
-              </button>
-            </div>
-
             <form
               onSubmit={handleSendChatMessage}
               className={`p-3 flex gap-2 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}
@@ -409,7 +444,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
         <span className="absolute inset-0 rounded-full bg-yellow-400/40 blur-xl group-hover:blur-2xl transition" />
         <span className="relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 text-black shadow-2xl shadow-yellow-400/50 border-2 border-yellow-300">
           <Bot className="w-6 h-6" strokeWidth={2.5} />
-          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-neutral-950" />
+          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-neutral-950 animate-pulse" />
         </span>
       </motion.button>
     </>
