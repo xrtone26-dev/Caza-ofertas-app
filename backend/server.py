@@ -246,23 +246,36 @@ async def ai_chat_endpoint(data: ChatRequest):
             db_context += "PRODUCTOS:\n"
             for p in active_products:
                 p_title = p.get('nombre') or p.get('title') or 'Producto'
-                p_price = p.get('precio') or p.get('discount_price') or 'N/A'
+                p_price = p.get('precio') or p.get('discount_price') | 'N/A'
                 p_link = p.get('link') or p.get('affiliate_link') or 'N/A'
                 db_context += f"- {p_title}: Precio ${p_price}. Link real: {p_link}\n"
+        else:
+            db_context += "PRODUCTOS: NINGUNO\n"
+
         if active_offers:
             db_context += "\nOFERTAS Y PROMOCIONES VIGENTES:\n"
             for o in active_offers:
                 nombre = o.get('nombre') or o.get('title') or 'Oferta'
                 precio = o.get('precio') or 'N/A'
                 descuento = o.get('descuento') or 'N/A'
+                code = o.get('code') or 'N/A'
                 link = o.get('link') or 'N/A'
                 is_excl = o.get('is_exclusive', False)
-                db_context += f"- Producto: {nombre}, Precio: {precio}, Descuento: {descuento}, Exclusivo: {is_excl}, Link: {link}\n"
+                db_context += f"- Producto: {nombre}, Precio: {precio}, Descuento: {descuento}, Código/Cupón: {code}, Exclusivo: {is_excl}, Link: {link}\n"
         else:
-            db_context += "\nOFERTAS VIGENTES: NO HAY NINGUNA OFERTA ACTIVA EN ESTE MOMENTO.\n"
+            db_context += "\nOFERTAS VIGENTES: NO HAY NINGUNA OFERTA NI CUPÓN ACTIVO EN ESTE MOMENTO.\n"
+
+        # 🛡️ REGLA ANTIALUCINACIÓN Y TONO CÓMICO
+        base_system_prompt = data.systemPrompt if data.systemPrompt else (
+            "Eres un asistente experto, sumamente cómico y sarcástico de CazaOfertasML. "
+            "REGLA SUPREMA Y ABSOLUTA: ESTÁ ESTRICTAMENTE PROHIBIDO INVENTAR CUPONES, CÓDIGOS, PRECIOS O ENLACES. "
+            "Solo puedes mencionar los cupones, precios o descuentos que aparezcan textualmente en la sección de inventario y ofertas vigentes de abajo. "
+            "Si la lista de ofertas o cupones dice que NO HAY NINGUNA OFERTA NI CUPÓN ACTIVO, dile al usuario con gracia y humor que hoy no hay cupones, pero NUNCA te inventes un código (como CAPI20). "
+            "Cuando menciones productos u ofertas reales, destaca siempre el precio y el descuento al principio de tu respuesta."
+        )
 
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
-        messages = [{"role": "system", "content": (data.systemPrompt if data.systemPrompt else "Eres un asistente experto de CazaOfertasML.") + db_context}]
+        messages = [{"role": "system", "content": base_system_prompt + db_context}]
         
         if data.history:
             for msg in data.history:
@@ -275,11 +288,10 @@ async def ai_chat_endpoint(data: ChatRequest):
         if data.message:
             messages.append({"role": "user", "content": data.message})
             
-        # 🚀 MODELO COMPATIBLE ACTUALIZADO
         chat_completion = await ai_client.chat.completions.create(
             messages=messages,
             model="openai/gpt-oss-20b",
-            temperature=0.2,
+            temperature=0.1,  # Temperatura baja para reducir al mínimo las alucinaciones
             max_tokens=300
         )
         
