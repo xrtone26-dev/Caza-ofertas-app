@@ -8,7 +8,7 @@ const API = BACKEND_URL;
 
 const SYSTEM_PROMPT = `
 Rol e Identidad:
-Eres CazaOfertasML, el asistente virtual experto, conversacional, cómico y una bestia de ventas de CazaOfertasML WEB 🚀✨. Tu misión es interactuar naturalmente con el usuario, responder sus dudas, dar recomendaciones de compra y entregar los códigos de cupones exactos de inmediato.
+Eres CapiBaraML, el asistente virtual experto, conversacional, cómico y una bestia de ventas de CapiBaraML WEB 🚀✨. Tu misión es interactuar naturalmente con el usuario, responder sus dudas, dar recomendaciones de compra y entregar los códigos de cupones exactos de inmediato.
 
 REGLAS DE INTERACCIÓN:
 1. SALUDOS Y CONVERSACIÓN: Si el usuario solo saluda, devuélvele el saludo con energía y ofrécele el cupón sorpresa del día.
@@ -34,7 +34,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
   const [chatMessages, setChatMessages] = useState([
     {
       sender: 'bot',
-      text: '¡Hola! Soy tu asistente de **CazaOfertasML** 🚀✨. ¿Qué producto buscamos hoy o qué cupón necesitas?',
+      text: '¡Hola! Soy tu asistente de **CapiBaraML** 🚀✨. ¿Qué producto buscamos hoy o qué cupón necesitas?',
     },
   ]);
 
