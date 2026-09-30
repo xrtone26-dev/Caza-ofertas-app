@@ -38,26 +38,17 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     },
   ]);
 
-  // KEEP-ALIVE PING: Despierta el backend en Render al entrar y lo mantiene activo cada 10 mins
   useEffect(() => {
     const wakeUpServer = async () => {
       try {
         await axios.get(`${API}/offers?type=cupon`);
-      } catch (e) {
-        // Silenciamos errores en segundo plano para que el usuario no note nada
-      }
+      } catch (e) {}
     };
-
-    // 1. Despertar inmediato al abrir la página
     wakeUpServer();
-
-    // 2. Mantenerlo despierto cada 10 minutos (600,000 ms) antes de que Render se duerma a los 15 min
     const interval = setInterval(wakeUpServer, 10 * 60 * 1000);
-
     return () => clearInterval(interval);
   }, []);
 
-  // AUTO-POPUP: Abre el chat automáticamente a los 12 segundos (1 sola vez por sesión)
   useEffect(() => {
     const hasSeenChat = sessionStorage.getItem('hasSeenChatPopup');
     if (!hasSeenChat) {
@@ -351,7 +342,6 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
               </button>
             </div>
 
-            {/* BOTONES DE RESPUESTA RÁPIDA (QUICK REPLIES) */}
             <div className={`px-3 py-2 border-b flex gap-1.5 overflow-x-auto text-xs ${
               isLight ? 'bg-yellow-50 border-gray-200' : 'bg-neutral-900 border-neutral-800'
             }`}>
@@ -447,7 +437,6 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
         )}
       </AnimatePresence>
 
-      {/* BURBUJA DE SALUDO FLOTANTE (ESTILO TELCEL CON MANITA SALUDANDO) */}
       {!showChatWindow && (
         <motion.div
           initial={{ opacity: 0, x: 20, scale: 0.8 }}
@@ -460,12 +449,10 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
             <span>¡Hola! <span className="inline-block animate-wave origin-bottom-right">👋</span></span>
             <span className="text-[10px] text-gray-600 font-bold hidden sm:inline">¿Buscas descuento?</span>
           </div>
-          {/* Pequeña flecha apuntando al botón de chat */}
           <div className="w-2 h-2 bg-white border-r-2 border-b-2 border-black transform rotate-[-45deg] -ml-3 hidden sm:block"></div>
         </motion.div>
       )}
 
-      {/* BOTÓN FLOTANTE DEL CHAT (FAB) */}
       <motion.button
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
