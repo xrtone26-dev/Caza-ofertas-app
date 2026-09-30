@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from groq import Groq, AsyncGroq  # 🚀 IMPORTACIÓN ACTUALIZADA: Agregamos AsyncGroq
+from groq import Groq, AsyncGroq
 
 class Product(BaseModel):
     id: Optional[str] = None
@@ -261,14 +261,22 @@ async def ai_chat_endpoint(data: ChatRequest):
         else:
             db_context += "\nOFERTAS VIGENTES: NO HAY NINGUNA OFERTA ACTIVA EN ESTE MOMENTO.\n"
 
-        # 🚀 CÓDIGO CORREGIDO: Usamos AsyncGroq en lugar de Groq
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
         messages = [{"role": "system", "content": (data.systemPrompt if data.systemPrompt else "Eres un asistente experto de CazaOfertasML.") + db_context}]
         
-        for msg in data.history:
-            messages.append({"role": "user" if msg["sender"] == "user" else "assistant", "content": msg["text"]})
+        # 🛡️ BLINDAJE: Soportamos tanto sender/text como role/content sin importar cómo los envíe el frontend
+        if data.history:
+            for msg in data.history:
+                sender = msg.get("sender") or msg.get("role") or "user"
+                role = "user" if sender in ["user", "usuario"] else "assistant"
+                text = msg.get("text") or msg.get("content") or ""
+                if text:
+                    messages.append({"role": role, "content": text})
+        
+        # 🚀 CORRECCIÓN CLAVE: Agregamos el mensaje actual del usuario al payload de la IA
+        if data.message:
+            messages.append({"role": "user", "content": data.message})
             
-        # 🚀 CÓDIGO CORREGIDO: Usamos await para no bloquear el servidor
         chat_completion = await ai_client.chat.completions.create(
             messages=messages,
             model="llama-3.3-70b-versatile",
@@ -279,9 +287,10 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": chat_completion.choices[0].message.content}
 
     except Exception as e:
-        # 🚀 LOG MEJORADO: Ahora sabrás exactamente qué falla si ocurre un error
-        print(f"Error en AI (Ojo aquí Admin): {str(e)}")
-        return {"reply": "¡Uy! Mi procesador está un poco saturado cazando ofertas en este momento. 😅 ¿Puedes intentarlo de nuevo en unos segundos?"}
+        error_msg = str(e)
+        print(f"Error detallado en AI: {error_msg}")
+        # 🔍 MODO DEBUG: Esto te mostrará el error exacto en el chat para saber qué pasa
+        return {"reply": f"⚠️ [Debug Error Backend]: {error_msg}"}
 
 @api_router.post("/api/bot/products")
 async def bot_create_product(product: ProductCreate, x_api_key: Optional[str] = Header(None)):
@@ -406,8 +415,6 @@ async def clear_non_exclusive_products(password: str):
     if password != current_pw:
         raise HTTPException(status_code=401, detail="No autorizado")
     
-    # 🔒 BLINDAJE TOTAL: Elimina exclusivamente los productos normales o sin bandera.
-    # Las terminales exclusivas (is_exclusive: true) quedan completamente intocables.
     result = await db.products.delete_many({
         "$or": [
             {"is_exclusive": False},
