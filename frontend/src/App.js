@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import './App.css';
 import {
   Sparkles,
@@ -62,7 +62,7 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
 // ==========================================
-// FUNCIÓN UTILITARIA (MovidA afuera para uso global)
+// FUNCIÓN UTILITARIA (Movida afuera para uso global)
 // ==========================================
 export const getSafeId = (item) => {
   if (!item) return null;
@@ -852,13 +852,6 @@ function App() {
       }
     }
   }, [currentUser]);
-  
-  const [currentTime, setCurrentTime] = useState(Date.now());
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const [userReactions, setUserReactions] = useState(() => {
     try {
@@ -1048,16 +1041,10 @@ function App() {
     },
   ];
 
+  // Carga inicial de datos una sola vez (se eliminó el setInterval agresivo)
   useEffect(() => {
     loadPublicOffers();
     loadPublicProducts();
-
-    const botSyncInterval = setInterval(() => {
-      loadPublicOffers();
-      loadPublicProducts();
-    }, 30000); 
-
-    return () => clearInterval(botSyncInterval);
   }, []);
 
   const loadPublicProducts = async () => {
@@ -1120,73 +1107,86 @@ function App() {
     }, 5000);
   };
 
-  const activeCupones = cupones.filter((cupon) => {
-    if (!cupon.expires_at) return true;
-    return new Date(cupon.expires_at).getTime() > currentTime;
-  });
+  // ==========================================
+  // FILTROS OPTIMIZADOS CON USEMEMO
+  // ==========================================
+  const activeCupones = useMemo(() => {
+    const now = Date.now();
+    return cupones.filter((cupon) => {
+      if (!cupon.expires_at) return true;
+      return new Date(cupon.expires_at).getTime() > now;
+    });
+  }, [cupones]);
 
-  const filteredCupones = activeCupones.filter((cupon) => {
+  const filteredCupones = useMemo(() => {
     const term = couponSearchTerm.trim();
-    if (!term) return true;
+    if (!term) return activeCupones;
 
     const numericBudget = Number(term.replace(/\D/g, ''));
-    if (!isNaN(numericBudget) && numericBudget > 0) {
-      let minPurchase = cupon.min_purchase !== undefined && cupon.min_purchase !== null && cupon.min_purchase !== ''
-        ? Number(cupon.min_purchase)
-        : NaN;
+    return activeCupones.filter((cupon) => {
+      if (!isNaN(numericBudget) && numericBudget > 0) {
+        let minPurchase = cupon.min_purchase !== undefined && cupon.min_purchase !== null && cupon.min_purchase !== ''
+          ? Number(cupon.min_purchase)
+          : NaN;
 
-      if (isNaN(minPurchase) && cupon.description) {
-        const match = cupon.description.match(/minima[:\s]*\$?([\d,.]+)/i);
-        if (match) {
-          minPurchase = Number(match[1].replace(/\D/g, ''));
+        if (isNaN(minPurchase) && cupon.description) {
+          const match = cupon.description.match(/minima[:\s]*\$?([\d,.]+)/i);
+          if (match) {
+            minPurchase = Number(match[1].replace(/\D/g, ''));
+          }
+        }
+
+        if (!isNaN(minPurchase) && minPurchase > 0) {
+          return numericBudget >= minPurchase;
         }
       }
 
-      if (!isNaN(minPurchase) && minPurchase > 0) {
-        return numericBudget >= minPurchase;
-      }
-    }
-
-    const lowerTerm = term.toLowerCase();
-    return (
-      cupon.title.toLowerCase().includes(lowerTerm) ||
-      (cupon.description && cupon.description.toLowerCase().includes(lowerTerm)) ||
-      (cupon.code && cupon.code.toLowerCase().includes(lowerTerm))
-    );
-  });
+      const lowerTerm = term.toLowerCase();
+      return (
+        cupon.title.toLowerCase().includes(lowerTerm) ||
+        (cupon.description && cupon.description.toLowerCase().includes(lowerTerm)) ||
+        (cupon.code && cupon.code.toLowerCase().includes(lowerTerm))
+      );
+    });
+  }, [activeCupones, couponSearchTerm]);
 
   const isLight = themeMode === 'light';
   
-  const exclusiveProducts = products.filter(p => {
-    const pId = getSafeId(p) || p.title;
-    const isManual = manualExclusives.includes(pId);
-    if (isManual) return true;
+  const exclusiveProducts = useMemo(() => {
+    return products.filter(p => {
+      const pId = getSafeId(p) || p.title;
+      const isManual = manualExclusives.includes(pId);
+      if (isManual) return true;
 
-    return (
-      p.is_exclusive === true || 
-      p.is_exclusive === 'true' || 
-      p.is_exclusive === 1 || 
-      p.is_exclusive === '1' || 
-      p.is_exclusive === 'yes' || 
-      p.is_exclusive === 'on' ||
-      p.exclusive === true ||
-      p.exclusive === 'true'
+      return (
+        p.is_exclusive === true || 
+        p.is_exclusive === 'true' || 
+        p.is_exclusive === 1 || 
+        p.is_exclusive === '1' || 
+        p.is_exclusive === 'yes' || 
+        p.is_exclusive === 'on' ||
+        p.exclusive === true ||
+        p.exclusive === 'true'
+      );
+    });
+  }, [products, manualExclusives]);
+
+  const regularProducts = useMemo(() => {
+    const exclusiveIds = new Set(exclusiveProducts.map(p => getSafeId(p) || p.title));
+    return products.filter(p => {
+      const pId = getSafeId(p) || p.title;
+      return !exclusiveIds.has(pId) && !p.is_promo_card;
+    });
+  }, [products, exclusiveProducts]);
+
+  const filteredProducts = useMemo(() => {
+    return regularProducts.filter(
+      (p) =>
+        p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (p.description &&
+          p.description.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-  });
-
-  const exclusiveIds = new Set(exclusiveProducts.map(p => getSafeId(p) || p.title));
-
-  const regularProducts = products.filter(p => {
-    const pId = getSafeId(p) || p.title;
-    return !exclusiveIds.has(pId) && !p.is_promo_card;
-  });
-
-  const filteredProducts = regularProducts.filter(
-    (p) =>
-      p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (p.description &&
-        p.description.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  }, [regularProducts, searchTerm]);
 
   const mainBgClass = isLight
     ? 'min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-800 relative overflow-x-hidden font-sans'
@@ -1607,7 +1607,7 @@ function App() {
       }`}>
         <div className="relative flex items-center justify-center mb-6 px-2">
           <h2 className={`text-2xl sm:text-3xl font-black text-center flex items-center gap-2 ${isLight ? 'text-yellow-600' : 'text-yellow-400'}`}>
-             Terminales y Productos Exclusivos
+              Terminales y Productos Exclusivos
           </h2>
         </div>
         <p className={`text-center text-xs sm:text-sm mb-8 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
