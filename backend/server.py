@@ -264,7 +264,6 @@ async def ai_chat_endpoint(data: ChatRequest):
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
         messages = [{"role": "system", "content": (data.systemPrompt if data.systemPrompt else "Eres un asistente experto de CazaOfertasML.") + db_context}]
         
-        # 🛡️ BLINDAJE: Soportamos tanto sender/text como role/content sin importar cómo los envíe el frontend
         if data.history:
             for msg in data.history:
                 sender = msg.get("sender") or msg.get("role") or "user"
@@ -273,13 +272,13 @@ async def ai_chat_endpoint(data: ChatRequest):
                 if text:
                     messages.append({"role": role, "content": text})
         
-        # 🚀 CORRECCIÓN CLAVE: Agregamos el mensaje actual del usuario al payload de la IA
         if data.message:
             messages.append({"role": "user", "content": data.message})
             
+        # 🚀 MODELO ACTUALIZADO Y DISPONIBLE EN GROQ
         chat_completion = await ai_client.chat.completions.create(
             messages=messages,
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             temperature=0.2,
             max_tokens=300
         )
@@ -289,8 +288,7 @@ async def ai_chat_endpoint(data: ChatRequest):
     except Exception as e:
         error_msg = str(e)
         print(f"Error detallado en AI: {error_msg}")
-        # 🔍 MODO DEBUG: Esto te mostrará el error exacto en el chat para saber qué pasa
-        return {"reply": f"⚠️ [Debug Error Backend]: {error_msg}"}
+        return {"reply": "¡Uy! Mi procesador está un poco saturado cazando ofertas en este momento. 😅 ¿Puedes intentarlo de nuevo en unos segundos?"}
 
 @api_router.post("/api/bot/products")
 async def bot_create_product(product: ProductCreate, x_api_key: Optional[str] = Header(None)):
