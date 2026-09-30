@@ -801,7 +801,7 @@ function App() {
       {
         id: 'video-1',
         title: '¡Cazando ofertón en directo! 🛒🔥',
-        author: 'CazaOfertas Oficial',
+        author: 'CapiBara Oficial',
         url: 'https://www.youtube.com/shorts/dQw4w9WgXcQ',
         buyUrl: 'https://www.mercadolibre.com.mx',
         imageUrl: '',
@@ -813,7 +813,7 @@ function App() {
   });
 
   useEffect(() => {
-    localStorage.setItem('cazaOfertasVideos', JSON.stringify(tiktokVideos));
+    localStorage.setItem('CapiBaraVideos', JSON.stringify(tiktokVideos));
   }, [tiktokVideos]);
 
   const [themeMode, setThemeMode] = useState('dark');
@@ -2370,8 +2370,8 @@ function App() {
       }`}>
         <div className="container mx-auto px-4 text-center">
           <div className="mb-6">
-            <img src={logoUrl} alt="CazaOfertasML" className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-white/20" />
-            <h3 className="text-2xl font-bold mb-2">CazaOfertasML</h3>
+            <img src={logoUrl} alt="CapiBaraML" className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-white/20" />
+            <h3 className="text-2xl font-bold mb-2">CapiBaraML</h3>
             <p className="text-gray-400">"Ahorra con estilo, compra con sabiduría"</p>
           </div>
           <div className="flex justify-center space-x-6 mb-6">
