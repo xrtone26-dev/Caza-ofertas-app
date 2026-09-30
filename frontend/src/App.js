@@ -702,7 +702,7 @@ function renderNewSection(products = []) {
 }
 
 function App() {
-  const logoUrl = 'https://i.postimg.cc/RCXL4ZZ9/logo.png';
+  const logoUrl = '/logo.png';
 
   const logoContainerRef = useRef(null);
   const logoCardRef = useRef(null);
