@@ -38,7 +38,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     },
   ]);
 
-  // AUTO-POPUP: Abre el chat automáticamente a los 12 segundos con un gancho de ventas (1 sola vez por sesión)
+  // AUTO-POPUP: Abre el chat automáticamente a los 12 segundos (1 sola vez por sesión)
   useEffect(() => {
     const hasSeenChat = sessionStorage.getItem('hasSeenChatPopup');
     if (!hasSeenChat) {
@@ -244,7 +244,6 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       return;
     }
 
-    // Control de Cold Start (aviso amigable si Render tarda más de 4s en despertar)
     const coldStartTimer = setTimeout(() => {
       if (isTyping) {
         setChatMessages((prev) => [
@@ -333,7 +332,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
               </button>
             </div>
 
-            {/* BOTONES DE RESPUESTA RÁPIDA (QUICK REPLIES) PARA VENTAS */}
+            {/* BOTONES DE RESPUESTA RÁPIDA (QUICK REPLIES) */}
             <div className={`px-3 py-2 border-b flex gap-1.5 overflow-x-auto text-xs ${
               isLight ? 'bg-yellow-50 border-gray-200' : 'bg-neutral-900 border-neutral-800'
             }`}>
@@ -429,6 +428,25 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
         )}
       </AnimatePresence>
 
+      {/* BURBUJA DE SALUDO FLOTANTE (ESTILO TELCEL CON MANITA SALUDANDO) */}
+      {!showChatWindow && (
+        <motion.div
+          initial={{ opacity: 0, x: 20, scale: 0.8 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          transition={{ delay: 1.5, type: 'spring', stiffness: 260, damping: 20 }}
+          onClick={() => setShowChatWindow(true)}
+          className="fixed right-20 bottom-6 z-40 cursor-pointer group flex items-center gap-2 pointer-events-auto"
+        >
+          <div className="bg-white text-black font-black text-xs px-4 py-2.5 rounded-2xl shadow-xl border-2 border-black flex items-center gap-2 transition-transform group-hover:scale-105">
+            <span>¡Hola! <span className="inline-block animate-wave origin-bottom-right">👋</span></span>
+            <span className="text-[10px] text-gray-600 font-bold hidden sm:inline">¿Buscas descuento?</span>
+          </div>
+          {/* Pequeña flecha apuntando al botón de chat */}
+          <div className="w-2 h-2 bg-white border-r-2 border-b-2 border-black transform rotate-[-45deg] -ml-3 hidden sm:block"></div>
+        </motion.div>
+      )}
+
+      {/* BOTÓN FLOTANTE DEL CHAT (FAB) */}
       <motion.button
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
