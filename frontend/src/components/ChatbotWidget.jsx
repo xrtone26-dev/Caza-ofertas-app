@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bot, Send, X, Copy, Minus } from 'lucide-react';
+import {
+  FaWhatsapp,
+  FaTelegram,
+  FaFacebook,
+  FaYoutube
+} from "react-icons/fa";
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
@@ -116,6 +122,58 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     }, 5000); 
   };
 
+  const renderSocialLinksCard = () => {
+    const socials = [
+      {
+        name: 'WhatsApp',
+        icon: FaWhatsapp,
+        url: 'https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1',
+        color: 'bg-[#25D366] hover:bg-[#20bd5a]',
+      },
+      {
+        name: 'Telegram',
+        icon: FaTelegram,
+        url: 'https://t.me/+QFHGS37AyAk5M2Ex',
+        color: 'bg-[#229ED9] hover:bg-[#1a8ac2]',
+      },
+      {
+        name: 'Facebook',
+        icon: FaFacebook,
+        url: 'https://www.facebook.com/share/1RpfPkSzit/',
+        color: 'bg-[#1877F2] hover:bg-[#1367d5]',
+      },
+      {
+        name: 'YouTube',
+        icon: FaYoutube,
+        url: 'https://www.youtube.com/@CazaOfertasML06',
+        color: 'bg-[#FF0000] hover:bg-[#cc0000]',
+      },
+    ];
+
+    return (
+      <div className="flex flex-col gap-2.5 mt-1">
+        <p className="text-xs font-black mb-1">¡Únete a nuestras páginas y canales oficiales! 🚀</p>
+        <div className="grid grid-cols-2 gap-2">
+          {socials.map((s, idx) => {
+            const Icon = s.icon;
+            return (
+              <a
+                key={idx}
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${s.color} text-white p-2.5 rounded-xl flex items-center gap-2 font-black text-xs shadow-md transition-transform hover:scale-105 border border-black/30`}
+              >
+                <Icon size={20} className="flex-shrink-0" />
+                <span className="truncate">{s.name}</span>
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderMessageTextWithFormat = (text) => {
     if (!text) return null;
     const urlRegex = /(https?:\/\/[^\s]+[^.,;!?)\]])/g;
@@ -153,11 +211,12 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     });
   };
 
-  const renderMessageWithCouponCards = (text) => {
-    if (text.includes('canales oficiales') || text.includes('WhatsApp Grupo') || text.includes('páginas y canales')) {
-      return <div>{renderMessageTextWithFormat(text)}</div>;
+  const renderMessageWithCouponCards = (msg) => {
+    if (msg.isSocialLinks) {
+      return renderSocialLinksCard();
     }
 
+    const text = msg.text || '';
     const matchedCupones = localCupones.filter((c) => {
       if (!c.code) return false;
       const upperCode = c.code.toUpperCase();
@@ -190,7 +249,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
           return (
             <div key={idx} className="bg-[#FFEA00] text-black border-2 border-black rounded-2xl p-3.5 shadow-lg flex flex-col gap-2 mt-2">
               <div className="font-black text-xs uppercase bg-black text-white py-1.5 px-3 rounded-lg text-center tracking-wide">
-                🎟️ {matchedCupon.title || 'Cupón Exclusivo'}
+                🎟️️ {matchedCupon.title || 'Cupón Exclusivo'}
               </div>
               <div className="bg-white/80 border border-black/20 rounded-xl p-2 flex flex-col gap-1 text-xs font-bold text-neutral-900">
                 {cleanDesc ? (
@@ -242,7 +301,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
           ...prev,
           {
             sender: 'bot',
-            text: '¡Claro que sí, jefe! Aquí tienes los enlaces directos a todas nuestras páginas y canales oficiales de CapiBaraML:\n\n💬 **WhatsApp Grupo Oficial:** https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1\n✈️ **Telegram Oficial:** https://t.me/+QFHGS37AyAk5M2Ex\n📘 **Facebook Oficial:** https://www.facebook.com/share/1RpfPkSzit/\n📺 **YouTube Oficial:** https://www.youtube.com/@CazaOfertasML06',
+            isSocialLinks: true,
           },
         ]);
         setIsTyping(false);
@@ -393,7 +452,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
                     }`}
                   >
                     {msg.sender === 'bot'
-                      ? renderMessageWithCouponCards(msg.text)
+                      ? renderMessageWithCouponCards(msg)
                       : renderMessageTextWithFormat(msg.text)}
                   </div>
                 </div>
