@@ -3043,7 +3043,7 @@ export default function ProfileModal({
 
               <User className="w-5 h-5" />
 
-              MI PERFIL CAZAOFERTAS
+              MI PERFIL CapiBaraML
 
             </h2>
 
