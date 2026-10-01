@@ -202,7 +202,7 @@ export default function AdminDashboard({
       const newVid = {
         id: 'video-' + Date.now(),
         title: videoFormTitle,
-        author: 'CazaOfertas Oficial',
+        author: 'CapiBara Oficial',
         url: videoFormUrl,
         buyUrl: videoFormBuyUrl,
         imageUrl: videoFormImageUrl,
