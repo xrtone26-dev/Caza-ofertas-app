@@ -319,7 +319,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
                 </div>
                 <div>
                   <p className="text-sm font-black uppercase tracking-tight leading-tight">
-                    Asistente Experto IA 🚀
+                    Asistente Capibara IA 🐹
                   </p>
                   <span className="text-[10px] text-neutral-800 font-bold flex items-center gap-1.5 mt-0.5">
                     <span className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse" />
@@ -352,19 +352,19 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
                 onClick={() => processAndSendMessage('¡Quiero un cupón de descuento urgente!')}
                 className="whitespace-nowrap px-3 py-1.5 rounded-full bg-yellow-400 text-black font-black text-[11px] hover:bg-yellow-300 transition shadow-sm cursor-pointer"
               >
-                🎟️ ¡Dame un Cupón!
+                🎟️ ¡Quiero Cupones!
               </button>
               <button
                 onClick={() => processAndSendMessage('¿Qué terminales Point de Mercado Pago me recomiendas?')}
                 className="whitespace-nowrap px-3 py-1.5 rounded-full bg-blue-600 text-white font-black text-[11px] hover:bg-blue-500 transition shadow-sm cursor-pointer"
               >
-                💳 Terminales Point
+                💳 Terminales Mercado Pago
               </button>
               <button
                 onClick={() => processAndSendMessage('¿Cómo gano dinero o premios con la comunidad?')}
                 className="whitespace-nowrap px-3 py-1.5 rounded-full bg-neutral-800 text-yellow-400 border border-yellow-400/40 font-black text-[11px] hover:bg-neutral-700 transition cursor-pointer"
               >
-                🏆 Premios y Torneo
+                🏆 Unirme a Grupos
               </button>
             </div>
 
