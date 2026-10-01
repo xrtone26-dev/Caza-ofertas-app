@@ -1617,7 +1617,7 @@ function App() {
         {exclusiveProducts.length === 0 ? (
           <div className="text-center py-12 px-4 border-2 border-dashed border-yellow-400/40 rounded-2xl bg-yellow-400/5">
             <p className={`text-sm sm:text-base font-bold mb-2 ${isLight ? 'text-gray-700' : 'text-yellow-400'}`}>
-              ⚠️ No hay productos exclusivos cargados todavía
+              ⚠️️ No hay productos exclusivos cargados todavía
             </p>
           </div>
         ) : (
@@ -2402,6 +2402,19 @@ function App() {
               </button>
             )}
           </div>
+
+          {/* AQUÍ ESTÁ EL TEXTO LEGAL INSERTADO ESTRATÉGICAMENTE */}
+          <div className={`mt-8 pt-6 border-t text-[11px] sm:text-xs max-w-4xl mx-auto ${isLight ? 'border-gray-700 text-gray-400' : 'border-neutral-800 text-neutral-500'}`}>
+            <p className="mb-3">
+              Mercado Libre y su logotipo son propiedad de Mercado Libre. Su nombre y elementos gráficos se utilizan en este sitio conforme a los permisos aplicables a participantes de su programa de afiliados.
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <a href="#" className="hover:text-yellow-400 transition-colors">Política de privacidad</a>
+              <span>·</span>
+              <a href="#" className="hover:text-yellow-400 transition-colors">Términos y condiciones</a>
+            </div>
+          </div>
+
         </div>
       </footer>
 
