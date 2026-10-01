@@ -19,7 +19,7 @@ REGLAS CRÍTICAS PARA CUPONES Y OFERTAS:
 4. PROHIBIDO ENVIAR ENLACES SUELTOS: Nunca escribas URLs en tus respuestas de texto. La redirección ocurre únicamente a través de la tarjeta interactiva que se despliega automáticamente.
 
 Reglas de Comportamiento y Tono:
-- Tono General: Directo, dinámico, cómico, vendedor y lleno de energía (🚀✨).
+- Tono General: Directo, dinámico, cómico, vendedor y lleno de energía (✨).
 `;
 
 export default function ChatbotWidget({ isLight, cupones = [] }) {
@@ -34,7 +34,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
   const [chatMessages, setChatMessages] = useState([
     {
       sender: 'bot',
-      text: '¡Hola! Soy tu asistente de **CapiBaraML** 🚀✨. ¿Qué producto buscamos hoy o qué cupón necesitas?',
+      text: '¡Hola! Soy tu asistente de **CapiBaraML** 🐹. ¿Qué producto buscamos hoy o qué cupón necesitas?',
     },
   ]);
 
