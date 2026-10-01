@@ -711,6 +711,10 @@ function App() {
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [mobileTab, setMobileTab] = useState('cupones');
 
+  // Estados para los modales legales (NUEVO)
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+
   // Estado para el simulador de rendimiento financiero
   const [montoAhorro, setMontoAhorro] = useState(10000);
 
@@ -1041,7 +1045,6 @@ function App() {
     },
   ];
 
-  // Carga inicial de datos una sola vez (se eliminó el setInterval agresivo)
   useEffect(() => {
     loadPublicOffers();
     loadPublicProducts();
@@ -1107,9 +1110,6 @@ function App() {
     }, 5000);
   };
 
-  // ==========================================
-  // FILTROS OPTIMIZADOS CON USEMEMO
-  // ==========================================
   const activeCupones = useMemo(() => {
     const now = Date.now();
     return cupones.filter((cupon) => {
@@ -1617,7 +1617,7 @@ function App() {
         {exclusiveProducts.length === 0 ? (
           <div className="text-center py-12 px-4 border-2 border-dashed border-yellow-400/40 rounded-2xl bg-yellow-400/5">
             <p className={`text-sm sm:text-base font-bold mb-2 ${isLight ? 'text-gray-700' : 'text-yellow-400'}`}>
-              ⚠️️ No hay productos exclusivos cargados todavía
+              ⚠ No hay productos exclusivos cargados todavía
             </p>
           </div>
         ) : (
@@ -2239,14 +2239,6 @@ function App() {
             >
               🔥 Productos
             </button>
-            {/* <button
-              onClick={() => setMobileTab('juegos')}
-              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
-                mobileTab === 'juegos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
-              }`}
-            >
-              🎮 Juegos
-            </button> */}
             <button
               onClick={() => setMobileTab('reels')}
               className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
@@ -2268,19 +2260,6 @@ function App() {
           {mobileTab === 'cupones' && renderCuponesSection()}
           {mobileTab === 'productos' && renderProductosSection()}
           {mobileTab === 'exclusivos' && renderExclusiveProductsSection()}
-          {/* {mobileTab === 'juegos' && (
-            <div className="mb-8">
-              <GamesZone 
-                currentUser={
-                  typeof currentUser === 'object' && currentUser !== null
-                    ? (currentUser.nickname || currentUser.nombre || currentUser.email || '')
-                    : (currentUser || '')
-                } 
-                isLight={isLight} 
-                isAuthenticated={isAuthenticated} 
-              />
-            </div>
-          )} */}
           {mobileTab === 'reels' && (
             <>
               {renderReelsSection()}
@@ -2293,15 +2272,6 @@ function App() {
           {renderCuponesSection()}
           {renderProductosSection()}
           {renderExclusiveProductsSection()}
-          {/* <GamesZone 
-            currentUser={
-              typeof currentUser === 'object' && currentUser !== null
-                ? (currentUser.nickname || currentUser.nombre || currentUser.email || '')
-                : (currentUser || '')
-            } 
-            isLight={isLight} 
-            isAuthenticated={isAuthenticated} 
-          /> */}
           {renderReelsSection()}
           {renderNewSection(products)}
         </>
@@ -2336,6 +2306,108 @@ function App() {
               Sigue estos sencillos pasos en el video para aprovechar tus descuentos al máximo. 💸
             </p>
           </div>
+        </div>
+      )}
+
+      {/* MODAL: POLÍTICA DE PRIVACIDAD (NUEVO) */}
+      {showPrivacyModal && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[90] p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`relative rounded-3xl p-6 sm:p-8 max-w-2xl w-full max-h-[85vh] overflow-y-auto border-2 shadow-2xl ${
+              isLight ? 'bg-white text-gray-800 border-purple-300' : 'bg-neutral-900 text-neutral-100 border-yellow-400/60'
+            }`}
+          >
+            <button 
+              onClick={() => setShowPrivacyModal(false)} 
+              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors p-2"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <h3 className="text-2xl font-black mb-4 flex items-center gap-2">
+              🔒 Política de Privacidad de CapiBaraML
+            </h3>
+            
+            <div className="space-y-4 text-xs sm:text-sm leading-relaxed opacity-90">
+              <p>
+                En <strong>CapiBaraML</strong> valoramos tu privacidad y nos comprometemos a proteger la información personal que compartas con nosotros. Este aviso detalla cómo recopilamos, usamos y resguardamos tus datos.
+              </p>
+              <h4 className="font-black text-sm sm:text-base text-yellow-400 mt-2">1. Información que recopilamos</h4>
+              <p>
+                Podemos recopilar datos básicos proporcionados voluntariamente por ti (como nombre, apodo, correo electrónico y número de teléfono de WhatsApp) exclusivamente para fines de participación en nuestra comunidad y torneos mensuales de gamificación.
+              </p>
+              <h4 className="font-black text-sm sm:text-base text-yellow-400 mt-2">2. Enlaces de afiliados y cookies</h4>
+              <p>
+                Este sitio web contiene enlaces de afiliados hacia Mercado Libre y plataformas asociadas. Al hacer clic en ellos, es posible que dichas plataformas utilicen cookies técnicas para registrar que fuiste recomendado por CapiBaraML, sin que esto comprometa tu información bancaria o personal sensible.
+              </p>
+              <h4 className="font-black text-sm sm:text-base text-yellow-400 mt-2">3. Seguridad de los datos</h4>
+              <p>
+                Implementamos medidas de seguridad estándar en la industria para proteger tus datos contra accesos no autorizados, alteración o divulgación. Jamás vendemos ni compartimos tu información con terceros con fines publicitarios ajenos a nuestro servicio.
+              </p>
+            </div>
+
+            <div className="mt-8 text-center">
+              <button 
+                onClick={() => setShowPrivacyModal(false)}
+                className="bg-yellow-400 hover:bg-yellow-300 text-black font-black px-6 py-3 rounded-xl uppercase tracking-wider text-xs shadow-md transition-transform hover:scale-105"
+              >
+                Entendido
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* MODAL: TÉRMINOS Y CONDICIONES (NUEVO) */}
+      {showTermsModal && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[90] p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`relative rounded-3xl p-6 sm:p-8 max-w-2xl w-full max-h-[85vh] overflow-y-auto border-2 shadow-2xl ${
+              isLight ? 'bg-white text-gray-800 border-purple-300' : 'bg-neutral-900 text-neutral-100 border-yellow-400/60'
+            }`}
+          >
+            <button 
+              onClick={() => setShowTermsModal(false)} 
+              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors p-2"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <h3 className="text-2xl font-black mb-4 flex items-center gap-2">
+              📄 Términos y Condiciones de Uso
+            </h3>
+            
+            <div className="space-y-4 text-xs sm:text-sm leading-relaxed opacity-90">
+              <p>
+                Bienvenido a <strong>CapiBaraML</strong>. Al acceder y utilizar nuestro sitio web, aceptas cumplir con los siguientes términos y condiciones de uso.
+              </p>
+              <h4 className="font-black text-sm sm:text-base text-yellow-400 mt-2">1. Carácter informativo y de afiliación</h4>
+              <p>
+                CapiBaraML es un sitio web independiente dedicado a la recopilación de ofertas, cupones y recomendaciones de productos disponibles en Mercado Libre y otros comercios. Actuamos como canal de difusión y afiliados; por lo tanto, no procesamos pagos directos ni somos responsables de la entrega, garantías o stock gestionados por los vendedores de dichas plataformas.
+              </p>
+              <h4 className="font-black text-sm sm:text-base text-yellow-400 mt-2">2. Vigencia de precios y cupones</h4>
+              <p>
+                Los precios, descuentos, cupones y la disponibilidad mostrados están sujetos a cambios constantes y a los términos particulares establecidos por cada vendedor o plataforma de destino.
+              </p>
+              <h4 className="font-black text-sm sm:text-base text-yellow-400 mt-2">3. Propiedad intelectual</h4>
+              <p>
+                Los logotipos, marcas comerciales y nombres de productos (incluyendo Mercado Libre, Mercado Pago, etc.) pertenecen a sus respectivos titulares y se mencionan en este sitio bajo los lineamientos de uso legítimo y programas de afiliados.
+              </p>
+            </div>
+
+            <div className="mt-8 text-center">
+              <button 
+                onClick={() => setShowTermsModal(false)}
+                className="bg-yellow-400 hover:bg-yellow-300 text-black font-black px-6 py-3 rounded-xl uppercase tracking-wider text-xs shadow-md transition-transform hover:scale-105"
+              >
+                Aceptar y Cerrar
+              </button>
+            </div>
+          </motion.div>
         </div>
       )}
 
@@ -2403,15 +2475,29 @@ function App() {
             )}
           </div>
 
-          {/* AQUÍ ESTÁ EL TEXTO LEGAL INSERTADO ESTRATÉGICAMENTE */}
-          <div className={`mt-8 pt-6 border-t text-[11px] sm:text-xs max-w-4xl mx-auto ${isLight ? 'border-gray-700 text-gray-400' : 'border-neutral-800 text-neutral-500'}`}>
-            <p className="mb-3">
-              Mercado Libre y su logotipo son propiedad de Mercado Libre. Su nombre y elementos gráficos se utilizan en este sitio conforme a los permisos aplicables a participantes de su programa de afiliados.
+          {/* TEXTO LEGAL MEJORADO Y ALTAMENTE VISIBLE CON FUNCIONALIDAD */}
+          <div className={`mt-8 pt-6 border-t text-xs sm:text-sm max-w-4xl mx-auto p-5 rounded-2xl border transition-all ${
+            isLight 
+              ? 'bg-gray-100 border-purple-200 text-gray-700 shadow-md font-semibold' 
+              : 'bg-neutral-900 border-yellow-400/40 text-neutral-200 shadow-[0_0_20px_rgba(250,204,21,0.15)] font-semibold'
+          }`}>
+            <p className="mb-3 text-center leading-relaxed">
+              📢 <strong className={isLight ? 'text-gray-900' : 'text-yellow-400'}>Aviso Legal y Afiliados:</strong> Mercado Libre y su logotipo son marcas registradas de Mercado Libre, S. de R.L. de C.V. Su utilización en este sitio es únicamente informativa como parte de su programa de afiliados.
             </p>
-            <div className="flex items-center justify-center gap-3">
-              <a href="#" className="hover:text-yellow-400 transition-colors">Política de privacidad</a>
-              <span>·</span>
-              <a href="#" className="hover:text-yellow-400 transition-colors">Términos y condiciones</a>
+            <div className="flex items-center justify-center gap-4 pt-3 border-t border-yellow-500/20">
+              <button 
+                onClick={() => setShowPrivacyModal(true)} 
+                className={`font-black underline hover:scale-105 transition-transform ${isLight ? 'text-purple-700 hover:text-purple-900' : 'text-yellow-400 hover:text-yellow-300'}`}
+              >
+                🔒 Política de Privacidad
+              </button>
+              <span className="opacity-50">|</span>
+              <button 
+                onClick={() => setShowTermsModal(true)} 
+                className={`font-black underline hover:scale-105 transition-transform ${isLight ? 'text-purple-700 hover:text-purple-900' : 'text-yellow-400 hover:text-yellow-300'}`}
+              >
+                📄 Términos y Condiciones
+              </button>
             </div>
           </div>
 
