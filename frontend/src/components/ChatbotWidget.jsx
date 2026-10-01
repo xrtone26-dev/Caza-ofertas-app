@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bot, Send, X, Copy } from 'lucide-react';
+import { Bot, Send, X, Copy, Minus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
@@ -55,13 +55,6 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       const timer = setTimeout(() => {
         setShowChatWindow(true);
         sessionStorage.setItem('hasSeenChatPopup', 'true');
-        setChatMessages((prev) => [
-          ...prev,
-          {
-            sender: 'bot',
-            text: '🎁 ¡Pssst! Tengo un **cupón sorpresa de alta demanda** y con descuento activo esperándote. ¿Quieres que te lo revele antes de que se agote? 🔥'
-          }
-        ]);
       }, 12000); 
       return () => clearTimeout(timer);
     }
@@ -334,12 +327,22 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
                   </span>
                 </div>
               </div>
-              <button
-                onClick={() => setShowChatWindow(false)}
-                className="text-black hover:bg-black/10 rounded-full p-1.5 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowChatWindow(false)}
+                  title="Minimizar"
+                  className="text-black hover:bg-black/10 rounded-full p-1.5 transition-colors flex items-center justify-center cursor-pointer"
+                >
+                  <Minus className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setShowChatWindow(false)}
+                  title="Cerrar"
+                  className="text-black hover:bg-black/10 rounded-full p-1.5 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             <div className={`px-3 py-2 border-b flex gap-1.5 overflow-x-auto text-xs ${
@@ -347,19 +350,19 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
             }`}>
               <button
                 onClick={() => processAndSendMessage('¡Quiero un cupón de descuento urgente!')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-yellow-400 text-black font-black text-[11px] hover:bg-yellow-300 transition shadow-sm"
+                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-yellow-400 text-black font-black text-[11px] hover:bg-yellow-300 transition shadow-sm cursor-pointer"
               >
                 🎟️ ¡Dame un Cupón!
               </button>
               <button
                 onClick={() => processAndSendMessage('¿Qué terminales Point de Mercado Pago me recomiendas?')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-blue-600 text-white font-black text-[11px] hover:bg-blue-500 transition shadow-sm"
+                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-blue-600 text-white font-black text-[11px] hover:bg-blue-500 transition shadow-sm cursor-pointer"
               >
                 💳 Terminales Point
               </button>
               <button
                 onClick={() => processAndSendMessage('¿Cómo gano dinero o premios con la comunidad?')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-neutral-800 text-yellow-400 border border-yellow-400/40 font-black text-[11px] hover:bg-neutral-700 transition"
+                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-neutral-800 text-yellow-400 border border-yellow-400/40 font-black text-[11px] hover:bg-neutral-700 transition cursor-pointer"
               >
                 🏆 Premios y Torneo
               </button>
@@ -428,7 +431,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
               <button
                 type="submit"
                 disabled={!inputMessage.trim() || isTyping}
-                className="bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 disabled:hover:bg-yellow-400 text-black w-12 rounded-xl font-bold flex items-center justify-center transition-all shadow-md"
+                className="bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 disabled:hover:bg-yellow-400 text-black w-12 rounded-xl font-bold flex items-center justify-center transition-all shadow-md cursor-pointer"
               >
                 <Send className="w-5 h-5 ml-1" />
               </button>
