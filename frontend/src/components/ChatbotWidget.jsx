@@ -154,7 +154,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
   };
 
   const renderMessageWithCouponCards = (text) => {
-    if (text.includes('canales oficiales') || text.includes('WhatsApp Grupo')) {
+    if (text.includes('canales oficiales') || text.includes('WhatsApp Grupo') || text.includes('páginas y canales')) {
       return <div>{renderMessageTextWithFormat(text)}</div>;
     }
 
@@ -232,14 +232,17 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       lowerText.includes('grupo') ||
       lowerText.includes('telegram') ||
       lowerText.includes('facebook') ||
-      lowerText.includes('comunidad')
+      lowerText.includes('comunidad') ||
+      lowerText.includes('links') ||
+      lowerText.includes('páginas') ||
+      lowerText.includes('redes')
     ) {
       setTimeout(() => {
         setChatMessages((prev) => [
           ...prev,
           {
             sender: 'bot',
-            text: '¡Únete a nuestros canales oficiales para no perderte nada:\n💬 WhatsApp Grupo: https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1\n✈ Telegram: https://t.me/LadyOfertas2026\n📘 Facebook: https://www.facebook.com/CazaOfertasml1',
+            text: '¡Claro que sí, jefe! Aquí tienes los enlaces directos a todas nuestras páginas y canales oficiales de CapiBaraML:\n\n💬 **WhatsApp Grupo Oficial:** https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1\n✈️ **Telegram Oficial:** https://t.me/+QFHGS37AyAk5M2Ex\n📘 **Facebook Oficial:** https://www.facebook.com/share/1RpfPkSzit/\n📺 **YouTube Oficial:** https://www.youtube.com/@CazaOfertasML06',
           },
         ]);
         setIsTyping(false);
@@ -361,7 +364,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
                 💳 Terminales Mercado Pago
               </button>
               <button
-                onClick={() => processAndSendMessage('¿Cómo gano dinero o premios con la comunidad?')}
+                onClick={() => processAndSendMessage('¡Muéstrame los links de todas nuestras páginas y redes oficiales!')}
                 className="whitespace-nowrap px-3 py-1.5 rounded-full bg-neutral-800 text-yellow-400 border border-yellow-400/40 font-black text-[11px] hover:bg-neutral-700 transition cursor-pointer"
               >
                 🏆 Unirme a Grupos
