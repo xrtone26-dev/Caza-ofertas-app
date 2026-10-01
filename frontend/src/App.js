@@ -800,7 +800,7 @@ function App() {
     return [
       {
         id: 'video-1',
-        title: '¡Cazando ofertón en directo! 🛒🔥',
+        title: '¡Cazando ofertas en directo! 🛒🔥',
         author: 'CapiBara Oficial',
         url: 'https://www.youtube.com/shorts/dQw4w9WgXcQ',
         buyUrl: 'https://www.mercadolibre.com.mx',
