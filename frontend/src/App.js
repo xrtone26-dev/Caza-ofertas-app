@@ -119,7 +119,7 @@ function VisitorCounter({ isLight }) {
           ? 'bg-white text-purple-600 border-purple-200' 
           : 'bg-neutral-900 text-yellow-400 border-yellow-400/50'
       }`}
-      title={`Visitantes Reales: ${count.toLocaleString()}`}
+      title={`Visitantes: ${count.toLocaleString()}`}
     >
       <Users className="w-3.5 h-3.5 mb-0.5 animate-pulse" />
       <span className="text-[10px] font-black leading-none">{count}</span>
