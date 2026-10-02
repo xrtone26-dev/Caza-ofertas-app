@@ -990,6 +990,13 @@ function App() {
   const [cuponesRef, cuponesApi] = useEmblaCarousel({ loop: true, align: 'start' });
   const [exclusiveEmblaRef, exclusiveEmblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
 
+  // Sincronizar carrusel de cupones al filtrar
+  useEffect(() => {
+    if (cuponesApi) {
+      cuponesApi.reInit();
+    }
+  }, [filteredCupones, cuponesApi]);
+
   useEffect(() => {
     if (!cuponesApi) return;
     const autoplay = setInterval(() => {
@@ -1157,7 +1164,7 @@ function App() {
           : NaN;
 
         if (isNaN(minPurchase) && cupon.description) {
-          const match = cupon.description.match(/minima[:\s]*\$?([\d,.]+)/i);
+          const match = cupon.description.match(/m[ií]nima[:\s]*\$?([\d,.]+)/i);
           if (match) {
             minPurchase = Number(match[1].replace(/\D/g, ''));
           }
@@ -1313,7 +1320,7 @@ function App() {
                           {/* LADO IZQUIERDO: BLANCO CON LOGO OFICIAL DE MERCADO LIBRE (2.5x MÁS GRANDE) */}
                           <div className="bg-white text-gray-900 p-5 flex flex-col justify-between items-center sm:w-[220px] md:w-[260px] flex-shrink-0 relative border-b sm:border-b-0 sm:border-r-2 border-dashed border-slate-700">
                             <div className="flex flex-col items-center justify-center my-auto py-2">
-                              {/* Logo Mercado Libre (Aumentado 2.5x: w-36 h-36 / aprox 144px) */}
+                              {/* Logo Mercado Libre (Aumentado 2.5x: w-36 h-36) */}
                               <div className="w-36 h-36 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
                                 <img 
                                   src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolibre/logo__large_plus.png" 
