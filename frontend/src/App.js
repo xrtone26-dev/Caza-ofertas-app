@@ -54,7 +54,6 @@ import {
 import axios from 'axios';
 import useEmblaCarousel from 'embla-carousel-react';
 import { motion, AnimatePresence } from 'framer-motion';
-// import GamesZone from './components/GamesZone';
 import ChatbotWidget from './components/ChatbotWidget';
 import ProfileModal from './components/ProfileModal';
 import AdminDashboard, { decodeCoupon } from './components/AdminDashboard'; 
@@ -63,7 +62,7 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
 // ==========================================
-// FUNCIÓN UTILITARIA (Movida afuera para uso global)
+// FUNCIÓN UTILITARIA
 // ==========================================
 export const getSafeId = (item) => {
   if (!item) return null;
@@ -93,7 +92,7 @@ export const getSafeId = (item) => {
 };
 
 // ==========================================
-// COMPONENTE: CONTADOR CIRCULAR DISCRETO Y REAL
+// CONTADOR CIRCULAR
 // ==========================================
 function VisitorCounter({ isLight }) {
   const [count, setCount] = useState(() => {
@@ -128,7 +127,7 @@ function VisitorCounter({ isLight }) {
 }
 
 // ==========================================
-// COMPONENTE 3D: CUBO DE CARACTERÍSTICAS (ADAPTABLE MÓVIL)
+// CUBO 3D
 // ==========================================
 function FeatureCube({ isLight, isMobileDevice }) {
   const [rotation, setRotation] = useState({ x: 0, y: 0, z: 0 });
@@ -151,7 +150,6 @@ function FeatureCube({ isLight, isMobileDevice }) {
   }, [animate]);
 
   const neonShadow = `0 0 15px rgba(0,229,255,0.5), inset 0 0 15px rgba(0,229,255,0.3)`;
-
   const cubeSize = isMobileDevice ? 220 : 280;
   const tz = cubeSize / 2;
 
@@ -271,6 +269,9 @@ function FeatureCube({ isLight, isMobileDevice }) {
   );
 }
 
+// ==========================================
+// REELS PLAYER
+// ==========================================
 function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowToast, isLight }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [likes, setLikes] = useState({});
@@ -566,7 +567,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
 }
 
 // ==========================================
-// DISEÑO BLACK & GOLD PARA EL TEMPORIZADOR
+// COUNTDOWN TIMER
 // ==========================================
 function CountdownTimer({ expiresAt }) {
   const [timeLeft, setTimeLeft] = useState('');
@@ -624,7 +625,7 @@ function CountdownTimer({ expiresAt }) {
 }
 
 // ==========================================
-// COMPONENTE PROMO ESTILO SAMSUNG
+// RENDER NEW SECTION
 // ==========================================
 function renderNewSection(products = []) {
   const promoProducts = products.filter(p => p.is_promo_card && p.active !== false);
@@ -729,6 +730,9 @@ function renderNewSection(products = []) {
   );
 }
 
+// ==========================================
+// COMPONENTE PRINCIPAL APP
+// ==========================================
 function App() {
   const logoUrl = '/logo.png';
 
@@ -1225,17 +1229,20 @@ function App() {
     ? 'min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-800 relative overflow-x-hidden font-sans'
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
+  // ==========================================
+  // SECCIÓN DE CUPONES ACTUALIZADA (ESTILO TICKET)
+  // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
-      <div className="container mx-auto px-4 mb-8 relative z-20">
+      <div className="container mx-auto px-4 mb-12 relative z-20">
         <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
           isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
         }`}>
           <div className="relative flex flex-col sm:flex-row items-center justify-between mb-6 gap-3 px-2">
-            <h2 className={`text-xl sm:text-2xl md:text-3xl font-bold text-center sm:text-left ${
-              isLight ? 'text-purple-700' : 'text-neutral-100 font-black'
+            <h2 className={`text-xl sm:text-2xl md:text-3xl font-black tracking-wide text-center sm:text-left flex items-center gap-2 ${
+              isLight ? 'text-purple-700' : 'text-neutral-100'
             }`}>
-              ✨ Cupones Especiales del dia
+              <span>✨</span> Cupones Especiales del día
             </h2>
             
             <div className="group relative self-end sm:self-auto">
@@ -1262,7 +1269,7 @@ function App() {
 
           <div className="max-w-xl mx-auto mb-8 px-2">
             <div className="relative flex-1">
-              <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 ${
+              <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 ${
                 isLight ? 'text-gray-400' : 'text-neutral-500'
               }`} />
               <input
@@ -1270,8 +1277,8 @@ function App() {
                 value={couponSearchTerm}
                 onChange={handleCouponSearchChange}
                 placeholder="¿Cuánto planeas gastar?"
-                className={`w-full pl-10 pr-3 py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-xs sm:text-sm ${
-                  isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-700 text-neutral-100'
+                className={`w-full pl-12 pr-4 py-4 rounded-2xl border focus:outline-none focus:border-yellow-400 text-xs sm:text-sm font-medium shadow-inner ${
+                  isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-800 text-neutral-100'
                 }`}
               />
             </div>
@@ -1286,7 +1293,7 @@ function App() {
           ) : (
             <div className="relative">
               <div className="overflow-hidden" ref={cuponesRef}>
-                <div className="flex gap-4 sm:gap-6 py-4">
+                <div className="flex gap-6 py-4">
                   {filteredCupones.map((cupon) => {
                     const cuponId = getSafeId(cupon) || cupon.title;
                     const currentReaction = userReactions[cuponId];
@@ -1294,91 +1301,92 @@ function App() {
 
                     return (
                       <div key={cuponId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
-                        <div className="h-full bg-gradient-to-b from-neutral-900 via-neutral-950 to-black border-2 sm:border-4 border-yellow-400 rounded-2xl sm:rounded-3xl p-3 sm:p-5 flex flex-col items-center shadow-[4px_4px_0px_0px_#ca8a04] sm:shadow-[6px_6px_0px_0px_#ca8a04] relative">
+                        
+                        {/* TARJETA TICKET MODERNA */}
+                        <div className="relative rounded-3xl bg-slate-950 border-4 border-amber-400 shadow-[0_0_25px_rgba(251,191,36,0.15)] overflow-hidden p-5 sm:p-6 flex flex-col justify-between h-full transition-all hover:shadow-[0_0_35px_rgba(251,191,36,0.3)]">
                           
-                          <div className="w-full flex items-center justify-between mb-3 px-1 border-b border-yellow-500/20 pb-2">
-                            <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-yellow-500/90 flex items-center gap-1">
+                          {/* Encabezado del Ticket */}
+                          <div className="flex justify-between items-center mb-4 pb-3 border-b border-neutral-800 text-xs font-black tracking-widest text-amber-400 uppercase">
+                            <span className="flex items-center gap-1.5 bg-amber-400/10 px-3 py-1 rounded-md border border-amber-400/20">
                               🎟️ VOUCHER OFICIAL
                             </span>
                             <CountdownTimer expiresAt={cupon.expires_at} />
                           </div>
 
-                          <div className="w-full text-center mb-2 px-1">
-                            <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-yellow-400 leading-tight tracking-tight uppercase drop-shadow-[0_2px_8px_rgba(250,204,21,0.3)]">
+                          {/* Título Principal de Descuento */}
+                          <div className="text-center mb-4">
+                            <h3 className="text-xl sm:text-2xl font-black text-amber-400 tracking-wider uppercase drop-shadow-[0_2px_8px_rgba(251,191,36,0.3)]">
                               {cupon.title || 'CUPÓN EXCLUSIVO'}
                             </h3>
                           </div>
 
-                          <div className="relative w-full bg-[#070707] border-2 sm:border-3 border-dashed border-yellow-400/70 rounded-xl p-2.5 sm:p-4 mb-3 flex-grow flex flex-col justify-center shadow-inner">
-                            <div className="flex flex-col items-center justify-center text-center relative z-10">
-                              
-                              <div className="text-[10px] sm:text-xs font-bold text-yellow-400/80 uppercase tracking-wider mb-1">
-                                CÓDIGO DE DESCUENTO
-                              </div>
-                              
-                              {cupon.code && (
-                                <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-wider font-mono bg-neutral-900/90 border border-yellow-400/40 rounded-lg px-3 py-1.5 my-1 w-full truncate shadow-sm">
-                                  {String(cupon.code).length > 3
-                                    ? String(cupon.code).slice(0, 3) + '*'.repeat(String(cupon.code).length - 3)
-                                    : cupon.code}
-                                </div>
-                              )}
-                              
-                              <div className="border-t border-yellow-500/20 w-full mt-2 pt-2">
-                                <div className="text-[11px] sm:text-xs font-bold text-neutral-300 uppercase tracking-tight leading-relaxed line-clamp-3">
-                                  {cupon.description || 'COMPRA MÍNIMA APLICABLE EN MERCADO LIBRE'}
-                                </div>
-                              </div>
+                          {/* Contenedor Central del Código (Estilo Punteado con Muescas Laterales) */}
+                          <div className="relative bg-neutral-900/90 border-2 border-dashed border-amber-400/60 rounded-2xl p-4 text-center mb-4 shadow-inner">
+                            <span className="block text-[10px] text-neutral-400 uppercase tracking-widest font-extrabold mb-1">
+                              CÓDIGO DE DESCUENTO
+                            </span>
+                            <div className="text-2xl sm:text-3xl font-black tracking-widest text-white py-2 bg-black/50 rounded-xl border border-neutral-800 mx-auto max-w-xs select-all font-mono truncate px-2">
+                              {cupon.code && String(cupon.code).length > 3
+                                ? String(cupon.code).slice(0, 3) + '*'.repeat(String(cupon.code).length - 3)
+                                : (cupon.code || 'SIN CÓDIGO')}
                             </div>
 
-                            <div className={`absolute top-1/2 -left-3.5 -translate-y-1/2 w-5 h-5 border-2 border-yellow-400 rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
-                            <div className={`absolute top-1/2 -right-3.5 -translate-y-1/2 w-5 h-5 border-2 border-yellow-400 rounded-full z-20 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}></div>
+                            <div className="mt-2 text-[10px] sm:text-[11px] font-bold text-neutral-400 uppercase tracking-tight leading-relaxed">
+                              {cupon.description ? cupon.description.replace(/\|\|exp:.*?\|\|/g, '') : 'COMPRA MÍNIMA APLICABLE EN MERCADO LIBRE'}
+                            </div>
+
+                            {/* Muescas circulares de ticket en los bordes */}
+                            <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-950 rounded-full border-r-2 border-dashed border-amber-400/60"></div>
+                            <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-950 rounded-full border-l-2 border-dashed border-amber-400/60"></div>
                           </div>
 
-                          <div className="flex justify-between items-center w-full mb-3 px-1 gap-1.5">
+                          {/* Barra de Reacciones */}
+                          <div className="flex justify-between items-center w-full mb-4 gap-2">
                             <button
                               onClick={() => handleReaction(cuponId, 'like')}
-                              className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] sm:text-xs font-black transition-all border border-yellow-400 ${
+                              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all border ${
                                 currentReaction === 'like'
-                                  ? 'bg-blue-600 text-white shadow-sm scale-105 border-blue-500'
-                                  : 'bg-neutral-900 text-yellow-400 hover:bg-neutral-800'
+                                  ? 'bg-amber-400 text-black border-amber-400 shadow-lg'
+                                  : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:bg-neutral-800'
                               }`}
                             >
-                              <span>👍</span><span>{counts.like}</span>
+                              <ThumbsUp size={14} /> <span>{counts.like}</span>
                             </button>
                             <button
                               onClick={() => handleReaction(cuponId, 'dislike')}
-                              className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] sm:text-xs font-black transition-all border border-yellow-400 ${
+                              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all border ${
                                 currentReaction === 'dislike'
-                                  ? 'bg-red-600 text-white shadow-sm scale-105 border-red-500'
-                                  : 'bg-neutral-900 text-yellow-400 hover:bg-neutral-800'
+                                  ? 'bg-red-500 text-white border-red-500 shadow-lg'
+                                  : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:bg-neutral-800'
                               }`}
                             >
-                              <span>👎</span><span>{counts.dislike}</span>
+                              <ThumbsDown size={14} /> <span>{counts.dislike}</span>
                             </button>
                             <button
                               onClick={() => handleReaction(cuponId, 'heart')}
-                              className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] sm:text-xs font-black transition-all border border-yellow-400 ${
+                              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all border ${
                                 currentReaction === 'heart'
-                                  ? 'bg-pink-600 text-white shadow-sm scale-105 border-pink-500'
-                                  : 'bg-neutral-900 text-yellow-400 hover:bg-neutral-800'
+                                  ? 'bg-pink-500 text-white border-pink-500 shadow-lg'
+                                  : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:bg-neutral-800'
                               }`}
                             >
-                              <span>❤️</span><span>{counts.heart}</span>
+                              <Heart size={14} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
                             </button>
                           </div>
 
+                          {/* Botón Principal: Copiar Cupón e Ir a Mercado Libre */}
                           {cupon.link && (
                             <button
                               onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                              className="w-full bg-yellow-400 hover:bg-yellow-300 text-black rounded-xl py-2.5 px-2 flex flex-col items-center justify-center transition-transform hover:scale-[1.02] mt-auto border-2 border-yellow-600 shadow-[0_3px_10px_0_rgba(250,204,21,0.3)]"
+                              className="w-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black py-3.5 px-4 rounded-2xl font-black shadow-[0_4px_20px_rgba(251,191,36,0.3)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex flex-col items-center justify-center mt-auto cursor-pointer"
                             >
-                              <div className="flex items-center justify-center gap-2 w-full">
-                                <span className="text-sm sm:text-base md:text-lg font-black tracking-wider uppercase">COPIAR CUPÓN</span>
+                              <div className="flex items-center gap-2 text-sm sm:text-base tracking-wider">
+                                <Copy className="w-4 h-4" />
+                                <span>COPIAR CUPÓN</span>
                               </div>
-                              <div className="text-[10px] sm:text-xs font-bold tracking-tight opacity-90 -mt-0.5">
+                              <span className="text-[10px] font-bold tracking-normal opacity-90 mt-0.5 flex items-center gap-1">
                                 E IR A MERCADO LIBRE 🚀
-                              </div>
+                              </span>
                             </button>
                           )}
 
@@ -1640,7 +1648,7 @@ function App() {
       }`}>
         <div className="relative flex items-center justify-center mb-6 px-2">
           <h2 className={`text-2xl sm:text-3xl font-black text-center flex items-center gap-2 ${isLight ? 'text-yellow-600' : 'text-yellow-400'}`}>
-             Terminales y Productos Exclusivos
+              Terminales y Productos Exclusivos
           </h2>
         </div>
         <p className={`text-center text-xs sm:text-sm mb-8 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
@@ -1980,7 +1988,6 @@ function App() {
         </>
       )}
 
-      {/* CONTADOR CIRCULAR DISCRETO Y REAL EN LA ESQUINA SUPERIOR DERECHA */}
       <div className={`fixed top-4 ${isMobileDevice ? 'right-2' : 'right-6'} z-[60] flex flex-col items-center gap-2.5 pointer-events-auto`}>
         <VisitorCounter isLight={isLight} />
 
