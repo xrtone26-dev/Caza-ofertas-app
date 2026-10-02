@@ -65,7 +65,7 @@ const API = BACKEND_URL;
 // ==========================================
 // FUNCIÓN UTILITARIA
 // ==========================================
-export const getSafeId = (item) => {
+export function getSafeId(item) {
   if (!item) return null;
   if (typeof item === 'string' || typeof item === 'number')
     return String(item);
@@ -90,7 +90,7 @@ export const getSafeId = (item) => {
     if (typeof val === 'object' && val.$oid) return String(val.$oid);
   }
   return null;
-};
+}
 
 // ==========================================
 // CONTADOR CIRCULAR
@@ -990,7 +990,6 @@ function App() {
   const [cuponesRef, cuponesApi] = useEmblaCarousel({ loop: true, align: 'start' });
   const [exclusiveEmblaRef, exclusiveEmblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
 
-  // Sincronizar carrusel de cupones al filtrar
   useEffect(() => {
     if (cuponesApi) {
       cuponesApi.reInit();
@@ -1228,10 +1227,11 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES (CARRUSEL HORIZONTAL 2 CUPONES EN VISTA + LOGO 2.5x MÁS GRANDE)
+  // SECCIÓN DE CUPONES (CARRUSEL HORIZONTAL)
   // ==========================================
-  const renderCuponesSection = () => (
-    activeCupones.length > 0 && (
+  function renderCuponesSection() {
+    if (activeCupones.length === 0) return null;
+    return (
       <div className="container mx-auto px-4 mb-12 relative z-25">
         <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
           isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
@@ -1316,11 +1316,8 @@ function App() {
                           onClick={() => handleCopiarIrMercadoLibre(cupon)}
                           className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-col sm:flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer group h-full"
                         >
-                          
-                          {/* LADO IZQUIERDO: BLANCO CON LOGO OFICIAL DE MERCADO LIBRE (2.5x MÁS GRANDE) */}
                           <div className="bg-white text-gray-900 p-5 flex flex-col justify-between items-center sm:w-[220px] md:w-[260px] flex-shrink-0 relative border-b sm:border-b-0 sm:border-r-2 border-dashed border-slate-700">
                             <div className="flex flex-col items-center justify-center my-auto py-2">
-                              {/* Logo Mercado Libre (Aumentado 2.5x: w-36 h-36) */}
                               <div className="w-36 h-36 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
                                 <img 
                                   src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolibre/logo__large_plus.png" 
@@ -1349,9 +1346,7 @@ function App() {
                             <div className="absolute -bottom-3 right-0 sm:right-[-12px] sm:top-1/2 sm:-translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10 hidden sm:block"></div>
                           </div>
 
-                          {/* LADO DERECHO: COLOR / DEGRADADO CON CÓDIGO */}
                           <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-5 sm:p-6 text-black flex flex-col justify-between relative`}>
-                            
                             <div className="flex justify-between items-start mb-3">
                               <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight drop-shadow-sm">
                                 {cupon.title || '10% DE DESCUENTO'}
@@ -1396,9 +1391,7 @@ function App() {
                                 </button>
                               </div>
                             </div>
-
                           </div>
-
                         </div>
                       </div>
                     );
@@ -1432,11 +1425,12 @@ function App() {
           </div>
         </div>
       </div>
-    )
-  );
+    );
+  }
 
-  const renderProductosSection = () => (
-    regularProducts.length > 0 && (
+  function renderProductosSection() {
+    if (regularProducts.length === 0) return null;
+    return (
       <div className={`container mx-auto px-4 mb-16 relative z-10`}>
         <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
           isLight ? 'bg-white border-gray-100' : 'bg-neutral-900/85 border-neutral-800'
@@ -1596,397 +1590,398 @@ function App() {
           </div>
         </div>
       </div>
-    )
-  );
+    );
+  }
 
-  const renderExclusiveProductsSection = () => (
-    <div className={`container mx-auto px-4 mb-16 relative z-10`}>
-      <div className="bg-[#FFE600] rounded-3xl p-6 sm:p-10 mb-8 text-black shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border-4 border-black">
-        <div className="flex flex-col items-start text-left max-w-xl z-10">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-4 leading-tight">
-            Vende con terminal Point, recibe tu dinero al instante
-          </h2>
-          <p className="font-bold text-sm sm:text-base mb-6 text-black/90">
-            Lleva gratis una Tarjeta Debit Mastercard® para usar tu dinero.
-          </p>
-          <div className="flex flex-wrap gap-4 items-center">
-            <a 
-              href="https://www.mercadopago.com.mx/herramientas-para-vender/lectores-point?code=7XYVCUKISD" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="bg-[#3483fa] hover:bg-[#2968c8] text-white font-black px-6 py-3.5 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black text-sm uppercase transition-transform hover:scale-105"
-            >
-              Elegir terminal
-            </a>
-            <div className="flex items-center gap-2 font-black text-xs sm:text-sm bg-white px-4 py-3.5 rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <Truck size={18} /> Llega gratis hoy (*)
+  function renderExclusiveProductsSection() {
+    return (
+      <div className={`container mx-auto px-4 mb-16 relative z-10`}>
+        <div className="bg-[#FFE600] rounded-3xl p-6 sm:p-10 mb-8 text-black shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border-4 border-black">
+          <div className="flex flex-col items-start text-left max-w-xl z-10">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-4 leading-tight">
+              Vende con terminal Point, recibe tu dinero al instante
+            </h2>
+            <p className="font-bold text-sm sm:text-base mb-6 text-black/90">
+              Lleva gratis una Tarjeta Debit Mastercard® para usar tu dinero.
+            </p>
+            <div className="flex flex-wrap gap-4 items-center">
+              <a 
+                href="https://www.mercadopago.com.mx/herramientas-para-vender/lectores-point?code=7XYVCUKISD" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="bg-[#3483fa] hover:bg-[#2968c8] text-white font-black px-6 py-3.5 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black text-sm uppercase transition-transform hover:scale-105"
+              >
+                Elegir terminal
+              </a>
+              <div className="flex items-center gap-2 font-black text-xs sm:text-sm bg-white px-4 py-3.5 rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <Truck size={18} /> Llega gratis hoy (*)
+              </div>
+            </div>
+          </div>
+
+          <div className="z-10 flex justify-center">
+            <img 
+              src="https://http2.mlstatic.com/storage/pog-cm-admin/calm-assets/multi-mlm-hero--b6703c46.png" 
+              alt="Terminales Point Mercado Pago" 
+              className="max-w-[280px] sm:max-w-[360px] md:max-w-[420px] h-auto object-contain drop-shadow-xl"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full pt-6 border-t-2 border-black/20 z-10 md:col-span-2">
+            <div className="flex items-center gap-2 text-xs font-black">
+              <DollarSign size={20} className="text-black flex-shrink-0" />
+              <span>Crédito inmediato y a tu medida²</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-black">
+              <Calendar size={20} className="text-black flex-shrink-0" />
+              <span>Sin renta mensual ni RFC.</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-black">
+              <CreditCard size={20} className="text-black flex-shrink-0" />
+              <span>Cuenta digital y tarjeta gratuita.</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-black">
+              <ShoppingCart size={20} className="text-black flex-shrink-0" />
+              <span>Acepta débito, crédito y vales.</span>
             </div>
           </div>
         </div>
 
-        <div className="z-10 flex justify-center">
-          <img 
-            src="https://http2.mlstatic.com/storage/pog-cm-admin/calm-assets/multi-mlm-hero--b6703c46.png" 
-            alt="Terminales Point Mercado Pago" 
-            className="max-w-[280px] sm:max-w-[360px] md:max-w-[420px] h-auto object-contain drop-shadow-xl"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full pt-6 border-t-2 border-black/20 z-10 md:col-span-2">
-          <div className="flex items-center gap-2 text-xs font-black">
-            <DollarSign size={20} className="text-black flex-shrink-0" />
-            <span>Crédito inmediato y a tu medida²</span>
+        <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
+          isLight ? 'bg-white border-yellow-300' : 'bg-neutral-900/85 border-neutral-800'
+        }`}>
+          <div className="relative flex items-center justify-center mb-6 px-2">
+            <h2 className={`text-2xl sm:text-3xl font-black text-center flex items-center gap-2 ${isLight ? 'text-yellow-600' : 'text-yellow-400'}`}>
+                Terminales y Productos Exclusivos
+            </h2>
           </div>
-          <div className="flex items-center gap-2 text-xs font-black">
-            <Calendar size={20} className="text-black flex-shrink-0" />
-            <span>Sin renta mensual ni RFC.</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs font-black">
-            <CreditCard size={20} className="text-black flex-shrink-0" />
-            <span>Cuenta digital y tarjeta gratuita.</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs font-black">
-            <ShoppingCart size={20} className="text-black flex-shrink-0" />
-            <span>Acepta débito, crédito y vales.</span>
-          </div>
-        </div>
-      </div>
+          <p className={`text-center text-xs sm:text-sm mb-8 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+            Dispositivos oficiales con beneficios directos, meses sin intereses y envío gratis.
+          </p>
 
-      <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
-        isLight ? 'bg-white border-yellow-300' : 'bg-neutral-900/85 border-neutral-800'
-      }`}>
-        <div className="relative flex items-center justify-center mb-6 px-2">
-          <h2 className={`text-2xl sm:text-3xl font-black text-center flex items-center gap-2 ${isLight ? 'text-yellow-600' : 'text-yellow-400'}`}>
-              Terminales y Productos Exclusivos
-          </h2>
-        </div>
-        <p className={`text-center text-xs sm:text-sm mb-8 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-          Dispositivos oficiales con beneficios directos, meses sin intereses y envío gratis.
-        </p>
+          {exclusiveProducts.length === 0 ? (
+            <div className="text-center py-12 px-4 border-2 border-dashed border-yellow-400/40 rounded-2xl bg-yellow-400/5">
+              <p className={`text-sm sm:text-base font-bold mb-2 ${isLight ? 'text-gray-700' : 'text-yellow-400'}`}>
+                ⚠️ No hay productos exclusivos cargados todavía
+              </p>
+            </div>
+          ) : (
+            <div className="relative px-2 sm:px-0">
+              <div className="overflow-hidden" ref={exclusiveEmblaRef}>
+                <div className="flex gap-6 items-stretch">
+                  {exclusiveProducts.map((product) => {
+                    const pId = getSafeId(product) || product.title;
+                    const origPriceNum = Number(product.original_price || 0);
+                    const formattedOriginalPrice = origPriceNum < 100 && origPriceNum > 0 
+                      ? (origPriceNum * 1000).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+                      : origPriceNum.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
-        {exclusiveProducts.length === 0 ? (
-          <div className="text-center py-12 px-4 border-2 border-dashed border-yellow-400/40 rounded-2xl bg-yellow-400/5">
-            <p className={`text-sm sm:text-base font-bold mb-2 ${isLight ? 'text-gray-700' : 'text-yellow-400'}`}>
-              ⚠️ No hay productos exclusivos cargados todavía
-            </p>
-          </div>
-        ) : (
-          <div className="relative px-2 sm:px-0">
-            <div className="overflow-hidden" ref={exclusiveEmblaRef}>
-              <div className="flex gap-6 items-stretch">
-                {exclusiveProducts.map((product) => {
-                  const pId = getSafeId(product) || product.title;
-                  const origPriceNum = Number(product.original_price || 0);
-                  const formattedOriginalPrice = origPriceNum < 100 && origPriceNum > 0 
-                    ? (origPriceNum * 1000).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
-                    : origPriceNum.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                    const handleShareProduct = () => {
+                      const title = product.title || product.nombre || 'Terminal Exclusiva';
+                      const link = product.affiliate_link || product.link || product.url || window.location.href;
+                      const text = `¡Mira esta gran oferta en CapiBaraML! 🔥 *${title}* \nEncuéntrala aquí: ${link}`;
+                      if (navigator.share) {
+                        navigator.share({ title, text, url: link }).catch(() => {});
+                      } else {
+                        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+                      }
+                    };
 
-                  const handleShareProduct = () => {
-                    const title = product.title || product.nombre || 'Terminal Exclusiva';
-                    const link = product.affiliate_link || product.link || product.url || window.location.href;
-                    const text = `¡Mira esta gran oferta en CapiBaraML! 🔥 *${title}* \nEncuéntrala aquí: ${link}`;
-                    if (navigator.share) {
-                      navigator.share({ title, text, url: link }).catch(() => {});
-                    } else {
-                      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
-                    }
-                  };
+                    return (
+                      <div key={pId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0 flex">
+                        <div className="w-full rounded-3xl shadow-xl transition-all duration-300 overflow-hidden flex flex-col border bg-white text-gray-900 border-gray-200 relative p-6">
+                          
+                          <button
+                            onClick={handleShareProduct}
+                            className="absolute top-3 left-3 z-20 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] px-2.5 py-1.5 rounded-lg border-2 border-white shadow-md flex items-center gap-1 transition-transform hover:scale-105"
+                            title="Compartir producto por WhatsApp o Redes Sociales"
+                          >
+                            <Share2 size={12} /> Compartir
+                          </button>
 
-                  return (
-                    <div key={pId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0 flex">
-                      <div className="w-full rounded-3xl shadow-xl transition-all duration-300 overflow-hidden flex flex-col border bg-white text-gray-900 border-gray-200 relative p-6">
-                        
-                        <button
-                          onClick={handleShareProduct}
-                          className="absolute top-3 left-3 z-20 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] px-2.5 py-1.5 rounded-lg border-2 border-white shadow-md flex items-center gap-1 transition-transform hover:scale-105"
-                          title="Compartir producto por WhatsApp o Redes Sociales"
-                        >
-                          <Share2 size={12} /> Compartir
-                        </button>
-
-                        <div className="relative pt-6 px-4 pb-2 text-center bg-white flex justify-center items-center h-48">
-                          <img src={product.image_url} alt={product.title} className="max-h-full max-w-full object-contain drop-shadow-md" />
-                        </div>
-
-                        <div className="pb-3 text-center">
-                          <h3 className="text-xl font-black text-gray-900 mb-1 tracking-tight">{product.title || product.nombre}</h3>
-                          <p className="text-xs text-gray-600 font-medium line-clamp-2 px-1">
-                            {product.description}
-                          </p>
-                        </div>
-
-                        <div className="text-center mb-4">
-                          <div className="flex items-center justify-center gap-2 mb-1">
-                            {origPriceNum > 0 && (
-                              <span className="text-sm font-bold text-gray-400 line-through">
-                                ${formattedOriginalPrice}
-                              </span>
-                            )}
-                            {(product.discount_percentage || product.descuento) && (
-                              <span className="bg-[#00a650] text-white px-2 py-0.5 rounded-md font-bold text-[11px] tracking-wide">
-                                {product.discount_percentage ? `${product.discount_percentage}% OFF` : product.descuento}
-                              </span>
-                            )}
+                          <div className="relative pt-6 px-4 pb-2 text-center bg-white flex justify-center items-center h-48">
+                            <img src={product.image_url} alt={product.title} className="max-h-full max-w-full object-contain drop-shadow-md" />
                           </div>
-                          <div className="text-3xl font-black text-gray-900 tracking-tight">
-                            ${Number(product.discount_price || product.precio || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+
+                          <div className="pb-3 text-center">
+                            <h3 className="text-xl font-black text-gray-900 mb-1 tracking-tight">{product.title || product.nombre}</h3>
+                            <p className="text-xs text-gray-600 font-medium line-clamp-2 px-1">
+                              {product.description}
+                            </p>
                           </div>
-                          {product.installments_text && (
-                            <div className="text-xs text-gray-600 mt-1 font-medium">
-                              {product.installments_text}
+
+                          <div className="text-center mb-4">
+                            <div className="flex items-center justify-center gap-2 mb-1">
+                              {origPriceNum > 0 && (
+                                <span className="text-sm font-bold text-gray-400 line-through">
+                                  ${formattedOriginalPrice}
+                                </span>
+                              )}
+                              {(product.discount_percentage || product.descuento) && (
+                                <span className="bg-[#00a650] text-white px-2 py-0.5 rounded-md font-bold text-[11px] tracking-wide">
+                                  {product.discount_percentage ? `${product.discount_percentage}% OFF` : product.descuento}
+                                </span>
+                              )}
                             </div>
-                          )}
-                        </div>
+                            <div className="text-3xl font-black text-gray-900 tracking-tight">
+                              ${Number(product.discount_price || product.precio || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                            </div>
+                            {product.installments_text && (
+                              <div className="text-xs text-gray-600 mt-1 font-medium">
+                                {product.installments_text}
+                              </div>
+                            )}
+                          </div>
 
-                        <div className="mb-4">
-                          <a 
-                            href={product.affiliate_link || product.link || product.url || '#'} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="w-full bg-[#3483fa] hover:bg-[#2968c8] text-white py-3 rounded-xl font-bold text-center block transition-all shadow-md text-sm uppercase tracking-wide"
-                          >
-                            Comprar
-                          </a>
-                        </div>
+                          <div className="mb-4">
+                            <a 
+                              href={product.affiliate_link || product.link || product.url || '#'} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="w-full bg-[#3483fa] hover:bg-[#2968c8] text-white py-3 rounded-xl font-bold text-center block transition-all shadow-md text-sm uppercase tracking-wide"
+                            >
+                              Comprar
+                            </a>
+                          </div>
 
-                        <div className="w-full border-t border-gray-200 pt-4 pb-3 bg-white text-left flex flex-col gap-2.5">
-                          <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
-                            <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
-                            <span className="leading-tight">Acepta débito, crédito y vales.</span>
+                          <div className="w-full border-t border-gray-200 pt-4 pb-3 bg-white text-left flex flex-col gap-2.5">
+                            <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
+                              <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
+                              <span className="leading-tight">Acepta débito, crédito y vales.</span>
+                            </div>
+                            <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
+                              <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
+                              <span className="leading-tight">Incluye cuenta digital y tarjeta gratuita.</span>
+                            </div>
+                            <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
+                              <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
+                              <span className="leading-tight">1 año de garantía.</span>
+                            </div>
+                            <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
+                              <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
+                              <span className="leading-tight">Envío gratis en 2 hs.</span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
-                            <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
-                            <span className="leading-tight">Incluye cuenta digital y tarjeta gratuita.</span>
-                          </div>
-                          <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
-                            <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
-                            <span className="leading-tight">1 año de garantía.</span>
-                          </div>
-                          <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
-                            <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
-                            <span className="leading-tight">Envío gratis en 2 hs.</span>
-                          </div>
-                        </div>
 
-                        <div className="w-full border-t border-dashed border-gray-200 pt-4 pb-3 bg-white text-left flex flex-col gap-2.5">
-                          <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
-                            <Wifi size={16} className="text-blue-500 flex-shrink-0" />
-                            <span className="truncate">Plan de datos 4G gratis y Wi-Fi.</span>
+                          <div className="w-full border-t border-dashed border-gray-200 pt-4 pb-3 bg-white text-left flex flex-col gap-2.5">
+                            <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                              <Wifi size={16} className="text-blue-500 flex-shrink-0" />
+                              <span className="truncate">Plan de datos 4G gratis y Wi-Fi.</span>
+                            </div>
+                            <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                              <FileText size={16} className="text-blue-500 flex-shrink-0" />
+                              <span className="truncate">Recibos impresos, por e-mail y SMS. Rollos gratis.</span>
+                            </div>
+                            <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                              <CreditCard size={16} className="text-blue-500 flex-shrink-0" />
+                              <span className="truncate">Tarjetas con chip, banda y sin contacto.</span>
+                            </div>
+                            <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                              <BatteryCharging size={16} className="text-blue-500 flex-shrink-0" />
+                              <span className="truncate">72 horas de batería.</span>
+                            </div>
+                            <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                              <Maximize2 size={16} className="text-blue-500 flex-shrink-0" />
+                              <span className="truncate">175x82x62 mm.</span>
+                            </div>
+                            <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                              <Scale size={16} className="text-blue-500 flex-shrink-0" />
+                              <span className="truncate">410 g.</span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
-                            <FileText size={16} className="text-blue-500 flex-shrink-0" />
-                            <span className="truncate">Recibos impresos, por e-mail y SMS. Rollos gratis.</span>
-                          </div>
-                          <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
-                            <CreditCard size={16} className="text-blue-500 flex-shrink-0" />
-                            <span className="truncate">Tarjetas con chip, banda y sin contacto.</span>
-                          </div>
-                          <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
-                            <BatteryCharging size={16} className="text-blue-500 flex-shrink-0" />
-                            <span className="truncate">72 horas de batería.</span>
-                          </div>
-                          <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
-                            <Maximize2 size={16} className="text-blue-500 flex-shrink-0" />
-                            <span className="truncate">175x82x62 mm.</span>
-                          </div>
-                          <div className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
-                            <Scale size={16} className="text-blue-500 flex-shrink-0" />
-                            <span className="truncate">410 g.</span>
-                          </div>
-                        </div>
 
-                        <div className="mt-auto pt-3">
-                          <a
-                            href={product.affiliate_link || product.link || product.url || '#'}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full bg-[#e8f0fe] hover:bg-[#d2e3fc] text-[#1a73e8] py-3 rounded-xl font-bold text-center block transition-all text-xs uppercase tracking-wide"
-                          >
-                            Más información
-                          </a>
-                        </div>
+                          <div className="mt-auto pt-3">
+                            <a
+                              href={product.affiliate_link || product.link || product.url || '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full bg-[#e8f0fe] hover:bg-[#d2e3fc] text-[#1a73e8] py-3 rounded-xl font-bold text-center block transition-all text-xs uppercase tracking-wide"
+                            >
+                              Más información
+                            </a>
+                          </div>
 
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+              </div>
+
+              {exclusiveProducts.length > 1 && (
+                <>
+                  <button onClick={scrollPrevExclusive} className="absolute left-1 sm:-translate-x-4 top-[100px] sm:top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
+                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 font-black" />
+                  </button>
+                  <button onClick={scrollNextExclusive} className="absolute right-1 sm:translate-x-4 top-[100px] sm:top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
+                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 font-black" />
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className={`mt-12 rounded-3xl p-8 sm:p-12 shadow-xl border ${
+          isLight ? 'bg-white border-gray-200 text-gray-800' : 'bg-neutral-900 border-neutral-800 text-neutral-100'
+        }`}>
+          <div className="payment-methods text-center max-w-[850px] mx-auto p-4 sm:p-6">
+            <h3 className="text-2xl sm:text-3xl font-black mb-2">Acepta todas las formas de pago</h3>
+
+            <p className="payment-subtitle mb-6 text-sm sm:text-base opacity-80 font-semibold">
+              ¡Ofrece a tus clientes pagar en hasta 24 meses sin intereses!
+            </p>
+
+            <div className="payment-logos flex flex-wrap justify-center items-center gap-3">
+              <div className="payment-logo bg-white text-blue-700 font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center">
+                VISA
+              </div>
+              <div className="payment-logo bg-white text-red-600 font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center gap-1">
+                <span className="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
+                <span className="w-3 h-3 rounded-full bg-yellow-500 inline-block -ml-2 opacity-85"></span>
+                <span className="text-black ml-1">mastercard</span>
+              </div>
+              <div className="payment-logo bg-white text-cyan-700 font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center">
+                AMERICAN EXPRESS
+              </div>
+              <div className="payment-logo bg-white text-black font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center">
+                 Pay
+              </div>
+              <div className="payment-logo bg-white text-gray-800 font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center">
+                G Pay
+              </div>
+              <div className="payment-logo bg-white text-blue-900 font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center">
+                Samsung Pay
               </div>
             </div>
 
-            {exclusiveProducts.length > 1 && (
-              <>
-                <button onClick={scrollPrevExclusive} className="absolute left-1 sm:-translate-x-4 top-[100px] sm:top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
-                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 font-black" />
-                </button>
-                <button onClick={scrollNextExclusive} className="absolute right-1 sm:translate-x-4 top-[100px] sm:top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
-                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 font-black" />
-                </button>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+            <div className="payment-divider w-[92%] h-[1px] bg-neutral-700 my-8 mx-auto"></div>
 
-      <div className={`mt-12 rounded-3xl p-8 sm:p-12 shadow-xl border ${
-        isLight ? 'bg-white border-gray-200 text-gray-800' : 'bg-neutral-900 border-neutral-800 text-neutral-100'
-      }`}>
-        
-        <div className="payment-methods text-center max-w-[850px] mx-auto p-4 sm:p-6">
-          <h3 className="text-2xl sm:text-3xl font-black mb-2">Acepta todas las formas de pago</h3>
+            <h4 className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-neutral-400 mb-4">VALES DE DESPENSA Y RESTAURANTE</h4>
 
-          <p className="payment-subtitle mb-6 text-sm sm:text-base opacity-80 font-semibold">
-            ¡Ofrece a tus clientes pagar en hasta 24 meses sin intereses!
-          </p>
-
-          <div className="payment-logos flex flex-wrap justify-center items-center gap-3">
-            <div className="payment-logo bg-white text-blue-700 font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center">
-              VISA
-            </div>
-            <div className="payment-logo bg-white text-red-600 font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center gap-1">
-              <span className="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
-              <span className="w-3 h-3 rounded-full bg-yellow-500 inline-block -ml-2 opacity-85"></span>
-              <span className="text-black ml-1">mastercard</span>
-            </div>
-            <div className="payment-logo bg-white text-cyan-700 font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center">
-              AMERICAN EXPRESS
-            </div>
-            <div className="payment-logo bg-white text-black font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center">
-               Pay
-            </div>
-            <div className="payment-logo bg-white text-gray-800 font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center">
-              G Pay
-            </div>
-            <div className="payment-logo bg-white text-blue-900 font-black px-4 py-2.5 rounded-xl shadow-sm border border-gray-200 text-sm tracking-wider flex items-center justify-center">
-              Samsung Pay
+            <div className="voucher-logos flex flex-wrap justify-center items-center gap-3">
+              <div className="voucher-logo bg-neutral-900 text-red-400 border border-red-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
+                CARNET
+              </div>
+              <div className="voucher-logo bg-neutral-900 text-orange-400 border border-orange-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
+                SÍ VALE
+              </div>
+              <div className="voucher-logo bg-neutral-900 text-sky-400 border border-sky-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
+                TOKA
+              </div>
+              <div className="voucher-logo bg-neutral-900 text-cyan-400 border border-cyan-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
+                TENGO
+              </div>
+              <div className="voucher-logo bg-neutral-900 text-red-500 border border-red-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
+                EDENRED
+              </div>
+              <div className="voucher-logo bg-neutral-900 text-purple-400 border border-purple-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
+                PLUXEE
+              </div>
             </div>
           </div>
 
-          <div className="payment-divider w-[92%] h-[1px] bg-neutral-700 my-8 mx-auto"></div>
-
-          <h4 className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-neutral-400 mb-4">VALES DE DESPENSA Y RESTAURANTE</h4>
-
-          <div className="voucher-logos flex flex-wrap justify-center items-center gap-3">
-            <div className="voucher-logo bg-neutral-900 text-red-400 border border-red-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
-              CARNET
-            </div>
-            <div className="voucher-logo bg-neutral-900 text-orange-400 border border-orange-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
-              SÍ VALE
-            </div>
-            <div className="voucher-logo bg-neutral-900 text-sky-400 border border-sky-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
-              TOKA
-            </div>
-            <div className="voucher-logo bg-neutral-900 text-cyan-400 border border-cyan-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
-              TENGO
-            </div>
-            <div className="voucher-logo bg-neutral-900 text-red-500 border border-red-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
-              EDENRED
-            </div>
-            <div className="voucher-logo bg-neutral-900 text-purple-400 border border-purple-500/40 font-black px-4 py-2.5 rounded-xl shadow-sm text-xs tracking-wider">
-              PLUXEE
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-xl mx-auto my-10 bg-gradient-to-br from-neutral-900 via-neutral-950 to-black rounded-3xl p-6 sm:p-8 text-white shadow-[0_0_30px_rgba(250,204,21,0.25)] border-4 border-yellow-400 relative overflow-hidden">
-          
-          <div className="absolute -right-12 -top-12 w-32 h-32 bg-yellow-400/10 rounded-full blur-xl pointer-events-none" />
-          
-          <div className="flex items-center justify-between mb-4">
-            <span className="bg-yellow-400 text-black font-black text-[10px] sm:text-xs px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
-              ⚡ RENDIMIENTO GARANTIZADO
-            </span>
-            <span className="text-[11px] font-bold text-green-400 bg-green-500/10 px-2.5 py-0.5 rounded-full border border-green-500/30">
-              Alta demanda 
-            </span>
-          </div>
-
-          <h3 className="text-2xl sm:text-3xl font-black mb-1 text-yellow-400 tracking-tight">
-            Haz que tu dinero trabaje por ti
-          </h3>
-          <p className="text-xs text-neutral-300 mb-6 font-medium">
-            Mira cómo crecen tus ahorros día a día con la tasa exclusiva de Mercado Pago.
-          </p>
-
-          <div className="mb-5">
-            <label className="block text-xs font-black uppercase tracking-wider text-neutral-400 mb-2">
-              ¿Cuánto dinero quieres poner a generar?
-            </label>
-            <div className="relative flex items-center">
-              <span className="absolute left-4 text-xl font-black text-yellow-400">$</span>
-              <input
-                type="text"
-                value={montoAhorro ? montoAhorro.toLocaleString('en-US') : ''}
-                onChange={handleMontoChange}
-                placeholder="10,000"
-                className="w-full bg-neutral-900 border-2 border-yellow-400 rounded-2xl py-3.5 pl-10 pr-4 text-xl font-black text-white focus:outline-none focus:border-yellow-300 shadow-inner"
-              />
-            </div>
-          </div>
-
-          <div className="text-xs font-bold text-yellow-400 mb-6 bg-yellow-400/10 border border-yellow-400/30 rounded-xl p-3 text-center shadow-sm flex items-center justify-center gap-1.5">
-            <span>🔥 Tasa preferencial activa del 13% anual*</span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-            <div className="bg-neutral-900/90 border-2 border-neutral-800 rounded-2xl p-4 text-center shadow-md relative overflow-hidden">
-              <span className="block text-[10px] font-extrabold uppercase text-neutral-400 mb-1 tracking-wider">Ganancia anual estimada</span>
-              <span className="text-2xl sm:text-3xl font-black text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.3)]">
-                +${gananciaAnual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          <div className="max-w-xl mx-auto my-10 bg-gradient-to-br from-neutral-900 via-neutral-950 to-black rounded-3xl p-6 sm:p-8 text-white shadow-[0_0_30px_rgba(250,204,21,0.25)] border-4 border-yellow-400 relative overflow-hidden">
+            <div className="absolute -right-12 -top-12 w-32 h-32 bg-yellow-400/10 rounded-full blur-xl pointer-events-none" />
+            
+            <div className="flex items-center justify-between mb-4">
+              <span className="bg-yellow-400 text-black font-black text-[10px] sm:text-xs px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                ⚡ RENDIMIENTO GARANTIZADO
+              </span>
+              <span className="text-[11px] font-bold text-green-400 bg-green-500/10 px-2.5 py-0.5 rounded-full border border-green-500/30">
+                Alta demanda 
               </span>
             </div>
-            <div className="bg-neutral-900/90 border-2 border-neutral-800 rounded-2xl p-4 text-center shadow-md relative overflow-hidden">
-              <span className="block text-[10px] font-extrabold uppercase text-neutral-400 mb-1 tracking-wider">Ganancia mensual estimada</span>
-              <span className="text-2xl sm:text-3xl font-black text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.3)]">
-                +${gananciaMensual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
+
+            <h3 className="text-2xl sm:text-3xl font-black mb-1 text-yellow-400 tracking-tight">
+              Haz que tu dinero trabaje por ti
+            </h3>
+            <p className="text-xs text-neutral-300 mb-6 font-medium">
+              Mira cómo crecen tus ahorros día a día con la tasa exclusiva de Mercado Pago.
+            </p>
+
+            <div className="mb-5">
+              <label className="block text-xs font-black uppercase tracking-wider text-neutral-400 mb-2">
+                ¿Cuánto dinero quieres poner a generar?
+              </label>
+              <div className="relative flex items-center">
+                <span className="absolute left-4 text-xl font-black text-yellow-400">$</span>
+                <input
+                  type="text"
+                  value={montoAhorro ? montoAhorro.toLocaleString('en-US') : ''}
+                  onChange={handleMontoChange}
+                  placeholder="10,000"
+                  className="w-full bg-neutral-900 border-2 border-yellow-400 rounded-2xl py-3.5 pl-10 pr-4 text-xl font-black text-white focus:outline-none focus:border-yellow-300 shadow-inner"
+                />
+              </div>
             </div>
+
+            <div className="text-xs font-bold text-yellow-400 mb-6 bg-yellow-400/10 border border-yellow-400/30 rounded-xl p-3 text-center shadow-sm flex items-center justify-center gap-1.5">
+              <span>🔥 Tasa preferencial activa del 13% anual*</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              <div className="bg-neutral-900/90 border-2 border-neutral-800 rounded-2xl p-4 text-center shadow-md relative overflow-hidden">
+                <span className="block text-[10px] font-extrabold uppercase text-neutral-400 mb-1 tracking-wider">Ganancia anual estimada</span>
+                <span className="text-2xl sm:text-3xl font-black text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.3)]">
+                  +${gananciaAnual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="bg-neutral-900/90 border-2 border-neutral-800 rounded-2xl p-4 text-center shadow-md relative overflow-hidden">
+                <span className="block text-[10px] font-extrabold uppercase text-neutral-400 mb-1 tracking-wider">Ganancia mensual estimada</span>
+                <span className="text-2xl sm:text-3xl font-black text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.3)]">
+                  +${gananciaMensual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+
+            <a
+              href="https://mpago.li/1b2fbXt"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-4 rounded-2xl text-sm md:text-base uppercase transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 shadow-[0_6px_20px_rgba(250,204,21,0.4)] border-2 border-yellow-500 mb-4 animate-pulse"
+            >
+              <span>ACTIVAR MI RENDIMIENTO AHORA</span>
+            </a>
+
+            <p className="text-[10px] text-neutral-400 text-center leading-relaxed opacity-75">
+              * Ejemplo basado en rendimiento anual estimado de Mercado Pago. Aplican términos y condiciones vigentes.
+            </p>
           </div>
-
-          <a
-            href="https://mpago.li/1b2fbXt"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-4 rounded-2xl text-sm md:text-base uppercase transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 shadow-[0_6px_20px_rgba(250,204,21,0.4)] border-2 border-yellow-500 mb-4 animate-pulse"
-          >
-            <span>ACTIVAR MI RENDIMIENTO AHORA</span>
-          </a>
-
-          <p className="text-[10px] text-neutral-400 text-center leading-relaxed opacity-75">
-            * Ejemplo basado en rendimiento anual estimado de Mercado Pago. Aplican términos y condiciones vigentes.
-          </p>
         </div>
-
       </div>
-    </div>
-  );
+    );
+  }
 
-  const renderReelsSection = () => (
-    <div className="container mx-auto px-4 mb-16 relative z-10">
-      <div className={`rounded-3xl shadow-xl p-8 backdrop-blur-xl border ${
-        isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
-      }`}>
-        <div className="text-center mb-8">
-          <h2 className={`text-3xl md:text-4xl font-black mb-3 flex items-center justify-center gap-3 ${
-            isLight ? 'text-purple-700' : 'text-neutral-100'
-          }`}>
-            <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" /> Productos puestos a prueba por influencers
-          </h2>
-          <p className={`text-sm md:text-base max-w-xl mx-auto font-medium ${
-            isLight ? 'text-gray-600' : 'text-neutral-400'
-          }`}>
-            Mira los productos in action y adquiere el artículo recomendado. 🚀
-          </p>
+  function renderReelsSection() {
+    return (
+      <div className="container mx-auto px-4 mb-16 relative z-10">
+        <div className={`rounded-3xl shadow-xl p-8 backdrop-blur-xl border ${
+          isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
+        }`}>
+          <div className="text-center mb-8">
+            <h2 className={`text-3xl md:text-4xl font-black mb-3 flex items-center justify-center gap-3 ${
+              isLight ? 'text-purple-700' : 'text-neutral-100'
+            }`}>
+              <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" /> Productos puestos a prueba por influencers
+            </h2>
+            <p className={`text-sm md:text-base max-w-xl mx-auto font-medium ${
+              isLight ? 'text-gray-600' : 'text-neutral-400'
+            }`}>
+              Mira los productos in action y adquiere el artículo recomendado. 🚀
+            </p>
+          </div>
+          <YoutubeReelsPlayer 
+            videos={tiktokVideos} 
+            setTiktokVideos={setTiktokVideos}
+            setToastMessage={setToastMessage} 
+            setShowToast={setShowToast} 
+            isLight={isLight}
+          />
         </div>
-        <YoutubeReelsPlayer 
-          videos={tiktokVideos} 
-          setTiktokVideos={setTiktokVideos}
-          setToastMessage={setToastMessage} 
-          setShowToast={setShowToast} 
-          isLight={isLight}
-        />
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
     <div className={mainBgClass}>
