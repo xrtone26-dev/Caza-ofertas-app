@@ -93,7 +93,7 @@ export const getSafeId = (item) => {
 };
 
 // ==========================================
-// COMPONENTE: CONTADOR DISCRETO Y REAL DE VISITANTES
+// COMPONENTE: CONTADOR CIRCULAR DISCRETO Y REAL
 // ==========================================
 function VisitorCounter({ isLight }) {
   const [count, setCount] = useState(() => {
@@ -114,15 +114,15 @@ function VisitorCounter({ isLight }) {
 
   return (
     <div 
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-black tracking-wide shadow-lg ${
+      className={`w-11 h-11 md:w-12 md:h-12 rounded-full shadow-2xl flex flex-col items-center justify-center border-2 transition-all hover:scale-110 cursor-default select-none ${
         isLight 
-          ? 'bg-white/90 text-purple-700 border-purple-300' 
-          : 'bg-neutral-900/90 text-yellow-400 border-yellow-400/40'
+          ? 'bg-white text-purple-600 border-purple-200' 
+          : 'bg-neutral-900 text-yellow-400 border-yellow-400/50'
       }`}
-      title="Visitantes Estelares Reales"
+      title={`Visitantes Reales: ${count.toLocaleString()}`}
     >
-      <Users className="w-3.5 h-3.5 animate-pulse" />
-      <span>{count.toLocaleString()}</span>
+      <Users className="w-3.5 h-3.5 mb-0.5 animate-pulse" />
+      <span className="text-[10px] font-black leading-none">{count}</span>
     </div>
   );
 }
@@ -1980,7 +1980,7 @@ function App() {
         </>
       )}
 
-      {/* CONTADOR DISCRETO EN LA ESQUINA SUPERIOR DERECHA */}
+      {/* CONTADOR CIRCULAR DISCRETO Y REAL EN LA ESQUINA SUPERIOR DERECHA */}
       <div className={`fixed top-4 ${isMobileDevice ? 'right-2' : 'right-6'} z-[60] flex flex-col items-center gap-2.5 pointer-events-auto`}>
         <VisitorCounter isLight={isLight} />
 
