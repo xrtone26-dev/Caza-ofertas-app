@@ -43,6 +43,7 @@ import {
   DollarSign,
   Calendar,
   Smartphone,
+  Users,
 } from 'lucide-react';
 import {
   FaWhatsapp,
@@ -90,6 +91,39 @@ export const getSafeId = (item) => {
   }
   return null;
 };
+
+// ==========================================
+// COMPONENTE: CONTADOR VISUAL DE VISITANTES
+// ==========================================
+function VisitorCounter({ isLight }) {
+  const [count, setCount] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cazaVisitorCount');
+      if (saved) {
+        const newCount = Number(saved) + 1;
+        localStorage.setItem('cazaVisitorCount', newCount);
+        return newCount;
+      } else {
+        const initial = 14285;
+        localStorage.setItem('cazaVisitorCount', initial);
+        return initial;
+      }
+    } catch {
+      return 14285;
+    }
+  });
+
+  return (
+    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 font-black text-xs uppercase tracking-wider shadow-lg mt-4 ${
+      isLight 
+        ? 'bg-white/90 text-purple-700 border-purple-300 shadow-[2px_2px_0px_0px_rgba(126,34,206,0.3)]' 
+        : 'bg-neutral-900/90 text-yellow-400 border-yellow-400/60 shadow-[2px_2px_0px_0px_#ca8a04]'
+    }`}>
+      <Users className="w-4 h-4 animate-bounce" />
+      <span>Visitantes Estelares: <strong className="font-mono text-sm tracking-widest">{count.toLocaleString()}</strong> 🚀</span>
+    </div>
+  );
+}
 
 // ==========================================
 // COMPONENTE 3D: CUBO DE CARACTERÍSTICAS (ADAPTABLE MÓVIL)
@@ -711,7 +745,7 @@ function App() {
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [mobileTab, setMobileTab] = useState('cupones');
 
-  // Estados para los modales legales (NUEVO)
+  // Estados para los modales legales
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
 
@@ -1048,6 +1082,13 @@ function App() {
   useEffect(() => {
     loadPublicOffers();
     loadPublicProducts();
+
+    const botSyncInterval = setInterval(() => {
+      loadPublicOffers();
+      loadPublicProducts();
+    }, 30000); 
+
+    return () => clearInterval(botSyncInterval);
   }, []);
 
   const loadPublicProducts = async () => {
@@ -1607,7 +1648,7 @@ function App() {
       }`}>
         <div className="relative flex items-center justify-center mb-6 px-2">
           <h2 className={`text-2xl sm:text-3xl font-black text-center flex items-center gap-2 ${isLight ? 'text-yellow-600' : 'text-yellow-400'}`}>
-              Terminales y Productos Exclusivos
+             Terminales y Productos Exclusivos
           </h2>
         </div>
         <p className={`text-center text-xs sm:text-sm mb-8 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
@@ -1617,7 +1658,7 @@ function App() {
         {exclusiveProducts.length === 0 ? (
           <div className="text-center py-12 px-4 border-2 border-dashed border-yellow-400/40 rounded-2xl bg-yellow-400/5">
             <p className={`text-sm sm:text-base font-bold mb-2 ${isLight ? 'text-gray-700' : 'text-yellow-400'}`}>
-              ⚠ No hay productos exclusivos cargados todavía
+              ⚠️ No hay productos exclusivos cargados todavía
             </p>
           </div>
         ) : (
@@ -2187,7 +2228,7 @@ function App() {
               >
                 <img
                   src={logoUrl}
-                  alt="CazaOfertasML Logo"
+                  alt="CapiBaraML Logo"
                   className="w-full h-full rounded-full object-cover block pointer-events-none"
                   style={{ transform: 'translateZ(40px)' }}
                 />
@@ -2208,7 +2249,7 @@ function App() {
             </h1>
 
             {!isMobileDevice && (
-              <div className={`inline-block backdrop-blur-sm px-6 py-3 rounded-full ${
+              <div className={`inline-block backdrop-blur-sm px-6 py-3 rounded-full mb-4 ${
                 isLight ? 'bg-white/20' : 'bg-yellow-400/10 border border-yellow-400/30'
               }`}>
                 <p className="text-white font-semibold text-lg">
@@ -2216,6 +2257,9 @@ function App() {
                 </p>
               </div>
             )}
+
+            {/* Contador Visual de Visitantes Estelares */}
+            <VisitorCounter isLight={isLight} />
           </div>
         </div>
       </div>
@@ -2309,7 +2353,7 @@ function App() {
         </div>
       )}
 
-      {/* MODAL: POLÍTICA DE PRIVACIDAD (NUEVO) */}
+      {/* MODAL: POLÍTICA DE PRIVACIDAD */}
       {showPrivacyModal && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[90] p-4">
           <motion.div 
@@ -2360,7 +2404,7 @@ function App() {
         </div>
       )}
 
-      {/* MODAL: TÉRMINOS Y CONDICIONES (NUEVO) */}
+      {/* MODAL: TÉRMINOS Y CONDICIONES */}
       {showTermsModal && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[90] p-4">
           <motion.div 
