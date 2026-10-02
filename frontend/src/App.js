@@ -1166,6 +1166,7 @@ function App() {
         if (!isNaN(minPurchase) && minPurchase > 0) {
           return numericBudget >= minPurchase;
         }
+        return true;
       }
 
       const lowerTerm = term.toLowerCase();
@@ -2562,7 +2563,7 @@ function App() {
                   themeMode === 'light' ? 'bg-purple-500 text-white border-purple-500 shadow-md' : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700'
                 }`}
               >
-                <span>☀️️ Tema Claro</span>
+                <span>☀️ Tema Claro</span>
                 {themeMode === 'light' && <span className="font-black">✓</span>}
               </button>
               <button
