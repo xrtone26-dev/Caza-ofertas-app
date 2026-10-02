@@ -44,6 +44,7 @@ import {
   Calendar,
   Smartphone,
   Users,
+  Copy, // <-- ¡Importación corregida aquí!
 } from 'lucide-react';
 import {
   FaWhatsapp,
@@ -1230,7 +1231,7 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES ACTUALIZADA (ESTILO TICKET)
+  // SECCIÓN DE CUPONES (ESTILO TICKET MODERNO)
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
