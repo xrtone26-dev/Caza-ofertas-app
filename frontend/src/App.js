@@ -93,34 +93,36 @@ export const getSafeId = (item) => {
 };
 
 // ==========================================
-// COMPONENTE: CONTADOR VISUAL DE VISITANTES
+// COMPONENTE: CONTADOR DISCRETO Y REAL DE VISITANTES
 // ==========================================
 function VisitorCounter({ isLight }) {
   const [count, setCount] = useState(() => {
     try {
-      const saved = localStorage.getItem('cazaVisitorCount');
-      if (saved) {
-        const newCount = Number(saved) + 1;
-        localStorage.setItem('cazaVisitorCount', newCount);
+      const visited = sessionStorage.getItem('cazaSessionVisited');
+      const saved = localStorage.getItem('cazaRealVisitorCount');
+      if (!visited) {
+        sessionStorage.setItem('cazaSessionVisited', 'true');
+        const newCount = saved ? Number(saved) + 1 : 1;
+        localStorage.setItem('cazaRealVisitorCount', newCount);
         return newCount;
-      } else {
-        const initial = 14285;
-        localStorage.setItem('cazaVisitorCount', initial);
-        return initial;
       }
+      return saved ? Number(saved) : 1;
     } catch {
-      return 14285;
+      return 1;
     }
   });
 
   return (
-    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 font-black text-xs uppercase tracking-wider shadow-lg mt-4 ${
-      isLight 
-        ? 'bg-white/90 text-purple-700 border-purple-300 shadow-[2px_2px_0px_0px_rgba(126,34,206,0.3)]' 
-        : 'bg-neutral-900/90 text-yellow-400 border-yellow-400/60 shadow-[2px_2px_0px_0px_#ca8a04]'
-    }`}>
-      <Users className="w-4 h-4 animate-bounce" />
-      <span>Visitantes Estelares: <strong className="font-mono text-sm tracking-widest">{count.toLocaleString()}</strong> 🚀</span>
+    <div 
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-black tracking-wide shadow-lg ${
+        isLight 
+          ? 'bg-white/90 text-purple-700 border-purple-300' 
+          : 'bg-neutral-900/90 text-yellow-400 border-yellow-400/40'
+      }`}
+      title="Visitantes Estelares Reales"
+    >
+      <Users className="w-3.5 h-3.5 animate-pulse" />
+      <span>{count.toLocaleString()}</span>
     </div>
   );
 }
@@ -639,7 +641,6 @@ function renderNewSection(products = []) {
         return (
           <div key={pId} className="max-w-[420px] w-full bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100 mb-8 font-sans">
             
-            {/* Cabecera / Imagen */}
             <div className="bg-[#594d6e] relative pt-8 pb-4 px-6 text-center text-white min-h-[260px] flex flex-col items-center overflow-hidden">
               <h3 className="text-2xl font-bold tracking-tight mb-0.5">{promo.title}</h3>
               <p className="text-sm font-semibold text-blue-200 mb-6 flex items-center gap-1 justify-center">
@@ -652,11 +653,9 @@ function renderNewSection(products = []) {
                   className="w-full max-w-[280px] object-contain drop-shadow-2xl z-10 relative scale-110 mt-2" 
                 />
               )}
-              {/* Resplandor de fondo estilo Samsung */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
             </div>
 
-            {/* Contenido */}
             <div className="p-8 text-center bg-white">
               <h4 className="text-xl font-black text-black mb-4 tracking-tight">{promo.model_capacity}</h4>
 
@@ -668,7 +667,6 @@ function renderNewSection(products = []) {
                 </div>
               </div>
 
-              {/* Cupones */}
               <div className="flex items-center justify-center gap-2 mb-6">
                 <div className="flex-1 border-2 border-dashed border-blue-400 rounded-xl py-2.5 px-1 flex flex-col items-center justify-center bg-blue-50/30">
                   <span className="text-[10px] font-bold text-blue-600 mb-1 text-center leading-none">{promo.coupon1_desc}</span>
@@ -685,13 +683,11 @@ function renderNewSection(products = []) {
                 </div>
               </div>
 
-              {/* Precio Final */}
               <div className="mb-6">
                 <p className="text-black font-black text-xs mb-1">Precio final con descuentos aplicados</p>
                 <div className="text-[#5578F4] font-black text-5xl tracking-tight py-1">${finalPrice}</div>
               </div>
 
-              {/* Beneficios */}
               <div className="flex items-center justify-center gap-8 py-5 border-t border-b border-gray-300 mt-2 mb-5">
                 <div className="flex items-center gap-3">
                   <CreditCard size={32} className="text-[#5578F4] flex-shrink-0" strokeWidth={1.5} />
@@ -709,13 +705,11 @@ function renderNewSection(products = []) {
                 </div>
               </div>
 
-              {/* Afiliado */}
               <div className="mb-6 flex flex-col gap-0.5">
                 <p className="text-[#5578F4] font-black text-[13px]">{promo.affiliate_earning}</p>
                 <p className="text-[#5578F4] text-[11px] font-bold opacity-80">{promo.affiliate_desc}</p>
               </div>
 
-              {/* Botón Comprar */}
               <div className="mt-2">
                 <a
                   href={promo.affiliate_link || promo.link || '#'}
@@ -745,11 +739,9 @@ function App() {
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [mobileTab, setMobileTab] = useState('cupones');
 
-  // Estados para los modales legales
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
 
-  // Estado para el simulador de rendimiento financiero
   const [montoAhorro, setMontoAhorro] = useState(10000);
 
   const handleMontoChange = (e) => {
@@ -1878,7 +1870,6 @@ function App() {
           </div>
         </div>
 
-        {/* SIMULADOR DE RENDIMIENTO FINANCIERO OPTIMIZADO */}
         <div className="max-w-xl mx-auto my-10 bg-gradient-to-br from-neutral-900 via-neutral-950 to-black rounded-3xl p-6 sm:p-8 text-white shadow-[0_0_30px_rgba(250,204,21,0.25)] border-4 border-yellow-400 relative overflow-hidden">
           
           <div className="absolute -right-12 -top-12 w-32 h-32 bg-yellow-400/10 rounded-full blur-xl pointer-events-none" />
@@ -1989,6 +1980,80 @@ function App() {
         </>
       )}
 
+      {/* CONTADOR DISCRETO EN LA ESQUINA SUPERIOR DERECHA */}
+      <div className={`fixed top-4 ${isMobileDevice ? 'right-2' : 'right-6'} z-[60] flex flex-col items-center gap-2.5 pointer-events-auto`}>
+        <VisitorCounter isLight={isLight} />
+
+        <div className="flex flex-col items-center gap-1">
+          {currentUser && (
+            <span className={`font-bold text-[10px] truncate max-w-[60px] text-center ${
+              isLight ? 'text-purple-700' : 'text-yellow-400'
+            }`}>
+              @{
+                typeof currentUser === 'object' && currentUser !== null
+                  ? (currentUser.nickname || currentUser.nombre || 'User')
+                  : (currentUser || localStorage.getItem('cazaNick') || 'User')
+              }
+            </span>
+          )}
+          <button
+            onClick={() => setShowProfilePanel(true)}
+            className={`relative w-11 h-11 md:w-12 md:h-12 rounded-full shadow-2xl flex items-center justify-center overflow-hidden transition-all hover:scale-110 border-2 ${
+              isLight
+                ? 'bg-white text-purple-600 border-purple-200'
+                : 'bg-neutral-900 text-yellow-400 border-yellow-400/50'
+            }`}
+            title="Mi Perfil / Login"
+          >
+            {missingPhone && (
+              <span className="absolute top-0 right-0 flex h-3.5 w-3.5 z-20" title="Teléfono pendiente para gamificación">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-yellow-500 border-2 border-white"></span>
+              </span>
+            )}
+
+            {typeof currentUser === 'object' && currentUser !== null && currentUser.photoURL ? (
+              <img src={currentUser.photoURL} alt="Perfil" className="w-full h-full object-cover" />
+            ) : typeof currentUser === 'object' && currentUser !== null && currentUser.avatar ? (
+              <span className="text-xl leading-none">
+                {currentUser.avatar}
+              </span>
+            ) : localStorage.getItem('cazaAvatarImg') ? (
+              <img src={localStorage.getItem('cazaAvatarImg')} alt="Perfil" className="w-full h-full object-cover" />
+            ) : currentUser ? (
+              <span className="text-xl font-black">
+                {localStorage.getItem('cazaAvatar') || 
+                  String(
+                    typeof currentUser === 'object' && currentUser !== null
+                      ? (currentUser.nickname || currentUser.nombre || currentUser.email || 'U') 
+                      : currentUser
+                  ).charAt(0)}
+              </span>
+            ) : (
+              <User className="w-6 h-6" />
+            )}
+          </button>
+        </div>
+
+        <button
+          onClick={() => setShowThemeModal(true)}
+          className={`w-11 h-11 md:w-12 md:h-12 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 border-2 ${
+            isLight
+              ? 'bg-white text-gray-600 border-gray-200'
+              : 'bg-neutral-900 text-neutral-400 border-neutral-700'
+          }`}
+          title="Cambiar Tema"
+        >
+          <Settings className="w-5 h-5 md:w-6 md:h-6" />
+        </button>
+
+        {isMobileDevice && (
+          <div className="mt-1">
+            <ChatbotWidget isLight={isLight} cupones={activeCupones} isMobileDevice={isMobileDevice} />
+          </div>
+        )}
+      </div>
+
       <AnimatePresence>
         {missingPhone && !showProfilePanel && !phoneWarningDismissed && (
           <div className="fixed inset-0 bg-black/95 backdrop-blur-md flex items-center justify-center z-[85] p-4">
@@ -2094,77 +2159,6 @@ function App() {
         )}
       </AnimatePresence>
 
-      <div className={`fixed top-4 ${isMobileDevice ? 'right-2' : 'right-6'} z-[60] flex flex-col items-center gap-2.5 pointer-events-auto`}>
-        <div className="flex flex-col items-center gap-1">
-          {currentUser && (
-            <span className={`font-bold text-[10px] truncate max-w-[60px] text-center ${
-              isLight ? 'text-purple-700' : 'text-yellow-400'
-            }`}>
-              @{
-                typeof currentUser === 'object' && currentUser !== null
-                  ? (currentUser.nickname || currentUser.nombre || 'User')
-                  : (currentUser || localStorage.getItem('cazaNick') || 'User')
-              }
-            </span>
-          )}
-          <button
-            onClick={() => setShowProfilePanel(true)}
-            className={`relative w-11 h-11 md:w-12 md:h-12 rounded-full shadow-2xl flex items-center justify-center overflow-hidden transition-all hover:scale-110 border-2 ${
-              isLight
-                ? 'bg-white text-purple-600 border-purple-200'
-                : 'bg-neutral-900 text-yellow-400 border-yellow-400/50'
-            }`}
-            title="Mi Perfil / Login"
-          >
-            {missingPhone && (
-              <span className="absolute top-0 right-0 flex h-3.5 w-3.5 z-20" title="Teléfono pendiente para gamificación">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-yellow-500 border-2 border-white"></span>
-              </span>
-            )}
-
-            {typeof currentUser === 'object' && currentUser !== null && currentUser.photoURL ? (
-              <img src={currentUser.photoURL} alt="Perfil" className="w-full h-full object-cover" />
-            ) : typeof currentUser === 'object' && currentUser !== null && currentUser.avatar ? (
-              <span className="text-xl leading-none">
-                {currentUser.avatar}
-              </span>
-            ) : localStorage.getItem('cazaAvatarImg') ? (
-              <img src={localStorage.getItem('cazaAvatarImg')} alt="Perfil" className="w-full h-full object-cover" />
-            ) : currentUser ? (
-              <span className="text-xl font-black">
-                {localStorage.getItem('cazaAvatar') || 
-                  String(
-                    typeof currentUser === 'object' && currentUser !== null
-                      ? (currentUser.nickname || currentUser.nombre || currentUser.email || 'U') 
-                      : currentUser
-                  ).charAt(0)}
-              </span>
-            ) : (
-              <User className="w-6 h-6" />
-            )}
-          </button>
-        </div>
-
-        <button
-          onClick={() => setShowThemeModal(true)}
-          className={`w-11 h-11 md:w-12 md:h-12 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 border-2 ${
-            isLight
-              ? 'bg-white text-gray-600 border-gray-200'
-              : 'bg-neutral-900 text-neutral-400 border-neutral-700'
-          }`}
-          title="Cambiar Tema"
-        >
-          <Settings className="w-5 h-5 md:w-6 md:h-6" />
-        </button>
-
-        {isMobileDevice && (
-          <div className="mt-1">
-            <ChatbotWidget isLight={isLight} cupones={activeCupones} isMobileDevice={isMobileDevice} />
-          </div>
-        )}
-      </div>
-
       <AnimatePresence>
         {showToast && (
           <motion.div
@@ -2186,7 +2180,7 @@ function App() {
                   onClick={() => setShowToast(false)}
                   className="absolute top-4 right-4 text-black hover:text-gray-700 transition-colors bg-white rounded-full p-1 border-2 border-black"
                 >
-                  <X className="h-5 w-5 font-black" />
+                  <X className="h-5 h-5 font-black" />
                 </button>
               </div>
             </div>
@@ -2257,9 +2251,6 @@ function App() {
                 </p>
               </div>
             )}
-
-            {/* Contador Visual de Visitantes Estelares */}
-            <VisitorCounter isLight={isLight} />
           </div>
         </div>
       </div>
@@ -2353,7 +2344,6 @@ function App() {
         </div>
       )}
 
-      {/* MODAL: POLÍTICA DE PRIVACIDAD */}
       {showPrivacyModal && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[90] p-4">
           <motion.div 
@@ -2404,7 +2394,6 @@ function App() {
         </div>
       )}
 
-      {/* MODAL: TÉRMINOS Y CONDICIONES */}
       {showTermsModal && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[90] p-4">
           <motion.div 
@@ -2519,7 +2508,6 @@ function App() {
             )}
           </div>
 
-          {/* TEXTO LEGAL MEJORADO Y ALTAMENTE VISIBLE CON FUNCIONALIDAD */}
           <div className={`mt-8 pt-6 border-t text-xs sm:text-sm max-w-4xl mx-auto p-5 rounded-2xl border transition-all ${
             isLight 
               ? 'bg-gray-100 border-purple-200 text-gray-700 shadow-md font-semibold' 
