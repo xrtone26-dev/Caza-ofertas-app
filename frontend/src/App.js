@@ -1220,7 +1220,7 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES (ESTILO TICKET HORIZONTAL EXACTO)
+  // SECCIÓN DE CUPONES (ESTILO TICKET HORIZONTAL EXACTO CON LOGO DE MERCADO LIBRE)
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
@@ -1289,7 +1289,6 @@ function App() {
                     const currentReaction = userReactions[cuponId];
                     const counts = couponCounts[cuponId] || { like: 0, dislike: 0, heart: 0 };
 
-                    // Colores de degradado para alternar estilo en los tickets horizontales
                     const gradients = [
                       'from-amber-400 via-yellow-400 to-amber-500',
                       'from-emerald-400 via-teal-400 to-emerald-500',
@@ -1297,29 +1296,33 @@ function App() {
                       'from-sky-400 via-blue-400 to-indigo-500'
                     ];
                     const gradientClass = gradients[idx % gradients.length];
-
-                    // Fecha actual formateada (ej. 2 de octubre de 2026)
                     const fechaActual = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
 
                     return (
                       <div key={cuponId} className="w-full max-w-4xl mx-auto flex flex-col gap-2">
-                        {/* Fecha arriba a la izquierda */}
                         <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide">
                           {fechaActual}
                         </span>
 
-                        {/* TARJETA TICKET HORIZONTAL */}
                         <div 
                           onClick={() => handleCopiarIrMercadoLibre(cupon)}
                           className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-col sm:flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer group"
                         >
                           
-                          {/* LADO IZQUIERDO: BLANCO CON LOGO M.L. */}
+                          {/* LADO IZQUIERDO: BLANCO CON LOGO OFICIAL DE MERCADO LIBRE */}
                           <div className="bg-white text-gray-900 p-5 flex flex-col justify-between items-center sm:w-[220px] md:w-[260px] flex-shrink-0 relative border-b sm:border-b-0 sm:border-r-2 border-dashed border-slate-700">
                             <div className="flex flex-col items-center justify-center my-auto py-2">
-                              {/* Logo Mercado Libre (Apretón de manos) */}
-                              <div className="w-12 h-12 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black">
-                                <Users className="w-6 h-6 text-black" />
+                              {/* Logo Mercado Libre (Apretón de manos / Marca oficial) */}
+                              <div className="w-14 h-14 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-1">
+                                <img 
+                                  src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolibre/logo__large_plus.png" 
+                                  alt="Mercado Libre" 
+                                  className="w-full h-full object-contain"
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = "https://http2.mlstatic.com/storage/mshops-client-resource/mshops/common/images/logo-ml.png";
+                                  }}
+                                />
                               </div>
                               <span className="font-black text-xs uppercase tracking-widest text-slate-800">
                                 mercado libre
@@ -1334,7 +1337,6 @@ function App() {
                               </span>
                             </div>
 
-                            {/* Muescas circulares estilo ticket */}
                             <div className="absolute -top-3 right-0 sm:right-[-12px] sm:top-1/2 sm:-translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10 hidden sm:block"></div>
                             <div className="absolute -bottom-3 right-0 sm:right-[-12px] sm:top-1/2 sm:-translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10 hidden sm:block"></div>
                           </div>
@@ -1365,7 +1367,6 @@ function App() {
                                 {cupon.min_purchase ? `COMPRA MÍNIMA $${cupon.min_purchase}` : (cupon.description || 'COMPRA MÍNIMA APLICABLE')}
                               </span>
 
-                              {/* Mini Barra de Reacciones para no perder funcionalidad */}
                               <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                 <button
                                   onClick={() => handleReaction(cuponId, 'like')}
@@ -2271,7 +2272,7 @@ function App() {
                 mobileTab === 'cupones' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
-              🎟️️ Cupones
+              🎟 Cupones
             </button>
             <button
               onClick={() => setMobileTab('productos')}
