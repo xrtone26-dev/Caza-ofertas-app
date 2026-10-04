@@ -59,7 +59,9 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     const hasSeenChat = sessionStorage.getItem('hasSeenChatPopup');
     if (!hasSeenChat) {
       const timer = setTimeout(() => {
-        setShowChatWindow(true);
+        // REGLA DE ORO: No eliminar código, solo comentar. 
+        // Esta es la línea rebelde que abría el chat automáticamente, ya está neutralizada:
+        // setShowChatWindow(true); 
         sessionStorage.setItem('hasSeenChatPopup', 'true');
       }, 12000); 
       return () => clearTimeout(timer);
@@ -249,7 +251,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
           return (
             <div key={idx} className="bg-[#FFEA00] text-black border-2 border-black rounded-2xl p-3.5 shadow-lg flex flex-col gap-2 mt-2">
               <div className="font-black text-xs uppercase bg-black text-white py-1.5 px-3 rounded-lg text-center tracking-wide">
-                🎟️️ {matchedCupon.title || 'Cupón Exclusivo'}
+                🎟 {matchedCupon.title || 'Cupón Exclusivo'}
               </div>
               <div className="bg-white/80 border border-black/20 rounded-xl p-2 flex flex-col gap-1 text-xs font-bold text-neutral-900">
                 {cleanDesc ? (
