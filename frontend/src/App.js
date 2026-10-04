@@ -1310,7 +1310,7 @@ function App() {
                         >
                           
                           {/* LADO IZQUIERDO: BLANCO CON LOGO OFICIAL DE MERCADO LIBRE (2.5x MÁS GRANDE) */}
-                          <div className="bg-white text-gray-900 p-5 flex flex-col justify-between items-center w-full md:w-[260px] flex-shrink-0 relative border-b md:border-b-0 md:border-r-2 border-dashed border-slate-700">
+                          <div className="bg-white text-gray-900 p-5 flex flex-col justify-between items-center w-full md:w-[260px] flex-shrink-0 relative border-b-2 md:border-b-0 md:border-r-2 border-dashed border-slate-700">
                             <div className="flex flex-col items-center justify-center my-auto py-2">
                               {/* Logo Mercado Libre (Aumentado 2.5x: w-36 h-36 / aprox 144px) */}
                               <div className="w-36 h-36 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
