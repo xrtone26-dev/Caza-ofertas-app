@@ -1220,7 +1220,7 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES (COMO EN LA PRIMERA IMAGEN: LOGO ARRIBA EN MÓVIL, SIN PUNTOS)
+  // SECCIÓN DE CUPONES (VERTICAL EN MÓVIL, HORIZONTAL EN PC)
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
@@ -1309,7 +1309,7 @@ function App() {
                           className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-col md:flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer group h-full"
                         >
                           
-                          {/* LADO BLANCO (Arriba en móvil como en la primera imagen, Izquierda en PC) */}
+                          {/* LADO IZQUIERDO / SUPERIOR: Blanco con Logo */}
                           <div className="bg-white text-gray-900 p-5 flex flex-col justify-between items-center w-full md:w-[260px] flex-shrink-0 relative border-b-2 md:border-b-0 md:border-r-2 border-dashed border-slate-700">
                             <div className="flex flex-col items-center justify-center my-auto py-2">
                               <div className="w-36 h-36 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
@@ -1335,9 +1335,16 @@ function App() {
                                   : (cupon.max_discount ? `DESCUENTO MAX: ${cupon.max_discount}` : 'DESCUENTO ESPECIAL')}
                               </span>
                             </div>
+
+                            {/* MUESCAS / CORTES DE BOLETO PERFECTOS (Izquierda y derecha abajo en móvil, derecha en PC) */}
+                            <div className="absolute -bottom-3 -left-3 w-6 h-6 bg-slate-900 rounded-full z-10 md:hidden"></div>
+                            <div className="absolute -bottom-3 -right-3 w-6 h-6 bg-slate-900 rounded-full z-10 md:hidden"></div>
+                            
+                            <div className="absolute -top-3 right-[-12px] w-6 h-6 bg-slate-900 rounded-full z-10 hidden md:block"></div>
+                            <div className="absolute -bottom-3 right-[-12px] w-6 h-6 bg-slate-900 rounded-full z-10 hidden md:block"></div>
                           </div>
 
-                          {/* LADO DE COLOR (Abajo en móvil, Derecha en PC) */}
+                          {/* LADO DERECHO / INFERIOR: Color y Código */}
                           <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-5 sm:p-6 text-black flex flex-col justify-between relative`}>
                             
                             <div className="flex justify-between items-start mb-3">
