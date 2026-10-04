@@ -1306,11 +1306,11 @@ function App() {
 
                         <div 
                           onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                          className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-col sm:flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer group h-full"
+                          className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-col md:flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer group h-full"
                         >
                           
                           {/* LADO IZQUIERDO: BLANCO CON LOGO OFICIAL DE MERCADO LIBRE (2.5x MÁS GRANDE) */}
-                          <div className="bg-white text-gray-900 p-5 flex flex-col justify-between items-center sm:w-[220px] md:w-[260px] flex-shrink-0 relative border-b sm:border-b-0 sm:border-r-2 border-dashed border-slate-700">
+                          <div className="bg-white text-gray-900 p-5 flex flex-col justify-between items-center w-full md:w-[260px] flex-shrink-0 relative border-b md:border-b-0 md:border-r-2 border-dashed border-slate-700">
                             <div className="flex flex-col items-center justify-center my-auto py-2">
                               {/* Logo Mercado Libre (Aumentado 2.5x: w-36 h-36 / aprox 144px) */}
                               <div className="w-36 h-36 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
@@ -1337,8 +1337,8 @@ function App() {
                               </span>
                             </div>
 
-                            <div className="absolute -top-3 right-0 sm:right-[-12px] sm:top-1/2 sm:-translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10 hidden sm:block"></div>
-                            <div className="absolute -bottom-3 right-0 sm:right-[-12px] sm:top-1/2 sm:-translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10 hidden sm:block"></div>
+                            <div className="absolute -top-3 right-0 md:right-[-12px] md:top-1/2 md:-translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10 hidden md:block"></div>
+                            <div className="absolute -bottom-3 right-0 md:right-[-12px] md:top-1/2 md:-translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10 hidden md:block"></div>
                           </div>
 
                           {/* LADO DERECHO: COLOR / DEGRADADO CON CÓDIGO */}
@@ -1982,6 +1982,23 @@ function App() {
 
   return (
     <div className={mainBgClass}>
+      
+      {/* 🚀 CSS Mágico inyectado para forzar al Bot a ser de pantalla completa en celulares y no estorbar. */}
+      <style>{`
+        @media (max-width: 768px) {
+          [class*="chat-window"], [class*="bot-container"], [class*="chatbot"] {
+            width: 100vw !important;
+            height: 100vh !important;
+            bottom: 0 !important;
+            right: 0 !important;
+            border-radius: 0 !important;
+            position: fixed !important;
+            max-height: 100vh !important;
+            z-index: 99999 !important;
+          }
+        }
+      `}</style>
+
       {!isLight && (
         <>
           <div className="fixed inset-0 bg-grid opacity-20 pointer-events-none" />
@@ -2562,7 +2579,7 @@ function App() {
                   themeMode === 'light' ? 'bg-purple-500 text-white border-purple-500 shadow-md' : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700'
                 }`}
               >
-                <span>☀️️ Tema Claro</span>
+                <span>☀ Tema Claro</span>
                 {themeMode === 'light' && <span className="font-black">✓</span>}
               </button>
               <button
