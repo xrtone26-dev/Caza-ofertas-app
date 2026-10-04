@@ -153,8 +153,8 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
         <Plus className="w-5 h-5" /> Nuevo Cupón
       </button>
 
-      {/* Grid de Cupones con Estilo Fusión Ticket */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Grid de Cupones con Estilo Fusión Ticket (Rotado 90° en móvil) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-6 my-10 md:my-0">
         {coupons.map((coupon) => {
           const couponId = getSafeId(coupon) || coupon.title;
           return (
@@ -162,7 +162,7 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
               key={couponId}
               className={`relative rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 border-2 ${
                 coupon.active ? 'border-cyan-500/50 shadow-cyan-500/10' : 'border-neutral-700 opacity-60'
-              } shadow-xl overflow-hidden p-5 transition-all hover:border-cyan-400`}
+              } shadow-xl overflow-hidden p-5 transition-all hover:border-cyan-400 rotate-90 sm:rotate-0 my-16 sm:my-0 origin-center`}
             >
               {/* Encabezado del Cupón */}
               <div className="flex justify-between items-center mb-4 pb-3 border-b border-neutral-800">
