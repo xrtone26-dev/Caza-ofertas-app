@@ -124,7 +124,7 @@ export default function AdminDashboard({
       });
       setAllOffers(response.data.map(decodeCoupon));
     } catch (error) {
-      console.error("--- ⚠️ Error al cargar ofertas en Admin: ---", error);
+      console.error("--- ⚠️️ Error al cargar ofertas en Admin: ---", error);
     }
   };
 
