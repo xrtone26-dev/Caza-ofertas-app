@@ -1220,7 +1220,7 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES (MÓVIL: HORIZONTAL / WEB: VERTICAL)
+  // SECCIÓN DE CUPONES (MÓVIL: HORIZONTAL IMAGEN 3 / WEB: VERTICAL)
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
@@ -1310,11 +1310,12 @@ function App() {
                         >
                           
                           {/* ========================================= */}
-                          {/* MÓVIL: HORIZONTAL (Girado 90 grados)       */}
+                          {/* MÓVIL: HORIZONTAL (Idéntico a la imagen 3)  */}
                           {/* ========================================= */}
                           <div className="flex md:hidden flex-row items-stretch relative">
-                            <div className="w-[42%] bg-white text-gray-900 p-4 flex flex-col justify-between items-center relative border-r-2 border-dashed border-slate-700">
-                              <div className="flex flex-col items-center justify-center my-auto py-2">
+                            {/* Bloque Izquierdo Blanco con Logo */}
+                            <div className="w-[44%] bg-white text-gray-900 p-4 flex flex-col justify-center items-center relative border-r-2 border-dashed border-slate-700">
+                              <div className="flex flex-col items-center justify-center">
                                 <div className="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
                                   <img 
                                     src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolibre/logo__large_plus.png" 
@@ -1326,7 +1327,7 @@ function App() {
                                     }}
                                   />
                                 </div>
-                                <span className="font-black text-[9px] uppercase tracking-widest text-slate-800 text-center">
+                                <span className="font-black text-[10px] uppercase tracking-wider text-slate-800 text-center">
                                   MERCADO LIBRE
                                 </span>
                                 <span className="text-[9px] font-bold text-blue-600 text-center mt-1">
@@ -1336,8 +1337,9 @@ function App() {
                               <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
                             </div>
 
+                            {/* Bloque Derecho Color */}
                             <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 text-black flex flex-col justify-between relative`}>
-                              <div className="flex justify-between items-start gap-2 mb-2">
+                              <div className="flex justify-between items-start gap-2 mb-1">
                                 <h3 className="text-xs font-black uppercase tracking-tight drop-shadow-sm">
                                   {cupon.title || '12% DE DESCUENTO'}
                                 </h3>
@@ -1355,12 +1357,12 @@ function App() {
                                 </div>
                               </div>
 
-                              <div className="flex flex-col justify-between items-start gap-1 mt-2 pt-2 border-t border-black/15">
-                                <span className="text-[9px] font-bold uppercase tracking-tight text-black/90">
-                                  {cupon.min_purchase ? `COMPRA MÍNIMA APLICABLE: $${cupon.min_purchase}` : (cupon.description || 'COMPRA MÍNIMA APLICABLE')}
+                              <div className="flex flex-col justify-between items-start gap-1 mt-1 pt-1.5 border-t border-black/15">
+                                <span className="text-[9px] font-bold uppercase tracking-tight text-black/90 leading-tight">
+                                  {cupon.min_purchase ? `COMPRA MÍNIMA APLICABLE: $${cupon.min_purchase} | DESCUENTO MÁXIMO: $${cupon.max_discount || '1.400'}` : (cupon.description || 'COMPRA MÍNIMA APLICABLE')}
                                 </span>
 
-                                <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-center gap-1.5 mt-1" onClick={(e) => e.stopPropagation()}>
                                   <button
                                     onClick={() => handleReaction(cuponId, 'like')}
                                     className={`p-1 rounded-lg text-[9px] font-bold flex items-center gap-1 border border-black/20 ${
@@ -1385,7 +1387,7 @@ function App() {
                           </div>
 
                           {/* ========================================= */}
-                          {/* WEB (DESKTOP): VERTICAL (Tal cual lo teníamos) */}
+                          {/* WEB (DESKTOP): VERTICAL TRADICIONAL       */}
                           {/* ========================================= */}
                           <div className="hidden md:flex flex-col items-stretch relative">
                             <div className="bg-white text-gray-900 p-5 flex flex-row items-center justify-between w-full relative border-b-2 border-dashed border-slate-700">
@@ -1654,7 +1656,7 @@ function App() {
           <div className={`mt-6 pt-4 border-t text-center text-xs md:text-sm font-medium ${
             isLight ? 'border-gray-200 text-gray-600' : 'border-neutral-800 text-neutral-400'
           }`}>
-            ℹ️️ Nota informativa: Los precios y la disponibilidad de los productos están sujetos a cambios sin previo aviso, ya que dependen directamente de cada vendedor o tienda asociada.
+            ℹ️ Nota informativa: Los precios y la disponibilidad de los productos están sujetos a cambios sin previo aviso, ya que dependen directamente de cada vendedor o tienda asociada.
           </div>
         </div>
       </div>
