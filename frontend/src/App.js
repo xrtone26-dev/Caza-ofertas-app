@@ -1220,7 +1220,7 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES (ROTADA A FORMATO VERTICAL / TICKET)
+  // SECCIÓN DE CUPONES (GIRADA 90 GRADOS / HORIZONTAL)
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
@@ -1299,20 +1299,20 @@ function App() {
                     const fechaActual = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
 
                     return (
-                      <div key={cuponId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] min-w-0 flex flex-col gap-2">
+                      <div key={cuponId} className="flex-[0_0_100%] lg:flex-[0_0_calc(50%-12px)] min-w-0 flex flex-col gap-2">
                         <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide">
                           {fechaActual}
                         </span>
 
                         <div 
                           onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                          className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-col items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer group h-full"
+                          className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer group h-full"
                         >
                           
-                          {/* PARTE SUPERIOR: Blanco con Logo (Vertical) */}
-                          <div className="bg-white text-gray-900 p-4 sm:p-6 flex flex-col justify-between items-center w-full relative border-b-2 border-dashed border-slate-700">
+                          {/* PARTE IZQUIERDA: Blanco con Logo (Horizontal / 90 grados) */}
+                          <div className="w-[38%] bg-white text-gray-900 p-4 sm:p-5 flex flex-col justify-between items-center relative border-r-2 border-dashed border-slate-700">
                             <div className="flex flex-col items-center justify-center my-auto py-2">
-                              <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
+                              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
                                 <img 
                                   src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolibre/logo__large_plus.png" 
                                   alt="Mercado Libre" 
@@ -1323,54 +1323,54 @@ function App() {
                                   }}
                                 />
                               </div>
-                              <span className="font-black text-[10px] sm:text-xs uppercase tracking-widest text-slate-800">
+                              <span className="font-black text-[9px] uppercase tracking-widest text-slate-800 text-center">
                                 mercado libre
                               </span>
                             </div>
 
                             <div className="w-full text-center mt-2 pt-2 border-t border-gray-100">
-                              <span className="text-[9px] sm:text-xs font-extrabold text-blue-600 tracking-tight block">
+                              <span className="text-[8px] sm:text-[9px] font-extrabold text-blue-600 tracking-tight block">
                                 {cupon.description && cupon.description.includes('MAX') 
                                   ? cupon.description 
-                                  : (cupon.max_discount ? `DESCUENTO MAX: ${cupon.max_discount}` : 'DESCUENTO ESPECIAL')}
+                                  : (cupon.max_discount ? `MAX: ${cupon.max_discount}` : 'ESPECIAL')}
                               </span>
                             </div>
 
-                            {/* MUESCAS LATERALES EN LA LÍNEA DIVISORIA */}
-                            <div className="absolute -left-3 bottom-0 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
-                            <div className="absolute -right-3 bottom-0 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
+                            {/* MUESCAS SUPERIOR E INFERIOR EN LA LÍNEA DIVISORIA */}
+                            <div className="absolute top-[-12px] right-0 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
+                            <div className="absolute bottom-[-12px] right-0 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
                           </div>
 
-                          {/* PARTE INFERIOR: Color y Código (Vertical) */}
-                          <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-6 text-black flex flex-col justify-between relative`}>
+                          {/* PARTE DERECHA: Color y Código (Horizontal / 90 grados) */}
+                          <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-black flex flex-col justify-between relative`}>
                             
                             <div className="flex justify-between items-start mb-2">
-                              <h3 className="text-sm sm:text-xl font-black uppercase tracking-tight drop-shadow-sm">
+                              <h3 className="text-xs sm:text-base font-black uppercase tracking-tight drop-shadow-sm">
                                 {cupon.title || '10% DE DESCUENTO'}
                               </h3>
                               <CountdownTimer expiresAt={cupon.expires_at} />
                             </div>
 
-                            <div className="my-2">
-                              <span className="block text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-black/70 mb-0.5">
+                            <div className="my-1">
+                              <span className="block text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-black/70 mb-0.5">
                                 COPIAR Y CANJEAR
                               </span>
-                              <div className="text-sm sm:text-xl font-black tracking-widest font-mono bg-black/10 py-1 px-3 sm:px-4 rounded-xl border border-black/25 inline-block select-all">
+                              <div className="text-xs sm:text-sm font-black tracking-widest font-mono bg-black/10 py-1 px-3 rounded-xl border border-black/25 inline-block select-all">
                                 {cupon.code && String(cupon.code).length > 3
                                   ? String(cupon.code).slice(0, 3) + '••••••'
                                   : (cupon.code || 'CAPI••••')}
                               </div>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-1 mt-2 pt-2 border-t border-black/15">
-                              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-tight text-black/90">
-                                {cupon.min_purchase ? `COMPRA MÍNIMA $${cupon.min_purchase}` : (cupon.description || 'COMPRA MÍNIMA APLICABLE')}
+                            <div className="flex flex-col justify-between items-start gap-1 mt-2 pt-2 border-t border-black/15">
+                              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-tight text-black/90">
+                                {cupon.min_purchase ? `MÍNIMA $${cupon.min_purchase}` : (cupon.description || 'MÍNIMA APLICABLE')}
                               </span>
 
                               <div className="flex items-center gap-1 sm:gap-2" onClick={(e) => e.stopPropagation()}>
                                 <button
                                   onClick={() => handleReaction(cuponId, 'like')}
-                                  className={`p-1 rounded-lg text-[10px] sm:text-xs font-bold flex items-center gap-1 border border-black/20 ${
+                                  className={`p-1 rounded-lg text-[9px] sm:text-xs font-bold flex items-center gap-1 border border-black/20 ${
                                     currentReaction === 'like' ? 'bg-black text-white' : 'bg-white/40 hover:bg-white/60 text-black'
                                   }`}
                                   title="Me gusta"
@@ -1379,7 +1379,7 @@ function App() {
                                 </button>
                                 <button
                                   onClick={() => handleReaction(cuponId, 'heart')}
-                                  className={`p-1 rounded-lg text-[10px] sm:text-xs font-bold flex items-center gap-1 border border-black/20 ${
+                                  className={`p-1 rounded-lg text-[9px] sm:text-xs font-bold flex items-center gap-1 border border-black/20 ${
                                     currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-white/40 hover:bg-white/60 text-black'
                                   }`}
                                   title="Me encanta"
