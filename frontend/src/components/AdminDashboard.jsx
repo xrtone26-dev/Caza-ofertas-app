@@ -174,7 +174,7 @@ export default function AdminDashboard({
     try {
       const response = await axios.post(`${API}/admin/change-password`, changePwData);
       if (response.data.success) {
-        alert('¡Contraseña actualizada con éxito! A salvo de los piratas informáticos 🏴‍☠️');
+        alert('¡Contraseña actualizada con éxito! A salvo de los piratas informáticos 🏴‍☠️️');
         setAdminPassword(changePwData.new_password);
         setChangePwData({ current_password: '', new_password: '' });
       }
@@ -526,7 +526,7 @@ export default function AdminDashboard({
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto text-gray-800 shadow-2xl relative">
             <div className="flex justify-between items-center mb-6 sticky top-0 bg-white z-10 pb-4 border-b">
-              <h2 className="text-2xl font-bold">🛠️ Panel de Administración</h2>
+              <h2 className="text-2xl font-bold">🛠️️ Panel de Administración</h2>
               <button
                 onClick={() => setShowAdminPanel(false)}
                 className="text-gray-500 hover:text-gray-700 bg-gray-100 p-2 rounded-full"
@@ -655,7 +655,7 @@ export default function AdminDashboard({
                   {regularAdminOffers.map((offer) => (
                     <div
                       key={getSafeId(offer) || offer.title}
-                      className={`border-2 rounded-xl p-6 rotate-90 ${
+                      className={`border-2 rounded-xl p-6 ${
                         offer.active
                           ? 'border-green-300 bg-green-50'
                           : 'border-gray-300 bg-gray-50'
