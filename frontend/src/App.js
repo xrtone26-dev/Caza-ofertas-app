@@ -1185,7 +1185,13 @@ function App() {
       const isManual = manualExclusives.includes(pId);
       if (isManual) return true;
 
+      // 🌟 PARCHE FRONTEND PARA SOLUCIONAR EL ERROR DE BASE DE DATOS
+      // Busca palabras clave como "terminal" o "point" en el título/descripción
+      const titleLower = (p.title || p.nombre || '').toLowerCase();
+      const isAutoExclusive = titleLower.includes('terminal') || titleLower.includes('point');
+
       return (
+        isAutoExclusive || 
         p.is_exclusive === true || 
         p.is_exclusive === 'true' || 
         p.is_exclusive === 1 || 
