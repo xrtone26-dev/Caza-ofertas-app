@@ -1220,7 +1220,7 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES (HORIZONTAL / LADO A LADO EN TODAS LAS PANTALLAS)
+  // SECCIÓN DE CUPONES (ROTADA A FORMATO VERTICAL / TICKET)
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
@@ -1306,13 +1306,13 @@ function App() {
 
                         <div 
                           onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                          className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer group h-full"
+                          className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-col items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer group h-full"
                         >
                           
-                          {/* LADO IZQUIERDO: Blanco con Logo */}
-                          <div className="bg-white text-gray-900 p-3 sm:p-5 flex flex-col justify-between items-center w-[140px] sm:w-[260px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
+                          {/* PARTE SUPERIOR: Blanco con Logo (Vertical) */}
+                          <div className="bg-white text-gray-900 p-4 sm:p-6 flex flex-col justify-between items-center w-full relative border-b-2 border-dashed border-slate-700">
                             <div className="flex flex-col items-center justify-center my-auto py-2">
-                              <div className="w-20 h-20 sm:w-36 sm:h-36 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
+                              <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
                                 <img 
                                   src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolibre/logo__large_plus.png" 
                                   alt="Mercado Libre" 
@@ -1336,25 +1336,26 @@ function App() {
                               </span>
                             </div>
 
-                            {/* MUESCA / CORTE DERECHO */}
-                            <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
+                            {/* MUESCAS LATERALES EN LA LÍNEA DIVISORIA */}
+                            <div className="absolute -left-3 bottom-0 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
+                            <div className="absolute -right-3 bottom-0 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
                           </div>
 
-                          {/* LADO DERECHO: Color y Código */}
-                          <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-3 sm:p-6 text-black flex flex-col justify-between relative`}>
+                          {/* PARTE INFERIOR: Color y Código (Vertical) */}
+                          <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-6 text-black flex flex-col justify-between relative`}>
                             
                             <div className="flex justify-between items-start mb-2">
-                              <h3 className="text-sm sm:text-2xl font-black uppercase tracking-tight drop-shadow-sm">
+                              <h3 className="text-sm sm:text-xl font-black uppercase tracking-tight drop-shadow-sm">
                                 {cupon.title || '10% DE DESCUENTO'}
                               </h3>
                               <CountdownTimer expiresAt={cupon.expires_at} />
                             </div>
 
-                            <div className="my-1">
+                            <div className="my-2">
                               <span className="block text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-black/70 mb-0.5">
                                 COPIAR Y CANJEAR
                               </span>
-                              <div className="text-sm sm:text-2xl font-black tracking-widest font-mono bg-black/10 py-1 px-3 sm:px-4 rounded-xl border border-black/25 inline-block select-all">
+                              <div className="text-sm sm:text-xl font-black tracking-widest font-mono bg-black/10 py-1 px-3 sm:px-4 rounded-xl border border-black/25 inline-block select-all">
                                 {cupon.code && String(cupon.code).length > 3
                                   ? String(cupon.code).slice(0, 3) + '••••••'
                                   : (cupon.code || 'CAPI••••')}
@@ -1982,7 +1983,6 @@ function App() {
   return (
     <div className={mainBgClass}>
       
-      {/* 🚀 CSS Mágico inyectado para forzar al Bot a ser de pantalla completa en celulares y no estorbar. */}
       <style>{`
         @media (max-width: 768px) {
           [class*="chat-window"], [class*="bot-container"], [class*="chatbot"] {
