@@ -65,6 +65,7 @@ export default function AdminDashboard({
     min_purchase: '',
     link: '',
     expires_at: '',
+    giro: '',
     active: true,
   });
 
@@ -254,7 +255,7 @@ export default function AdminDashboard({
       );
       setShowAddOfferModal(false);
       setNewOffer({
-        type: 'cupon', title: '', description: '', code: '', min_purchase: '', link: '', expires_at: '', active: true,
+        type: 'cupon', title: '', description: '', code: '', min_purchase: '', link: '', expires_at: '', giro: '', active: true,
       });
       loadAllOffers();
       if (loadPublicOffers) loadPublicOffers();
@@ -687,8 +688,13 @@ export default function AdminDashboard({
                       </div>
                       <h3 className="text-xl font-bold mb-2">{offer.title}</h3>
                       <p className="text-gray-600 mb-2">{offer.description}</p>
+                      {offer.giro && (
+                        <p className="text-xs text-indigo-700 font-black mt-1">
+                          🏢 Giro: {offer.giro}
+                        </p>
+                      )}
                       {offer.code && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 mt-1">
                           Código:{' '}
                           <span className="font-bold text-black">{offer.code}</span>
                         </p>
@@ -1117,6 +1123,16 @@ export default function AdminDashboard({
                   onChange={(e) => editingOffer ? setEditingOffer({ ...editingOffer, description: e.target.value }) : setNewOffer({ ...newOffer, description: e.target.value })}
                   placeholder="Descripción detallada del cupón"
                   rows="3"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-bold mb-2">🏢 Giro / Categoría Comercial</label>
+                <input
+                  type="text"
+                  value={editingOffer ? (editingOffer.giro || '') : newOffer.giro}
+                  onChange={(e) => editingOffer ? setEditingOffer({ ...editingOffer, giro: e.target.value }) : setNewOffer({ ...newOffer, giro: e.target.value })}
+                  placeholder="Ej: Supermercado, Tecnología, Moda..."
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
               </div>
