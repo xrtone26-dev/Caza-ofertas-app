@@ -64,7 +64,7 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
 // ==========================================
-// FUNCIONES UTILITARIAS
+// FUNCIONES UTILITARIAS Y DE SEGURIDAD
 // ==========================================
 export const getSafeId = (item) => {
   if (!item) return null;
@@ -94,7 +94,7 @@ export const getSafeId = (item) => {
 };
 
 export const getBankInfo = (title = '') => {
-  const t = title.toLowerCase();
+  const t = (title || '').toLowerCase();
   if (t.includes('bbva')) {
     return { name: 'BBVA', logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2b/BBVA_2019.svg' };
   } else if (t.includes('santander')) {
@@ -1213,11 +1213,11 @@ function App() {
       }
 
       const lowerTerm = term.toLowerCase();
-      return (
-        cupon.title.toLowerCase().includes(lowerTerm) ||
-        (cupon.description && cupon.description.toLowerCase().includes(lowerTerm)) ||
-        (cupon.code && cupon.code.toLowerCase().includes(lowerTerm))
-      );
+      const titleMatch = cupon.title ? cupon.title.toLowerCase().includes(lowerTerm) : false;
+      const descMatch = cupon.description ? cupon.description.toLowerCase().includes(lowerTerm) : false;
+      const codeMatch = cupon.code ? cupon.code.toLowerCase().includes(lowerTerm) : false;
+
+      return titleMatch || descMatch || codeMatch;
     });
   }, [activeCupones, couponSearchTerm]);
 
@@ -1245,11 +1245,11 @@ function App() {
       }
 
       const lowerTerm = term.toLowerCase();
-      return (
-        cupon.title.toLowerCase().includes(lowerTerm) ||
-        (cupon.description && cupon.description.toLowerCase().includes(lowerTerm)) ||
-        (cupon.code && cupon.code.toLowerCase().includes(lowerTerm))
-      );
+      const titleMatch = cupon.title ? cupon.title.toLowerCase().includes(lowerTerm) : false;
+      const descMatch = cupon.description ? cupon.description.toLowerCase().includes(lowerTerm) : false;
+      const codeMatch = cupon.code ? cupon.code.toLowerCase().includes(lowerTerm) : false;
+
+      return titleMatch || descMatch || codeMatch;
     });
   }, [activeCuponesBancarios, bancarioSearchTerm]);
 
@@ -1283,11 +1283,13 @@ function App() {
   }, [products, exclusiveProducts]);
 
   const filteredProducts = useMemo(() => {
+    const lowerSearch = searchTerm.toLowerCase();
     return regularProducts.filter(
-      (p) =>
-        p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.description &&
-          p.description.toLowerCase().includes(searchTerm.toLowerCase()))
+      (p) => {
+        const titleMatch = p.title ? p.title.toLowerCase().includes(lowerSearch) : false;
+        const descMatch = p.description ? p.description.toLowerCase().includes(lowerSearch) : false;
+        return titleMatch || descMatch;
+      }
     );
   }, [regularProducts, searchTerm]);
 
