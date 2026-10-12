@@ -1209,7 +1209,7 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES (MÓVIL VERTICAL CON ROTACIÓN / WEB HORIZONTAL)
+  // SECCIÓN DE CUPONES (MÓVIL VERTICAL CORRECTO / WEB HORIZONTAL)
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
@@ -1294,82 +1294,85 @@ function App() {
                         </span>
 
                         {/* ========================================= */}
-                        {/* MÓVIL: VERTICAL ROTADO (Formato Ticket 90°) */}
+                        {/* MÓVIL: VERTICAL EXACTO (Bloque Color arriba, Blanco abajo) */}
                         {/* ========================================= */}
                         <div 
                           onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                          className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden block md:hidden transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer w-full max-w-[280px] mx-auto min-h-[520px]"
+                          className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden block md:hidden transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer w-full max-w-[310px] mx-auto"
                         >
-                          <div className="w-full h-full flex flex-col justify-between" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
-                            {/* Sección de Descuento (Color arriba) */}
-                            <div className={`flex-1 bg-gradient-to-b ${gradientClass} p-4 text-black flex flex-col justify-between relative border-b-2 border-dashed border-slate-700`} style={{ writingMode: 'horizontal-tb' }}>
-                              <div className="w-full h-full flex flex-col justify-between -rotate-90 origin-center py-4 px-1">
-                                <div className="flex justify-between items-center w-full mb-2">
-                                  <h3 className="text-lg font-black uppercase tracking-tight drop-shadow-sm">
-                                    {cupon.title || '10% DE DESCUENTO'}
-                                  </h3>
-                                  <CountdownTimer expiresAt={cupon.expires_at} />
-                                </div>
+                          {/* Bloque Superior de Descuento (Color) */}
+                          <div className={`bg-gradient-to-r ${gradientClass} p-6 text-black flex flex-col justify-between relative`}>
+                            <div className="flex justify-between items-start mb-4 gap-2">
+                              <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-tight max-w-[180px]">
+                                {cupon.title || '12% DE DESCUENTO'}
+                              </h3>
+                              <CountdownTimer expiresAt={cupon.expires_at} />
+                            </div>
 
-                                <div className="my-auto">
-                                  <span className="block text-[9px] font-black uppercase tracking-widest text-black/70 mb-0.5">
-                                    COPIAR Y CANJEAR
-                                  </span>
-                                  <div className="text-base font-black tracking-widest font-mono bg-black/10 py-1 px-3 rounded-xl border border-black/25 inline-block select-all">
-                                    {cupon.code && String(cupon.code).length > 3
-                                      ? String(cupon.code).slice(0, 3) + '••••••'
-                                      : (cupon.code || 'CAPI••••')}
-                                  </div>
-                                </div>
-
-                                <div className="flex justify-between items-center w-full pt-2 border-t border-black/15">
-                                  <span className="text-[9px] font-bold uppercase tracking-tight text-black/90">
-                                    {cupon.min_purchase ? `COMPRA MÍNIMA: $${cupon.min_purchase}` : (cupon.description || 'COMPRA MÍNIMA')}
-                                  </span>
-
-                                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                    <button
-                                      onClick={() => handleReaction(cuponId, 'like')}
-                                      className={`px-2 py-0.5 rounded-lg text-[9px] font-bold flex items-center gap-1 border border-black/20 ${
-                                        currentReaction === 'like' ? 'bg-black text-white' : 'bg-white/40 text-black'
-                                      }`}
-                                    >
-                                      <ThumbsUp size={10} /> <span>{counts.like}</span>
-                                    </button>
-                                    <button
-                                      onClick={() => handleReaction(cuponId, 'heart')}
-                                      className={`px-2 py-0.5 rounded-lg text-[9px] font-bold flex items-center gap-1 border border-black/20 ${
-                                        currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-white/40 text-black'
-                                      }`}
-                                    >
-                                      <Heart size={10} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
-                                    </button>
-                                  </div>
-                                </div>
+                            <div className="mb-4">
+                              <span className="block text-[10px] font-black uppercase tracking-widest text-black/70 mb-1">
+                                COPIAR Y CANJEAR
+                              </span>
+                              <div className="text-xl font-black tracking-widest font-mono bg-black/10 py-2 px-4 rounded-xl border border-black/20 inline-block select-all">
+                                {cupon.code && String(cupon.code).length > 3
+                                  ? String(cupon.code).slice(0, 3) + '••••••'
+                                  : (cupon.code || 'CAPI••••')}
                               </div>
                             </div>
 
-                            {/* Sección Mercado Libre (Blanco abajo) */}
-                            <div className="bg-white text-gray-900 p-4 flex flex-col items-center justify-center relative min-h-[160px]" style={{ writingMode: 'horizontal-tb' }}>
-                              <div className="-rotate-90 flex flex-col items-center justify-center gap-1.5">
-                                <div className="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center shadow-md border-2 border-black p-1.5">
-                                  <img 
-                                    src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolibre/logo__large_plus.png" 
-                                    alt="Mercado Libre" 
-                                    className="w-full h-full object-contain"
-                                    onError={(e) => {
-                                      e.target.onerror = null;
-                                      e.target.src = "https://http2.mlstatic.com/storage/mshops-client-resource/mshops/common/images/logo-ml.png";
-                                    }}
-                                  />
-                                </div>
-                                <span className="font-black text-[10px] uppercase tracking-wider text-slate-800">
-                                  MERCADO LIBRE
-                                </span>
-                                <span className="text-[9px] font-bold text-blue-600 tracking-tight">
-                                  DESCUENTO ESPECIAL
-                                </span>
+                            <div className="pt-3 border-t border-black/15 flex flex-col gap-2">
+                              <p className="text-[11px] font-black uppercase tracking-tight leading-snug text-black/90">
+                                {cupon.min_purchase ? `COMPRA MÍNIMA APLICABLE: $${cupon.min_purchase} | DESCUENTO MÁXIMO: $${cupon.max_discount || '180'}` : (cupon.description || 'COMPRA MÍNIMA APLICABLE')}
+                              </p>
+
+                              <div className="flex items-center gap-2 mt-1" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  onClick={() => handleReaction(cuponId, 'like')}
+                                  className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-black/20 transition-transform active:scale-95 ${
+                                    currentReaction === 'like' ? 'bg-black text-white' : 'bg-white/40 text-black'
+                                  }`}
+                                >
+                                  <ThumbsUp size={12} /> <span>{counts.like}</span>
+                                </button>
+                                <button
+                                  onClick={() => handleReaction(cuponId, 'heart')}
+                                  className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-black/20 transition-transform active:scale-95 ${
+                                    currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-white/40 text-black'
+                                  }`}
+                                >
+                                  <Heart size={12} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
+                                </button>
                               </div>
+                            </div>
+
+                            {/* Muesca circular y línea punteada divisor */}
+                            <div className="absolute left-0 right-0 -bottom-3 flex items-center justify-between z-20 pointer-events-none px-0">
+                              <div className="w-6 h-6 bg-slate-900 rounded-full -ml-3"></div>
+                              <div className="border-t-2 border-dashed border-slate-900/60 w-full mx-1"></div>
+                              <div className="w-6 h-6 bg-slate-900 rounded-full -mr-3"></div>
+                            </div>
+                          </div>
+
+                          {/* Bloque Inferior Mercado Libre (Blanco) */}
+                          <div className="bg-white text-gray-900 p-6 flex items-center justify-start gap-4 relative pt-7">
+                            <div className="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center shadow-md border-2 border-black overflow-hidden p-2 flex-shrink-0">
+                              <img 
+                                src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolibre/logo__large_plus.png" 
+                                alt="Mercado Libre" 
+                                className="w-full h-full object-contain"
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = "https://http2.mlstatic.com/storage/mshops-client-resource/mshops/common/images/logo-ml.png";
+                                }}
+                              />
+                            </div>
+                            <div className="flex flex-col text-left">
+                              <span className="font-black text-base uppercase tracking-wider text-slate-800 leading-tight">
+                                MERCADO LIBRE
+                              </span>
+                              <span className="text-xs font-bold text-blue-600 tracking-tight mt-0.5">
+                                DESCUENTO ESPECIAL
+                              </span>
                             </div>
                           </div>
                         </div>
