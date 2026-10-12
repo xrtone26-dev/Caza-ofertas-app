@@ -132,7 +132,7 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
   };
 
   return (
-    <div className="p-4 sm:p-6 text-white">
+    <div className="p-4 sm:p-6 text-white w-full">
       <button
         onClick={() => { 
           setEditingCoupon(null); 
@@ -148,26 +148,26 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
           });
           setShowModal(true); 
         }}
-        className="mb-6 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-cyan-500/20 transition-all flex items-center gap-2"
+        className="mb-6 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-purple-500/20 transition-all flex items-center gap-2"
       >
-        <Plus className="w-5 h-5" /> Nuevo Cupón
+        <Plus className="w-5 h-5" /> Nuevo Cupón Digital
       </button>
 
-      {/* Grid de Cupones con Estilo Fusión Ticket (Rotado 90° en móvil) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-6 my-10 md:my-0">
+      {/* Grid de Cupones Administrador (Horizontal Convencional) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
         {coupons.map((coupon) => {
           const couponId = getSafeId(coupon) || coupon.title;
           return (
             <div
               key={couponId}
-              className={`relative rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 border-2 ${
-                coupon.active ? 'border-cyan-500/50 shadow-cyan-500/10' : 'border-neutral-700 opacity-60'
-              } shadow-xl overflow-hidden p-5 transition-all hover:border-cyan-400 rotate-90 sm:rotate-0 my-16 sm:my-0 origin-center`}
+              className={`relative rounded-2xl bg-slate-900 border-2 ${
+                coupon.active ? 'border-purple-500/50 shadow-purple-500/10' : 'border-neutral-700 opacity-60'
+              } shadow-xl overflow-hidden p-5 transition-all hover:border-purple-400 flex flex-col justify-between`}
             >
               {/* Encabezado del Cupón */}
               <div className="flex justify-between items-center mb-4 pb-3 border-b border-neutral-800">
                 <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full text-xs font-black bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full text-xs font-black bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
                     <Tag className="w-3.5 h-3.5" /> CUPÓN DIGITAL
                   </span>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${coupon.active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
@@ -200,22 +200,22 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
                 </div>
               </div>
 
-              {/* Cuerpo del Ticket Fusión */}
+              {/* Cuerpo de la Tarjeta del Panel (Totalmente Horizontal) */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                {/* Lado Izquierdo: Código o Logo Badge */}
-                <div className="bg-neutral-900/90 border border-neutral-700/80 rounded-xl p-3 text-center flex flex-col justify-center items-center">
+                {/* Lado Izquierdo: Código */}
+                <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-center flex flex-col justify-center items-center">
                   <span className="text-[10px] text-neutral-400 uppercase tracking-widest font-bold">Código</span>
-                  <span className="text-lg font-black text-cyan-300 tracking-wider my-1 bg-black/40 px-3 py-1 rounded-lg border border-cyan-500/30 w-full truncate">
+                  <span className="text-base font-black text-purple-300 tracking-wider my-1 bg-black/50 px-3 py-1 rounded-lg border border-purple-500/30 w-full truncate">
                     {coupon.code || 'SIN CÓDIGO'}
                   </span>
                 </div>
 
                 {/* Lado Derecho: Detalles */}
-                <div className="sm:col-span-2 space-y-2">
+                <div className="sm:col-span-2 space-y-2 text-left">
                   <h3 className="text-lg font-black text-white tracking-wide">{coupon.title}</h3>
                   <p className="text-xs text-neutral-300 line-clamp-2">{coupon.description}</p>
                   
-                  <div className="flex flex-wrap gap-3 pt-1 text-xs font-semibold">
+                  <div className="flex flex-wrap gap-2 pt-1 text-xs font-semibold">
                     {coupon.min_purchase !== undefined && coupon.min_purchase !== null && coupon.min_purchase !== 0 && (
                       <span className="text-purple-300 flex items-center gap-1 bg-purple-950/40 px-2.5 py-1 rounded-md border border-purple-800/40">
                         <DollarSign className="w-3.5 h-3.5" /> Mín: ${Number(coupon.min_purchase).toLocaleString('en-US')}
@@ -234,7 +234,7 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
                         href={coupon.link} 
                         target="_blank" 
                         rel="noopener noreferrer" 
-                        className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 underline truncate"
+                        className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1 underline truncate"
                       >
                         <ExternalLink className="w-3.5 h-3.5 shrink-0" /> {coupon.link}
                       </a>
@@ -250,14 +250,14 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
       {/* Modal para Crear / Editar */}
       {showModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
-          <div className="bg-slate-900 border border-cyan-500/40 rounded-3xl p-6 sm:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto text-white relative shadow-2xl">
+          <div className="bg-slate-900 border border-purple-500/40 rounded-3xl p-6 sm:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto text-white relative shadow-2xl text-left">
             <button 
               onClick={() => setShowModal(false)} 
               className="absolute top-6 right-6 text-neutral-400 hover:text-white p-2 rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
-            <h2 className="text-2xl font-black mb-6 text-cyan-400 flex items-center gap-2">
+            <h2 className="text-2xl font-black mb-6 text-purple-400 flex items-center gap-2">
               <ShieldCheck className="w-6 h-6" /> {editingCoupon ? 'Editar Cupón' : 'Nuevo Cupón'}
             </h2>
             <div className="space-y-4">
@@ -268,7 +268,7 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
                   value={newCoupon.title}
                   onChange={(e) => setNewCoupon({ ...newCoupon, title: e.target.value })}
                   placeholder="Ej: Descuento especial"
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl focus:outline-none focus:border-cyan-400 text-white text-sm"
+                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl focus:outline-none focus:border-purple-400 text-white text-sm"
                 />
               </div>
               <div>
@@ -278,7 +278,7 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
                   onChange={(e) => setNewCoupon({ ...newCoupon, description: e.target.value })}
                   placeholder="Detalles del cupón"
                   rows="3"
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl focus:outline-none focus:border-cyan-400 text-white text-sm"
+                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl focus:outline-none focus:border-purple-400 text-white text-sm"
                 />
               </div>
               <div>
@@ -288,7 +288,7 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
                   value={newCoupon.code}
                   onChange={(e) => setNewCoupon({ ...newCoupon, code: e.target.value })}
                   placeholder="Ej: AHORRO50"
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl focus:outline-none focus:border-cyan-400 text-white text-sm uppercase font-bold"
+                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl focus:outline-none focus:border-purple-400 text-white text-sm uppercase font-bold"
                 />
               </div>
               <div>
@@ -298,7 +298,7 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
                   value={newCoupon.min_purchase}
                   onChange={(e) => setNewCoupon({ ...newCoupon, min_purchase: formatCurrencyInput(e.target.value) })}
                   placeholder="$1,000"
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl focus:outline-none focus:border-cyan-400 text-white text-sm"
+                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl focus:outline-none focus:border-purple-400 text-white text-sm"
                 />
               </div>
               <div>
@@ -307,7 +307,7 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
                   type="datetime-local"
                   value={newCoupon.expires_at}
                   onChange={(e) => setNewCoupon({ ...newCoupon, expires_at: e.target.value })}
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl focus:outline-none focus:border-cyan-400 text-white text-sm"
+                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl focus:outline-none focus:border-purple-400 text-white text-sm"
                 />
               </div>
               <div>
@@ -317,7 +317,7 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
                   value={newCoupon.link}
                   onChange={(e) => setNewCoupon({ ...newCoupon, link: e.target.value })}
                   placeholder="https://..."
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl focus:outline-none focus:border-cyan-400 text-white text-sm"
+                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl focus:outline-none focus:border-purple-400 text-white text-sm"
                 />
               </div>
               <div className="flex items-center gap-3 pt-2">
@@ -326,13 +326,13 @@ export default function CouponsAdmin({ API, adminPassword, getSafeId, loadPublic
                   id="activeCoupon"
                   checked={newCoupon.active}
                   onChange={(e) => setNewCoupon({ ...newCoupon, active: e.target.checked })}
-                  className="w-5 h-5 accent-cyan-500 rounded cursor-pointer"
+                  className="w-5 h-5 accent-purple-500 rounded cursor-pointer"
                 />
                 <label htmlFor="activeCoupon" className="text-sm font-bold text-neutral-300 cursor-pointer">Cupón Activo</label>
               </div>
               <button
                 onClick={handleSaveCoupon}
-                className="w-full mt-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-3.5 rounded-xl font-black uppercase tracking-wider shadow-lg hover:shadow-cyan-500/20 transition-all"
+                className="w-full mt-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white py-3.5 rounded-xl font-black uppercase tracking-wider shadow-lg hover:shadow-purple-500/20 transition-all"
               >
                 {editingCoupon ? 'Actualizar Cupón' : 'Guardar Cupón'}
               </button>
