@@ -655,7 +655,7 @@ export default function AdminDashboard({
                   {regularAdminOffers.map((offer) => (
                     <div
                       key={getSafeId(offer) || offer.title}
-                      className={`border-2 rounded-xl p-6 rotate-90 ${
+                      className={`border-2 rounded-xl p-6 ${
                         offer.active
                           ? 'border-green-300 bg-green-50'
                           : 'border-gray-300 bg-gray-50'
