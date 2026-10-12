@@ -45,6 +45,7 @@ import {
   Smartphone,
   Users,
   Copy,
+  Building2,
 } from 'lucide-react';
 import {
   FaWhatsapp,
@@ -63,7 +64,7 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
 // ==========================================
-// FUNCIÓN UTILITARIA
+// FUNCIONES UTILITARIAS
 // ==========================================
 export const getSafeId = (item) => {
   if (!item) return null;
@@ -90,6 +91,26 @@ export const getSafeId = (item) => {
     if (typeof val === 'object' && val.$oid) return String(val.$oid);
   }
   return null;
+};
+
+export const getBankInfo = (title = '') => {
+  const t = title.toLowerCase();
+  if (t.includes('bbva')) {
+    return { name: 'BBVA', logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2b/BBVA_2019.svg' };
+  } else if (t.includes('santander')) {
+    return { name: 'SANTANDER', logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b8/Banco_Santander_Logotipo.svg' };
+  } else if (t.includes('banorte')) {
+    return { name: 'BANORTE', logo: 'https://upload.wikimedia.org/wikipedia/commons/5/5a/Banorte_logo.svg' };
+  } else if (t.includes('citibanamex') || t.includes('banamex')) {
+    return { name: 'CITIBANAMEX', logo: 'https://upload.wikimedia.org/wikipedia/commons/1/1a/Citibanamex_logo.svg' };
+  } else if (t.includes('hsbc')) {
+    return { name: 'HSBC', logo: 'https://upload.wikimedia.org/wikipedia/commons/a/aa/HSBC_logo_%282018%29.svg' };
+  } else if (t.includes('nu')) {
+    return { name: 'NU', logo: 'https://upload.wikimedia.org/wikipedia/commons/f/f7/Nu_logo.svg' };
+  } else if (t.includes('amex') || t.includes('american express')) {
+    return { name: 'AMEX', logo: 'https://upload.wikimedia.org/wikipedia/commons/3/30/American_Express_logo_%282018%29.svg' };
+  }
+  return { name: 'BANCO', logo: null };
 };
 
 // ==========================================
@@ -568,7 +589,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
 }
 
 // ==========================================
-// COUNTDOWN TIMER (VENCE HOY / TIEMPO)
+// COUNTDOWN TIMER
 // ==========================================
 function CountdownTimer({ expiresAt }) {
   const [timeLeft, setTimeLeft] = useState('');
@@ -724,7 +745,7 @@ function renderNewSection(products = []) {
 // COMPONENTE PRINCIPAL APP
 // ==========================================
 function App() {
-  const logoUrl = '/logo.png';
+  const logoUrl = './logo.png';
 
   const logoContainerRef = useRef(null);
   const logoCardRef = useRef(null);
@@ -834,6 +855,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [descuentos, setDescuentos] = useState([]);
   const [cupones, setCupones] = useState([]);
+  const [cuponesBancarios, setCuponesBancarios] = useState([]);
   
   const [currentUser, setCurrentUser] = useState(() => {
     return localStorage.getItem('cazaUser') || null;
@@ -914,6 +936,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [productSearchInput, setProductSearchInput] = useState('');
   const [couponSearchTerm, setCouponSearchTerm] = useState(''); 
+  const [bancarioSearchTerm, setBancarioSearchTerm] = useState('');
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -926,6 +949,11 @@ function App() {
   const handleCouponSearchChange = (e) => {
     const formatted = formatCurrencyInput(e.target.value);
     setCouponSearchTerm(formatted);
+  };
+
+  const handleBancarioSearchChange = (e) => {
+    const formatted = formatCurrencyInput(e.target.value);
+    setBancarioSearchTerm(formatted);
   };
 
   const [isAdminVisible, setIsAdminVisible] = useState(false);
@@ -977,6 +1005,7 @@ function App() {
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
   const [cuponesRef, cuponesApi] = useEmblaCarousel({ loop: true, align: 'start' });
+  const [bancariosRef, bancariosApi] = useEmblaCarousel({ loop: true, align: 'start' });
   const [exclusiveEmblaRef, exclusiveEmblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
 
   useEffect(() => {
@@ -986,6 +1015,14 @@ function App() {
     }, 4000);
     return () => clearInterval(autoplay);
   }, [cuponesApi]);
+
+  useEffect(() => {
+    if (!bancariosApi) return;
+    const autoplay = setInterval(() => {
+      bancariosApi.scrollNext();
+    }, 4000);
+    return () => clearInterval(autoplay);
+  }, [bancariosApi]);
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -1018,6 +1055,14 @@ function App() {
   const scrollNextCupones = useCallback(() => {
     if (cuponesApi) cuponesApi.scrollNext();
   }, [cuponesApi]);
+
+  const scrollPrevBancarios = useCallback(() => {
+    if (bancariosApi) bancariosApi.scrollPrev();
+  }, [bancariosApi]);
+
+  const scrollNextBancarios = useCallback(() => {
+    if (bancariosApi) bancariosApi.scrollNext();
+  }, [bancariosApi]);
 
   const scrollPrevExclusive = useCallback(() => {
     if (exclusiveEmblaApi) exclusiveEmblaApi.scrollPrev();
@@ -1075,12 +1120,14 @@ function App() {
 
   const loadPublicOffers = async () => {
     try {
-      const [descResponse, cupResponse] = await Promise.all([
+      const [descResponse, cupResponse, bancarioResponse] = await Promise.all([
         axios.get(`${API}/offers?type=descuento&t=${Date.now()}`),
         axios.get(`${API}/offers?type=cupon&t=${Date.now()}`),
+        axios.get(`${API}/offers?type=bancario&t=${Date.now()}`).catch(() => ({ data: [] })),
       ]);
       setDescuentos(descResponse.data.map(decodeCoupon));
       setCupones(cupResponse.data.map(decodeCoupon));
+      setCuponesBancarios(bancarioResponse.data.map(decodeCoupon));
     } catch (error) {}
   };
 
@@ -1134,6 +1181,14 @@ function App() {
     });
   }, [cupones]);
 
+  const activeCuponesBancarios = useMemo(() => {
+    const now = Date.now();
+    return cuponesBancarios.filter((cupon) => {
+      if (!cupon.expires_at) return true;
+      return new Date(cupon.expires_at).getTime() > now;
+    });
+  }, [cuponesBancarios]);
+
   const filteredCupones = useMemo(() => {
     const term = couponSearchTerm.trim();
     if (!term) return activeCupones;
@@ -1165,6 +1220,38 @@ function App() {
       );
     });
   }, [activeCupones, couponSearchTerm]);
+
+  const filteredCuponesBancarios = useMemo(() => {
+    const term = bancarioSearchTerm.trim();
+    if (!term) return activeCuponesBancarios;
+
+    const numericBudget = Number(term.replace(/\D/g, ''));
+    return activeCuponesBancarios.filter((cupon) => {
+      if (!isNaN(numericBudget) && numericBudget > 0) {
+        let minPurchase = cupon.min_purchase !== undefined && cupon.min_purchase !== null && cupon.min_purchase !== ''
+          ? Number(cupon.min_purchase)
+          : NaN;
+
+        if (isNaN(minPurchase) && cupon.description) {
+          const match = cupon.description.match(/minima[:\s]*\$?([\d,.]+)/i);
+          if (match) {
+            minPurchase = Number(match[1].replace(/\D/g, ''));
+          }
+        }
+
+        if (!isNaN(minPurchase) && minPurchase > 0) {
+          return numericBudget >= minPurchase;
+        }
+      }
+
+      const lowerTerm = term.toLowerCase();
+      return (
+        cupon.title.toLowerCase().includes(lowerTerm) ||
+        (cupon.description && cupon.description.toLowerCase().includes(lowerTerm)) ||
+        (cupon.code && cupon.code.toLowerCase().includes(lowerTerm))
+      );
+    });
+  }, [activeCuponesBancarios, bancarioSearchTerm]);
 
   const isLight = themeMode === 'light';
   
@@ -1209,7 +1296,7 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES
+  // SECCIÓN DE CUPONES DIGITALES
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
@@ -1505,6 +1592,259 @@ function App() {
         </div>
       </div>
     )
+  );
+
+  // ==========================================
+  // SECCIÓN DE CUPONES BANCARIOS (CON LOGOS)
+  // ==========================================
+  const renderCuponesBancariosSection = () => (
+    <div className="container mx-auto px-4 mb-12 relative z-25">
+      <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
+        isLight ? 'bg-white border-blue-200' : 'bg-neutral-900/85 border-neutral-800'
+      }`}>
+        <div className="relative flex flex-col sm:flex-row items-center justify-between mb-6 gap-3 px-2">
+          <h2 className={`text-xl sm:text-2xl md:text-3xl font-black tracking-wide text-center sm:text-left flex items-center gap-2 ${
+            isLight ? 'text-blue-700' : 'text-neutral-100'
+          }`}>
+            <span>💳</span> Cupones Bancarios y Tarjetas
+          </h2>
+        </div>
+
+        <div className="max-w-xl mx-auto mb-8 px-2">
+          <div className="relative flex-1">
+            <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 ${
+              isLight ? 'text-gray-400' : 'text-neutral-500'
+            }`} />
+            <input
+              type="text"
+              value={bancarioSearchTerm}
+              onChange={handleBancarioSearchChange}
+              placeholder="Buscar cupón bancario..."
+              className={`w-full pl-12 pr-4 py-4 rounded-2xl border focus:outline-none focus:border-blue-400 text-xs sm:text-sm font-medium shadow-inner ${
+                isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-800 text-neutral-100'
+              }`}
+            />
+          </div>
+        </div>
+
+        {filteredCuponesBancarios.length === 0 ? (
+          <div className="text-center py-12">
+            <p className={`text-base mb-2 font-semibold ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+              No hay cupones bancarios activos en este momento. Agrégalos desde el panel de administración. 🏦
+            </p>
+          </div>
+        ) : (
+          <div className="relative px-2 sm:px-10">
+            <div className="overflow-hidden py-4" ref={bancariosRef}>
+              <div className="flex gap-6 items-center">
+                {filteredCuponesBancarios.map((cupon, idx) => {
+                  const cuponId = getSafeId(cupon) || cupon.title;
+                  const currentReaction = userReactions[cuponId];
+                  const counts = couponCounts[cuponId] || { like: 0, dislike: 0, heart: 0 };
+                  const bank = getBankInfo(cupon.title);
+
+                  const gradients = [
+                    'from-blue-500 via-indigo-500 to-sky-600',
+                    'from-cyan-500 via-blue-600 to-indigo-700',
+                    'from-violet-500 via-purple-500 to-indigo-600'
+                  ];
+                  const gradientClass = gradients[idx % gradients.length];
+                  const fechaActual = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+
+                  return (
+                    <div key={cuponId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] min-w-0 flex flex-col gap-2">
+                      
+                      {/* MÓVIL: ROTADO 90° */}
+                      <div className="block md:hidden h-[500px] my-2 flex justify-center items-center overflow-hidden">
+                        <div className="flex flex-col gap-2 -rotate-90 scale-90 sm:scale-95 transform-gpu origin-center">
+                          <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide self-start">
+                            {fechaActual}
+                          </span>
+                          <div 
+                            onClick={() => handleCopiarIrMercadoLibre(cupon)}
+                            className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer w-[460px] h-[200px] flex-shrink-0"
+                          >
+                            <div className="bg-white text-gray-900 p-4 flex flex-col justify-between items-center w-[150px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
+                              <div className="flex flex-col items-center justify-center my-auto">
+                                <div className="w-22 h-22 rounded-full bg-white flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
+                                  {bank.logo ? (
+                                    <img src={bank.logo} alt={bank.name} className="w-full h-full object-contain" />
+                                  ) : (
+                                    <Building2 className="w-8 h-8 text-blue-600" />
+                                  )}
+                                </div>
+                                <span className="font-black text-[10px] uppercase tracking-widest text-slate-800 text-center leading-tight">
+                                  {bank.name}
+                                </span>
+                              </div>
+                              <div className="w-full text-center mt-1 pt-1 border-t border-gray-100">
+                                <span className="text-[9px] font-extrabold text-blue-600 tracking-tight block">
+                                  BENEFICIO BANCARIO
+                                </span>
+                              </div>
+                              <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
+                            </div>
+
+                            <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 text-white flex flex-col justify-between relative`}>
+                              <div className="flex justify-between items-start gap-2 mb-1">
+                                <div className="flex flex-col">
+                                  <h3 className="text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 leading-tight">
+                                    {cupon.title || 'DESCUENTO BANCARIO'}
+                                  </h3>
+                                  <div>
+                                    <span className="block text-[8px] font-black uppercase tracking-widest text-white/70 mb-0.5">
+                                      CÓDIGO / TARJETA
+                                    </span>
+                                    <div className="text-base font-black tracking-widest font-mono bg-black/20 py-1 px-3 rounded-xl border border-white/25 inline-block select-all">
+                                      {cupon.code && String(cupon.code).length > 3
+                                        ? String(cupon.code).slice(0, 3) + '••••••'
+                                        : (cupon.code || 'BANC••••')}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex flex-col items-end gap-1 text-right">
+                                  <CountdownTimer expiresAt={cupon.expires_at} />
+                                  <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                      onClick={() => handleReaction(cuponId, 'like')}
+                                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-white/20 ${
+                                        currentReaction === 'like' ? 'bg-white text-black' : 'bg-black/40 text-white'
+                                      }`}
+                                    >
+                                      <ThumbsUp size={10} /> <span>{counts.like}</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleReaction(cuponId, 'heart')}
+                                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-white/20 ${
+                                        currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-black/40 text-white'
+                                      }`}
+                                    >
+                                      <Heart size={10} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="pt-2 border-t border-white/20">
+                                <span className="text-[9px] font-extrabold uppercase tracking-tight text-white/90 block leading-tight">
+                                  {cupon.description || 'BENEFICIOS EXCLUSIVOS CON TARJETA'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* WEB: HORIZONTAL */}
+                      <div className="hidden md:flex flex-col gap-2 w-full">
+                        <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide">
+                          {fechaActual}
+                        </span>
+                        <div 
+                          onClick={() => handleCopiarIrMercadoLibre(cupon)}
+                          className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer h-full"
+                        >
+                          <div className="bg-white text-gray-900 p-5 flex flex-col justify-between items-center w-[260px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
+                            <div className="flex flex-col items-center justify-center my-auto py-2">
+                              <div className="w-36 h-36 rounded-full bg-white flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-3">
+                                {bank.logo ? (
+                                  <img src={bank.logo} alt={bank.name} className="w-full h-full object-contain" />
+                                ) : (
+                                  <Building2 className="w-12 h-12 text-blue-600" />
+                                )}
+                              </div>
+                              <span className="font-black text-xs uppercase tracking-widest text-slate-800">
+                                {bank.name}
+                              </span>
+                            </div>
+                            <div className="w-full text-center mt-2 pt-2 border-t border-gray-100">
+                              <span className="text-xs font-extrabold text-blue-600 tracking-tight block">
+                                PROMOCIÓN BANCARIA
+                              </span>
+                            </div>
+                            <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
+                          </div>
+
+                          <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-6 text-white flex flex-col justify-between relative`}>
+                            <div className="flex justify-between items-start gap-4 mb-3">
+                              <div className="flex flex-col">
+                                <h3 className="text-2xl font-black uppercase tracking-tight drop-shadow-sm mb-2">
+                                  {cupon.title || 'DESCUENTO BANCARIO'}
+                                </h3>
+                                <div>
+                                  <span className="block text-[10px] font-black uppercase tracking-widest text-white/70 mb-1">
+                                    CÓDIGO / BENEFICIO
+                                  </span>
+                                  <div className="text-2xl font-black tracking-widest font-mono bg-black/20 py-1.5 px-4 rounded-xl border border-white/25 inline-block select-all">
+                                    {cupon.code && String(cupon.code).length > 3
+                                      ? String(cupon.code).slice(0, 3) + '••••••'
+                                      : (cupon.code || 'BANC••••')}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex flex-col items-end gap-2 text-right">
+                                <CountdownTimer expiresAt={cupon.expires_at} />
+                                <div className="flex items-center gap-1.5 mt-1" onClick={(e) => e.stopPropagation()}>
+                                  <button
+                                    onClick={() => handleReaction(cuponId, 'like')}
+                                    className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 border border-white/20 ${
+                                      currentReaction === 'like' ? 'bg-white text-black' : 'bg-black/40 hover:bg-black/60 text-white'
+                                    }`}
+                                  >
+                                    <ThumbsUp size={12} /> <span>{counts.like}</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleReaction(cuponId, 'heart')}
+                                    className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 border border-white/20 ${
+                                      currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-black/40 hover:bg-black/60 text-white'
+                                    }`}
+                                  >
+                                    <Heart size={12} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
+                                  </button>
+                                </div>
+                                <span className="text-[11px] font-extrabold uppercase tracking-tight text-white/90 max-w-[200px] leading-tight mt-1">
+                                  {cupon.description || 'BENEFICIOS Y MESES SIN INTERESES'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {filteredCuponesBancarios.length > 1 && (
+              <>
+                <button
+                  onClick={scrollPrevBancarios}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
+                >
+                  <ChevronLeft className="w-5 h-5 font-black" />
+                </button>
+                <button
+                  onClick={scrollNextBancarios}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
+                >
+                  <ChevronRight className="w-5 h-5 font-black" />
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+        <div className={`mt-6 pt-4 border-t text-center text-xs md:text-sm font-medium ${
+          isLight ? 'border-blue-200 text-blue-900/70' : 'border-neutral-800 text-neutral-400'
+        }`}>
+          ℹ️ Nota informativa: Los beneficios bancarios y MSI están sujetos a términos de cada institución financiera participante.
+        </div>
+      </div>
+    </div>
   );
 
   const renderProductosSection = () => (
@@ -2249,6 +2589,14 @@ function App() {
               🔥 Productos
             </button>
             <button
+              onClick={() => setMobileTab('bancarios')}
+              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+                mobileTab === 'bancarios' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-yellow-400 hover:bg-neutral-700 border border-yellow-500/40'
+              }`}
+            >
+              💳 Cupones Bancarios
+            </button>
+            <button
               onClick={() => setMobileTab('reels')}
               className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'reels' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
@@ -2267,6 +2615,7 @@ function App() {
           </div>
 
           {mobileTab === 'cupones' && renderCuponesSection()}
+          {mobileTab === 'bancarios' && renderCuponesBancariosSection()}
           {mobileTab === 'productos' && renderProductosSection()}
           {mobileTab === 'exclusivos' && renderExclusiveProductsSection()}
           {mobileTab === 'reels' && (
@@ -2279,6 +2628,7 @@ function App() {
       ) : (
         <>
           {renderCuponesSection()}
+          {renderCuponesBancariosSection()}
           {renderProductosSection()}
           {renderExclusiveProductsSection()}
           {renderReelsSection()}
