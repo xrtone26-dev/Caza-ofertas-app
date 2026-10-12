@@ -1209,7 +1209,7 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES (MÓVIL VERTICAL CORRECTO / WEB HORIZONTAL)
+  // SECCIÓN DE CUPONES
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
@@ -1270,9 +1270,9 @@ function App() {
               </p>
             </div>
           ) : (
-            <div className="relative px-6 sm:px-10">
-              <div className="overflow-hidden" ref={cuponesRef}>
-                <div className="flex gap-6 py-4">
+            <div className="relative px-2 sm:px-10">
+              <div className="overflow-hidden py-4" ref={cuponesRef}>
+                <div className="flex gap-6 items-center">
                   {filteredCupones.map((cupon, idx) => {
                     const cuponId = getSafeId(cupon) || cupon.title;
                     const currentReaction = userReactions[cuponId];
@@ -1294,85 +1294,88 @@ function App() {
                         </span>
 
                         {/* ========================================= */}
-                        {/* MÓVIL: VERTICAL EXACTO (Bloque Color arriba, Blanco abajo) */}
+                        {/* MÓVIL: CUPÓN ROTADO 90° EN SENTIDO ANTIHORARIO */}
                         {/* ========================================= */}
-                        <div 
-                          onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                          className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden block md:hidden transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer w-full max-w-[310px] mx-auto"
-                        >
-                          {/* Bloque Superior de Descuento (Color) */}
-                          <div className={`bg-gradient-to-r ${gradientClass} p-6 text-black flex flex-col justify-between relative`}>
-                            <div className="flex justify-between items-start mb-4 gap-2">
-                              <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-tight max-w-[180px]">
-                                {cupon.title || '12% DE DESCUENTO'}
-                              </h3>
-                              <CountdownTimer expiresAt={cupon.expires_at} />
-                            </div>
-
-                            <div className="mb-4">
-                              <span className="block text-[10px] font-black uppercase tracking-widest text-black/70 mb-1">
-                                COPIAR Y CANJEAR
-                              </span>
-                              <div className="text-xl font-black tracking-widest font-mono bg-black/10 py-2 px-4 rounded-xl border border-black/20 inline-block select-all">
-                                {cupon.code && String(cupon.code).length > 3
-                                  ? String(cupon.code).slice(0, 3) + '••••••'
-                                  : (cupon.code || 'CAPI••••')}
+                        <div className="block md:hidden py-16 flex justify-center items-center">
+                          <div 
+                            onClick={() => handleCopiarIrMercadoLibre(cupon)}
+                            className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer -rotate-90 w-[480px] h-[210px] flex-shrink-0"
+                          >
+                            {/* Bloque Blanco Izquierda con Logo */}
+                            <div className="bg-white text-gray-900 p-4 flex flex-col justify-between items-center w-[160px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
+                              <div className="flex flex-col items-center justify-center my-auto">
+                                <div className="w-24 h-24 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
+                                  <img 
+                                    src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolibre/logo__large_plus.png" 
+                                    alt="Mercado Libre" 
+                                    className="w-full h-full object-contain"
+                                    onError={(e) => {
+                                      e.target.onerror = null;
+                                      e.target.src = "https://http2.mlstatic.com/storage/mshops-client-resource/mshops/common/images/logo-ml.png";
+                                    }}
+                                  />
+                                </div>
+                                <span className="font-black text-[10px] uppercase tracking-widest text-slate-800 text-center leading-tight">
+                                  MERCADO LIBRE
+                                </span>
                               </div>
-                            </div>
 
-                            <div className="pt-3 border-t border-black/15 flex flex-col gap-2">
-                              <p className="text-[11px] font-black uppercase tracking-tight leading-snug text-black/90">
-                                {cupon.min_purchase ? `COMPRA MÍNIMA APLICABLE: $${cupon.min_purchase} | DESCUENTO MÁXIMO: $${cupon.max_discount || '180'}` : (cupon.description || 'COMPRA MÍNIMA APLICABLE')}
-                              </p>
-
-                              <div className="flex items-center gap-2 mt-1" onClick={(e) => e.stopPropagation()}>
-                                <button
-                                  onClick={() => handleReaction(cuponId, 'like')}
-                                  className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-black/20 transition-transform active:scale-95 ${
-                                    currentReaction === 'like' ? 'bg-black text-white' : 'bg-white/40 text-black'
-                                  }`}
-                                >
-                                  <ThumbsUp size={12} /> <span>{counts.like}</span>
-                                </button>
-                                <button
-                                  onClick={() => handleReaction(cuponId, 'heart')}
-                                  className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-black/20 transition-transform active:scale-95 ${
-                                    currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-white/40 text-black'
-                                  }`}
-                                >
-                                  <Heart size={12} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
-                                </button>
+                              <div className="w-full text-center mt-1 pt-1 border-t border-gray-100">
+                                <span className="text-[9px] font-extrabold text-blue-600 tracking-tight block">
+                                  DESCUENTO ESPECIAL
+                                </span>
                               </div>
+
+                              <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
                             </div>
 
-                            {/* Muesca circular y línea punteada divisor */}
-                            <div className="absolute left-0 right-0 -bottom-3 flex items-center justify-between z-20 pointer-events-none px-0">
-                              <div className="w-6 h-6 bg-slate-900 rounded-full -ml-3"></div>
-                              <div className="border-t-2 border-dashed border-slate-900/60 w-full mx-1"></div>
-                              <div className="w-6 h-6 bg-slate-900 rounded-full -mr-3"></div>
-                            </div>
-                          </div>
+                            {/* Bloque de Color Derecha con Descuento */}
+                            <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 text-black flex flex-col justify-between relative`}>
+                              <div className="flex justify-between items-start gap-2 mb-1">
+                                <div className="flex flex-col">
+                                  <h3 className="text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 leading-tight">
+                                    {cupon.title || '12% DE DESCUENTO'}
+                                  </h3>
+                                  <div>
+                                    <span className="block text-[8px] font-black uppercase tracking-widest text-black/70 mb-0.5">
+                                      COPIAR Y CANJEAR
+                                    </span>
+                                    <div className="text-base font-black tracking-widest font-mono bg-black/10 py-1 px-3 rounded-xl border border-black/25 inline-block select-all">
+                                      {cupon.code && String(cupon.code).length > 3
+                                        ? String(cupon.code).slice(0, 3) + '••••••'
+                                        : (cupon.code || 'CAPI••••')}
+                                    </div>
+                                  </div>
+                                </div>
 
-                          {/* Bloque Inferior Mercado Libre (Blanco) */}
-                          <div className="bg-white text-gray-900 p-6 flex items-center justify-start gap-4 relative pt-7">
-                            <div className="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center shadow-md border-2 border-black overflow-hidden p-2 flex-shrink-0">
-                              <img 
-                                src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolibre/logo__large_plus.png" 
-                                alt="Mercado Libre" 
-                                className="w-full h-full object-contain"
-                                onError={(e) => {
-                                  e.target.onerror = null;
-                                  e.target.src = "https://http2.mlstatic.com/storage/mshops-client-resource/mshops/common/images/logo-ml.png";
-                                }}
-                              />
-                            </div>
-                            <div className="flex flex-col text-left">
-                              <span className="font-black text-base uppercase tracking-wider text-slate-800 leading-tight">
-                                MERCADO LIBRE
-                              </span>
-                              <span className="text-xs font-bold text-blue-600 tracking-tight mt-0.5">
-                                DESCUENTO ESPECIAL
-                              </span>
+                                <div className="flex flex-col items-end gap-1 text-right">
+                                  <CountdownTimer expiresAt={cupon.expires_at} />
+                                  <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                      onClick={() => handleReaction(cuponId, 'like')}
+                                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-black/20 ${
+                                        currentReaction === 'like' ? 'bg-black text-white' : 'bg-white/40 text-black'
+                                      }`}
+                                    >
+                                      <ThumbsUp size={10} /> <span>{counts.like}</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleReaction(cuponId, 'heart')}
+                                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-black/20 ${
+                                        currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-white/40 text-black'
+                                      }`}
+                                    >
+                                      <Heart size={10} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="pt-2 border-t border-black/15">
+                                <span className="text-[9px] font-extrabold uppercase tracking-tight text-black/90 block leading-tight">
+                                  {cupon.min_purchase ? `COMPRA MÍNIMA APLICABLE: $${cupon.min_purchase} | DESCUENTO MÁXIMO: $${cupon.max_discount || '180'}` : (cupon.description || 'COMPRA MÍNIMA APLICABLE')}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>
