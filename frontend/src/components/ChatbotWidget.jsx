@@ -1,5 +1,3 @@
-// src/components/ChatbotWidget.jsx
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Bot, Send, X, Copy, Minus, CreditCard, ExternalLink, Tag } from 'lucide-react';
 import {
