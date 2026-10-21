@@ -18,49 +18,49 @@ export const getBankInfo = (title = '') => {
       name: 'BBVA', 
       bg: 'bg-[#004481]', 
       text: 'text-white', 
-      logo: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqNnu991pgG-Wj4dgTVr0EHDqh1S6c_DVLK-qoyrSG2w&s=10' 
+      border: 'border-[#002f5c]' 
     };
   } else if (t.includes('santander')) {
     return { 
       name: 'SANTANDER', 
       bg: 'bg-[#EC0000]', 
       text: 'text-white', 
-      logo: 'https://images.seeklogo.com/logo-png/27/2/banco-santander-logo-png_seeklogo-278272.png' 
+      border: 'border-[#b50000]' 
     };
   } else if (t.includes('banorte')) {
     return { 
       name: 'BANORTE', 
       bg: 'bg-[#EB0029]', 
       text: 'text-white', 
-      logo: 'https://images.seeklogo.com/logo-png/38/2/banorte-logo-png_seeklogo-382928.png' 
+      border: 'border-[#b3001f]' 
     };
   } else if (t.includes('citibanamex') || t.includes('banamex')) {
     return { 
       name: 'CITIBANAMEX', 
       bg: 'bg-[#001E62]', 
       text: 'text-white', 
-      logo: 'https://images.seeklogo.com/logo-png/43/2/citibanamex-logo-png_seeklogo-437562.png' 
+      border: 'border-[#00123d]' 
     };
   } else if (t.includes('hsbc')) {
     return { 
       name: 'HSBC', 
       bg: 'bg-[#DB0011]', 
       text: 'text-white', 
-      logo: 'https://images.seeklogo.com/logo-png/41/2/hsbc-logo-png_seeklogo-414777.png' 
+      border: 'border-[#a8000d]' 
     };
   } else if (t.includes('nu')) {
     return { 
       name: 'NU', 
       bg: 'bg-[#820AD1]', 
       text: 'text-white', 
-      logo: 'https://images.seeklogo.com/logo-png/49/2/nu-bank-logo-png_seeklogo-493339.png' 
+      border: 'border-[#5f0799]' 
     };
   } else if (t.includes('amex') || t.includes('american express')) {
     return { 
       name: 'AMEX', 
       bg: 'bg-[#006FCF]', 
       text: 'text-white', 
-      logo: 'https://images.seeklogo.com/logo-png/11/2/american-express-logo-png_seeklogo-116041.png' 
+      border: 'border-[#004f94]' 
     };
   }
   
@@ -68,7 +68,7 @@ export const getBankInfo = (title = '') => {
     name: 'BANCO', 
     bg: 'bg-blue-600', 
     text: 'text-white', 
-    logo: null 
+    border: 'border-blue-700' 
   };
 };
 
@@ -264,23 +264,14 @@ export default function BankCouponsAdmin({ API, adminPassword, getSafeId, loadPu
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                {/* Logo del Banco */}
-                <div className="bg-white rounded-xl p-3 text-center flex flex-col justify-center items-center h-28 border-2 border-black/10 shadow-inner">
-                  {bank.logo ? (
-                    <img 
-                      src={bank.logo} 
-                      alt={bank.name} 
-                      className="w-full h-14 object-contain mb-1" 
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <Building2 className="w-8 h-8 text-blue-600 mb-1" />
-                  )}
-                  <span className="font-black text-[10px] uppercase tracking-widest text-slate-800 text-center">
+                {/* Insignia / Logo Institucional del Banco (Diseño Corporativo 100% Seguro) */}
+                <div className={`rounded-2xl p-4 text-center flex flex-col justify-center items-center h-28 ${bank.bg} border-2 ${bank.border} shadow-lg relative overflow-hidden group`}>
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <Building2 className="w-8 h-8 text-white mb-1 drop-shadow-md" />
+                  <span className="font-black text-xs uppercase tracking-widest text-white text-center drop-shadow">
                     {bank.name}
                   </span>
+                  <span className="text-[9px] text-white/80 font-semibold tracking-wider mt-0.5">PROMOCIÓN</span>
                 </div>
 
                 <div className="sm:col-span-2 space-y-2">
