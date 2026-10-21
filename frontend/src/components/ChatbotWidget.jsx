@@ -14,14 +14,20 @@ const API = BACKEND_URL;
 
 const MP_POINT_LINK = 'https://www.mercadopago.com.mx/herramientas-para-vender/lectores-point?code=7XYVCUKISD';
 
+// System Prompt conversacional, amigable y flexible
 const SYSTEM_PROMPT = `
-Rol e Identidad:
-Eres CapiBaraML, el asistente virtual experto, conversacional, cómico y una bestia de ventas de CapiBaraML WEB 🚀✨. Tu misión es interactuar naturalmente con el usuario, responder sus dudas y dar recomendaciones de compra.
+Eres CapiBaraML 🐹, el asistente virtual oficial de CapiBaraML WEB. 
 
-REGLAS ABSOLUTAS Y CRÍTICAS:
-1. PROHIBIDO GENERAR TABLAS MARKDOWN: NUNCA respondas con tablas (| Código | Descuento |).
-2. PROHIBIDO ENVIAR ENLACES SUELTOS EN TEXTO: Nunca escribas URLs en tus respuestas de texto.
-3. SALUDOS Y CONVERSACIÓN: Sé directo, cómico, vendedor y lleno de energía.
+TU PERSONALIDAD Y TONO DE VOZ:
+- Eres sumamente amigable, simpático, cómico, educado y cercano.
+- Responde siempre con entusiasmo, buena vibra y naturalidad a cualquier pregunta, broma, duda o saludo del usuario.
+- Habla en español latino, usando emojis de forma moderada pero divertida (🚀, ✨, 🐹, 🎟️).
+- Si el usuario te hace una broma o comentario informal, síguele la plática de forma ingeniosa y amigable.
+
+REGLAS STRICTAS DE FORMATO:
+1. NUNCA generes tablas en Markdown (prohibido usar | Código | Descuento |).
+2. NUNCA escribas URLs o enlaces largos en el texto plano.
+3. Sé conciso y claro (máximo 2 a 3 párrafos cortos por respuesta).
 `;
 
 export default function ChatbotWidget({ isLight, cupones = [] }) {
@@ -36,7 +42,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
   const [chatMessages, setChatMessages] = useState([
     {
       sender: 'bot',
-      text: '¡Hola! Soy tu asistente de **CapiBaraML** 🐹. ¿Qué producto buscamos hoy o qué cupón necesitas?',
+      text: '¡Hola! Soy tu asistente de **CapiBaraML** 🐹. ¿En qué te puedo ayudar hoy o qué descuento andas buscando?',
     },
   ]);
 
@@ -110,13 +116,13 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     }
     playSniperSound();
     
-    // 1. Mostrar Pop-up de confirmación
+    // Pop-up de confirmación
     setToastMessage('¡Cupón copiado al portapapeles! Abriendo Mercado Libre en 3 segundos 🚀');
     setShowToast(true);
 
     const linkDestino = cupon.link ? cupon.link : 'https://www.mercadolibre.com.mx';
 
-    // 2. Retraso exacto de 3 segundos (3000ms) mostrando el pop-up antes de abrir la página
+    // Retraso exacto de 3 segundos
     setTimeout(() => {
       setShowToast(false);
       window.open(linkDestino, '_blank', 'noopener,noreferrer');
@@ -323,7 +329,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     setInputMessage('');
     setIsTyping(true);
 
-    // 1. Detección estricta e inquebrantable de solicitud de cupones / ofertas
+    // 1. Detección estricta de solicitud de cupones / ofertas
     if (
       lowerText.includes('cupón') ||
       lowerText.includes('cupon') ||
@@ -394,34 +400,34 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       return;
     }
 
-    const coldStartTimer = setTimeout(() => {
-      if (isTyping) {
-        setChatMessages((prev) => [
-          ...prev,
-          { sender: 'bot', text: '⚡ (Despertando motores de IA en el servidor... un segundo más, ¡las mejores ofertas valen la espera!)' }
-        ]);
-      }
-    }, 4000);
-
+    // 4. Consulta conversacional al backend para todo lo demás
     try {
-      const response = await axios.post(`${API}/chat`, {
-        message: userText,
-        history: newHistory.slice(-6),
-        systemPrompt: SYSTEM_PROMPT 
-      });
-      
-      clearTimeout(coldStartTimer);
+      const response = await axios.post(
+        `${API}/chat`,
+        {
+          message: userText,
+          history: newHistory.slice(-6),
+          systemPrompt: SYSTEM_PROMPT,
+        },
+        { timeout: 20000 }
+      );
+
+      const botReply =
+        response.data && response.data.reply && response.data.reply.trim() !== ''
+          ? response.data.reply
+          : '¡Uy! Me quedé pensando un momento 🐹. Platícame bien qué buscas o dime si necesitas un cupón o una terminal Point.';
+
       setChatMessages((prev) => [
         ...prev,
-        { sender: 'bot', text: response.data.reply },
+        { sender: 'bot', text: botReply },
       ]);
     } catch (error) {
-      clearTimeout(coldStartTimer);
+      console.error('Error al conectar con la API de chat:', error);
       setChatMessages((prev) => [
         ...prev,
         {
           sender: 'bot',
-          text: '¡Rayos! El servidor está tomando vuelo. Pero revisa los cupones activos aquí arriba o ve directo al carrusel principal 🚀',
+          text: '¡Tranqui, que no cunda el pánico! 🐹 Tuve un pequeño parpadeo de señal, pero aquí sigo. ¿Qué producto o cupón andas buscando?',
         },
       ]);
     } finally {
