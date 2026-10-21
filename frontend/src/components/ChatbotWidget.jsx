@@ -14,23 +14,15 @@ const API = BACKEND_URL;
 
 const MP_POINT_LINK = 'https://www.mercadopago.com.mx/herramientas-para-vender/lectores-point?code=7XYVCUKISD';
 
+// Limpiamos el SYSTEM_PROMPT para PROHIBIR estrictamente que la IA genere tablas Markdown o URLs en texto
 const SYSTEM_PROMPT = `
 Rol e Identidad:
-Eres CapiBaraML, el asistente virtual experto, conversacional, cómico y una bestia de ventas de CapiBaraML WEB 🚀✨. Tu misión es interactuar naturalmente con el usuario, responder sus dudas, dar recomendaciones de compra y entregar los códigos de cupones exactos de inmediato.
+Eres CapiBaraML, el asistente virtual experto, conversacional, cómico y una bestia de ventas de CapiBaraML WEB 🚀✨. Tu misión es interactuar naturalmente con el usuario, responder sus dudas y dar recomendaciones de compra.
 
-REGLAS DE INTERACCIÓN:
-1. SALUDOS Y CONVERSACIÓN: Si el usuario solo saluda, devuélvele el saludo con energía y ofrécele el cupón sorpresa del día.
-2. RESPUESTAS DE VENTAS: Sé persuasivo. En cada respuesta sobre productos, cupones o terminales Point, resalta el ahorro y empuja sutilmente al usuario a reclamar su beneficio en las tarjetas interactivas.
-
-REGLAS CRÍTICAS PARA TERMINALES MERCADO PAGO:
-3. Si te preguntan sobre terminales Point o Mercado Pago, recomiéndalas brevemente e indica que usen el enlace oficial con descuento exclusivo: ${MP_POINT_LINK}
-
-REGLAS CRÍTICAS PARA CUPONES Y OFERTAS:
-4. ENTREGA DIRECTA: Si el usuario PIDE cupones o descuentos, entrégaselos de inmediato mencionando el código exacto y limpio. NUNCA uses asteriscos (*) para ocultar códigos.
-5. PROHIBIDO ENVIAR ENLACES SUELTOS: La redirección ocurre principalmente a través de la tarjeta interactiva que se despliega automáticamente.
-
-Reglas de Comportamiento y Tono:
-- Tono General: Directo, dinámico, cómico, vendedor y lleno de energía (✨).
+REGLAS ABSOLUTAS Y CRÍTICAS:
+1. PROHIBIDO GENERAR TABLAS MARKDOWN: NUNCA respondas con tablas (| Código | Descuento |).
+2. PROHIBIDO ENVIAR ENLACES SUELTOS EN TEXTO: Nunca escribas URLs en tus respuestas de texto.
+3. SALUDOS Y CONVERSACIÓN: Sé directo, cómico, vendedor y lleno de energía.
 `;
 
 export default function ChatbotWidget({ isLight, cupones = [] }) {
@@ -64,8 +56,6 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     const hasSeenChat = sessionStorage.getItem('hasSeenChatPopup');
     if (!hasSeenChat) {
       const timer = setTimeout(() => {
-        // REGLA DE ORO: No eliminar código, solo comentar. 
-        // setShowChatWindow(true); 
         sessionStorage.setItem('hasSeenChatPopup', 'true');
       }, 12000); 
       return () => clearTimeout(timer);
@@ -315,63 +305,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     }
 
     const text = msg.text || '';
-    const matchedCupones = localCupones.filter((c) => {
-      if (!c.code) return false;
-      const upperCode = c.code.toUpperCase();
-      const upperText = text.toUpperCase();
-      
-      if (upperText.includes(upperCode)) return true;
-      
-      if (upperCode.length >= 4) {
-        const maskedCode = upperCode.substring(0, 4) + '*';
-        if (upperText.includes(maskedCode)) return true;
-      }
-      return false;
-    });
-
-    return (
-      <div className="flex flex-col gap-3">
-        <div>{renderMessageTextWithFormat(text)}</div>
-        {matchedCupones.map((matchedCupon, idx) => {
-          let cleanDesc = matchedCupon.description || '';
-          let expDateStr = '';
-
-          const expMatch = cleanDesc.match(/\|\|exp:(.*?)\|\|/);
-          if (expMatch) {
-            expDateStr = expMatch[1].split('T')[0];
-            cleanDesc = cleanDesc.replace(/\|\|exp:.*?\|\|/g, '').trim();
-          } else if (matchedCupon.expires_at) {
-            expDateStr = new Date(matchedCupon.expires_at).toISOString().split('T')[0];
-          }
-
-          return (
-            <div key={idx} className="bg-[#FFEA00] text-black border-2 border-black rounded-2xl p-3.5 shadow-lg flex flex-col gap-2 mt-2">
-              <div className="font-black text-xs uppercase bg-black text-white py-1.5 px-3 rounded-lg text-center tracking-wide">
-                🎟 {matchedCupon.title || 'Cupón Exclusivo'}
-              </div>
-              <div className="bg-white/80 border border-black/20 rounded-xl p-2 flex flex-col gap-1 text-xs font-bold text-neutral-900">
-                {cleanDesc ? (
-                  <p className="leading-tight">{cleanDesc}</p>
-                ) : (
-                  <p className="leading-tight">Aprovecha este descuento especial en Mercado Libre.</p>
-                )}
-                {expDateStr && (
-                  <div className="text-[11px] font-black text-neutral-700 mt-1 flex items-center justify-center gap-1">
-                    ⏰ Expira: {expDateStr}
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={() => handleCopiarIrMercadoLibre(matchedCupon)}
-                className="w-full bg-black hover:bg-neutral-900 text-[#FFEA00] font-black py-2.5 px-3 rounded-xl text-xs uppercase flex items-center justify-center gap-2 transition-transform hover:scale-105 shadow border border-black"
-              >
-                <Copy size={14} /> Copiar Código e Ir a Meli 🚀
-              </button>
-            </div>
-          );
-        })}
-      </div>
-    );
+    return <div>{renderMessageTextWithFormat(text)}</div>;
   };
 
   const processAndSendMessage = async (textToSend) => {
@@ -384,13 +318,16 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     setInputMessage('');
     setIsTyping(true);
 
-    // Detección directa de solicitud de cupones
+    // 1. Detección estricta e inquebrantable de solicitud de cupones / ofertas
     if (
       lowerText.includes('cupón') ||
       lowerText.includes('cupon') ||
+      lowerText.includes('cupones') ||
       lowerText.includes('descuento') ||
+      lowerText.includes('descuentos') ||
       lowerText.includes('código') ||
-      lowerText.includes('codigo')
+      lowerText.includes('codigo') ||
+      lowerText.includes('codigos')
     ) {
       setTimeout(() => {
         setChatMessages((prev) => [
@@ -405,10 +342,11 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       return;
     }
 
-    // Detección directa e inquebrantable de redes sociales
+    // 2. Detección estricta de redes sociales y grupos
     if (
       lowerText.includes('unirse') ||
       lowerText.includes('grupo') ||
+      lowerText.includes('grupos') ||
       lowerText.includes('telegram') ||
       lowerText.includes('facebook') ||
       lowerText.includes('comunidad') ||
@@ -429,14 +367,14 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       return;
     }
 
-    // Detección directa e inquebrantable de Terminales Mercado Pago / Point
+    // 3. Detección estricta de Terminales Mercado Pago / Point
     if (
       lowerText.includes('terminal') ||
+      lowerText.includes('terminales') ||
       lowerText.includes('point') ||
       lowerText.includes('mercado pago') ||
-      lowerText.includes('lectores') ||
-      lowerText.includes('tarjetas') ||
-      lowerText.includes('cobrar')
+      lowerText.includes('mercadopago') ||
+      lowerText.includes('lectores')
     ) {
       setTimeout(() => {
         setChatMessages((prev) => [
