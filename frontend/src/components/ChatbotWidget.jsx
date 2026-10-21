@@ -315,12 +315,13 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     if (!textToSend.trim()) return;
 
     const userText = textToSend;
-    const lowerText = userText.toLowerCase();
+    const lowerText = userText.toLowerCase().trim();
     const newHistory = [...chatMessages, { sender: 'user', text: userText }];
     setChatMessages(newHistory);
     setInputMessage('');
     setIsTyping(true);
 
+    // Detección directa e inquebrantable de redes sociales
     if (
       lowerText.includes('unirse') ||
       lowerText.includes('grupo') ||
@@ -340,15 +341,18 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
           },
         ]);
         setIsTyping(false);
-      }, 800);
+      }, 400);
       return;
     }
 
+    // Detección directa e inquebrantable de Terminales Mercado Pago / Point
     if (
       lowerText.includes('terminal') ||
       lowerText.includes('point') ||
       lowerText.includes('mercado pago') ||
-      lowerText.includes('lectores')
+      lowerText.includes('lectores') ||
+      lowerText.includes('tarjetas') ||
+      lowerText.includes('cobrar')
     ) {
       setTimeout(() => {
         setChatMessages((prev) => [
@@ -359,7 +363,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
           },
         ]);
         setIsTyping(false);
-      }, 800);
+      }, 400);
       return;
     }
 
