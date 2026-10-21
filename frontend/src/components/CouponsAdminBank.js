@@ -11,24 +11,65 @@ const getFutureDate30Hours = () => {
 };
 
 export const getBankInfo = (title = '') => {
-  // Corrección: Asegurar que title sea una cadena válida para evitar errores si es null o undefined
   const t = String(title || '').toLowerCase();
+  
   if (t.includes('bbva')) {
-    return { name: 'BBVA', bg: 'bg-[#004481]', text: 'text-white', logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2b/BBVA_2019.svg' };
+    return { 
+      name: 'BBVA', 
+      bg: 'bg-[#004481]', 
+      text: 'text-white', 
+      logo: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqNnu991pgG-Wj4dgTVr0EHDqh1S6c_DVLK-qoyrSG2w&s=10' 
+    };
   } else if (t.includes('santander')) {
-    return { name: 'SANTANDER', bg: 'bg-[#EC0000]', text: 'text-white', logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b8/Banco_Santander_Logotipo.svg' };
+    return { 
+      name: 'SANTANDER', 
+      bg: 'bg-[#EC0000]', 
+      text: 'text-white', 
+      logo: 'https://images.seeklogo.com/logo-png/27/2/banco-santander-logo-png_seeklogo-278272.png' 
+    };
   } else if (t.includes('banorte')) {
-    return { name: 'BANORTE', bg: 'bg-[#EB0029]', text: 'text-white', logo: 'https://upload.wikimedia.org/wikipedia/commons/5/5a/Banorte_logo.svg' };
+    return { 
+      name: 'BANORTE', 
+      bg: 'bg-[#EB0029]', 
+      text: 'text-white', 
+      logo: 'https://images.seeklogo.com/logo-png/38/2/banorte-logo-png_seeklogo-382928.png' 
+    };
   } else if (t.includes('citibanamex') || t.includes('banamex')) {
-    return { name: 'CITIBANAMEX', bg: 'bg-[#001E62]', text: 'text-white', logo: 'https://upload.wikimedia.org/wikipedia/commons/1/1a/Citibanamex_logo.svg' };
+    return { 
+      name: 'CITIBANAMEX', 
+      bg: 'bg-[#001E62]', 
+      text: 'text-white', 
+      logo: 'https://images.seeklogo.com/logo-png/43/2/citibanamex-logo-png_seeklogo-437562.png' 
+    };
   } else if (t.includes('hsbc')) {
-    return { name: 'HSBC', bg: 'bg-[#DB0011]', text: 'text-white', logo: 'https://upload.wikimedia.org/wikipedia/commons/a/aa/HSBC_logo_%282018%29.svg' };
+    return { 
+      name: 'HSBC', 
+      bg: 'bg-[#DB0011]', 
+      text: 'text-white', 
+      logo: 'https://images.seeklogo.com/logo-png/41/2/hsbc-logo-png_seeklogo-414777.png' 
+    };
   } else if (t.includes('nu')) {
-    return { name: 'NU', bg: 'bg-[#820AD1]', text: 'text-white', logo: 'https://upload.wikimedia.org/wikipedia/commons/f/f7/Nu_logo.svg' };
+    return { 
+      name: 'NU', 
+      bg: 'bg-[#820AD1]', 
+      text: 'text-white', 
+      logo: 'https://images.seeklogo.com/logo-png/49/2/nu-bank-logo-png_seeklogo-493339.png' 
+    };
   } else if (t.includes('amex') || t.includes('american express')) {
-    return { name: 'AMEX', bg: 'bg-[#006FCF]', text: 'text-white', logo: 'https://upload.wikimedia.org/wikipedia/commons/3/30/American_Express_logo_%282018%29.svg' };
+    return { 
+      name: 'AMEX', 
+      bg: 'bg-[#006FCF]', 
+      text: 'text-white', 
+      logo: 'https://images.seeklogo.com/logo-png/11/2/american-express-logo-png_seeklogo-116041.png' 
+    };
   }
-  return { name: 'BANCO', bg: 'bg-blue-600', text: 'text-white', logo: null };
+  
+  return { 
+    name: 'BANCO', 
+    bg: 'bg-blue-600', 
+    text: 'text-white', 
+    logo: null 
+  };
 };
 
 export const decodeCoupon = (offer) => {
@@ -365,3 +406,4 @@ export default function BankCouponsAdmin({ API, adminPassword, getSafeId, loadPu
     </div>
   );
 }
+```[cite: 12]
