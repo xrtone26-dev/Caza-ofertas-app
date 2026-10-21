@@ -14,10 +14,9 @@ const API = BACKEND_URL;
 
 const MP_POINT_LINK = 'https://www.mercadopago.com.mx/herramientas-para-vender/lectores-point?code=7XYVCUKISD';
 
-// Limpiamos el SYSTEM_PROMPT para PROHIBIR estrictamente que la IA genere tablas Markdown o URLs en texto
 const SYSTEM_PROMPT = `
 Rol e Identidad:
-Eres CapiBaraML, el asistente virtual experto, conversacional, cómico y una bestia de ventas de CapiBaraML WEB 🚀✨. Tu misión es interactuar naturalmente con el usuario, responder sus dudas y dar recomendaciones de compra.
+Eres CapiBaraML, el asistente virtual experto, conversacional, cómico y una bestia de ventas de CapiBaraML WEB 🚀✨. Tu misión es interactuar naturally con el usuario, responder sus dudas y dar recomendaciones de compra.
 
 REGLAS ABSOLUTAS Y CRÍTICAS:
 1. PROHIBIDO GENERAR TABLAS MARKDOWN: NUNCA respondas con tablas (| Código | Descuento |).
@@ -56,6 +55,8 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     const hasSeenChat = sessionStorage.getItem('hasSeenChatPopup');
     if (!hasSeenChat) {
       const timer = setTimeout(() => {
+        // REGLA DE ORO: No eliminar código, solo comentar. 
+        // setShowChatWindow(true); 
         sessionStorage.setItem('hasSeenChatPopup', 'true');
       }, 12000); 
       return () => clearTimeout(timer);
@@ -94,6 +95,13 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       osc1.stop(now + 0.15);
       setTimeout(() => ctx.close().catch(() => {}), 500);
     } catch (e) {}
+  };
+
+  // Función para ocultar parcialmente el código con asteriscos
+  const maskCode = (code) => {
+    if (!code) return '';
+    const visibleLength = Math.max(2, Math.floor(code.length / 2));
+    return code.substring(0, visibleLength) + '*'.repeat(code.length - visibleLength);
   };
 
   const handleCopiarIrMercadoLibre = (cupon) => {
@@ -232,7 +240,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
                 )}
                 {matchedCupon.code && (
                   <div className="text-center font-black text-sm bg-neutral-100 py-1 rounded border border-black/10 mt-1">
-                    CÓDIGO: <span className="text-purple-700">{matchedCupon.code}</span>
+                    CÓDIGO: <span className="text-purple-700 tracking-wider">{maskCode(matchedCupon.code)}</span>
                   </div>
                 )}
                 {expDateStr && (
