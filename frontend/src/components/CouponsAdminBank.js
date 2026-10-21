@@ -1,5 +1,3 @@
-// src/components/BankCouponsAdmin.jsx
-
 import React, { useState } from 'react';
 import { X, Plus, Edit2, Trash2, Tag, Clock, DollarSign, ExternalLink, ShieldCheck, Building2 } from 'lucide-react';
 import axios from 'axios';
