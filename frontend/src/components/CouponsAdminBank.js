@@ -18,49 +18,49 @@ export const getBankInfo = (title = '') => {
       name: 'BBVA', 
       bg: 'bg-[#004481]', 
       text: 'text-white', 
-      border: 'border-[#002f5c]' 
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/BBVA_2019.svg/300px-BBVA_2019.svg.png' 
     };
   } else if (t.includes('santander')) {
     return { 
       name: 'SANTANDER', 
       bg: 'bg-[#EC0000]', 
       text: 'text-white', 
-      border: 'border-[#b50000]' 
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Banco_Santander_Logotipo.svg/300px-Banco_Santander_Logotipo.svg.png' 
     };
   } else if (t.includes('banorte')) {
     return { 
       name: 'BANORTE', 
       bg: 'bg-[#EB0029]', 
       text: 'text-white', 
-      border: 'border-[#b3001f]' 
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Banorte_logo.svg/300px-Banorte_logo.svg.png' 
     };
   } else if (t.includes('citibanamex') || t.includes('banamex')) {
     return { 
       name: 'CITIBANAMEX', 
       bg: 'bg-[#001E62]', 
       text: 'text-white', 
-      border: 'border-[#00123d]' 
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Citibanamex_logo.svg/300px-Citibanamex_logo.svg.png' 
     };
   } else if (t.includes('hsbc')) {
     return { 
       name: 'HSBC', 
       bg: 'bg-[#DB0011]', 
       text: 'text-white', 
-      border: 'border-[#a8000d]' 
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/HSBC_logo_%282018%29.svg/300px-HSBC_logo_%282018%29.svg.png' 
     };
   } else if (t.includes('nu')) {
     return { 
       name: 'NU', 
       bg: 'bg-[#820AD1]', 
       text: 'text-white', 
-      border: 'border-[#5f0799]' 
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Nu_logo.svg/300px-Nu_logo.svg.png' 
     };
   } else if (t.includes('amex') || t.includes('american express')) {
     return { 
       name: 'AMEX', 
       bg: 'bg-[#006FCF]', 
       text: 'text-white', 
-      border: 'border-[#004f94]' 
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/American_Express_logo_%282018%29.svg/300px-American_Express_logo_%282018%29.svg.png' 
     };
   }
   
@@ -68,7 +68,7 @@ export const getBankInfo = (title = '') => {
     name: 'BANCO', 
     bg: 'bg-blue-600', 
     text: 'text-white', 
-    border: 'border-blue-700' 
+    logo: null 
   };
 };
 
@@ -264,14 +264,23 @@ export default function BankCouponsAdmin({ API, adminPassword, getSafeId, loadPu
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                {/* Insignia / Logo Institucional del Banco (Diseño Corporativo 100% Seguro) */}
-                <div className={`rounded-2xl p-4 text-center flex flex-col justify-center items-center h-28 ${bank.bg} border-2 ${bank.border} shadow-lg relative overflow-hidden group`}>
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <Building2 className="w-8 h-8 text-white mb-1 drop-shadow-md" />
-                  <span className="font-black text-xs uppercase tracking-widest text-white text-center drop-shadow">
+                {/* Logo del Banco con enlace estable de PNG */}
+                <div className="bg-white rounded-xl p-3 text-center flex flex-col justify-center items-center h-28 border-2 border-black/10 shadow-inner">
+                  {bank.logo ? (
+                    <img 
+                      src={bank.logo} 
+                      alt={bank.name} 
+                      className="w-full h-14 object-contain mb-1" 
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <Building2 className="w-8 h-8 text-blue-600 mb-1" />
+                  )}
+                  <span className="font-black text-[10px] uppercase tracking-widest text-slate-800 text-center">
                     {bank.name}
                   </span>
-                  <span className="text-[9px] text-white/80 font-semibold tracking-wider mt-0.5">PROMOCIÓN</span>
                 </div>
 
                 <div className="sm:col-span-2 space-y-2">
