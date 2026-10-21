@@ -16,7 +16,7 @@ const MP_POINT_LINK = 'https://www.mercadopago.com.mx/herramientas-para-vender/l
 
 const SYSTEM_PROMPT = `
 Rol e Identidad:
-Eres CapiBaraML, el asistente virtual experto, conversacional, cómico y una bestia de ventas de CapiBaraML WEB 🚀✨. Tu misión es interactuar naturally con el usuario, responder sus dudas y dar recomendaciones de compra.
+Eres CapiBaraML, el asistente virtual experto, conversacional, cómico y una bestia de ventas de CapiBaraML WEB 🚀✨. Tu misión es interactuar naturalmente con el usuario, responder sus dudas y dar recomendaciones de compra.
 
 REGLAS ABSOLUTAS Y CRÍTICAS:
 1. PROHIBIDO GENERAR TABLAS MARKDOWN: NUNCA respondas con tablas (| Código | Descuento |).
@@ -109,21 +109,18 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       navigator.clipboard.writeText(cupon.code);
     }
     playSniperSound();
-    setToastMessage('¡Cupón copiado! Abriendo Mercado Libre en 5 segundos 🚀');
+    
+    // 1. Mostrar Pop-up de confirmación
+    setToastMessage('¡Cupón copiado al portapapeles! Abriendo Mercado Libre en 3 segundos 🚀');
     setShowToast(true);
 
-    const nuevaPestana = window.open('about:blank', '_blank');
+    const linkDestino = cupon.link ? cupon.link : 'https://www.mercadolibre.com.mx';
 
+    // 2. Retraso exacto de 3 segundos (3000ms) mostrando el pop-up antes de abrir la página
     setTimeout(() => {
       setShowToast(false);
-      const linkDestino = cupon.link ? cupon.link : 'https://www.mercadolibre.com.mx';
-      
-      if (nuevaPestana) {
-        nuevaPestana.location.href = linkDestino;
-      } else {
-        window.location.href = linkDestino;
-      }
-    }, 5000); 
+      window.open(linkDestino, '_blank', 'noopener,noreferrer');
+    }, 3000); 
   };
 
   const renderSocialLinksCard = () => {
@@ -251,7 +248,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
               </div>
               <button
                 onClick={() => handleCopiarIrMercadoLibre(matchedCupon)}
-                className="w-full bg-black hover:bg-neutral-900 text-[#FFEA00] font-black py-2.5 px-3 rounded-xl text-xs uppercase flex items-center justify-center gap-2 transition-transform hover:scale-105 shadow border border-black"
+                className="w-full bg-black hover:bg-neutral-900 text-[#FFEA00] font-black py-2.5 px-3 rounded-xl text-xs uppercase flex items-center justify-center gap-2 transition-transform hover:scale-105 shadow border border-black cursor-pointer"
               >
                 <Copy size={14} /> Copiar Código e Ir a Meli 🚀
               </button>
@@ -444,10 +441,10 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       <AnimatePresence>
         {showToast && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="fixed top-20 right-5 z-[100] bg-[#FFEA00] text-black border-4 border-black p-4 rounded-2xl shadow-2xl font-black text-xs uppercase max-w-xs text-center"
+            initial={{ opacity: 0, y: -20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            className="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] bg-[#FFEA00] text-black border-4 border-black p-4 rounded-2xl shadow-2xl font-black text-xs uppercase max-w-sm text-center"
           >
             {toastMessage}
           </motion.div>
