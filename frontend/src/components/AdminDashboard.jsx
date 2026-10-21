@@ -1,4 +1,3 @@
-// Archivo: src/components/AdminDashboard.js
 import React, { useState } from 'react';
 import { X, Plus, Edit2, Trash2, Video, Copy, ShoppingCart, Image as ImageIcon, Star, Lock, Sparkles, CreditCard } from 'lucide-react';
 import axios from 'axios';
@@ -122,7 +121,18 @@ export default function AdminDashboard({
       const response = await axios.get(`${API}/admin/offers`, {
         params: { password: adminPassword, t: Date.now() },
       });
-      setAllOffers(response.data.map(decodeCoupon));
+      
+      const decodedOffers = response.data.map(decodeCoupon);
+      const now = new Date();
+
+      // Filtrar cupones: solo mantener los que NO hayan expirado
+      const activeNonExpiredOffers = decodedOffers.filter((offer) => {
+        if (!offer.expires_at) return true;
+        const expireDate = new Date(offer.expires_at);
+        return expireDate > now;
+      });
+
+      setAllOffers(activeNonExpiredOffers);
     } catch (error) {
       console.error("--- ⚠️ Error al cargar ofertas en Admin: ---", error);
     }
