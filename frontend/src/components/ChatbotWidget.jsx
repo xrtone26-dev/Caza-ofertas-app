@@ -1,3 +1,5 @@
+// src/components/ChatbotWidget.jsx
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Bot, Send, X, Copy, Minus } from 'lucide-react';
 import {
@@ -372,7 +374,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
             initial={{ opacity: 0, y: 40, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.9 }}
-            className={`fixed right-5 bottom-24 z-[90] w-[92%] max-w-sm rounded-3xl shadow-2xl border overflow-hidden flex flex-col h-[520px] ${
+            className={`fixed left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 right-auto sm:right-5 bottom-16 sm:bottom-24 z-[90] w-[95%] sm:w-[380px] md:w-[400px] rounded-3xl shadow-2xl border overflow-hidden flex flex-col h-[82vh] sm:h-[600px] max-h-[650px] ${
               isLight ? 'bg-white border-yellow-300 text-gray-800' : 'bg-neutral-900 border-yellow-400/50 text-neutral-100'
             }`}
           >
@@ -510,7 +512,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
           animate={{ opacity: 1, x: 0, scale: 1 }}
           transition={{ delay: 1.5, type: 'spring', stiffness: 260, damping: 20 }}
           onClick={() => setShowChatWindow(true)}
-          className="fixed right-20 bottom-6 z-40 cursor-pointer group flex items-center gap-2 pointer-events-auto"
+          className="fixed right-16 sm:right-20 bottom-6 z-40 cursor-pointer group hidden sm:flex items-center gap-2 pointer-events-auto"
         >
           <div className="bg-white text-black font-black text-xs px-4 py-2.5 rounded-2xl shadow-xl border-2 border-black flex items-center gap-2 transition-transform group-hover:scale-105">
             <span>¡Hola! <span className="inline-block animate-wave origin-bottom-right">👋</span></span>
