@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bot, Send, X, Copy, Minus } from 'lucide-react';
+import { Bot, Send, X, Copy, Minus, CreditCard, ExternalLink } from 'lucide-react';
 import {
   FaWhatsapp,
   FaTelegram,
@@ -12,6 +12,8 @@ import axios from 'axios';
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
+const MP_POINT_LINK = 'https://www.mercadopago.com.mx/herramientas-para-vender/lectores-point?code=7XYVCUKISD';
+
 const SYSTEM_PROMPT = `
 Rol e Identidad:
 Eres CapiBaraML, el asistente virtual experto, conversacional, cómico y una bestia de ventas de CapiBaraML WEB 🚀✨. Tu misión es interactuar naturalmente con el usuario, responder sus dudas, dar recomendaciones de compra y entregar los códigos de cupones exactos de inmediato.
@@ -20,9 +22,12 @@ REGLAS DE INTERACCIÓN:
 1. SALUDOS Y CONVERSACIÓN: Si el usuario solo saluda, devuélvele el saludo con energía y ofrécele el cupón sorpresa del día.
 2. RESPUESTAS DE VENTAS: Sé persuasivo. En cada respuesta sobre productos, cupones o terminales Point, resalta el ahorro y empuja sutilmente al usuario a reclamar su beneficio en las tarjetas interactivas.
 
+REGLAS CRÍTICAS PARA TERMINALES MERCADO PAGO:
+3. Si te preguntan sobre terminales Point o Mercado Pago, recomiéndalas brevemente e indica que usen el enlace oficial con descuento exclusivo: ${MP_POINT_LINK}
+
 REGLAS CRÍTICAS PARA CUPONES Y OFERTAS:
-3. ENTREGA DIRECTA: Si el usuario PIDE cupones o descuentos, entrégaselos de inmediato mencionando el código exacto y limpio. NUNCA uses asteriscos (*) para ocultar códigos.
-4. PROHIBIDO ENVIAR ENLACES SUELTOS: Nunca escribas URLs en tus respuestas de texto. La redirección ocurre únicamente a través de la tarjeta interactiva que se despliega automáticamente.
+4. ENTREGA DIRECTA: Si el usuario PIDE cupones o descuentos, entrégaselos de inmediato mencionando el código exacto y limpio. NUNCA uses asteriscos (*) para ocultar códigos.
+5. PROHIBIDO ENVIAR ENLACES SUELTOS: La redirección ocurre principalmente a través de la tarjeta interactiva que se despliega automáticamente.
 
 Reglas de Comportamiento y Tono:
 - Tono General: Directo, dinámico, cómico, vendedor y lleno de energía (✨).
@@ -60,7 +65,6 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     if (!hasSeenChat) {
       const timer = setTimeout(() => {
         // REGLA DE ORO: No eliminar código, solo comentar. 
-        // Esta es la línea rebelde que abría el chat automáticamente, ya está neutralizada:
         // setShowChatWindow(true); 
         sessionStorage.setItem('hasSeenChatPopup', 'true');
       }, 12000); 
@@ -176,6 +180,31 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     );
   };
 
+  const renderMercadoPagoTerminalCard = () => {
+    return (
+      <div className="flex flex-col gap-2.5 mt-1">
+        <p className="text-xs font-black text-white">¡Adquiere tu Terminal Point de Mercado Pago con descuento exclusivo y comisión preferencial! 💳🚀</p>
+        <div className="bg-[#009EE3] text-white border-2 border-black rounded-2xl p-4 shadow-xl flex flex-col gap-3">
+          <div className="flex items-center gap-2 font-black text-xs uppercase bg-black/30 py-1.5 px-3 rounded-lg text-center tracking-wide">
+            <CreditCard className="w-4 h-4" /> Terminales Point Mercado Pago
+          </div>
+          <p className="text-xs font-bold text-white/90 leading-tight">
+            Acepta todas las tarjetas de crédito, débito y vales con la tarifa más baja del mercado. ¡Incluye envío gratis y cuenta digital sin costo!
+          </p>
+          <a
+            href={MP_POINT_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={playSniperSound}
+            className="w-full bg-black hover:bg-neutral-900 text-[#009EE3] font-black py-3 px-4 rounded-xl text-xs uppercase flex items-center justify-center gap-2 transition-transform hover:scale-105 shadow-md border border-black"
+          >
+            <ExternalLink size={16} /> Ver Terminales con Descuento 🚀
+          </a>
+        </div>
+      </div>
+    );
+  };
+
   const renderMessageTextWithFormat = (text) => {
     if (!text) return null;
     const urlRegex = /(https?:\/\/[^\s]+[^.,;!?)\]])/g;
@@ -216,6 +245,10 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
   const renderMessageWithCouponCards = (msg) => {
     if (msg.isSocialLinks) {
       return renderSocialLinksCard();
+    }
+
+    if (msg.isMercadoPagoCard) {
+      return renderMercadoPagoTerminalCard();
     }
 
     const text = msg.text || '';
@@ -304,6 +337,25 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
           {
             sender: 'bot',
             isSocialLinks: true,
+          },
+        ]);
+        setIsTyping(false);
+      }, 800);
+      return;
+    }
+
+    if (
+      lowerText.includes('terminal') ||
+      lowerText.includes('point') ||
+      lowerText.includes('mercado pago') ||
+      lowerText.includes('lectores')
+    ) {
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            isMercadoPagoCard: true,
           },
         ]);
         setIsTyping(false);
