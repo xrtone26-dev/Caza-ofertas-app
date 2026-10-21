@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bot, Send, X, Copy, Minus, CreditCard, ExternalLink } from 'lucide-react';
+import { Bot, Send, X, Copy, Minus, CreditCard, ExternalLink, Tag } from 'lucide-react';
 import {
   FaWhatsapp,
   FaTelegram,
@@ -205,6 +205,65 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     );
   };
 
+  const renderCuponesDirectCards = () => {
+    if (!localCupones || localCupones.length === 0) {
+      return (
+        <div className="p-3 bg-neutral-800 text-yellow-400 rounded-xl text-xs font-bold text-center border border-yellow-400/30">
+          ⚡ No hay cupones activos guardados en este momento. ¡Revisa nuevamente en unos minutos!
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col gap-3 mt-1">
+        <p className="text-xs font-black text-white">¡Aquí tienes los cupones activos disponibles para ahorrar hoy! 🎟️🔥</p>
+        {localCupones.map((matchedCupon, idx) => {
+          let cleanDesc = matchedCupon.description || '';
+          let expDateStr = '';
+
+          const expMatch = cleanDesc.match(/\|\|exp:(.*?)\|\|/);
+          if (expMatch) {
+            expDateStr = expMatch[1].split('T')[0];
+            cleanDesc = cleanDesc.replace(/\|\|exp:.*?\|\|/g, '').trim();
+          } else if (matchedCupon.expires_at) {
+            expDateStr = new Date(matchedCupon.expires_at).toISOString().split('T')[0];
+          }
+
+          return (
+            <div key={idx} className="bg-[#FFEA00] text-black border-2 border-black rounded-2xl p-3.5 shadow-lg flex flex-col gap-2">
+              <div className="font-black text-xs uppercase bg-black text-white py-1.5 px-3 rounded-lg text-center tracking-wide flex items-center justify-center gap-1.5">
+                <Tag size={14} className="text-yellow-400" /> {matchedCupon.title || 'Cupón Exclusivo'}
+              </div>
+              <div className="bg-white/80 border border-black/20 rounded-xl p-2 flex flex-col gap-1 text-xs font-bold text-neutral-900">
+                {cleanDesc ? (
+                  <p className="leading-tight">{cleanDesc}</p>
+                ) : (
+                  <p className="leading-tight">Aprovecha este descuento especial en Mercado Libre.</p>
+                )}
+                {matchedCupon.code && (
+                  <div className="text-center font-black text-sm bg-neutral-100 py-1 rounded border border-black/10 mt-1">
+                    CÓDIGO: <span className="text-purple-700">{matchedCupon.code}</span>
+                  </div>
+                )}
+                {expDateStr && (
+                  <div className="text-[11px] font-black text-neutral-700 mt-1 flex items-center justify-center gap-1">
+                    ⏰ Expira: {expDateStr}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => handleCopiarIrMercadoLibre(matchedCupon)}
+                className="w-full bg-black hover:bg-neutral-900 text-[#FFEA00] font-black py-2.5 px-3 rounded-xl text-xs uppercase flex items-center justify-center gap-2 transition-transform hover:scale-105 shadow border border-black"
+              >
+                <Copy size={14} /> Copiar Código e Ir a Meli 🚀
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const renderMessageTextWithFormat = (text) => {
     if (!text) return null;
     const urlRegex = /(https?:\/\/[^\s]+[^.,;!?)\]])/g;
@@ -249,6 +308,10 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
 
     if (msg.isMercadoPagoCard) {
       return renderMercadoPagoTerminalCard();
+    }
+
+    if (msg.isCuponesCard) {
+      return renderCuponesDirectCards();
     }
 
     const text = msg.text || '';
@@ -320,6 +383,27 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     setChatMessages(newHistory);
     setInputMessage('');
     setIsTyping(true);
+
+    // Detección directa de solicitud de cupones
+    if (
+      lowerText.includes('cupón') ||
+      lowerText.includes('cupon') ||
+      lowerText.includes('descuento') ||
+      lowerText.includes('código') ||
+      lowerText.includes('codigo')
+    ) {
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            isCuponesCard: true,
+          },
+        ]);
+        setIsTyping(false);
+      }, 400);
+      return;
+    }
 
     // Detección directa e inquebrantable de redes sociales
     if (
