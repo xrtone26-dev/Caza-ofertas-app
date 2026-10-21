@@ -1,3 +1,5 @@
+// src/components/BankCouponsAdmin.jsx
+
 import React, { useState } from 'react';
 import { X, Plus, Edit2, Trash2, Tag, Clock, DollarSign, ExternalLink, ShieldCheck, Building2 } from 'lucide-react';
 import axios from 'axios';
@@ -11,54 +13,55 @@ const getFutureDate30Hours = () => {
 export const getBankInfo = (title = '') => {
   const t = String(title || '').toLowerCase();
   
+  // Logos vectoriales incrustados (Data URIs 100% seguros, sin errores 404 ni CORS)
   if (t.includes('bbva')) {
     return { 
       name: 'BBVA', 
       bg: 'bg-[#004481]', 
       text: 'text-white', 
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/BBVA_2019.svg/300px-BBVA_2019.svg.png' 
+      logo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80"><rect width="200" height="80" fill="%23004481"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-weight="900" font-size="32">BBVA</text></svg>' 
     };
   } else if (t.includes('santander')) {
     return { 
       name: 'SANTANDER', 
       bg: 'bg-[#EC0000]', 
       text: 'text-white', 
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Banco_Santander_Logotipo.svg/300px-Banco_Santander_Logotipo.svg.png' 
+      logo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80"><rect width="200" height="80" fill="%23EC0000"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-weight="900" font-size="22">SANTANDER</text></svg>' 
     };
   } else if (t.includes('banorte')) {
     return { 
       name: 'BANORTE', 
       bg: 'bg-[#EB0029]', 
       text: 'text-white', 
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Banorte_logo.svg/300px-Banorte_logo.svg.png' 
+      logo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80"><rect width="200" height="80" fill="%23EB0029"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-weight="900" font-size="24">BANORTE</text></svg>' 
     };
   } else if (t.includes('citibanamex') || t.includes('banamex')) {
     return { 
       name: 'CITIBANAMEX', 
       bg: 'bg-[#001E62]', 
       text: 'text-white', 
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Citibanamex_logo.svg/300px-Citibanamex_logo.svg.png' 
+      logo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80"><rect width="200" height="80" fill="%23001E62"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-weight="900" font-size="18">CITIBANAMEX</text></svg>' 
     };
   } else if (t.includes('hsbc')) {
     return { 
       name: 'HSBC', 
       bg: 'bg-[#DB0011]', 
       text: 'text-white', 
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/HSBC_logo_%282018%29.svg/300px-HSBC_logo_%282018%29.svg.png' 
+      logo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80"><rect width="200" height="80" fill="%23DB0011"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-weight="900" font-size="30">HSBC</text></svg>' 
     };
   } else if (t.includes('nu')) {
     return { 
       name: 'NU', 
       bg: 'bg-[#820AD1]', 
       text: 'text-white', 
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Nu_logo.svg/300px-Nu_logo.svg.png' 
+      logo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80"><rect width="200" height="80" fill="%23820AD1"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-weight="900" font-size="36">Nu</text></svg>' 
     };
   } else if (t.includes('amex') || t.includes('american express')) {
     return { 
       name: 'AMEX', 
       bg: 'bg-[#006FCF]', 
       text: 'text-white', 
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/American_Express_logo_%282018%29.svg/300px-American_Express_logo_%282018%29.svg.png' 
+      logo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80"><rect width="200" height="80" fill="%23006FCF"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-weight="900" font-size="28">AMEX</text></svg>' 
     };
   }
   
@@ -262,16 +265,13 @@ export default function BankCouponsAdmin({ API, adminPassword, getSafeId, loadPu
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                {/* Logo del Banco con enlace estable de PNG */}
+                {/* Logo del Banco con SVG incrustado de alta estabilidad */}
                 <div className="bg-white rounded-xl p-3 text-center flex flex-col justify-center items-center h-28 border-2 border-black/10 shadow-inner">
                   {bank.logo ? (
                     <img 
                       src={bank.logo} 
                       alt={bank.name} 
                       className="w-full h-14 object-contain mb-1" 
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
                     />
                   ) : (
                     <Building2 className="w-8 h-8 text-blue-600 mb-1" />
