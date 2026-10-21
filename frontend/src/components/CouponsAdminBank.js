@@ -11,7 +11,8 @@ const getFutureDate30Hours = () => {
 };
 
 export const getBankInfo = (title = '') => {
-  const t = title.toLowerCase();
+  // Corrección: Asegurar que title sea una cadena válida para evitar errores si es null o undefined
+  const t = String(title || '').toLowerCase();
   if (t.includes('bbva')) {
     return { name: 'BBVA', bg: 'bg-[#004481]', text: 'text-white', logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2b/BBVA_2019.svg' };
   } else if (t.includes('santander')) {
