@@ -406,4 +406,3 @@ export default function BankCouponsAdmin({ API, adminPassword, getSafeId, loadPu
     </div>
   );
 }
-```[cite: 12]
