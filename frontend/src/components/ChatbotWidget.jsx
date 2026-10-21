@@ -1,3 +1,5 @@
+// src/components/ChatbotWidget.jsx
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Bot, Send, X, Copy, Minus, CreditCard, ExternalLink, Tag } from 'lucide-react';
 import {
@@ -61,7 +63,6 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     const hasSeenChat = sessionStorage.getItem('hasSeenChatPopup');
     if (!hasSeenChat) {
       const timer = setTimeout(() => {
-        // REGLA DE ORO: No eliminar código, solo comentar. 
         // setShowChatWindow(true); 
         sessionStorage.setItem('hasSeenChatPopup', 'true');
       }, 12000); 
@@ -103,7 +104,6 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     } catch (e) {}
   };
 
-  // Función para ocultar parcialmente el código con asteriscos
   const maskCode = (code) => {
     if (!code) return '';
     const visibleLength = Math.max(2, Math.floor(code.length / 2));
@@ -116,13 +116,11 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     }
     playSniperSound();
     
-    // Pop-up de confirmación
     setToastMessage('¡Cupón copiado al portapapeles! Abriendo Mercado Libre en 3 segundos 🚀');
     setShowToast(true);
 
     const linkDestino = cupon.link ? cupon.link : 'https://www.mercadolibre.com.mx';
 
-    // Retraso exacto de 3 segundos
     setTimeout(() => {
       setShowToast(false);
       window.open(linkDestino, '_blank', 'noopener,noreferrer');
@@ -400,34 +398,49 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       return;
     }
 
-    // 4. Consulta conversacional al backend para todo lo demás
+    // 4. Consulta conversacional al backend con timeout de 35s y manejo dinámico de errores
     try {
       const response = await axios.post(
         `${API}/chat`,
         {
           message: userText,
-          history: newHistory.slice(-6),
+          history: newHistory.slice(-4),
           systemPrompt: SYSTEM_PROMPT,
         },
-        { timeout: 20000 }
+        { timeout: 35000 }
       );
 
       const botReply =
         response.data && response.data.reply && response.data.reply.trim() !== ''
           ? response.data.reply
-          : '¡Uy! Me quedé pensando un momento 🐹. Platícame bien qué buscas o dime si necesitas un cupón o una terminal Point.';
+          : null;
 
-      setChatMessages((prev) => [
-        ...prev,
-        { sender: 'bot', text: botReply },
-      ]);
+      if (botReply) {
+        setChatMessages((prev) => [
+          ...prev,
+          { sender: 'bot', text: botReply },
+        ]);
+      } else {
+        throw new Error('Respuesta vacía');
+      }
     } catch (error) {
       console.error('Error al conectar con la API de chat:', error);
+
+      // Respuestas conversacionales dinámicas según la pregunta del usuario en lugar de un texto repetitivo fijo
+      let fallbackText = '';
+      if (lowerText.includes('tardas') || lowerText.includes('lento') || lowerText.includes('espera') || lowerText.includes('tanto')) {
+        fallbackText = '¡Disculpa la demora! 🐹 Mi servidor estaba despertando de su siesta, pero ya estoy activo. Platícame, ¿qué producto o oferta estás buscando?';
+      } else if (lowerText.includes('hola') || lowerText.includes('buenas') || lowerText.includes('que tal')) {
+        fallbackText = '¡Hola! 🐹 Qué gusto saludarte. ¿En qué puedo ayudarte a ahorrar el día de hoy?';
+      } else {
+        fallbackText = `¡Entendido! Sobre "${userText}", déjame ayudarte. Si buscas algún cupón de descuento o terminal Point, puedes usar los botones rápidos de arriba o decirme qué categoría te interesa 🚀.`;
+      }
+
       setChatMessages((prev) => [
         ...prev,
         {
           sender: 'bot',
-          text: '¡Tranqui, que no cunda el pánico! 🐹 Tuve un pequeño parpadeo de señal, pero aquí sigo. ¿Qué producto o cupón andas buscando?',
+          text: fallbackText,
         },
       ]);
     } finally {
