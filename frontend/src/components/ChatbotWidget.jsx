@@ -615,3 +615,4 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
     </>
   );
 }
+
