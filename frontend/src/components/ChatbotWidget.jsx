@@ -363,7 +363,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
       return;
     }
 
-    // Enviamos una muestra más amplia (30 productos) sanitizada para que el backend busque coincidencias
     const cleanProducts = Array.isArray(products)
       ? products
           .filter(p => p && typeof p === 'object')
@@ -408,7 +407,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
         ...prev,
         {
           sender: 'bot',
-          text: '¡Hola! 🐹 Revisa nuestro catálogo destacado, tenemos opciones excelentes como la **Laptop Gamer Thunderobot RZ16** y el **Smartphones Oukitel WP100**. ¡Dime si buscas alguna otra recomendación! 🚀',
+          text: '¡Claro que sí! 🚀 Para gama alta y máxima potencia te recomiendo el **Smartphones Oukitel WP100 (36GB RAM, 512GB ROM)** o la poderosa **Laptop Gamer Thunderobot RZ16**. ¡Dime cuál te interesa para darte el enlace directo! 🐹✨',
         },
       ]);
     } finally {
