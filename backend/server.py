@@ -226,7 +226,7 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        # Priorizamos los productos enviados por el frontend (Firebase), si no hay, consultamos MongoDB
+        # Usamos prioritariamente los productos enviados por el frontend, si no hay, buscamos en DB
         active_products = data.products if data.products else await db.products.find({}).to_list(length=50)
         all_offers = await db.offers.find({}).to_list(length=50)
         
