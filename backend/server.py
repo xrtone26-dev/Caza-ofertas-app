@@ -224,8 +224,8 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        active_products = await db.products.find({"active": True}).to_list(length=20)
-        all_offers = await db.offers.find({"active": True}).to_list(length=20)
+        active_products = await db.products.find({"active": True}).to_list(length=100)
+        all_offers = await db.offers.find({"active": True}).to_list(length=100)
         
         now = datetime.utcnow()
         active_offers = []
@@ -246,6 +246,7 @@ async def ai_chat_endpoint(data: ChatRequest):
             db_context += "PRODUCTOS:\n"
             for p in active_products:
                 p_title = p.get('nombre') or p.get('title') or 'Producto'
+                # CORREGIDO: Se reemplazó el operador | por el operador or correcto
                 p_price = str(p.get('precio') or p.get('discount_price') or 'N/A')
                 p_link = p.get('link') or p.get('affiliate_link') or 'N/A'
                 db_context += f"- {p_title}: Precio ${p_price}. Link real: {p_link}\n"
@@ -277,8 +278,7 @@ async def ai_chat_endpoint(data: ChatRequest):
         messages = [{"role": "system", "content": base_system_prompt + db_context}]
         
         if data.history:
-            recent_history = data.history[-2:]
-            for msg in recent_history:
+            for msg in data.history:
                 sender = msg.get("sender") or msg.get("role") or "user"
                 role = "user" if sender in ["user", "usuario"] else "assistant"
                 text = msg.get("text") or msg.get("content") or ""
@@ -288,12 +288,11 @@ async def ai_chat_endpoint(data: ChatRequest):
         if data.message:
             messages.append({"role": "user", "content": data.message})
             
-        # MODELO VIGENTE Y ESTABLE DE GROQ
         chat_completion = await ai_client.chat.completions.create(
             messages=messages,
-            model="llama-3.3-70b-versatile",
-            temperature=0.7,
-            max_tokens=250
+            model="openai/gpt-oss-20b",
+            temperature=0.1,
+            max_tokens=300
         )
         
         return {"reply": chat_completion.choices[0].message.content}
@@ -301,8 +300,6 @@ async def ai_chat_endpoint(data: ChatRequest):
     except Exception as e:
         error_msg = str(e)
         print(f"Error detallado en AI: {error_msg}")
-        if "429" in error_msg:
-            return {"reply": "¡Uy! Mis servidores de IA están respirando un segundo por tanto tráfico 🐹. Inténtalo de nuevo en un momento."}
         return {"reply": f"⚠️ [Debug Error Real]: {error_msg}"}
 
 @api_router.post("/api/bot/products")
