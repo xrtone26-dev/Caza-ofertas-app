@@ -16,7 +16,7 @@ const MP_POINT_LINK = 'https://www.mercadopago.com.mx/herramientas-para-vender/l
 
 // System Prompt conversacional, amigable y flexible
 const SYSTEM_PROMPT = `
-Eres CapiBaraML 🐹, el asistente virtual oficial de CapiBaraML WEB. 
+Eres CapiBaraML 🐹, el asistente virtual oficial de CazaOfertasML WEB. 
 
 TU PERSONALIDAD Y TONO DE VOZ:
 - Eres sumamente amigable, simpático, cómico, educado y cercano.
@@ -28,9 +28,10 @@ REGLAS STRICTAS DE FORMATO:
 1. NUNCA generes tablas en Markdown (prohibido usar | Código | Descuento |).
 2. NUNCA escribas URLs o enlaces largos en el texto plano.
 3. Sé conciso y claro (máximo 2 a 3 párrafos cortos por respuesta).
+4. Cuando recomiendes un producto del inventario, OBLIGATORIAMENTE debes incluir su enlace de afiliado o link directo provisto en el catálogo.
 `;
 
-export default function ChatbotWidget({ isLight, cupones = [] }) {
+export default function ChatbotWidget({ isLight, cupones = [], products = [] }) {
   const [showChatWindow, setShowChatWindow] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -64,7 +65,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
         // setShowChatWindow(true); 
         sessionStorage.setItem('hasSeenChatPopup', 'true');
       }, 12000); 
-      return () => clearTimeout(timer);
+      return () => clearInterval(timer);
     }
   }, []);
 
@@ -396,7 +397,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
       return;
     }
 
-    // 4. Consulta conversacional al backend con timeout de 35s y manejo dinámico de errores
+    // 4. Consulta conversacional al backend enviando la lista de PRODUCTOS
     try {
       const response = await axios.post(
         `${API}/chat`,
@@ -404,6 +405,7 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
           message: userText,
           history: newHistory.slice(-4),
           systemPrompt: SYSTEM_PROMPT,
+          products: products, // ENVIAMOS EL CATÁLOGOCARGADO EN EL FRONTEND AL BACKEND
         },
         { timeout: 35000 }
       );
@@ -424,7 +426,6 @@ export default function ChatbotWidget({ isLight, cupones = [] }) {
     } catch (error) {
       console.error('Error al conectar con la API de chat:', error);
 
-      // Respuestas conversacionales dinámicas según la pregunta del usuario en lugar de un texto repetitivo fijo
       let fallbackText = '';
       if (lowerText.includes('tardas') || lowerText.includes('lento') || lowerText.includes('espera') || lowerText.includes('tanto')) {
         fallbackText = '¡Disculpa la demora! 🐹 Mi servidor estaba despertando de su siesta, pero ya estoy activo. Platícame, ¿qué producto o oferta estás buscando?';
