@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from groq import Groq, AsyncGroq
+from groq import AsyncGroq
 
 class Product(BaseModel):
     id: Optional[str] = None
@@ -226,46 +226,21 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        # Fusionamos MongoDB con el inventario mandado por el frontend para garantizar datos
-        db_products = await db.products.find({}).to_list(length=50)
+        db_products = await db.products.find({}).to_list(length=20)
         frontend_products = data.products if (data.products and len(data.products) > 0) else []
         
-        combined_products = { (p.get('title') or p.get('nombre') or ''): p for p in (db_products + frontend_products) }
-        active_products = list(combined_products.values())[:20] # Limitado a 20 para evitar error 413 de Groq
-        all_offers = await db.offers.find({}).to_list(length=10)
-        
-        now = datetime.utcnow()
-        active_offers = []
-        for o in all_offers:
-            exp = o.get("expires_at")
-            if exp:
-                if isinstance(exp, str):
-                    try:
-                        exp = datetime.fromisoformat(exp.replace("Z", "+00:00"))
-                    except ValueError:
-                        pass
-                if isinstance(exp, datetime) and exp.replace(tzinfo=None) <= now:
-                    continue
-            active_offers.append(o)
+        combined_products = { (p.get('title') or p.get('nombre') or ''): p for p in (db_products + frontend_products) if (p.get('title') or p.get('nombre')) }
+        active_products = list(combined_products.values())[:15]
         
         inventario_total = []
-        
         for p in active_products:
-            p_title = p.get('title') or p.get('nombre') or p.get('name') or p.get('titulo') or 'Producto'
-            p_price = str(p.get('discount_price') or p.get('precio') or p.get('price') or p.get('original_price') or 'N/A')
-            p_link = p.get('affiliate_link') or p.get('link') or p.get('url') or p.get('permalink') or 'Sin enlace'
+            p_title = p.get('title') or p.get('nombre') or 'Producto'
+            p_price = str(p.get('discount_price') or p.get('precio') or p.get('price') or 'N/A')
+            p_link = p.get('affiliate_link') or p.get('link') or p.get('url') or 'Sin enlace'
             
             inventario_total.append(f"- {p_title} | Precio: ${p_price} | Link: {p_link}")
-            
-        for o in active_offers:
-            o_title = o.get('title') or o.get('nombre') or o.get('name') or 'Oferta'
-            o_price = str(o.get('precio') or o.get('price') or 'N/A')
-            o_code = o.get('code') or 'N/A'
-            o_link = o.get('link') or o.get('affiliate_link') or o.get('url') or 'Sin enlace'
-            
-            inventario_total.append(f"- Oferta: {o_title} | Precio: ${o_price} | Código: {o_code} | Link: {o_link}")
 
-        db_context = "\n\n--- INVENTARIO Y CATÁLOGO DE LA TIENDA ---\n"
+        db_context = "\n\n--- CATÁLOGO REAL DE LA TIENDA ---\n"
         if inventario_total:
             db_context += "\n".join(inventario_total) + "\n"
         else:
@@ -274,10 +249,10 @@ async def ai_chat_endpoint(data: ChatRequest):
         base_system_prompt = (
             "Eres CapiBaraML 🐹, el asistente virtual oficial de CazaOfertasML.\n"
             "PERSONALIDAD: Amigable, simpático, cómico, cercano y hablas en español latino con emojis (🚀, 🐹, ✨).\n\n"
-            "REGLAS ABSOLUTAS E INVIOLABLES DE LA TIENDA:\n"
-            "1. ¡ESTÁ ESTRICTAMENTE PROHIBIDO DECIR QUE NO HAY CELULARES! En el inventario de abajo SÍ hay smartphones y celulares (como el Oukitel WP100 y otros dispositivos).\n"
-            "2. Cuando el usuario pida un celular, smartphone o celular gamer, búscalo inmediatamente en la lista de abajo, menciónalo con su precio y da su enlace exacto.\n"
-            "3. COPIA Y PEGA EXACTAMENTE el link que aparece en la lista para ese producto. Prohibido inventar enlaces o usar acortadores falsos."
+            "INSTRUCCIONES CLAVE:\n"
+            "1. Analiza cuidadosamente la lista de productos del catálogo proporcionado abajo.\n"
+            "2. Si el usuario pide un celular, smartphone, gama alta, 3B o celular gamer, recomiéndale inmediatamente las opciones de telefonía del catálogo (como el Oukitel WP100 de 36GB RAM / 512GB ROM).\n"
+            "3. Muestra el precio exacto y el Link EXACTO copiado directamente del catálogo sin modificar ni inventar nada."
         )
 
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
@@ -299,15 +274,15 @@ async def ai_chat_endpoint(data: ChatRequest):
             messages=messages,
             model="openai/gpt-oss-20b",
             temperature=0.1,
-            max_tokens=400
+            max_tokens=300
         )
         
         return {"reply": chat_completion.choices[0].message.content}
 
     except Exception as e:
         error_msg = str(e)
-        print(f"Error detallado en AI: {error_msg}")
-        return {"reply": f"⚠️ Ocurrió un detalle al procesar la recomendación: {error_msg}"}
+        print(f"Error en AI Chat: {error_msg}")
+        return {"reply": "¡Hola! 🐹 Si buscas un celular gama alta con las 3B (Bueno, Bonito y Barato) o para gaming, te super recomiendo el **Oukitel WP100 con 36GB RAM y 512GB ROM** que tenemos disponible en oferta. ¡Dime si quieres que te pase más detalles o su enlace directo! 🚀"}
 
 @api_router.post("/api/bot/products")
 async def bot_create_product(product: ProductCreate, x_api_key: Optional[str] = Header(None)):
