@@ -129,7 +129,7 @@ class ChatRequest(BaseModel):
     message: str
     history: Optional[List[dict]] = []
     systemPrompt: Optional[str] = None 
-    products: Optional[List[dict]] = [] # Recibe los productos directamente del frontend
+    products: Optional[List[dict]] = []
 
 app = FastAPI()
 
@@ -226,8 +226,7 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        # Usamos prioritariamente los productos enviados por el frontend, si no hay, buscamos en DB
-        active_products = data.products if data.products else await db.products.find({}).to_list(length=50)
+        active_products = data.products if data.products else await db.products.find({}).to_list(length=100)
         all_offers = await db.offers.find({}).to_list(length=50)
         
         now = datetime.utcnow()
@@ -244,43 +243,51 @@ async def ai_chat_endpoint(data: ChatRequest):
                     continue
             active_offers.append(o)
         
-        db_context = "\n\n--- INVENTARIO Y CATÁLOGO DE PRODUCTOS Y OFERTAS VIGENTES EN LA TIENDA ---\n"
-        
         inventario_total = []
         
         for p in active_products:
-            p_title = p.get('nombre') or p.get('title') or p.get('name') or p.get('titulo') or 'Producto'
-            p_price = str(p.get('precio') or p.get('discount_price') or p.get('price') or 'N/A')
-            p_desc = p.get('description') or p.get('descuento') or p.get('discount') or ''
-            p_link = p.get('link') or p.get('affiliate_link') or p.get('url') or 'N/A'
-            inventario_total.append(f"- Producto: {p_title} | Precio: ${p_price} | Descripción: {p_desc} | ENLACE_COMPRA: {p_link}")
+            p_title = p.get('title') or p.get('nombre') or p.get('name') or p.get('titulo') or 'Producto'
+            p_price = str(p.get('discount_price') or p.get('precio') or p.get('price') or p.get('original_price') or 'N/A')
+            p_desc = p.get('description') or p.get('descuento') or p.get('discount') or p.get('specs') or p.get('features') or ''
+            p_link = p.get('affiliate_link') or p.get('link') or p.get('url') or p.get('permalink') or 'Sin enlace'
+            
+            inventario_total.append(
+                f"- TÍTULO: {p_title} | PRECIO: ${p_price} | DETALLES/ESPECS: {p_desc} | ENLACE_EXACTO: {p_link}"
+            )
             
         for o in active_offers:
-            o_title = o.get('nombre') or o.get('title') or o.get('name') or 'Oferta'
+            o_title = o.get('title') or o.get('nombre') or o.get('name') or 'Oferta'
             o_price = str(o.get('precio') or o.get('price') or 'N/A')
             o_desc = str(o.get('descuento') or o.get('description') or 'N/A')
             o_code = o.get('code') or 'N/A'
-            o_link = o.get('link') or o.get('url') or 'N/A'
-            inventario_total.append(f"- Artículo/Oferta: {o_title} | Precio: {o_price} | Descuento/Detalle: {o_desc} | Código: {o_code} | ENLACE_COMPRA: {o_link}")
+            o_link = o.get('link') or o.get('affiliate_link') or o.get('url') or 'Sin enlace'
+            
+            inventario_total.append(
+                f"- OFERTA: {o_title} | PRECIO: {o_price} | DETALLE: {o_desc} | CÓDIGO: {o_code} | ENLACE_EXACTO: {o_link}"
+            )
 
+        db_context = "\n\n--- INVENTARIO Y CATÁLOGO REAL DE LA TIENDA ---\n"
         if inventario_total:
             db_context += "LISTA DE ARTÍCULOS DISPONIBLES:\n" + "\n".join(inventario_total) + "\n"
         else:
             db_context += "ARTÍCULOS DISPONIBLES: NINGUNO\n"
 
-        base_system_prompt = data.systemPrompt if data.systemPrompt else (
-            "Eres un asistente experto, sumamente cómico y sarcástico de CazaOfertasML. "
-            "REGLA SUPREMA Y ABSOLUTA: Tienes prohibido inventar productos, precios o enlaces. "
-            "El inventario real está en la 'LISTA DE ARTÍCULOS DISPONIBLES' de abajo. "
-            "Cuando el usuario pida un producto (celulares, laptops, etc.) y SÍ esté en esa lista, recomiéndaselo de inmediato indicando su precio exacto y **copiando y pegando obligatoriamente el 'ENLACE_COMPRA' real** que le corresponde. "
-            "Bajo ninguna circunstancia digas que no hay celulares o productos si estos aparecen en la lista de abajo."
+        base_system_prompt = (
+            "Eres CapiBaraML 🐹, el asistente virtual de CazaOfertasML.\n\n"
+            "REGLAS OBLIGATORIAS E INVIOLABLES DE RECOMENDACIÓN Y ENLACES:\n"
+            "1. CLASIFICACIÓN DE PRODUCTOS: Lee cuidadosamente los títulos y especificaciones del inventario antes de responder.\n"
+            "   - Si piden 'celular' o 'smartphone', RECOMIENDA SOLAMENTE teléfonos inteligentes (Android/iOS, Smartphones, Oukitel, Blackview, Realme, Doogee, etc.). NUNCA recomiendes teléfonos fijos inalámbricos ni smartwatches si piden un celular/smartphone.\n"
+            "   - Si piden un 'celular gamer' o 'celular potente para juegos', busca en la lista celulares con altas capacidades de RAM (ejemplo: 12GB, 16GB, 18GB, 36GB RAM, pantallas de 120Hz, etc., como el Oukitel WP100 o similares). SÍ tenemos celulares potentes para gaming en el inventario.\n\n"
+            "2. MANEJO DE ENLACES (PROHIBIDO INVENTAR Y PROHIBIDO USAR ACORTADORES):\n"
+            "   - Cuando recomiendes un producto, COPIA Y PEGA EXACTAMENTE el 'ENLACE_EXACTO' que aparece en la lista para ese producto específico.\n"
+            "   - Queda estrictamente PROHIBIDO inventar URLs o enlaces acortados. Muestra el enlace tal cual viene en el inventario de abajo."
         )
 
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
         messages = [{"role": "system", "content": base_system_prompt + db_context}]
         
         if data.history:
-            recent_history = data.history[-2:]
+            recent_history = data.history[-4:]
             for msg in recent_history:
                 sender = msg.get("sender") or msg.get("role") or "user"
                 role = "user" if sender in ["user", "usuario"] else "assistant"
@@ -295,7 +302,7 @@ async def ai_chat_endpoint(data: ChatRequest):
             messages=messages,
             model="openai/gpt-oss-20b",
             temperature=0.1,
-            max_tokens=300
+            max_tokens=400
         )
         
         return {"reply": chat_completion.choices[0].message.content}
@@ -303,7 +310,7 @@ async def ai_chat_endpoint(data: ChatRequest):
     except Exception as e:
         error_msg = str(e)
         print(f"Error detallado en AI: {error_msg}")
-        return {"reply": f"⚠️ [Debug Error Real]: {error_msg}"}
+        return {"reply": f"⚠️ Ocurrió un detalle al procesar la recomendación: {error_msg}"}
 
 @api_router.post("/api/bot/products")
 async def bot_create_product(product: ProductCreate, x_api_key: Optional[str] = Header(None)):
