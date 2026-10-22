@@ -14,7 +14,6 @@ const API = BACKEND_URL;
 
 const MP_POINT_LINK = 'https://www.mercadopago.com.mx/herramientas-para-vender/lectores-point?code=7XYVCUKISD';
 
-// System Prompt conversacional, amigable y flexible
 const SYSTEM_PROMPT = `
 Eres CapiBaraML 🐹, el asistente virtual oficial de CazaOfertasML WEB. 
 
@@ -22,10 +21,9 @@ TU PERSONALIDAD Y TONO DE VOZ:
 - Eres sumamente amigable, simpático, cómico, educado y cercano.
 - Responde siempre con entusiasmo, buena vibra y naturalidad a cualquier pregunta, broma, duda o saludo del usuario.
 - Habla en español latino, usando emojis de forma moderada pero divertida (🚀, ✨, 🐹, 🎟️).
-- Si el usuario te hace una broma o comentario informal, síguele la plática de forma ingeniosa y amigable.
 
 REGLAS STRICTAS DE FORMATO:
-1. NUNCA generes tablas en Markdown (prohibido usar | Código | Descuento |).
+1. NUNCA generes tablas en Markdown.
 2. NUNCA escribas URLs o enlaces largos en el texto plano.
 3. Sé conciso y claro (máximo 2 a 3 párrafos cortos por respuesta).
 `;
@@ -61,7 +59,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
     const hasSeenChat = sessionStorage.getItem('hasSeenChatPopup');
     if (!hasSeenChat) {
       const timer = setTimeout(() => {
-        // setShowChatWindow(true); 
         sessionStorage.setItem('hasSeenChatPopup', 'true');
       }, 12000); 
       return () => clearTimeout(timer);
@@ -325,7 +322,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
     setInputMessage('');
     setIsTyping(true);
 
-    // 1. Detección estricta de solicitud de cupones / ofertas
     if (
       lowerText.includes('cupón') ||
       lowerText.includes('cupon') ||
@@ -349,7 +345,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
       return;
     }
 
-    // 2. Detección estricta de redes sociales y grupos
     if (
       lowerText.includes('unirse') ||
       lowerText.includes('grupo') ||
@@ -374,7 +369,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
       return;
     }
 
-    // 3. Detección estricta de Terminales Mercado Pago / Point
     if (
       lowerText.includes('terminal') ||
       lowerText.includes('terminales') ||
@@ -396,7 +390,13 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
       return;
     }
 
-    // 4. Consulta conversacional al backend enviando el inventario de productos
+    // Simplificamos los productos para no saturar el payload del POST
+    const cleanProducts = (products || []).slice(0, 15).map(p => ({
+      title: p.title || p.nombre || '',
+      price: p.discount_price || p.precio || p.price || '',
+      link: p.affiliate_link || p.link || p.url || ''
+    }));
+
     try {
       const response = await axios.post(
         `${API}/chat`,
@@ -404,9 +404,9 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
           message: userText,
           history: newHistory.slice(-4),
           systemPrompt: SYSTEM_PROMPT,
-          products: products, // SE ENVÍA EL CATÁLOGO REAL AL BACKEND
+          products: cleanProducts,
         },
-        { timeout: 35000 }
+        { timeout: 30000 }
       );
 
       const botReply =
