@@ -322,76 +322,50 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
     setInputMessage('');
     setIsTyping(true);
 
+    // Detección exclusiva de tarjetas rápidas (SOLO para cupones, redes y terminales)
     if (
-      lowerText.includes('cupón') ||
-      lowerText.includes('cupon') ||
-      lowerText.includes('cupones') ||
-      lowerText.includes('descuento') ||
-      lowerText.includes('descuentos') ||
-      lowerText.includes('código') ||
-      lowerText.includes('codigo') ||
-      lowerText.includes('codigos')
+      lowerText === '¡quiero un cupón de descuento urgente!' ||
+      (lowerText.includes('cupón') && lowerText.includes('urgente'))
     ) {
       setTimeout(() => {
         setChatMessages((prev) => [
           ...prev,
-          {
-            sender: 'bot',
-            isCuponesCard: true,
-          },
+          { sender: 'bot', isCuponesCard: true },
         ]);
         setIsTyping(false);
-      }, 400);
+      }, 300);
       return;
     }
 
     if (
-      lowerText.includes('unirse') ||
-      lowerText.includes('grupo') ||
-      lowerText.includes('grupos') ||
-      lowerText.includes('telegram') ||
-      lowerText.includes('facebook') ||
-      lowerText.includes('comunidad') ||
-      lowerText.includes('links') ||
-      lowerText.includes('páginas') ||
-      lowerText.includes('redes')
+      lowerText.includes('redes oficiales') ||
+      lowerText.includes('unirme a grupos')
     ) {
       setTimeout(() => {
         setChatMessages((prev) => [
           ...prev,
-          {
-            sender: 'bot',
-            isSocialLinks: true,
-          },
+          { sender: 'bot', isSocialLinks: true },
         ]);
         setIsTyping(false);
-      }, 400);
+      }, 300);
       return;
     }
 
     if (
-      lowerText.includes('terminal') ||
-      lowerText.includes('terminales') ||
-      lowerText.includes('point') ||
-      lowerText.includes('mercado pago') ||
-      lowerText.includes('mercadopago') ||
-      lowerText.includes('lectores')
+      lowerText.includes('terminales point de mercado pago')
     ) {
       setTimeout(() => {
         setChatMessages((prev) => [
           ...prev,
-          {
-            sender: 'bot',
-            isMercadoPagoCard: true,
-          },
+          { sender: 'bot', isMercadoPagoCard: true },
         ]);
         setIsTyping(false);
-      }, 400);
+      }, 300);
       return;
     }
 
-    // Simplificamos los productos para no saturar el payload del POST
-    const cleanProducts = (products || []).slice(0, 15).map(p => ({
+    // Limpiamos los productos enviando solo títulos, precios y enlaces para un payload ultra liviano
+    const cleanProducts = (products || []).slice(0, 10).map(p => ({
       title: p.title || p.nombre || '',
       price: p.discount_price || p.precio || p.price || '',
       link: p.affiliate_link || p.link || p.url || ''
@@ -426,12 +400,10 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
       console.error('Error al conectar con la API de chat:', error);
 
       let fallbackText = '';
-      if (lowerText.includes('tardas') || lowerText.includes('lento') || lowerText.includes('espera') || lowerText.includes('tanto')) {
-        fallbackText = '¡Disculpa la demora! 🐹 Mi servidor estaba despertando de su siesta, pero ya estoy activo. Platícame, ¿qué producto u oferta estás buscando?';
-      } else if (lowerText.includes('hola') || lowerText.includes('buenas') || lowerText.includes('que tal')) {
+      if (lowerText.includes('hola') || lowerText.includes('buenas') || lowerText.includes('que tal')) {
         fallbackText = '¡Hola! 🐹 Qué gusto saludarte. ¿En qué puedo ayudarte a ahorrar el día de hoy?';
       } else {
-        fallbackText = `¡Entendido! Sobre "${userText}", déjame ayudarte. Si buscas algún cupón de descuento o terminal Point, puedes usar los botones rápidos de arriba o decirme qué categoría te interesa 🚀.`;
+        fallbackText = `¡Claro que sí! 🐹 Sobre tu búsqueda, estoy revisando las mejores opciones en nuestro catálogo. ¿Hay alguna marca o presupuesto específico que tengas en mente? 🚀`;
       }
 
       setChatMessages((prev) => [
