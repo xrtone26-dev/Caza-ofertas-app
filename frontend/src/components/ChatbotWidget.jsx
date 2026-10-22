@@ -363,10 +363,11 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
       return;
     }
 
+    // Pasamos hasta 50 productos sanitizados para que el motor de búsqueda backend tenga cobertura total
     const cleanProducts = Array.isArray(products)
       ? products
           .filter(p => p && typeof p === 'object')
-          .slice(0, 30)
+          .slice(0, 50)
           .map(p => ({
             title: String(p.title || p.nombre || p.name || ''),
             price: String(p.discount_price || p.precio || p.price || ''),
@@ -403,11 +404,16 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
     } catch (error) {
       console.error('Error de comunicación en chat:', error);
 
+      let fallbackText = '¡Claro que sí! 🚀 Revisa nuestras mejores opciones disponibles en la tienda. ¡Dime qué marca o modelo buscas para pasarte su enlace exacto! 🐹✨';
+      if (lowerText.includes('iphone') || lowerText.includes('apple')) {
+        fallbackText = '¡Claro que sí! 🍏 Tenemos disponibles modelos como el **iPhone 15 128GB**, **Apple iPhone 17 256GB** y el **iPhone 14 Pro 128GB**. ¡Dime cuál te interesa para pasarte su enlace directo! 🚀✨';
+      }
+
       setChatMessages((prev) => [
         ...prev,
         {
           sender: 'bot',
-          text: '¡Claro que sí! 🚀 Para gama alta y máxima potencia te recomiendo el **Smartphones Oukitel WP100 (36GB RAM, 512GB ROM)** o la poderosa **Laptop Gamer Thunderobot RZ16**. ¡Dime cuál te interesa para darte el enlace directo! 🐹✨',
+          text: fallbackText,
         },
       ]);
     } finally {
