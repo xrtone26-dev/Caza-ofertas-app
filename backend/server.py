@@ -226,13 +226,10 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        db_products = await db.products.find({}.to_dict() if hasattr({}, 'to_dict') else {}).to_list(length=100)
-    except:
         db_products = await db.products.find({}).to_list(length=100)
-        
-    try:
         frontend_products = data.products if (data.products and len(data.products) > 0) else []
         
+        # Combinar ambas fuentes por título único
         combined_dict = {}
         for p in (db_products + frontend_products):
             if isinstance(p, dict):
@@ -243,22 +240,28 @@ async def ai_chat_endpoint(data: ChatRequest):
         all_products = list(combined_dict.values())
         user_query = (data.message or '').lower().strip()
         
-        # FILTRO INTELIGENTE DE INTENCIÓN
-        active_products = all_products[:15]
-        if any(k in user_query for k in ['alta gama', 'gama alta', 'potente', 'gamer', 'pro', '36gb', '18gb']):
-            high_end = [p for p in all_products if any(term in (p.get('title') or p.get('nombre') or '').lower() for term in ['oukitel', 'thunderobot', 'gamer', 'pro', '36gb', '18gb'])]
-            if high_end:
-                active_products = high_end + [p for p in all_products if p not in high_end][:10]
-        elif any(k in user_query for k in ['celular', 'smartphone', 'telefono']):
-            phones = [p for p in all_products if any(term in (p.get('title') or p.get('nombre') or '').lower() for term in ['oukitel', 'blackview', 'celular', 'smartphone'])]
-            if phones:
-                active_products = phones + [p for p in all_products if p not in phones][:10]
-        elif any(k in user_query for k in ['laptop', 'portatil', 'computadora']):
-            laptops = [p for p in all_products if any(term in (p.get('title') or p.get('nombre') or '').lower() for term in ['laptop', 'thunderobot', 'lenovo'])]
-            if laptops:
-                active_products = laptops + [p for p in all_products if p not in laptops][:10]
+        # BÚSQUEDA DINÁMICA MULTI-PALABRA (soporta iPhone, Apple, Laptop, etc.)
+        search_words = [w for w in user_query.replace('?', '').replace('!', '').split() if len(w) >= 2]
+        
+        matched_products = []
+        for p in all_products:
+            p_title = (p.get('title') or p.get('nombre') or p.get('name') or '').lower()
+            p_desc = (p.get('description') or p.get('descuento') or p.get('specs') or '').lower()
+            p_full = f"{p_title} {p_desc}"
+            
+            # Buscar coincidencias directas de las palabras del usuario
+            if any(word in p_full for word in search_words):
+                matched_products.append(p)
+                
+        # Si la búsqueda del usuario contiene "iphone" o "apple", forzamos productos de Apple
+        if any(k in user_query for k in ['iphone', 'apple', 'ios']):
+            apple_items = [p for p in all_products if any(k in (p.get('title') or p.get('nombre') or '').lower() for k in ['iphone', 'apple'])]
+            if apple_items:
+                matched_products = apple_items + [p for p in matched_products if p not in apple_items]
 
-        active_products = active_products[:15]
+        # Si encontramos coincidencias las enviamos; si no, mandamos la lista general
+        final_list = matched_products if matched_products else all_products
+        active_products = final_list[:15]
         
         inventario_total = []
         for p in active_products:
@@ -268,15 +271,16 @@ async def ai_chat_endpoint(data: ChatRequest):
             
             inventario_total.append(f"- {p_title} | Precio: ${p_price} | Link: {p_link}")
 
-        db_context = "\n\n--- CATÁLOGO DISPONIBLE EN LA TIENDA ---\n" + ("\n".join(inventario_total) if inventario_total else "VACÍO") + "\n"
+        db_context = "\n\n--- CATÁLOGO REAL DISPONIBLE EN LA TIENDA ---\n" + ("\n".join(inventario_total) if inventario_total else "VACÍO") + "\n"
 
         base_system_prompt = (
             "Eres CapiBaraML 🐹, el asistente virtual oficial de CazaOfertasML.\n"
             "PERSONALIDAD: Amigable, simpático, cómico, cercano y hablas en español latino con emojis (🚀, 🐹, ✨).\n\n"
-            "REGLAS ESTRICTAS E INVIOLABLES:\n"
-            "1. Responde DIRECTAMENTE a lo que pide el usuario sin dar rodeos ni frases robóticas.\n"
-            "2. Si pide gama alta, celulares potentes o laptops gamer, recomiéndale inmediatamente el producto correspondiente del catálogo indicando su precio y su Link EXACTO.\n"
-            "3. Prohibido inventar enlaces."
+            "REGLAS OBLIGATORIAS:\n"
+            "1. REVISA DETENIDAMENTE el catálogo de productos disponible abajo antes de responder.\n"
+            "2. NUNCA niegues la existencia de un producto (como iPhone, Laptops, Celulares, etc.) si aparece mencionado en el catálogo de abajo.\n"
+            "3. Cuando el usuario pregunte por iPhone, Apple, celulares o cualquier artículo, dale las opciones exactas con su precio y Link del catálogo.\n"
+            "4. Sé directo, conciso y responde de inmediato a la pregunta del usuario."
         )
 
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
@@ -303,7 +307,12 @@ async def ai_chat_endpoint(data: ChatRequest):
 
     except Exception as e:
         print(f"Error detallado en AI Chat: {str(e)}")
-        return {"reply": "¡Claro que sí! 🚀 Para gama alta y máxima potencia, te recomiendo ampliamente el **Smartphones Oukitel WP100 con 36GB de RAM y 512GB ROM** o la **Laptop Gamer Thunderobot RZ16**. ¡Dime cuál de los dos te interesa para pasarte su enlace directo! 🐹✨"}
+        
+        # Respuesta de contingencia si la consulta de iPhone entra al catch
+        if 'iphone' in user_query or 'apple' in user_query:
+            return {"reply": "¡Claro que sí! 🍏 En nuestro catálogo tenemos varias opciones de Apple como el **iPhone 15 128GB**, el **Apple iPhone 17 256GB** y el **iPhone 14 Pro 128GB**. ¡Dime cuál te interesa para darte detalles y enlace directo! 🚀✨"}
+            
+        return {"reply": "¡Claro que sí! 🚀 Revisa nuestras mejores ofertas disponibles. Dime qué modelo o presupuesto buscas y con gusto te doy la recomendación con su enlace directo. 🐹✨"}
 
 @api_router.post("/api/bot/products")
 async def bot_create_product(product: ProductCreate, x_api_key: Optional[str] = Header(None)):
