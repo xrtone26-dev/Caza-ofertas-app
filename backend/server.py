@@ -226,8 +226,10 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        active_products = data.products if data.products else await db.products.find({}).to_list(length=100)
-        all_offers = await db.offers.find({}).to_list(length=50)
+        # Tomamos los productos del frontend pero los limitamos de forma segura para no saturar los tokens de Groq (Error 413)
+        raw_products = data.products if data.products else await db.products.find({}).to_list(length=30)
+        active_products = raw_products[:20] # Límite seguro de 20 productos por consulta
+        all_offers = await db.offers.find({}).to_list(length=10)
         
         now = datetime.utcnow()
         active_offers = []
@@ -245,42 +247,35 @@ async def ai_chat_endpoint(data: ChatRequest):
         
         inventario_total = []
         
+        # Formato compacto y limpio para ahorrar tokens y evitar errores de tamaño
         for p in active_products:
             p_title = p.get('title') or p.get('nombre') or p.get('name') or p.get('titulo') or 'Producto'
             p_price = str(p.get('discount_price') or p.get('precio') or p.get('price') or p.get('original_price') or 'N/A')
-            p_desc = p.get('description') or p.get('descuento') or p.get('discount') or p.get('specs') or p.get('features') or ''
             p_link = p.get('affiliate_link') or p.get('link') or p.get('url') or p.get('permalink') or 'Sin enlace'
             
-            inventario_total.append(
-                f"- TÍTULO: {p_title} | PRECIO: ${p_price} | DETALLES/ESPECS: {p_desc} | ENLACE_EXACTO: {p_link}"
-            )
+            inventario_total.append(f"- {p_title} | Precio: ${p_price} | Link: {p_link}")
             
         for o in active_offers:
             o_title = o.get('title') or o.get('nombre') or o.get('name') or 'Oferta'
             o_price = str(o.get('precio') or o.get('price') or 'N/A')
-            o_desc = str(o.get('descuento') or o.get('description') or 'N/A')
             o_code = o.get('code') or 'N/A'
             o_link = o.get('link') or o.get('affiliate_link') or o.get('url') or 'Sin enlace'
             
-            inventario_total.append(
-                f"- OFERTA: {o_title} | PRECIO: {o_price} | DETALLE: {o_desc} | CÓDIGO: {o_code} | ENLACE_EXACTO: {o_link}"
-            )
+            inventario_total.append(f"- Oferta: {o_title} | Precio: {o_price} | Código: {o_code} | Link: {o_link}")
 
-        db_context = "\n\n--- INVENTARIO Y CATÁLOGO REAL DE LA TIENDA ---\n"
+        db_context = "\n\n--- INVENTARIO DE LA TIENDA ---\n"
         if inventario_total:
-            db_context += "LISTA DE ARTÍCULOS DISPONIBLES:\n" + "\n".join(inventario_total) + "\n"
+            db_context += "\n".join(inventario_total) + "\n"
         else:
-            db_context += "ARTÍCULOS DISPONIBLES: NINGUNO\n"
+            db_context += "CATÁLOGO VACÍO\n"
 
         base_system_prompt = (
-            "Eres CapiBaraML 🐹, el asistente virtual de CazaOfertasML.\n\n"
-            "REGLAS OBLIGATORIAS E INVIOLABLES DE RECOMENDACIÓN Y ENLACES:\n"
-            "1. CLASIFICACIÓN DE PRODUCTOS: Lee cuidadosamente los títulos y especificaciones del inventario antes de responder.\n"
-            "   - Si piden 'celular' o 'smartphone', RECOMIENDA SOLAMENTE teléfonos inteligentes (Android/iOS, Smartphones, Oukitel, Blackview, Realme, Doogee, etc.). NUNCA recomiendes teléfonos fijos inalámbricos ni smartwatches si piden un celular/smartphone.\n"
-            "   - Si piden un 'celular gamer' o 'celular potente para juegos', busca en la lista celulares con altas capacidades de RAM (ejemplo: 12GB, 16GB, 18GB, 36GB RAM, pantallas de 120Hz, etc., como el Oukitel WP100 o similares). SÍ tenemos celulares potentes para gaming en el inventario.\n\n"
-            "2. MANEJO DE ENLACES (PROHIBIDO INVENTAR Y PROHIBIDO USAR ACORTADORES):\n"
-            "   - Cuando recomiendes un producto, COPIA Y PEGA EXACTAMENTE el 'ENLACE_EXACTO' que aparece en la lista para ese producto específico.\n"
-            "   - Queda estrictamente PROHIBIDO inventar URLs o enlaces acortados. Muestra el enlace tal cual viene en el inventario de abajo."
+            "Eres CapiBaraML 🐹, el asistente virtual oficial de CazaOfertasML.\n"
+            "PERSONALIDAD: Amigable, simpático, cómico, cercano y hablas en español latino con emojis (🚀, 🐹, ✨).\n\n"
+            "REGLAS ABSOLUTAS DE RECOMENDACIÓN Y ENLACES:\n"
+            "1. Cuando el usuario pida un celular o smartphone (incluyendo celulares de alta gama o gamer con mucha RAM como el Oukitel WP100), búscalo en la lista y recomiéndaselo con su precio exacto.\n"
+            "2. NUNCA digas que no hay celulares si aparecen en el inventario de abajo.\n"
+            "3. OBLIGATORIAMENTE debes incluir el link exacto (copiado tal cual de la lista) del producto que recomiendes. Prohibido inventar enlaces o usar acortadores falsos."
         )
 
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
