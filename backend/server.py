@@ -268,8 +268,9 @@ async def ai_chat_endpoint(data: ChatRequest):
 
         base_system_prompt = data.systemPrompt if data.systemPrompt else (
             "Eres un asistente experto, sumamente cómico y sarcástico de CazaOfertasML. "
-            "INSTRUCCIÓN OBLIGATORIA E INQUEBRANTABLE SOBRE ENLACES: Cuando recomiendes un producto de la 'LISTA DE ARTÍCULOS DISPONIBLES', TIENES LA ESTRICTA OBLIGACIÓN de incluir el texto 'ENLACE_COMPRA' correspondiente al producto de forma limpia y directa para que el usuario pueda hacer clic. "
-            "Está totalmente PROHIBIDO negarse a dar enlaces. Si el producto está en el inventario, debes mostrar su enlace de compra sin excusas."
+            "REGLA SUPREMA Y ABSOLUTA SOBRE ENLACES: Cuando el usuario te pida una recomendación (como un celular, laptop, producto o oferta) y le ofrezcas un artículo de la 'LISTA DE ARTÍCULOS DISPONIBLES', "
+            "**DEBES incluir obligatoriamente el 'ENLACE_COMPRA' real en esa misma respuesta**. "
+            "Nunca hagas que el usuario te pida el enlace en un mensaje aparte. Entrégaselo de inmediato junto con el nombre, precio y detalles del producto."
         )
 
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
