@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bot, Send, X, Copy, Minus, CreditCard, ExternalLink, Tag } from 'lucide-react';
+import { Bot, Send, X, Copy, Minus, CreditCard, ExternalLink, Tag, ShoppingBag } from 'lucide-react';
 import {
   FaWhatsapp,
   FaTelegram,
@@ -20,12 +20,12 @@ Eres CapiBaraML 🐹, el asistente virtual oficial de CazaOfertasML WEB.
 TU PERSONALIDAD Y TONO DE VOZ:
 - Eres sumamente amigable, simpático, cómico, educado y cercano.
 - Responde siempre con entusiasmo, buena vibra y naturalidad a cualquier pregunta, broma, duda o saludo del usuario.
-- Habla en español latino, usando emojis de forma moderada pero divertida (🚀, ✨, 🐹, 🎟️).
+- Habla en español latino, usando emojis de forma moderada pero divertida (🚀, ✨, 🐹, 🎟️, 🔥).
 
 REGLAS STRICTAS DE FORMATO:
 1. NUNCA generes tablas en Markdown.
-2. NUNCA escribas URLs o enlaces largos en el texto plano.
-3. Sé conciso y claro (máximo 2 a 3 párrafos cortos por respuesta).
+2. Destaca los precios y descuentos de los productos que recomiendes.
+3. Sé conciso, directo y enfocado en ayudar al usuario a encontrar las mejores ofertas.
 `;
 
 export default function ChatbotWidget({ isLight, cupones = [], products = [] }) {
@@ -40,7 +40,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
   const [chatMessages, setChatMessages] = useState([
     {
       sender: 'bot',
-      text: '¡Hola! Soy tu asistente de **CapiBaraML** 🐹. ¿En qué te puedo ayudar hoy o qué descuento andas buscando?',
+      text: '¡Hola! Soy tu asistente **CapiBaraML** 🐹. ¿Qué oferta, producto o descuento andas buscando hoy? ¡Dime y te consigo la mejor opción al instante! 🚀',
     },
   ]);
 
@@ -266,15 +266,17 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
     return parts.map((part, index) => {
       if (part.match(urlRegex)) {
         return (
-          <a
-            key={`link-${index}`}
-            href={part}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-yellow-400 underline hover:text-yellow-300 break-all font-black transition-colors"
-          >
-            {part}
-          </a>
+          <div key={`link-btn-${index}`} className="my-2">
+            <a
+              href={part}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={playSniperSound}
+              className="inline-flex items-center gap-1.5 bg-black hover:bg-neutral-900 text-yellow-400 font-black px-3 py-2 rounded-xl text-xs shadow-md transition-transform hover:scale-105 border border-yellow-400/40"
+            >
+              <ShoppingBag size={14} /> Ver Oferta en Mercado Libre 🚀
+            </a>
+          </div>
         );
       }
       
@@ -366,7 +368,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
     const cleanProducts = Array.isArray(products)
       ? products
           .filter(p => p && typeof p === 'object')
-          .slice(0, 50)
+          .slice(0, 100)
           .map(p => ({
             title: String(p.title || p.nombre || p.name || ''),
             price: String(p.discount_price || p.precio || p.price || ''),
@@ -380,7 +382,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
         `${API}/chat`,
         {
           message: userText,
-          history: newHistory.slice(-4),
+          history: newHistory.slice(-10),
           systemPrompt: SYSTEM_PROMPT,
           products: cleanProducts,
         },
@@ -403,9 +405,9 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
     } catch (error) {
       console.error('Error de comunicación en chat:', error);
 
-      let fallbackText = '¡Claro que sí! 🚀 Revisa nuestras mejores opciones disponibles en la tienda. ¡Dime qué marca o modelo buscas para pasarte su enlace exacto! 🐹✨';
+      let fallbackText = '¡Claro que sí! 🚀 Tenemos las mejores ofertas esperándote. ¡Dime qué marca, modelo o producto buscas para pasarte su enlace exacto de descuento! 🐹✨';
       if (lowerText.includes('iphone') || lowerText.includes('apple') || lowerText.includes('celular')) {
-        fallbackText = '¡Claro que sí! 🚀 Tenemos excelentes opciones tecnológicas y equipos disponibles en el catálogo. ¡Dime qué modelo buscas para pasarte su enlace y precio directo! 🐹✨';
+        fallbackText = '¡Claro que sí! 🚀 En la sección de tecnología tenemos superopciones en celulares con envio directo. ¡Dime qué presupuesto o modelo buscas y te paso su enlace de descuento! 🐹✨';
       }
 
       setChatMessages((prev) => [
@@ -461,7 +463,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
                   </p>
                   <span className="text-[10px] text-neutral-800 font-bold flex items-center gap-1.5 mt-0.5">
                     <span className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse" />
-                    En línea - Listo para ahorrar
+                    En línea - Listo para vender
                   </span>
                 </div>
               </div>
@@ -490,19 +492,25 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
                 onClick={() => processAndSendMessage('¡Quiero un cupón de descuento urgente!')}
                 className="whitespace-nowrap px-3 py-1.5 rounded-full bg-yellow-400 text-black font-black text-[11px] hover:bg-yellow-300 transition shadow-sm cursor-pointer"
               >
-                🎟️ ¡Quiero Cupones!
+                🎟️ ¡Cupones Hoy!
+              </button>
+              <button
+                onClick={() => processAndSendMessage('¿Qué ofertas en celulares y tecnología me recomiendas hoy?')}
+                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-purple-700 text-white font-black text-[11px] hover:bg-purple-600 transition shadow-sm cursor-pointer"
+              >
+                📱 Ver Celulares
               </button>
               <button
                 onClick={() => processAndSendMessage('¿Qué terminales Point de Mercado Pago me recomiendas?')}
                 className="whitespace-nowrap px-3 py-1.5 rounded-full bg-blue-600 text-white font-black text-[11px] hover:bg-blue-500 transition shadow-sm cursor-pointer"
               >
-                💳 Terminales Mercado Pago
+                💳 Terminales Point
               </button>
               <button
                 onClick={() => processAndSendMessage('¡Muéstrame los links de todas nuestras páginas y redes oficiales!')}
                 className="whitespace-nowrap px-3 py-1.5 rounded-full bg-neutral-800 text-yellow-400 border border-yellow-400/40 font-black text-[11px] hover:bg-neutral-700 transition cursor-pointer"
               >
-                🏆 Unirme a Grupos
+                🏆 Grupos Oficiales
               </button>
             </div>
 
@@ -559,7 +567,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Escribe lo que buscas..."
+                placeholder="Escribe el producto que buscas..."
                 className={`flex-1 px-4 py-3 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all ${
                   isLight
                     ? 'bg-gray-50 border-gray-200 text-gray-800'
@@ -588,7 +596,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
         >
           <div className="bg-white text-black font-black text-xs px-4 py-2.5 rounded-2xl shadow-xl border-2 border-black flex items-center gap-2 transition-transform group-hover:scale-105">
             <span>¡Hola! <span className="inline-block animate-wave origin-bottom-right">👋</span></span>
-            <span className="text-[10px] text-gray-600 font-bold hidden sm:inline">¿Buscas descuento?</span>
+            <span className="text-[10px] text-gray-600 font-bold hidden sm:inline">¿Buscas ofertas hoy?</span>
           </div>
           <div className="w-2 h-2 bg-white border-r-2 border-b-2 border-black transform rotate-[-45deg] -ml-3 hidden sm:block"></div>
         </motion.div>
@@ -615,4 +623,3 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
     </>
   );
 }
-
