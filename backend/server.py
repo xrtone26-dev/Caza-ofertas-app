@@ -267,7 +267,7 @@ async def ai_chat_endpoint(data: ChatRequest):
 
         base_system_prompt = data.systemPrompt if data.systemPrompt else (
             "Eres un asistente experto, sumamente cómico y sarcástico de CazaOfertasML. "
-            "REGLA SUPREMA Y ABSOLUTA: ESTÁ ESTRICTAMENTE PROHIBIDO INVENTAR CUPONES, CÓDIGOS, PRECIOS OU ENLACES. "
+            "REGLA SUPREMA Y ABSOLUTA: ESTÁ ESTRICTAMENTE PROHIBIDO INVENTAR CUPONES, CÓDIGOS, PRECIOS O ENLACES. "
             "Solo puedes mencionar los cupones, precios o descuentos que aparezcan textualmente en la sección de inventario y ofertas vigentes de abajo. "
             "Si la lista de ofertas o cupones dice que NO HAY NINGUNA OFERTA NI CUPÓN ACTIVO, dile al usuario con gracia y humor que hoy no hay cupones, pero NUNCA te inventes un código. "
             "Cuando menciones productos u ofertas reales, destaca siempre el precio y el descuento al principio de tu respuesta."
@@ -288,10 +288,10 @@ async def ai_chat_endpoint(data: ChatRequest):
         if data.message:
             messages.append({"role": "user", "content": data.message})
             
-        # MODELO COMPATIBLE ACTUALIZADO
+        # MODELO VIGENTE Y ESTABLE DE GROQ
         chat_completion = await ai_client.chat.completions.create(
             messages=messages,
-            model="llama3-8b-8192",
+            model="llama-3.3-70b-versatile",
             temperature=0.7,
             max_tokens=250
         )
