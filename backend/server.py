@@ -129,6 +129,7 @@ class ChatRequest(BaseModel):
     message: str
     history: Optional[List[dict]] = []
     systemPrompt: Optional[str] = None 
+    products: Optional[List[dict]] = [] # Recibe los productos directamente del frontend
 
 app = FastAPI()
 
@@ -225,23 +226,43 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        # BARRIDO TOTAL: Leemos todas las colecciones de la base de datos para garantizar que ningún producto se quede fuera
-        collection_names = await db.list_collection_names()
+        # Priorizamos los productos enviados por el frontend (Firebase), si no hay, consultamos MongoDB
+        active_products = data.products if data.products else await db.products.find({}).to_list(length=50)
+        all_offers = await db.offers.find({}).to_list(length=50)
+        
+        now = datetime.utcnow()
+        active_offers = []
+        for o in all_offers:
+            exp = o.get("expires_at")
+            if exp:
+                if isinstance(exp, str):
+                    try:
+                        exp = datetime.fromisoformat(exp.replace("Z", "+00:00"))
+                    except ValueError:
+                        pass
+                if isinstance(exp, datetime) and exp.replace(tzinfo=None) <= now:
+                    continue
+            active_offers.append(o)
+        
+        db_context = "\n\n--- INVENTARIO Y CATÁLOGO DE PRODUCTOS Y OFERTAS VIGENTES EN LA TIENDA ---\n"
+        
         inventario_total = []
         
-        for coll_name in collection_names:
-            if coll_name in ["config", "system.js"]:
-                continue
-            cursor = db[coll_name].find({}).limit(40)
-            async for doc in cursor:
-                doc["_id"] = str(doc["_id"])
-                p_title = doc.get('nombre') or doc.get('title') or doc.get('name') or doc.get('titulo') or 'Producto'
-                p_price = str(doc.get('precio') or doc.get('discount_price') or doc.get('price') or 'N/A')
-                p_desc = doc.get('description') or doc.get('descuento') or doc.get('discount') or ''
-                p_link = doc.get('link') or doc.get('affiliate_link') or doc.get('url') or 'N/A'
-                inventario_total.append(f"- Producto: {p_title} | Precio: ${p_price} | Descripción: {p_desc} | ENLACE_COMPRA: {p_link}")
+        for p in active_products:
+            p_title = p.get('nombre') or p.get('title') or p.get('name') or p.get('titulo') or 'Producto'
+            p_price = str(p.get('precio') or p.get('discount_price') or p.get('price') or 'N/A')
+            p_desc = p.get('description') or p.get('descuento') or p.get('discount') or ''
+            p_link = p.get('link') or p.get('affiliate_link') or p.get('url') or 'N/A'
+            inventario_total.append(f"- Producto: {p_title} | Precio: ${p_price} | Descripción: {p_desc} | ENLACE_COMPRA: {p_link}")
+            
+        for o in active_offers:
+            o_title = o.get('nombre') or o.get('title') or o.get('name') or 'Oferta'
+            o_price = str(o.get('precio') or o.get('price') or 'N/A')
+            o_desc = str(o.get('descuento') or o.get('description') or 'N/A')
+            o_code = o.get('code') or 'N/A'
+            o_link = o.get('link') or o.get('url') or 'N/A'
+            inventario_total.append(f"- Artículo/Oferta: {o_title} | Precio: {o_price} | Descuento/Detalle: {o_desc} | Código: {o_code} | ENLACE_COMPRA: {o_link}")
 
-        db_context = "\n\n--- INVENTARIO Y CATÁLOGO GLOBAL DE LA TIENDA ---\n"
         if inventario_total:
             db_context += "LISTA DE ARTÍCULOS DISPONIBLES:\n" + "\n".join(inventario_total) + "\n"
         else:
