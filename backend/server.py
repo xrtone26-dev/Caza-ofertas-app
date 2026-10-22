@@ -180,8 +180,9 @@ def get_query_id(item_id: str):
 async def get_products():
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
     cursor = db.products.find({
-        "active": True,
         "$or": [
+            {"active": True},
+            {"active": {"$exists": False}},
             {"created_at": {"$gte": thirty_days_ago}},
             {"created_at": {"$exists": False}}
         ]
@@ -194,7 +195,7 @@ async def get_products():
 
 @api_router.get("/offers")
 async def get_offers(type: Optional[str] = None):
-    query = {"active": True}
+    query = {}
     if type:
         query["type"] = type
     
@@ -224,9 +225,9 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        # CONSULTA UNIFICADA: Obtenemos tanto de products como de offers para asegurar que la IA vea todo el inventario
-        active_products = await db.products.find({"active": True}).to_list(length=30)
-        all_offers = await db.offers.find({"active": True}).to_list(length=30)
+        # CONSULTA FLEXIBLE: Trae todo el inventario sin restringir por campos estrictos que puedan faltar
+        active_products = await db.products.find({}).to_list(length=50)
+        all_offers = await db.offers.find({}).to_list(length=50)
         
         now = datetime.utcnow()
         active_offers = []
@@ -247,18 +248,18 @@ async def ai_chat_endpoint(data: ChatRequest):
         inventario_total = []
         
         for p in active_products:
-            p_title = p.get('nombre') or p.get('title') or 'Producto'
-            p_price = str(p.get('precio') or p.get('discount_price') or 'N/A')
-            p_desc = p.get('description') or p.get('descuento') or ''
-            p_link = p.get('link') or p.get('affiliate_link') or 'N/A'
+            p_title = p.get('nombre') or p.get('title') or p.get('name') or 'Producto'
+            p_price = str(p.get('precio') or p.get('discount_price') or p.get('price') or 'N/A')
+            p_desc = p.get('description') or p.get('descuento') or p.get('discount') or ''
+            p_link = p.get('link') or p.get('affiliate_link') or p.get('url') or 'N/A'
             inventario_total.append(f"- Producto: {p_title} | Precio: ${p_price} | Descripción: {p_desc} | Link: {p_link}")
             
         for o in active_offers:
-            o_title = o.get('nombre') or o.get('title') or 'Oferta'
-            o_price = str(o.get('precio') or 'N/A')
+            o_title = o.get('nombre') or o.get('title') or o.get('name') or 'Oferta'
+            o_price = str(o.get('precio') or o.get('price') or 'N/A')
             o_desc = str(o.get('descuento') or o.get('description') or 'N/A')
             o_code = o.get('code') or 'N/A'
-            o_link = o.get('link') or 'N/A'
+            o_link = o.get('link') or o.get('url') or 'N/A'
             inventario_total.append(f"- Artículo/Oferta: {o_title} | Precio: {o_price} | Descuento/Detalle: {o_desc} | Código: {o_code} | Link: {o_link}")
 
         if inventario_total:
@@ -269,10 +270,9 @@ async def ai_chat_endpoint(data: ChatRequest):
         base_system_prompt = data.systemPrompt if data.systemPrompt else (
             "Eres un asistente experto, sumamente cómico y sarcástico de CazaOfertasML. "
             "REGLA SUPREMA Y ABSOLUTA: ESTÁ ESTRICTAMENTE PROHIBIDO INVENTAR CUPONES, CÓDIGOS, PRECIOS O ENLACES. "
-            "Solo puedes mencionar los productos, celulares, ofertas, cupones o precios que aparezcan textualmente en la 'LISTA DE ARTÍCULOS DISPONIBLES' de abajo. "
-            "Si el usuario pregunta por un artículo (como celulares, xiaomi, realme, o cualquier producto) y SÍ está en la lista, recomiéndaselo de inmediato mencionando su precio y enlace real. "
-            "Si de verdad no aparece en la lista, dícelo con gracia y humor, pero NUNCA digas que no hay celulares si aparecen en el inventario. "
-            "Cuando menciones productos u ofertas reales, destaca siempre el precio y el descuento al principio de tu respuesta."
+            "Solo puedes mencionar los productos, celulares, laptops, ofertas o precios que aparezcan textualmente en la 'LISTA DE ARTÍCULOS DISPONIBLES' de abajo. "
+            "Si el usuario pregunta por un artículo (como laptops gamer, celulares, etc.) y SÍ está en la lista, recomiéndaselo de inmediato mencionando su precio exacto y su enlace real provisto en el inventario. "
+            "Nunca digas que no hay productos si aparecen en la lista de arriba."
         )
 
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
