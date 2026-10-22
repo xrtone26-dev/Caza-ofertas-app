@@ -363,7 +363,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
       return;
     }
 
-    // Pasamos hasta 50 productos sanitizados para que el motor de búsqueda backend tenga cobertura total
     const cleanProducts = Array.isArray(products)
       ? products
           .filter(p => p && typeof p === 'object')
@@ -405,8 +404,8 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
       console.error('Error de comunicación en chat:', error);
 
       let fallbackText = '¡Claro que sí! 🚀 Revisa nuestras mejores opciones disponibles en la tienda. ¡Dime qué marca o modelo buscas para pasarte su enlace exacto! 🐹✨';
-      if (lowerText.includes('iphone') || lowerText.includes('apple')) {
-        fallbackText = '¡Claro que sí! 🍏 Tenemos disponibles modelos como el **iPhone 15 128GB**, **Apple iPhone 17 256GB** y el **iPhone 14 Pro 128GB**. ¡Dime cuál te interesa para pasarte su enlace directo! 🚀✨';
+      if (lowerText.includes('iphone') || lowerText.includes('apple') || lowerText.includes('celular')) {
+        fallbackText = '¡Claro que sí! 🚀 Tenemos excelentes opciones tecnológicas y equipos disponibles en el catálogo. ¡Dime qué modelo buscas para pasarte su enlace y precio directo! 🐹✨';
       }
 
       setChatMessages((prev) => [
