@@ -224,8 +224,9 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        active_products = await db.products.find({"active": True}).to_list(length=100)
-        all_offers = await db.offers.find({"active": True}).to_list(length=100)
+        # OPTIMIZACIÓN DE TOKENS: Limitamos a 20 para evitar el Error 429 sin cambiar tu modelo
+        active_products = await db.products.find({"active": True}).to_list(length=20)
+        all_offers = await db.offers.find({"active": True}).to_list(length=20)
         
         now = datetime.utcnow()
         active_offers = []
@@ -246,7 +247,6 @@ async def ai_chat_endpoint(data: ChatRequest):
             db_context += "PRODUCTOS:\n"
             for p in active_products:
                 p_title = p.get('nombre') or p.get('title') or 'Producto'
-                # CORREGIDO: Se reemplazó el operador | por el operador or correcto
                 p_price = str(p.get('precio') or p.get('discount_price') or 'N/A')
                 p_link = p.get('link') or p.get('affiliate_link') or 'N/A'
                 db_context += f"- {p_title}: Precio ${p_price}. Link real: {p_link}\n"
@@ -277,8 +277,10 @@ async def ai_chat_endpoint(data: ChatRequest):
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
         messages = [{"role": "system", "content": base_system_prompt + db_context}]
         
+        # OPTIMIZACIÓN DE HISTORIAL: Tomamos solo los últimos 2 mensajes para no saturar tokens
         if data.history:
-            for msg in data.history:
+            recent_history = data.history[-2:]
+            for msg in recent_history:
                 sender = msg.get("sender") or msg.get("role") or "user"
                 role = "user" if sender in ["user", "usuario"] else "assistant"
                 text = msg.get("text") or msg.get("content") or ""
@@ -288,6 +290,7 @@ async def ai_chat_endpoint(data: ChatRequest):
         if data.message:
             messages.append({"role": "user", "content": data.message})
             
+        # CONSERVAMOS TU MODELO ORIGINAL EXITOSO
         chat_completion = await ai_client.chat.completions.create(
             messages=messages,
             model="openai/gpt-oss-20b",
