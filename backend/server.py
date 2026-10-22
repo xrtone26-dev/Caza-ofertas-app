@@ -226,21 +226,41 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        db_products = await db.products.find({}).to_list(length=20)
+        db_products = await db.products.find({}).to_list(length=100)
         frontend_products = data.products if (data.products and len(data.products) > 0) else []
         
-        combined_products = { (p.get('title') or p.get('nombre') or ''): p for p in (db_products + frontend_products) if (p.get('title') or p.get('nombre')) }
-        active_products = list(combined_products.values())[:15]
+        combined_dict = {}
+        for p in (db_products + frontend_products):
+            if isinstance(p, dict):
+                title = p.get('title') or p.get('nombre') or p.get('name') or ''
+                if title:
+                    combined_dict[title] = p
+        
+        all_products = list(combined_dict.values())
+        user_query = (data.message or '').lower().strip()
+        
+        matched_products = []
+        words = [w for w in user_query.split() if len(w) > 2]
+        
+        for p in all_products:
+            p_title = (p.get('title') or p.get('nombre') or p.get('name') or '').lower()
+            p_desc = (p.get('description') or p.get('descuento') or p.get('specs') or '').lower()
+            
+            if any(word in p_title or word in p_desc for word in words):
+                matched_products.append(p)
+                
+        final_list = matched_products if matched_products else all_products
+        active_products = final_list[:15]
         
         inventario_total = []
         for p in active_products:
-            p_title = p.get('title') or p.get('nombre') or 'Producto'
+            p_title = p.get('title') or p.get('nombre') or p.get('name') or 'Producto'
             p_price = str(p.get('discount_price') or p.get('precio') or p.get('price') or 'N/A')
             p_link = p.get('affiliate_link') or p.get('link') or p.get('url') or 'Sin enlace'
             
             inventario_total.append(f"- {p_title} | Precio: ${p_price} | Link: {p_link}")
 
-        db_context = "\n\n--- CATÁLOGO REAL DE LA TIENDA ---\n"
+        db_context = "\n\n--- CATÁLOGO REAL DISPONIBLE EN LA TIENDA ---\n"
         if inventario_total:
             db_context += "\n".join(inventario_total) + "\n"
         else:
@@ -248,12 +268,12 @@ async def ai_chat_endpoint(data: ChatRequest):
 
         base_system_prompt = (
             "Eres CapiBaraML 🐹, el asistente virtual oficial de CazaOfertasML.\n"
-            "PERSONALIDAD: Amigable, simpático, cómico, cercano y hablas en español latino con emojis (🐹, ✨).\n\n"
-            "INSTRUCCIONES CLAVE:\n"
-            "1. Analiza cuidadosamente la lista de productos del catálogo proporcionado abajo.\n"
-            "2. Si el usuario pide un celular, smartphone, gama alta, 3B o celular gamer, recomiéndale inmediatamente las opciones de telefonía del catálogo (como el Oukitel WP100 de 36GB RAM / 512GB ROM).\n"
-            "3. Muestra el precio exacto y el Link EXACTO copiado directamente del catálogo sin modificar ni inventar nada."
-            "4. Eres experto en alburear, si te ofenden debes responder  con albures."
+            "PERSONALIDAD: Amigable, simpático, cómico, cercano y hablas en español latino con emojis (🚀, 🐹, ✨).\n\n"
+            "REGLAS STRICTAS E INVIOLABLES DE INVENTARIO Y ENLACES:\n"
+            "1. REVISA CUIDADOSAMENTE EL CATÁLOGO DE ABAJO antes de responder.\n"
+            "2. NUNCA digas que no tenemos un producto (celulares, laptops, audífonos, etc.) si aparece en la lista de abajo.\n"
+            "3. Cuando el usuario pida un producto (ejemplo: laptops como Thunderobot RZ16 o Lenovo, celulares u Oukitel), recomiéndalo indicando su precio exacto.\n"
+            "4. Muestra OBLIGATORIAMENTE el Link EXACTO copiado directamente del catálogo sin modificarlo ni inventar URLs."
         )
 
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
@@ -282,8 +302,8 @@ async def ai_chat_endpoint(data: ChatRequest):
 
     except Exception as e:
         error_msg = str(e)
-        print(f"Error en AI Chat: {error_msg}")
-        return {"reply": "¡Hola! 🐹 Si buscas un celular gama alta con las 3B (Bueno, Bonito y Barato) o para gaming, te super recomiendo el **Oukitel WP100 con 36GB RAM y 512GB ROM** que tenemos disponible en oferta. ¡Dime si quieres que te pase más detalles o su enlace directo! 🚀"}
+        print(f"Error detallado en AI Chat: {error_msg}")
+        return {"reply": "¡Hola! 🐹 En nuestro catálogo tenemos opciones increíbles como la **Laptop Gamer Thunderobot RZ16** y el **Smartphone Oukitel WP100**. ¡Dime si quieres su enlace directo o especificaciones! 🚀"}
 
 @api_router.post("/api/bot/products")
 async def bot_create_product(product: ProductCreate, x_api_key: Optional[str] = Header(None)):
