@@ -224,9 +224,9 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        # OPTIMIZACIÓN DE TOKENS: Limitamos a 20 para evitar el Error 429 sin cambiar tu modelo
-        active_products = await db.products.find({"active": True}).to_list(length=20)
-        all_offers = await db.offers.find({"active": True}).to_list(length=20)
+        # CONSULTA UNIFICADA: Obtenemos tanto de products como de offers para asegurar que la IA vea todo el inventario
+        active_products = await db.products.find({"active": True}).to_list(length=30)
+        all_offers = await db.offers.find({"active": True}).to_list(length=30)
         
         now = datetime.utcnow()
         active_offers = []
@@ -242,42 +242,42 @@ async def ai_chat_endpoint(data: ChatRequest):
                     continue
             active_offers.append(o)
         
-        db_context = "\n\n--- INVENTARIO Y OFERTAS REALES VIGENTES EN LA TIENDA ---\n"
-        if active_products:
-            db_context += "PRODUCTOS:\n"
-            for p in active_products:
-                p_title = p.get('nombre') or p.get('title') or 'Producto'
-                p_price = str(p.get('precio') or p.get('discount_price') or 'N/A')
-                p_link = p.get('link') or p.get('affiliate_link') or 'N/A'
-                db_context += f"- {p_title}: Precio ${p_price}. Link real: {p_link}\n"
-        else:
-            db_context += "PRODUCTOS: NINGUNO\n"
+        db_context = "\n\n--- INVENTARIO Y CATÁLOGO DE PRODUCTOS Y OFERTAS VIGENTES EN LA TIENDA ---\n"
+        
+        inventario_total = []
+        
+        for p in active_products:
+            p_title = p.get('nombre') or p.get('title') or 'Producto'
+            p_price = str(p.get('precio') or p.get('discount_price') or 'N/A')
+            p_desc = p.get('description') or p.get('descuento') or ''
+            p_link = p.get('link') or p.get('affiliate_link') or 'N/A'
+            inventario_total.append(f"- Producto: {p_title} | Precio: ${p_price} | Descripción: {p_desc} | Link: {p_link}")
+            
+        for o in active_offers:
+            o_title = o.get('nombre') or o.get('title') or 'Oferta'
+            o_price = str(o.get('precio') or 'N/A')
+            o_desc = str(o.get('descuento') or o.get('description') or 'N/A')
+            o_code = o.get('code') or 'N/A'
+            o_link = o.get('link') or 'N/A'
+            inventario_total.append(f"- Artículo/Oferta: {o_title} | Precio: {o_price} | Descuento/Detalle: {o_desc} | Código: {o_code} | Link: {o_link}")
 
-        if active_offers:
-            db_context += "\nOFERTAS Y PROMOCIONES VIGENTES:\n"
-            for o in active_offers:
-                nombre = o.get('nombre') or o.get('title') or 'Oferta'
-                precio = str(o.get('precio') or 'N/A')
-                descuento = str(o.get('descuento') or 'N/A')
-                code = o.get('code') or 'N/A'
-                link = o.get('link') or 'N/A'
-                is_excl = o.get('is_exclusive', False)
-                db_context += f"- Producto: {nombre}, Precio: {precio}, Descuento: {descuento}, Código/Cupón: {code}, Exclusivo: {is_excl}, Link: {link}\n"
+        if inventario_total:
+            db_context += "LISTA DE ARTÍCULOS DISPONIBLES:\n" + "\n".join(inventario_total) + "\n"
         else:
-            db_context += "\nOFERTAS VIGENTES: NO HAY NINGUNA OFERTA NI CUPÓN ACTIVO EN ESTE MOMENTO.\n"
+            db_context += "ARTÍCULOS DISPONIBLES: NINGUNO\n"
 
         base_system_prompt = data.systemPrompt if data.systemPrompt else (
             "Eres un asistente experto, sumamente cómico y sarcástico de CazaOfertasML. "
             "REGLA SUPREMA Y ABSOLUTA: ESTÁ ESTRICTAMENTE PROHIBIDO INVENTAR CUPONES, CÓDIGOS, PRECIOS O ENLACES. "
-            "Solo puedes mencionar los cupones, precios o descuentos que aparezcan textualmente en la sección de inventario y ofertas vigentes de abajo. "
-            "Si la lista de ofertas o cupones dice que NO HAY NINGUNA OFERTA NI CUPÓN ACTIVO, dile al usuario con gracia y humor que hoy no hay cupones, pero NUNCA te inventes un código. "
+            "Solo puedes mencionar los productos, celulares, ofertas, cupones o precios que aparezcan textualmente en la 'LISTA DE ARTÍCULOS DISPONIBLES' de abajo. "
+            "Si el usuario pregunta por un artículo (como celulares, xiaomi, realme, o cualquier producto) y SÍ está en la lista, recomiéndaselo de inmediato mencionando su precio y enlace real. "
+            "Si de verdad no aparece en la lista, dícelo con gracia y humor, pero NUNCA digas que no hay celulares si aparecen en el inventario. "
             "Cuando menciones productos u ofertas reales, destaca siempre el precio y el descuento al principio de tu respuesta."
         )
 
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
         messages = [{"role": "system", "content": base_system_prompt + db_context}]
         
-        # OPTIMIZACIÓN DE HISTORIAL: Tomamos solo los últimos 2 mensajes para no saturar tokens
         if data.history:
             recent_history = data.history[-2:]
             for msg in recent_history:
@@ -290,7 +290,6 @@ async def ai_chat_endpoint(data: ChatRequest):
         if data.message:
             messages.append({"role": "user", "content": data.message})
             
-        # CONSERVAMOS TU MODELO ORIGINAL EXITOSO
         chat_completion = await ai_client.chat.completions.create(
             messages=messages,
             model="openai/gpt-oss-20b",
