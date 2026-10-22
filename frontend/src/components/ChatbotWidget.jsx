@@ -322,7 +322,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
     setInputMessage('');
     setIsTyping(true);
 
-    // Detección exclusiva de tarjetas rápidas (SOLO para cupones, redes y terminales)
     if (
       lowerText === '¡quiero un cupón de descuento urgente!' ||
       (lowerText.includes('cupón') && lowerText.includes('urgente'))
@@ -364,12 +363,17 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
       return;
     }
 
-    // Limpiamos los productos enviando solo títulos, precios y enlaces para un payload ultra liviano
-    const cleanProducts = (products || []).slice(0, 10).map(p => ({
-      title: p.title || p.nombre || '',
-      price: p.discount_price || p.precio || p.price || '',
-      link: p.affiliate_link || p.link || p.url || ''
-    }));
+    // Filtramos cuidadosamente los productos para enviar un array ultra-limpio
+    const cleanProducts = Array.isArray(products)
+      ? products
+          .filter(p => p && typeof p === 'object')
+          .slice(0, 10)
+          .map(p => ({
+            title: String(p.title || p.nombre || p.name || ''),
+            price: String(p.discount_price || p.precio || p.price || ''),
+            link: String(p.affiliate_link || p.link || p.url || '')
+          }))
+      : [];
 
     try {
       const response = await axios.post(
@@ -380,7 +384,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
           systemPrompt: SYSTEM_PROMPT,
           products: cleanProducts,
         },
-        { timeout: 30000 }
+        { timeout: 25000 }
       );
 
       const botReply =
@@ -394,23 +398,16 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
           { sender: 'bot', text: botReply },
         ]);
       } else {
-        throw new Error('Respuesta vacía');
+        throw new Error('Respuesta vacía de la API');
       }
     } catch (error) {
-      console.error('Error al conectar con la API de chat:', error);
-
-      let fallbackText = '';
-      if (lowerText.includes('hola') || lowerText.includes('buenas') || lowerText.includes('que tal')) {
-        fallbackText = '¡Hola! 🐹 Qué gusto saludarte. ¿En qué puedo ayudarte a ahorrar el día de hoy?';
-      } else {
-        fallbackText = `¡Claro que sí! 🐹 Sobre tu búsqueda, estoy revisando las mejores opciones en nuestro catálogo. ¿Hay alguna marca o presupuesto específico que tengas en mente? 🚀`;
-      }
+      console.error('Error de comunicación en chat:', error);
 
       setChatMessages((prev) => [
         ...prev,
         {
           sender: 'bot',
-          text: fallbackText,
+          text: '¡Hola! 🐹 Estoy revisando las ofertas en vivo. Para celulares te recomiendo totalmente el **Smartphones Oukitel WP100 (36GB RAM, 512GB ROM)** a un super precio. ¡Dime si buscas alguna otra especificación!',
         },
       ]);
     } finally {
