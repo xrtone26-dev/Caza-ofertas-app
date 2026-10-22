@@ -363,15 +363,16 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
       return;
     }
 
-    // Filtramos cuidadosamente los productos para enviar un array ultra-limpio
+    // Enviamos una muestra más amplia (30 productos) sanitizada para que el backend busque coincidencias
     const cleanProducts = Array.isArray(products)
       ? products
           .filter(p => p && typeof p === 'object')
-          .slice(0, 10)
+          .slice(0, 30)
           .map(p => ({
             title: String(p.title || p.nombre || p.name || ''),
             price: String(p.discount_price || p.precio || p.price || ''),
-            link: String(p.affiliate_link || p.link || p.url || '')
+            link: String(p.affiliate_link || p.link || p.url || ''),
+            description: String(p.description || p.descuento || p.specs || '')
           }))
       : [];
 
@@ -407,7 +408,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
         ...prev,
         {
           sender: 'bot',
-          text: '¡Hola! 🐹 Estoy revisando las ofertas en vivo. Para celulares te recomiendo totalmente el **Smartphones Oukitel WP100 (36GB RAM, 512GB ROM)** a un super precio. ¡Dime si buscas alguna otra especificación!',
+          text: '¡Hola! 🐹 Revisa nuestro catálogo destacado, tenemos opciones excelentes como la **Laptop Gamer Thunderobot RZ16** y el **Smartphones Oukitel WP100**. ¡Dime si buscas alguna otra recomendación! 🚀',
         },
       ]);
     } finally {
