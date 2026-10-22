@@ -226,9 +226,12 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        # Tomamos los productos del frontend pero los limitamos de forma segura para no saturar los tokens de Groq (Error 413)
-        raw_products = data.products if data.products else await db.products.find({}).to_list(length=30)
-        active_products = raw_products[:20] # Límite seguro de 20 productos por consulta
+        # Fusionamos MongoDB con el inventario mandado por el frontend para garantizar datos
+        db_products = await db.products.find({}).to_list(length=50)
+        frontend_products = data.products if (data.products and len(data.products) > 0) else []
+        
+        combined_products = { (p.get('title') or p.get('nombre') or ''): p for p in (db_products + frontend_products) }
+        active_products = list(combined_products.values())[:20] # Limitado a 20 para evitar error 413 de Groq
         all_offers = await db.offers.find({}).to_list(length=10)
         
         now = datetime.utcnow()
@@ -247,7 +250,6 @@ async def ai_chat_endpoint(data: ChatRequest):
         
         inventario_total = []
         
-        # Formato compacto y limpio para ahorrar tokens y evitar errores de tamaño
         for p in active_products:
             p_title = p.get('title') or p.get('nombre') or p.get('name') or p.get('titulo') or 'Producto'
             p_price = str(p.get('discount_price') or p.get('precio') or p.get('price') or p.get('original_price') or 'N/A')
@@ -261,9 +263,9 @@ async def ai_chat_endpoint(data: ChatRequest):
             o_code = o.get('code') or 'N/A'
             o_link = o.get('link') or o.get('affiliate_link') or o.get('url') or 'Sin enlace'
             
-            inventario_total.append(f"- Oferta: {o_title} | Precio: {o_price} | Código: {o_code} | Link: {o_link}")
+            inventario_total.append(f"- Oferta: {o_title} | Precio: ${o_price} | Código: {o_code} | Link: {o_link}")
 
-        db_context = "\n\n--- INVENTARIO DE LA TIENDA ---\n"
+        db_context = "\n\n--- INVENTARIO Y CATÁLOGO DE LA TIENDA ---\n"
         if inventario_total:
             db_context += "\n".join(inventario_total) + "\n"
         else:
@@ -272,10 +274,10 @@ async def ai_chat_endpoint(data: ChatRequest):
         base_system_prompt = (
             "Eres CapiBaraML 🐹, el asistente virtual oficial de CazaOfertasML.\n"
             "PERSONALIDAD: Amigable, simpático, cómico, cercano y hablas en español latino con emojis (🚀, 🐹, ✨).\n\n"
-            "REGLAS ABSOLUTAS DE RECOMENDACIÓN Y ENLACES:\n"
-            "1. Cuando el usuario pida un celular o smartphone (incluyendo celulares de alta gama o gamer con mucha RAM como el Oukitel WP100), búscalo en la lista y recomiéndaselo con su precio exacto.\n"
-            "2. NUNCA digas que no hay celulares si aparecen en el inventario de abajo.\n"
-            "3. OBLIGATORIAMENTE debes incluir el link exacto (copiado tal cual de la lista) del producto que recomiendes. Prohibido inventar enlaces o usar acortadores falsos."
+            "REGLAS ABSOLUTAS E INVIOLABLES DE LA TIENDA:\n"
+            "1. ¡ESTÁ ESTRICTAMENTE PROHIBIDO DECIR QUE NO HAY CELULARES! En el inventario de abajo SÍ hay smartphones y celulares (como el Oukitel WP100 y otros dispositivos).\n"
+            "2. Cuando el usuario pida un celular, smartphone o celular gamer, búscalo inmediatamente en la lista de abajo, menciónalo con su precio y da su enlace exacto.\n"
+            "3. COPIA Y PEGA EXACTAMENTE el link que aparece en la lista para ese producto. Prohibido inventar enlaces o usar acortadores falsos."
         )
 
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
