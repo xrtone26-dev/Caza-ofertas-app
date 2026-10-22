@@ -151,6 +151,14 @@ BOT_API_KEY = os.getenv("BOT_API_KEY", "CazaOfertas_SuperSecretKey_2026")
 client = AsyncIOMotorClient(MONGO_URL)
 db = client.cazaofertas
 
+# Diccionario inteligente de sinónimos para tolerar jerga y lenguaje coloquial del usuario
+SYNONYMS_MAP = {
+    "celular": ["smartphone", "movil", "telefono", "cel", "iphone", "android", "samsung", "xiaomi", "motorola"],
+    "audifonos": ["audifono", "cascos", "airpods", "diadema", "bluetooth", "manos libres"],
+    "laptop": ["computadora", "portatil", "pc", "macbook", "notebook"],
+    "pantalla": ["television", "tv", "smarttv", "monitor"]
+}
+
 async def get_admin_password():
     config = await db.config.find_one({"_id": "admin_settings"})
     if config and "password" in config:
@@ -240,8 +248,19 @@ async def ai_chat_endpoint(data: ChatRequest):
         all_products = list(combined_dict.values())
         user_query = (data.message or '').lower().strip()
         
-        # BÚSQUEDA DINÁMICA MULTI-PALABRA (soporta iPhone, Apple, Laptop, etc.)
-        search_words = [w for w in user_query.replace('?', '').replace('!', '').split() if len(w) >= 2]
+        # BÚSQUEDA INTELIGENTE AMPLIADA CON SINÓNIMOS Y COINCIDENCIA PARCIAL
+        search_tokens = [w for w in user_query.replace('?', '').replace('!', '').split() if len(w) >= 2]
+        
+        # Expandir con sinónimos si el usuario usa jerga coloquial
+        expanded_tokens = list(search_tokens)
+        for token in search_tokens:
+            for main_key, synonyms in SYNONYMS_MAP.items():
+                if token == main_key or token in synonyms:
+                    if main_key not in expanded_tokens:
+                        expanded_tokens.append(main_key)
+                    for syn in synonyms:
+                        if syn not in expanded_tokens:
+                            expanded_tokens.append(syn)
         
         matched_products = []
         for p in all_products:
@@ -249,17 +268,20 @@ async def ai_chat_endpoint(data: ChatRequest):
             p_desc = (p.get('description') or p.get('descuento') or p.get('specs') or '').lower()
             p_full = f"{p_title} {p_desc}"
             
-            # Buscar coincidencias directas de las palabras del usuario
-            if any(word in p_full for word in search_words):
-                matched_products.append(p)
+            # Si cualquiera de los tokens expandidos aparece en el producto, se hace match
+            if any(token in p_full for token in expanded_tokens):
+                if p not in matched_products:
+                    matched_products.append(p)
                 
-        # Si la búsqueda del usuario contiene "iphone" o "apple", forzamos productos de Apple
-        if any(k in user_query for k in ['iphone', 'apple', 'ios']):
-            apple_items = [p for p in all_products if any(k in (p.get('title') or p.get('nombre') or '').lower() for k in ['iphone', 'apple'])]
-            if apple_items:
-                matched_products = apple_items + [p for p in matched_products if p not in apple_items]
+        # Forzadores específicos para categorías clave si el usuario las menciona directamente
+        if any(k in user_query for k in ['iphone', 'apple', 'ios', 'celular', 'smartphone', 'movil', 'cel']):
+            priority_items = [p for p in all_products if any(k in (p.get('title') or p.get('nombre') or p.get('description') or '').lower() for k in ['iphone', 'apple', 'celular', 'smartphone', 'samsung', 'xiaomi'])]
+            if priority_items:
+                for item in priority_items:
+                    if item not in matched_products:
+                        matched_products.insert(0, item)
 
-        # Si encontramos coincidencias las enviamos; si no, mandamos la lista general
+        # Si tras la búsqueda flexible no hay resultados exactos, NUNCA dejamos la lista vacía: pasamos un muestreo general para que la IA tenga inventario disponible
         final_list = matched_products if matched_products else all_products
         active_products = final_list[:15]
         
@@ -278,9 +300,8 @@ async def ai_chat_endpoint(data: ChatRequest):
             "PERSONALIDAD: Amigable, simpático, cómico, cercano y hablas en español latino con emojis (🚀, 🐹, ✨).\n\n"
             "REGLAS OBLIGATORIAS:\n"
             "1. REVISA DETENIDAMENTE el catálogo de productos disponible abajo antes de responder.\n"
-            "2. NUNCA niegues la existencia de un producto (como iPhone, Laptops, Celulares, etc.) si aparece mencionado en el catálogo de abajo.\n"
-            "3. Cuando el usuario pregunte por iPhone, Apple, celulares o cualquier artículo, dale las opciones exactas con su precio y Link del catálogo.\n"
-            "4. Sé directo, conciso y responde de inmediato a la pregunta del usuario."
+            "2. NUNCA niegues la existencia de un producto si aparece mencionado en el catálogo de abajo. Si el usuario pide algo, búscalo en el inventario o sugiérele las mejores alternativas disponibles de inmediato con su precio y enlace.\n"
+            "3. Sé directo, conciso y responde de inmediato a la pregunta del usuario con buena vibra."
         )
 
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
@@ -308,9 +329,9 @@ async def ai_chat_endpoint(data: ChatRequest):
     except Exception as e:
         print(f"Error detallado en AI Chat: {str(e)}")
         
-        # Respuesta de contingencia si la consulta de iPhone entra al catch
-        if 'iphone' in user_query or 'apple' in user_query:
-            return {"reply": "¡Claro que sí! 🍏 En nuestro catálogo tenemos varias opciones de Apple como el **iPhone 15 128GB**, el **Apple iPhone 17 256GB** y el **iPhone 14 Pro 128GB**. ¡Dime cuál te interesa para darte detalles y enlace directo! 🚀✨"}
+        # Contingencia inteligente en caso de error de red con Groq
+        if any(k in user_query for k in ['iphone', 'apple', 'celular', 'smartphone', 'cel']):
+            return {"reply": "¡Claro que sí! 🚀 Tenemos excelentes opciones tecnológicas y equipos disponibles en el catálogo. ¡Dime qué modelo buscas para pasarte su enlace y precio directo! 🐹✨"}
             
         return {"reply": "¡Claro que sí! 🚀 Revisa nuestras mejores ofertas disponibles. Dime qué modelo o presupuesto buscas y con gusto te doy la recomendación con su enlace directo. 🐹✨"}
 
