@@ -151,12 +151,11 @@ BOT_API_KEY = os.getenv("BOT_API_KEY", "CazaOfertas_SuperSecretKey_2026")
 client = AsyncIOMotorClient(MONGO_URL)
 db = client.cazaofertas
 
-# Diccionario inteligente de sinónimos para tolerar jerga y lenguaje coloquial del usuario
 SYNONYMS_MAP = {
-    "celular": ["smartphone", "movil", "telefono", "cel", "iphone", "android", "samsung", "xiaomi", "motorola"],
-    "audifonos": ["audifono", "cascos", "airpods", "diadema", "bluetooth", "manos libres"],
-    "laptop": ["computadora", "portatil", "pc", "macbook", "notebook"],
-    "pantalla": ["television", "tv", "smarttv", "monitor"]
+    "celular": ["smartphone", "movil", "telefono", "cel", "iphone", "android", "samsung", "xiaomi", "motorola", "oppo", "realme", "poco"],
+    "audifonos": ["audifono", "cascos", "airpods", "diadema", "bluetooth", "manos libres", "earbuds", "headset"],
+    "laptop": ["computadora", "portatil", "pc", "macbook", "notebook", "laptop gamer"],
+    "pantalla": ["television", "tv", "smarttv", "monitor", "display"]
 }
 
 async def get_admin_password():
@@ -234,10 +233,9 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        db_products = await db.products.find({}).to_list(length=100)
+        db_products = await db.products.find({}).to_list(length=150)
         frontend_products = data.products if (data.products and len(data.products) > 0) else []
         
-        # Combinar ambas fuentes por título único
         combined_dict = {}
         for p in (db_products + frontend_products):
             if isinstance(p, dict):
@@ -248,10 +246,8 @@ async def ai_chat_endpoint(data: ChatRequest):
         all_products = list(combined_dict.values())
         user_query = (data.message or '').lower().strip()
         
-        # BÚSQUEDA INTELIGENTE AMPLIADA CON SINÓNIMOS Y COINCIDENCIA PARCIAL
-        search_tokens = [w for w in user_query.replace('?', '').replace('!', '').split() if len(w) >= 2]
+        search_tokens = [w for w in user_query.replace('?', '').replace('!', '').replace(',', '').split() if len(w) >= 2]
         
-        # Expandir con sinónimos si el usuario usa jerga coloquial
         expanded_tokens = list(search_tokens)
         for token in search_tokens:
             for main_key, synonyms in SYNONYMS_MAP.items():
@@ -268,47 +264,57 @@ async def ai_chat_endpoint(data: ChatRequest):
             p_desc = (p.get('description') or p.get('descuento') or p.get('specs') or '').lower()
             p_full = f"{p_title} {p_desc}"
             
-            # Si cualquiera de los tokens expandidos aparece en el producto, se hace match
-            if any(token in p_full for token in expanded_tokens):
-                if p not in matched_products:
-                    matched_products.append(p)
+            matches_count = sum(1 for token in expanded_tokens if token in p_full)
+            if matches_count > 0:
+                matched_products.append((matches_count, p))
                 
-        # Forzadores específicos para categorías clave si el usuario las menciona directamente
+        matched_products.sort(key=lambda x: x[0], reverse=True)
+        final_matches = [item[1] for item in matched_products]
+        
         if any(k in user_query for k in ['iphone', 'apple', 'ios', 'celular', 'smartphone', 'movil', 'cel']):
             priority_items = [p for p in all_products if any(k in (p.get('title') or p.get('nombre') or p.get('description') or '').lower() for k in ['iphone', 'apple', 'celular', 'smartphone', 'samsung', 'xiaomi'])]
-            if priority_items:
-                for item in priority_items:
-                    if item not in matched_products:
-                        matched_products.insert(0, item)
+            for item in priority_items:
+                if item not in final_matches:
+                    final_matches.insert(0, item)
 
-        # Si tras la búsqueda flexible no hay resultados exactos, NUNCA dejamos la lista vacía: pasamos un muestreo general para que la IA tenga inventario disponible
-        final_list = matched_products if matched_products else all_products
-        active_products = final_list[:15]
+        final_list = final_matches if final_matches else all_products
+        active_products = final_list[:20]
         
         inventario_total = []
         for p in active_products:
             p_title = p.get('title') or p.get('nombre') or p.get('name') or 'Producto'
             p_price = str(p.get('discount_price') or p.get('precio') or p.get('price') or 'N/A')
             p_link = p.get('affiliate_link') or p.get('link') or p.get('url') or 'Sin enlace'
+            p_desc = p.get('description') or p.get('descuento') or p.get('specs') or ''
             
-            inventario_total.append(f"- {p_title} | Precio: ${p_price} | Link: {p_link}")
+            item_str = f"- {p_title} | Precio Oferta: ${p_price} | Link Afiliado: {p_link}"
+            if p_desc:
+                item_str += f" | Detalle: {p_desc[:80]}"
+            inventario_total.append(item_str)
 
-        db_context = "\n\n--- CATÁLOGO REAL DISPONIBLE EN LA TIENDA ---\n" + ("\n".join(inventario_total) if inventario_total else "VACÍO") + "\n"
+        db_context = "\n\n--- CATÁLOGO REAL Y OFERTAS DISPONIBLES EN LA TIENDA ---\n" + ("\n".join(inventario_total) if inventario_total else "SIN PRODUCTOS EN ESTE MOMENTO") + "\n"
 
         base_system_prompt = (
-            "Eres CapiBaraML 🐹, el asistente virtual oficial de CazaOfertasML.\n"
-            "PERSONALIDAD: Amigable, simpático, cómico, cercano y hablas en español latino con emojis (🚀, 🐹, ✨).\n\n"
-            "REGLAS OBLIGATORIAS:\n"
-            "1. REVISA DETENIDAMENTE el catálogo de productos disponible abajo antes de responder.\n"
-            "2. NUNCA niegues la existencia de un producto si aparece mencionado en el catálogo de abajo. Si el usuario pide algo, búscalo en el inventario o sugiérele las mejores alternativas disponibles de inmediato con su precio y enlace.\n"
-            "3. Sé directo, conciso y responde de inmediato a la pregunta del usuario con buena vibra."
+            "Eres CapiBaraML 🐹, el famoso y simpático especialista en ofertas de CazaOfertasML WEB.\n\n"
+            "TU ROL Y MISION:\n"
+            "Eres un superasesor de ventas entusiasta, divertido y directo. Tu objetivo principal es ayudar al usuario a ahorrar dinero y RECOMENDARLE productos exactos de nuestro catálogo real con sus ENLACES DE AFILIADO de Mercado Libre para concretar ventas.\n\n"
+            "TONO DE VOZ Y ESTILO:\n"
+            "- Háblale de forma cercana y amigable en español latino.\n"
+            "- Usa emojis alegres con moderación (🚀, 🐹, ✨, 🔥, 🎟️).\n"
+            "- Sé claro, directo y mantén respuestas concisas (2 a 3 párrafos cortos como máximo).\n\n"
+            "REGLAS ESTRATÉGICAS DE VENTA:\n"
+            "1. REVISA SIEMPRE el catálogo real provisto abajo antes de responder.\n"
+            "2. Si el usuario pregunta por un producto, marca, modelo o categoría, BÚSCALO en el catálogo y RECOMIÉNDALO DE INMEDIATO mencionando su Nombre, Precio de oferta y su Link de Afiliado completo.\n"
+            "3. NUNCA inventes enlaces de afiliados que no estén en la lista. Usa únicamente los links proporcionados en el catálogo.\n"
+            "4. Si el usuario pide algo que no tenemos exacto, recomiéndale amablemente las opciones más parecidas disponibles en el catálogo resaltando sus ventajas.\n"
+            "5. Agrega un toque de entusiasmo o urgencia positiva (ej. '¡Está a un superprecio!', '¡Aprovecha antes de que se agote el stock!')."
         )
 
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
         messages = [{"role": "system", "content": base_system_prompt + db_context}]
         
         if data.history:
-            for msg in data.history[-4:]:
+            for msg in data.history[-10:]:
                 role = "user" if (msg.get("sender") == "user" or msg.get("role") == "user") else "assistant"
                 text = msg.get("text") or msg.get("content") or ""
                 if text:
@@ -320,8 +326,8 @@ async def ai_chat_endpoint(data: ChatRequest):
         chat_completion = await ai_client.chat.completions.create(
             messages=messages,
             model="openai/gpt-oss-20b",
-            temperature=0.1,
-            max_tokens=350
+            temperature=0.35,
+            max_tokens=450
         )
         
         return {"reply": chat_completion.choices[0].message.content}
@@ -329,11 +335,10 @@ async def ai_chat_endpoint(data: ChatRequest):
     except Exception as e:
         print(f"Error detallado en AI Chat: {str(e)}")
         
-        # Contingencia inteligente en caso de error de red con Groq
         if any(k in user_query for k in ['iphone', 'apple', 'celular', 'smartphone', 'cel']):
-            return {"reply": "¡Claro que sí! 🚀 Tenemos excelentes opciones tecnológicas y equipos disponibles en el catálogo. ¡Dime qué modelo buscas para pasarte su enlace y precio directo! 🐹✨"}
+            return {"reply": "¡Claro que sí! 🚀 Tenemos superopciones en celulares y tecnología listas en el catálogo. ¡Dime qué modelo o presupuesto buscas y te paso su enlace de oferta directo! 🐹✨"}
             
-        return {"reply": "¡Claro que sí! 🚀 Revisa nuestras mejores ofertas disponibles. Dime qué modelo o presupuesto buscas y con gusto te doy la recomendación con su enlace directo. 🐹✨"}
+        return {"reply": "¡Claro que sí! 🚀 Tenemos excelentes ofertas esperándote en la tienda. Dime qué producto o marca buscas y te paso de inmediato la mejor recomendación con su enlace de descuento. 🐹✨"}
 
 @api_router.post("/api/bot/products")
 async def bot_create_product(product: ProductCreate, x_api_key: Optional[str] = Header(None)):
