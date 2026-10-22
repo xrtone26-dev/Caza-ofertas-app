@@ -224,7 +224,6 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        # OPTIMIZACIÓN: Se limita la consulta a 20 elementos para no exceder los límites de tokens (TPM) de Groq[cite: 5, 7]
         active_products = await db.products.find({"active": True}).to_list(length=20)
         all_offers = await db.offers.find({"active": True}).to_list(length=20)
         
@@ -268,7 +267,7 @@ async def ai_chat_endpoint(data: ChatRequest):
 
         base_system_prompt = data.systemPrompt if data.systemPrompt else (
             "Eres un asistente experto, sumamente cómico y sarcástico de CazaOfertasML. "
-            "REGLA SUPREMA Y ABSOLUTA: ESTÁ ESTRICTAMENTE PROHIBIDO INVENTAR CUPONES, CÓDIGOS, PRECIOS O ENLACES. "
+            "REGLA SUPREMA Y ABSOLUTA: ESTÁ ESTRICTAMENTE PROHIBIDO INVENTAR CUPONES, CÓDIGOS, PRECIOS OU ENLACES. "
             "Solo puedes mencionar los cupones, precios o descuentos que aparezcan textualmente en la sección de inventario y ofertas vigentes de abajo. "
             "Si la lista de ofertas o cupones dice que NO HAY NINGUNA OFERTA NI CUPÓN ACTIVO, dile al usuario con gracia y humor que hoy no hay cupones, pero NUNCA te inventes un código. "
             "Cuando menciones productos u ofertas reales, destaca siempre el precio y el descuento al principio de tu respuesta."
@@ -277,7 +276,6 @@ async def ai_chat_endpoint(data: ChatRequest):
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
         messages = [{"role": "system", "content": base_system_prompt + db_context}]
         
-        # OPTIMIZACIÓN: Se toman solo los últimos 2 mensajes del historial para no saturar los tokens de la petición[cite: 5, 7]
         if data.history:
             recent_history = data.history[-2:]
             for msg in recent_history:
@@ -290,10 +288,10 @@ async def ai_chat_endpoint(data: ChatRequest):
         if data.message:
             messages.append({"role": "user", "content": data.message})
             
-        # CORRECCIÓN DE MODELO: Usamos "llama-3.1-8b-instant" para evitar el error 429 de límite de tokens[cite: 5, 7]
+        # MODELO COMPATIBLE ACTUALIZADO
         chat_completion = await ai_client.chat.completions.create(
             messages=messages,
-            model="llama-3.1-8b-instant",
+            model="llama3-8b-8192",
             temperature=0.7,
             max_tokens=250
         )
