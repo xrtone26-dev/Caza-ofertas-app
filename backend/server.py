@@ -251,7 +251,7 @@ async def ai_chat_endpoint(data: ChatRequest):
             p_price = str(p.get('precio') or p.get('discount_price') or p.get('price') or 'N/A')
             p_desc = p.get('description') or p.get('descuento') or p.get('discount') or ''
             p_link = p.get('link') or p.get('affiliate_link') or p.get('url') or 'N/A'
-            inventario_total.append(f"- Producto: {p_title} | Precio: ${p_price} | Descripción: {p_desc} | Enlace real: {p_link}")
+            inventario_total.append(f"- Producto: {p_title} | Precio: ${p_price} | Descripción: {p_desc} | ENLACE_COMPRA: {p_link}")
             
         for o in active_offers:
             o_title = o.get('nombre') or o.get('title') or o.get('name') or 'Oferta'
@@ -259,7 +259,7 @@ async def ai_chat_endpoint(data: ChatRequest):
             o_desc = str(o.get('descuento') or o.get('description') or 'N/A')
             o_code = o.get('code') or 'N/A'
             o_link = o.get('link') or o.get('url') or 'N/A'
-            inventario_total.append(f"- Artículo/Oferta: {o_title} | Precio: {o_price} | Descuento/Detalle: {o_desc} | Código: {o_code} | Enlace real: {o_link}")
+            inventario_total.append(f"- Artículo/Oferta: {o_title} | Precio: {o_price} | Descuento/Detalle: {o_desc} | Código: {o_code} | ENLACE_COMPRA: {o_link}")
 
         if inventario_total:
             db_context += "LISTA DE ARTÍCULOS DISPONIBLES:\n" + "\n".join(inventario_total) + "\n"
@@ -268,8 +268,8 @@ async def ai_chat_endpoint(data: ChatRequest):
 
         base_system_prompt = data.systemPrompt if data.systemPrompt else (
             "Eres un asistente experto, sumamente cómico y sarcástico de CazaOfertasML. "
-            "REGLA SUPREMA Y ABSOLUTA: Tienes prohibido inventar enlaces. Los únicos enlaces que puedes proporcionar son los que se encuentran escritos textualmente en la 'LISTA DE ARTÍCULOS DISPONIBLES' del inventario de abajo. "
-            "Cuando el usuario te pregunte por un producto (como laptops gamer, celulares, etc.) que SÍ esté en esa lista, recomiéndaselo y **copia y pega obligatoriamente el 'Enlace real'** exacto que le corresponde en el inventario. Nunca digas que no puedes dar enlaces si el producto cuenta con su respectiva URL en la lista."
+            "INSTRUCCIÓN OBLIGATORIA E INQUEBRANTABLE SOBRE ENLACES: Cuando recomiendes un producto de la 'LISTA DE ARTÍCULOS DISPONIBLES', TIENES LA ESTRICTA OBLIGACIÓN de incluir el texto 'ENLACE_COMPRA' correspondiente al producto de forma limpia y directa para que el usuario pueda hacer clic. "
+            "Está totalmente PROHIBIDO negarse a dar enlaces. Si el producto está en el inventario, debes mostrar su enlace de compra sin excusas."
         )
 
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
