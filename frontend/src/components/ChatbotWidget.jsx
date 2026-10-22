@@ -28,7 +28,6 @@ REGLAS STRICTAS DE FORMATO:
 1. NUNCA generes tablas en Markdown (prohibido usar | Código | Descuento |).
 2. NUNCA escribas URLs o enlaces largos en el texto plano.
 3. Sé conciso y claro (máximo 2 a 3 párrafos cortos por respuesta).
-4. Cuando recomiendes un producto del inventario, OBLIGATORIAMENTE debes incluir su enlace de afiliado o link directo provisto en el catálogo.
 `;
 
 export default function ChatbotWidget({ isLight, cupones = [], products = [] }) {
@@ -65,7 +64,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
         // setShowChatWindow(true); 
         sessionStorage.setItem('hasSeenChatPopup', 'true');
       }, 12000); 
-      return () => clearInterval(timer);
+      return () => clearTimeout(timer);
     }
   }, []);
 
@@ -397,7 +396,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
       return;
     }
 
-    // 4. Consulta conversacional al backend enviando la lista de PRODUCTOS
+    // 4. Consulta conversacional al backend enviando el inventario de productos
     try {
       const response = await axios.post(
         `${API}/chat`,
@@ -405,7 +404,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
           message: userText,
           history: newHistory.slice(-4),
           systemPrompt: SYSTEM_PROMPT,
-          products: products, // ENVIAMOS EL CATÁLOGOCARGADO EN EL FRONTEND AL BACKEND
+          products: products, // SE ENVÍA EL CATÁLOGO REAL AL BACKEND
         },
         { timeout: 35000 }
       );
@@ -428,7 +427,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
 
       let fallbackText = '';
       if (lowerText.includes('tardas') || lowerText.includes('lento') || lowerText.includes('espera') || lowerText.includes('tanto')) {
-        fallbackText = '¡Disculpa la demora! 🐹 Mi servidor estaba despertando de su siesta, pero ya estoy activo. Platícame, ¿qué producto o oferta estás buscando?';
+        fallbackText = '¡Disculpa la demora! 🐹 Mi servidor estaba despertando de su siesta, pero ya estoy activo. Platícame, ¿qué producto u oferta estás buscando?';
       } else if (lowerText.includes('hola') || lowerText.includes('buenas') || lowerText.includes('que tal')) {
         fallbackText = '¡Hola! 🐹 Qué gusto saludarte. ¿En qué puedo ayudarte a ahorrar el día de hoy?';
       } else {
