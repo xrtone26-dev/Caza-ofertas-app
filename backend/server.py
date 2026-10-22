@@ -225,7 +225,6 @@ async def ai_chat_endpoint(data: ChatRequest):
         return {"reply": "⚠️ El administrador aún no ha configurado la API Key de Groq en el servidor."}
     
     try:
-        # CONSULTA FLEXIBLE: Trae todo el inventario sin restringir por campos estrictos que puedan faltar
         active_products = await db.products.find({}).to_list(length=50)
         all_offers = await db.offers.find({}).to_list(length=50)
         
@@ -252,7 +251,7 @@ async def ai_chat_endpoint(data: ChatRequest):
             p_price = str(p.get('precio') or p.get('discount_price') or p.get('price') or 'N/A')
             p_desc = p.get('description') or p.get('descuento') or p.get('discount') or ''
             p_link = p.get('link') or p.get('affiliate_link') or p.get('url') or 'N/A'
-            inventario_total.append(f"- Producto: {p_title} | Precio: ${p_price} | Descripción: {p_desc} | Link: {p_link}")
+            inventario_total.append(f"- Producto: {p_title} | Precio: ${p_price} | Descripción: {p_desc} | Enlace real: {p_link}")
             
         for o in active_offers:
             o_title = o.get('nombre') or o.get('title') or o.get('name') or 'Oferta'
@@ -260,7 +259,7 @@ async def ai_chat_endpoint(data: ChatRequest):
             o_desc = str(o.get('descuento') or o.get('description') or 'N/A')
             o_code = o.get('code') or 'N/A'
             o_link = o.get('link') or o.get('url') or 'N/A'
-            inventario_total.append(f"- Artículo/Oferta: {o_title} | Precio: {o_price} | Descuento/Detalle: {o_desc} | Código: {o_code} | Link: {o_link}")
+            inventario_total.append(f"- Artículo/Oferta: {o_title} | Precio: {o_price} | Descuento/Detalle: {o_desc} | Código: {o_code} | Enlace real: {o_link}")
 
         if inventario_total:
             db_context += "LISTA DE ARTÍCULOS DISPONIBLES:\n" + "\n".join(inventario_total) + "\n"
@@ -269,10 +268,8 @@ async def ai_chat_endpoint(data: ChatRequest):
 
         base_system_prompt = data.systemPrompt if data.systemPrompt else (
             "Eres un asistente experto, sumamente cómico y sarcástico de CazaOfertasML. "
-            "REGLA SUPREMA Y ABSOLUTA: ESTÁ ESTRICTAMENTE PROHIBIDO INVENTAR CUPONES, CÓDIGOS, PRECIOS O ENLACES. "
-            "Solo puedes mencionar los productos, celulares, laptops, ofertas o precios que aparezcan textualmente en la 'LISTA DE ARTÍCULOS DISPONIBLES' de abajo. "
-            "Si el usuario pregunta por un artículo (como laptops gamer, celulares, etc.) y SÍ está en la lista, recomiéndaselo de inmediato mencionando su precio exacto y su enlace real provisto en el inventario. "
-            "Nunca digas que no hay productos si aparecen en la lista de arriba."
+            "REGLA SUPREMA Y ABSOLUTA: Tienes prohibido inventar enlaces. Los únicos enlaces que puedes proporcionar son los que se encuentran escritos textualmente en la 'LISTA DE ARTÍCULOS DISPONIBLES' del inventario de abajo. "
+            "Cuando el usuario te pregunte por un producto (como laptops gamer, celulares, etc.) que SÍ esté en esa lista, recomiéndaselo y **copia y pega obligatoriamente el 'Enlace real'** exacto que le corresponde en el inventario. Nunca digas que no puedes dar enlaces si el producto cuenta con su respectiva URL en la lista."
         )
 
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
