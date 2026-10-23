@@ -46,6 +46,7 @@ import {
   Users,
   Copy,
   Building2,
+  Briefcase
 } from 'lucide-react';
 import {
   FaWhatsapp,
@@ -632,6 +633,52 @@ function CountdownTimer({ expiresAt }) {
     <span className="text-[10px] sm:text-xs font-black tracking-widest text-amber-300 uppercase bg-black/40 px-2.5 py-1 rounded-full border border-amber-400/30">
       {timeLeft || 'VENCE HOY'}
     </span>
+  );
+}
+
+// ==========================================
+// SECCIÓN TRABAJA CON NOSOTROS
+// ==========================================
+function renderWorkWithUsSection(isLight) {
+  return (
+    <div className="container mx-auto px-4 mb-16 relative z-10">
+      <div className={`rounded-3xl shadow-xl p-6 sm:p-10 backdrop-blur-xl border ${
+        isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
+      }`}>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="flex flex-col items-start text-left max-w-xl">
+            <span className="text-xs font-black uppercase tracking-widest bg-yellow-400 text-black px-3 py-1 rounded-full mb-3 border border-black shadow-sm">
+              🚀 Oportunidad de Colaboración
+            </span>
+            <h2 className={`text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-4 ${
+              isLight ? 'text-purple-900' : 'text-neutral-100'
+            }`}>
+              ¿Quieres ganar dinero con nosotros y unirte al equipo?
+            </h2>
+            <p className={`text-xs sm:text-sm font-medium leading-relaxed mb-6 ${
+              isLight ? 'text-gray-600' : 'text-neutral-300'
+            }`}>
+              Súmate a nuestra red de promotores oficiales de CapiBaraML. Te asignamos un rol, etiquetas exclusivas y herramientas automatizadas para que generes comisiones promocionando los mejores productos y cupones de Mercado Libre. ¡Trabaja con nosotros y crece con el proyecto!
+            </p>
+            <div className="flex flex-wrap gap-4 items-center">
+              <a
+                href="https://api.whatsapp.com/send?text=Hola,%20vi%20la%20sección%20de%20Trabaja%20con%20Nosotros%20en%20CapiBaraML%20y%20quiero%20unirme%20al%20equipo%20como%20promotor."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-[#25D366] hover:bg-[#20bd5a] text-white font-black px-6 py-3.5 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black text-xs sm:text-sm uppercase transition-transform hover:scale-105 flex items-center gap-2"
+              >
+                <FaWhatsapp size={20} /> Postularme por WhatsApp
+              </a>
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center p-4 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+              <Users className="w-24 h-24 text-black animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -2614,12 +2661,21 @@ function App() {
             >
               ⭐ Productos Exclusivos
             </button>
+            <button
+              onClick={() => setMobileTab('trabaja')}
+              className={`col-span-2 py-3.5 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+                mobileTab === 'trabaja' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-yellow-400 hover:bg-neutral-700 border border-yellow-500/40'
+              }`}
+            >
+              💼 Trabaja con Nosotros
+            </button>
           </div>
 
           {mobileTab === 'cupones' && renderCuponesSection()}
           {mobileTab === 'bancarios' && renderCuponesBancariosSection()}
           {mobileTab === 'productos' && renderProductosSection()}
           {mobileTab === 'exclusivos' && renderExclusiveProductsSection()}
+          {mobileTab === 'trabaja' && renderWorkWithUsSection(isLight)}
           {mobileTab === 'reels' && (
             <>
               {renderReelsSection()}
@@ -2633,6 +2689,7 @@ function App() {
           {renderCuponesBancariosSection()}
           {renderProductosSection()}
           {renderExclusiveProductsSection()}
+          {renderWorkWithUsSection(isLight)}
           {renderReelsSection()}
           {renderNewSection(products)}
         </>
