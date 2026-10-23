@@ -46,7 +46,8 @@ import {
   Users,
   Copy,
   Building2,
-  Briefcase
+  Briefcase,
+  ArrowRight
 } from 'lucide-react';
 import {
   FaWhatsapp,
@@ -637,7 +638,7 @@ function CountdownTimer({ expiresAt }) {
 }
 
 // ==========================================
-// SECCIÓN TRABAJA CON NOSOTROS
+// SECCIÓN TRABAJA CON NOSOTROS (ACTUALIZADA)
 // ==========================================
 function renderWorkWithUsSection(isLight) {
   return (
@@ -662,7 +663,7 @@ function renderWorkWithUsSection(isLight) {
             </p>
             <div className="flex flex-wrap gap-4 items-center">
               <a
-                href="https://api.whatsapp.com/send?text=Hola,%20vi%20la%20sección%20de%20Trabaja%20con%20Nosotros%20en%20CapiBaraML%20y%20quiero%20unirme%20al%20equipo%20como%20promotor."
+                href="https://wa.me/523312229710?text=Hola,%20quiero%20postularme%20para%20unirme%20al%20equipo%20y%20ganar%20dinero%20con%20CapiBaraML"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-[#25D366] hover:bg-[#20bd5a] text-white font-black px-6 py-3.5 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black text-xs sm:text-sm uppercase transition-transform hover:scale-105 flex items-center gap-2"
@@ -671,9 +672,34 @@ function renderWorkWithUsSection(isLight) {
               </a>
             </div>
           </div>
-          <div className="flex justify-center">
-            <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center p-4 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-              <Users className="w-24 h-24 text-black animate-pulse" />
+
+          {/* LADO DERECHO: Círculo de usuarios cargado a la izquierda, flecha con movimiento y logo de Capibara */}
+          <div className="flex items-center justify-center gap-4 sm:gap-6 shrink-0 z-10">
+            {/* 1. Círculo de usuarios */}
+            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-yellow-400 border-4 border-yellow-300 flex items-center justify-center text-neutral-950 shadow-xl shrink-0">
+              <Users className="w-12 h-12 sm:w-16 sm:h-16 stroke-[2.5]" />
+            </div>
+
+            {/* 2. Flecha con movimiento animado */}
+            <motion.div
+              animate={{ x: [0, 8, 0] }}
+              transition={{
+                repeat: Infinity,
+                duration: 1.2,
+                ease: 'easeInOut',
+              }}
+              className="text-yellow-400 flex items-center justify-center"
+            >
+              <ArrowRight className="w-8 h-8 sm:w-12 sm:h-12 stroke-[3]" />
+            </motion.div>
+
+            {/* 3. Logo de Capibara */}
+            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-neutral-950 border-4 border-yellow-400 flex items-center justify-center overflow-hidden shadow-xl shrink-0 p-2">
+              <img
+                src="./logo.png"
+                alt="Logo CapiBaraML"
+                className="w-full h-full object-contain"
+              />
             </div>
           </div>
         </div>
