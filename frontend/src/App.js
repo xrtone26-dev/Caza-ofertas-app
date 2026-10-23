@@ -638,7 +638,7 @@ function CountdownTimer({ expiresAt }) {
 }
 
 // ==========================================
-// SECCIÓN TRABAJA CON NOSOTROS (DINÁMICA Y ESTILIZADA)
+// SECCIÓN TRABAJA CON NOSOTROS (NUEVA FLECHA Y DISEÑO LIMPIO)
 // ==========================================
 function renderWorkWithUsSection(isLight) {
   return (
@@ -679,62 +679,84 @@ function renderWorkWithUsSection(isLight) {
             </a>
           </div>
 
-          {/* LADO DERECHO: ILUSTRACIÓN DINÁMICA CON FLECHA ANIMADA */}
-          <div className="flex items-center justify-center gap-4 sm:gap-6 shrink-0 py-4">
+          {/* LADO DERECHO: ILUSTRACIÓN LIMPIA CON CONECTOR DE ENERGÍA */}
+          <div className="flex items-center justify-center gap-3 sm:gap-6 shrink-0 py-4">
             
-            {/* 1. Círculo Equipo con pulso y flotación */}
+            {/* 1. Círculo Equipo */}
             <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
-              className="relative group"
-            >
-              <div className="absolute inset-0 bg-yellow-400/40 rounded-full blur-xl group-hover:bg-yellow-400/60 transition-all" />
-              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-yellow-400 border-4 border-black flex flex-col items-center justify-center text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] shrink-0">
-                <Users className="w-10 h-10 sm:w-12 sm:h-12 stroke-[2.5]" />
-                <span className="text-[9px] font-black uppercase tracking-wider mt-1">EQUIPO</span>
-              </div>
-            </motion.div>
-
-            {/* 2. FLECHA CURVA DINÁMICA CON MOVIMIENTO NUTRIDO */}
-            <motion.div
-              animate={{ x: [0, 10, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
-              className="relative flex items-center justify-center"
-            >
-              <Sparkles className="absolute -top-3 text-yellow-300 w-5 h-5 animate-pulse" />
-              <svg
-                className="w-16 sm:w-24 h-12 text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]"
-                viewBox="0 0 100 50"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M10 25 Q 50 5, 80 25"
-                  stroke="currentColor"
-                  strokeWidth="5"
-                  strokeLinecap="round"
-                  fill="none"
-                  strokeDasharray="6 4"
-                />
-                <path
-                  d="M70 15 L88 26 L72 35"
-                  stroke="currentColor"
-                  strokeWidth="5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-              </svg>
-            </motion.div>
-
-            {/* 3. Logo CapiBara con brillo y levitación sutil */}
-            <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut', delay: 0.5 }}
+              animate={{ y: [0, -5, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
               className="relative group"
             >
               <div className="absolute inset-0 bg-yellow-400/30 rounded-full blur-xl group-hover:bg-yellow-400/50 transition-all" />
-              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-neutral-950 border-4 border-yellow-400 flex items-center justify-center overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] shrink-0 p-1">
+              <div className="relative w-22 h-22 sm:w-28 sm:h-28 rounded-full bg-yellow-400 border-4 border-black flex flex-col items-center justify-center text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] shrink-0">
+                <Users className="w-9 h-9 sm:w-11 sm:h-11 stroke-[2.5]" />
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider mt-1">EQUIPO</span>
+              </div>
+            </motion.div>
+
+            {/* 2. FLECHA / CONECTOR ENERGÉTICO MODERNO */}
+            <div className="relative flex items-center justify-center w-20 sm:w-28 h-12">
+              <svg
+                className="w-full h-full text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]"
+                viewBox="0 0 120 40"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <defs>
+                  <linearGradient id="arrowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#EAB308" stopOpacity="0.3" />
+                    <stop offset="100%" stopColor="#FACC15" stopOpacity="1" />
+                  </linearGradient>
+                </defs>
+
+                {/* Línea guía elegante con gradiente */}
+                <path
+                  d="M 10 20 C 45 5, 75 35, 102 20"
+                  stroke="url(#arrowGrad)"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+
+                {/* Cabeza de flecha estilizada */}
+                <path
+                  d="M 94 13 L 107 20 L 96 28 L 99 20 Z"
+                  fill="#FACC15"
+                  stroke="#000000"
+                  strokeWidth="1.5"
+                  strokeLinejoin="round"
+                />
+
+                {/* Partícula de energía animada fluyendo a través del conector */}
+                <motion.circle
+                  r="3.5"
+                  fill="#FFFFFF"
+                  className="drop-shadow-[0_0_6px_#FFFFFF]"
+                  animate={{
+                    offsetDistance: ['0%', '100%'],
+                    opacity: [0, 1, 1, 0]
+                  }}
+                  transition={{
+                    duration: 1.8,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  style={{
+                    offsetPath: 'path("M 10 20 C 45 5, 75 35, 102 20")',
+                  }}
+                />
+              </svg>
+            </div>
+
+            {/* 3. Logo CapiBara */}
+            <motion.div
+              animate={{ y: [0, -5, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }}
+              className="relative group"
+            >
+              <div className="absolute inset-0 bg-yellow-400/30 rounded-full blur-xl group-hover:bg-yellow-400/50 transition-all" />
+              <div className="relative w-22 h-22 sm:w-28 sm:h-28 rounded-full bg-neutral-950 border-4 border-yellow-400 flex items-center justify-center overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] shrink-0 p-1">
                 <img
                   src="./logo.png"
                   alt="Logo CapiBaraML"
