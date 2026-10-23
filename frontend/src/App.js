@@ -666,7 +666,7 @@ function renderWorkWithUsSection(isLight) {
             <p className={`text-xs sm:text-sm font-medium leading-relaxed mb-6 ${
               isLight ? 'text-gray-600' : 'text-neutral-300'
             }`}>
-              Súmate a nuestra red de promotores oficiales de CapiBaraML. Te asignamos un rol, etiquetas exclusivas y herramientas automatizadas para que generes comisiones promocionando los mejores productos y cupones de Mercado Libre. ¡Trabaja con nosotros y crece con el proyecto!
+              Súmate a nuestra red de promotores oficiales de CapiBaraML. Te asignamos un rol, etiquetas exclusivas y herramientas para que generes comisiones promocionando los mejores productos y cupones de Mercado Libre. ¡Trabaja con nosotros y crece con el proyecto!
             </p>
 
             <a
