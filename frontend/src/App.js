@@ -638,70 +638,113 @@ function CountdownTimer({ expiresAt }) {
 }
 
 // ==========================================
-// SECCIÓN TRABAJA CON NOSOTROS (ACTUALIZADA)
+// SECCIÓN TRABAJA CON NOSOTROS (DINÁMICA Y ESTILIZADA)
 // ==========================================
 function renderWorkWithUsSection(isLight) {
   return (
     <div className="container mx-auto px-4 mb-16 relative z-10">
-      <div className={`rounded-3xl shadow-xl p-6 sm:p-10 backdrop-blur-xl border ${
-        isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
+      <div className={`rounded-3xl shadow-2xl p-6 sm:p-10 backdrop-blur-2xl border relative overflow-hidden ${
+        isLight ? 'bg-white/90 border-purple-200' : 'bg-neutral-900/90 border-yellow-400/30'
       }`}>
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+        {/* Fondo decorativo brillante */}
+        <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 bg-yellow-400/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-10 relative z-10">
+          
+          {/* LADO IZQUIERDO: TEXTO Y BOTÓN */}
           <div className="flex flex-col items-start text-left max-w-xl">
-            <span className="text-xs font-black uppercase tracking-widest bg-yellow-400 text-black px-3 py-1 rounded-full mb-3 border border-black shadow-sm">
-              🚀 Oportunidad de Colaboración
+            <span className="inline-flex items-center gap-2 px-3.5 py-1 bg-yellow-400 text-black font-black text-xs uppercase rounded-full shadow-md mb-4 border border-black">
+              🚀 OPORTUNIDAD DE COLABORACIÓN
             </span>
-            <h2 className={`text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-4 ${
-              isLight ? 'text-purple-900' : 'text-neutral-100'
+
+            <h2 className={`text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-4 leading-tight ${
+              isLight ? 'text-purple-900' : 'text-white'
             }`}>
               ¿Quieres ganar dinero con nosotros y unirte al equipo?
             </h2>
+
             <p className={`text-xs sm:text-sm font-medium leading-relaxed mb-6 ${
               isLight ? 'text-gray-600' : 'text-neutral-300'
             }`}>
               Súmate a nuestra red de promotores oficiales de CapiBaraML. Te asignamos un rol, etiquetas exclusivas y herramientas automatizadas para que generes comisiones promocionando los mejores productos y cupones de Mercado Libre. ¡Trabaja con nosotros y crece con el proyecto!
             </p>
-            <div className="flex flex-wrap gap-4 items-center">
-              <a
-                href="https://wa.me/523312229710?text=Hola,%20quiero%20postularme%20para%20unirme%20al%20equipo%20y%20ganar%20dinero%20con%20CapiBaraML"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#25D366] hover:bg-[#20bd5a] text-white font-black px-6 py-3.5 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black text-xs sm:text-sm uppercase transition-transform hover:scale-105 flex items-center gap-2"
-              >
-                <FaWhatsapp size={20} /> Postularme por WhatsApp
-              </a>
-            </div>
+
+            <a
+              href="https://wa.me/523312229710?text=Hola,%20quiero%20postularme%20para%20unirme%20al%20equipo%20y%20ganar%20dinero%20con%20CapiBaraML"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-black rounded-2xl text-xs sm:text-sm uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black transition-all hover:scale-105"
+            >
+              <FaWhatsapp size={20} /> POSTULARME POR WHATSAPP
+            </a>
           </div>
 
-          {/* LADO DERECHO: Círculo de usuarios cargado a la izquierda, flecha con movimiento y logo de Capibara */}
-          <div className="flex items-center justify-center gap-4 sm:gap-6 shrink-0 z-10">
-            {/* 1. Círculo de usuarios */}
-            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-yellow-400 border-4 border-yellow-300 flex items-center justify-center text-neutral-950 shadow-xl shrink-0">
-              <Users className="w-12 h-12 sm:w-16 sm:h-16 stroke-[2.5]" />
-            </div>
-
-            {/* 2. Flecha con movimiento animado */}
+          {/* LADO DERECHO: ILUSTRACIÓN DINÁMICA CON FLECHA ANIMADA */}
+          <div className="flex items-center justify-center gap-4 sm:gap-6 shrink-0 py-4">
+            
+            {/* 1. Círculo Equipo con pulso y flotación */}
             <motion.div
-              animate={{ x: [0, 8, 0] }}
-              transition={{
-                repeat: Infinity,
-                duration: 1.2,
-                ease: 'easeInOut',
-              }}
-              className="text-yellow-400 flex items-center justify-center"
+              animate={{ y: [0, -6, 0] }}
+              transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+              className="relative group"
             >
-              <ArrowRight className="w-8 h-8 sm:w-12 sm:h-12 stroke-[3]" />
+              <div className="absolute inset-0 bg-yellow-400/40 rounded-full blur-xl group-hover:bg-yellow-400/60 transition-all" />
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-yellow-400 border-4 border-black flex flex-col items-center justify-center text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] shrink-0">
+                <Users className="w-10 h-10 sm:w-12 sm:h-12 stroke-[2.5]" />
+                <span className="text-[9px] font-black uppercase tracking-wider mt-1">EQUIPO</span>
+              </div>
             </motion.div>
 
-            {/* 3. Logo de Capibara */}
-            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-neutral-950 border-4 border-yellow-400 flex items-center justify-center overflow-hidden shadow-xl shrink-0 p-2">
-              <img
-                src="./logo.png"
-                alt="Logo CapiBaraML"
-                className="w-full h-full object-contain"
-              />
-            </div>
+            {/* 2. FLECHA CURVA DINÁMICA CON MOVIMIENTO NUTRIDO */}
+            <motion.div
+              animate={{ x: [0, 10, 0] }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+              className="relative flex items-center justify-center"
+            >
+              <Sparkles className="absolute -top-3 text-yellow-300 w-5 h-5 animate-pulse" />
+              <svg
+                className="w-16 sm:w-24 h-12 text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]"
+                viewBox="0 0 100 50"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M10 25 Q 50 5, 80 25"
+                  stroke="currentColor"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  fill="none"
+                  strokeDasharray="6 4"
+                />
+                <path
+                  d="M70 15 L88 26 L72 35"
+                  stroke="currentColor"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </svg>
+            </motion.div>
+
+            {/* 3. Logo CapiBara con brillo y levitación sutil */}
+            <motion.div
+              animate={{ y: [0, -6, 0] }}
+              transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut', delay: 0.5 }}
+              className="relative group"
+            >
+              <div className="absolute inset-0 bg-yellow-400/30 rounded-full blur-xl group-hover:bg-yellow-400/50 transition-all" />
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-neutral-950 border-4 border-yellow-400 flex items-center justify-center overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] shrink-0 p-1">
+                <img
+                  src="./logo.png"
+                  alt="Logo CapiBaraML"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+            </motion.div>
+
           </div>
+
         </div>
       </div>
     </div>
