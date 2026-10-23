@@ -638,27 +638,27 @@ function CountdownTimer({ expiresAt }) {
 }
 
 // ==========================================
-// SECCIÓN TRABAJA CON NOSOTROS (NUEVA FLECHA Y DISEÑO LIMPIO)
+// SECCIÓN TRABAJA CON NOSOTROS (FLECHA NEÓN TECNOLÓGICA estilo IMAGEN 1)
 // ==========================================
 function renderWorkWithUsSection(isLight) {
   return (
     <div className="container mx-auto px-4 mb-16 relative z-10">
       <div className={`rounded-3xl shadow-2xl p-6 sm:p-10 backdrop-blur-2xl border relative overflow-hidden ${
-        isLight ? 'bg-white/90 border-purple-200' : 'bg-neutral-900/90 border-yellow-400/30'
+        isLight ? 'bg-white/90 border-cyan-200' : 'bg-neutral-900/90 border-cyan-500/30'
       }`}>
-        {/* Fondo decorativo brillante */}
-        <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 bg-yellow-400/10 rounded-full blur-3xl pointer-events-none" />
+        {/* Fondo decorativo resplandeciente estilo cyan */}
+        <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col lg:flex-row items-center justify-between gap-10 relative z-10">
           
           {/* LADO IZQUIERDO: TEXTO Y BOTÓN */}
           <div className="flex flex-col items-start text-left max-w-xl">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1 bg-yellow-400 text-black font-black text-xs uppercase rounded-full shadow-md mb-4 border border-black">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1 bg-cyan-400 text-black font-black text-xs uppercase rounded-full shadow-md mb-4 border border-black">
               🚀 OPORTUNIDAD DE COLABORACIÓN
             </span>
 
             <h2 className={`text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-4 leading-tight ${
-              isLight ? 'text-purple-900' : 'text-white'
+              isLight ? 'text-cyan-950' : 'text-white'
             }`}>
               ¿Quieres ganar dinero con nosotros y unirte al equipo?
             </h2>
@@ -679,7 +679,7 @@ function renderWorkWithUsSection(isLight) {
             </a>
           </div>
 
-          {/* LADO DERECHO: ILUSTRACIÓN LIMPIA CON CONECTOR DE ENERGÍA */}
+          {/* LADO DERECHO: CONECTOR TECNOLÓGICO Y FLECHAS NEÓN */}
           <div className="flex items-center justify-center gap-3 sm:gap-6 shrink-0 py-4">
             
             {/* 1. Círculo Equipo */}
@@ -688,63 +688,86 @@ function renderWorkWithUsSection(isLight) {
               transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
               className="relative group"
             >
-              <div className="absolute inset-0 bg-yellow-400/30 rounded-full blur-xl group-hover:bg-yellow-400/50 transition-all" />
-              <div className="relative w-22 h-22 sm:w-28 sm:h-28 rounded-full bg-yellow-400 border-4 border-black flex flex-col items-center justify-center text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] shrink-0">
+              <div className="absolute inset-0 bg-cyan-400/30 rounded-full blur-xl group-hover:bg-cyan-400/50 transition-all" />
+              <div className="relative w-22 h-22 sm:w-28 sm:h-28 rounded-full bg-cyan-400 border-4 border-black flex flex-col items-center justify-center text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] shrink-0">
                 <Users className="w-9 h-9 sm:w-11 sm:h-11 stroke-[2.5]" />
                 <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider mt-1">EQUIPO</span>
               </div>
             </motion.div>
 
-            {/* 2. FLECHA / CONECTOR ENERGÉTICO MODERNO */}
-            <div className="relative flex items-center justify-center w-20 sm:w-28 h-12">
+            {/* 2. FLECHAS NEÓN TECNOLÓGICAS (ESTILO IMAGEN 1) */}
+            <div className="relative flex items-center justify-center w-24 sm:w-32 h-20">
               <svg
-                className="w-full h-full text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]"
-                viewBox="0 0 120 40"
+                className="w-full h-full drop-shadow-[0_0_12px_rgba(6,182,212,0.8)]"
+                viewBox="0 0 140 60"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <defs>
-                  <linearGradient id="arrowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#EAB308" stopOpacity="0.3" />
-                    <stop offset="100%" stopColor="#FACC15" stopOpacity="1" />
+                  {/* Gradiente Cyan Neón */}
+                  <linearGradient id="neonCyanGrad" x1="0%" y1="50%" x2="100%" y2="50%">
+                    <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.2" />
+                    <stop offset="40%" stopColor="#22d3ee" stopOpacity="0.8" />
+                    <stop offset="100%" stopColor="#38bdf8" stopOpacity="1" />
+                  </linearGradient>
+
+                  <linearGradient id="sparkleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#a5f3fc" />
+                    <stop offset="100%" stopColor="#38bdf8" />
                   </linearGradient>
                 </defs>
 
-                {/* Línea guía elegante con gradiente */}
+                {/* Destellos / Estrellas tecnológicas de fondo */}
+                <path d="M 15 12 L 17 15 L 20 15 L 17 17 L 18 20 L 15 18 L 12 20 L 13 17 L 10 15 L 13 15 Z" fill="url(#sparkleGrad)" opacity="0.6" />
+                <path d="M 115 42 L 116.5 44 L 119 44 L 117 45.5 L 118 48 L 115 46.5 L 112 48 L 113 45.5 L 111 44 L 113.5 44 Z" fill="url(#sparkleGrad)" opacity="0.8" />
+
+                {/* Flecha secundaria pequeña (inferior) */}
                 <path
-                  d="M 10 20 C 45 5, 75 35, 102 20"
-                  stroke="url(#arrowGrad)"
-                  strokeWidth="3.5"
+                  d="M 25 38 L 65 38 A 6 6 0 0 0 71 32 L 71 30"
+                  stroke="url(#neonCyanGrad)"
+                  strokeWidth="2.5"
                   strokeLinecap="round"
-                  fill="none"
+                  opacity="0.5"
                 />
-
-                {/* Cabeza de flecha estilizada */}
                 <path
-                  d="M 94 13 L 107 20 L 96 28 L 99 20 Z"
-                  fill="#FACC15"
-                  stroke="#000000"
-                  strokeWidth="1.5"
-                  strokeLinejoin="round"
+                  d="M 66 28 L 71 21 L 76 28 Z"
+                  fill="#22d3ee"
+                  opacity="0.6"
                 />
 
-                {/* Partícula de energía animada fluyendo a través del conector */}
+                {/* FLECHA PRINCIPAL TECNOLÓGICA HORIZONTAL */}
+                {/* Cuerpo cónico / estilizado */}
+                <path
+                  d="M 10 32 C 40 32, 60 30, 98 30"
+                  stroke="url(#neonCyanGrad)"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                />
+
+                {/* Cabeza de flecha neón geométrica idéntica a la ref */}
+                <path
+                  d="M 94 18 L 122 30 L 94 42 L 100 30 Z"
+                  fill="#38bdf8"
+                  stroke="#ffffff"
+                  strokeWidth="1.5"
+                  strokeLinejoin="miter"
+                />
+
+                {/* Efecto de energía brillante que recorre el centro */}
                 <motion.circle
-                  r="3.5"
+                  r="3"
                   fill="#FFFFFF"
-                  className="drop-shadow-[0_0_6px_#FFFFFF]"
+                  className="drop-shadow-[0_0_8px_#FFFFFF]"
                   animate={{
-                    offsetDistance: ['0%', '100%'],
+                    cx: [10, 105],
                     opacity: [0, 1, 1, 0]
                   }}
                   transition={{
-                    duration: 1.8,
+                    duration: 1.4,
                     repeat: Infinity,
                     ease: "easeInOut"
                   }}
-                  style={{
-                    offsetPath: 'path("M 10 20 C 45 5, 75 35, 102 20")',
-                  }}
+                  cy="30"
                 />
               </svg>
             </div>
@@ -755,8 +778,8 @@ function renderWorkWithUsSection(isLight) {
               transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }}
               className="relative group"
             >
-              <div className="absolute inset-0 bg-yellow-400/30 rounded-full blur-xl group-hover:bg-yellow-400/50 transition-all" />
-              <div className="relative w-22 h-22 sm:w-28 sm:h-28 rounded-full bg-neutral-950 border-4 border-yellow-400 flex items-center justify-center overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] shrink-0 p-1">
+              <div className="absolute inset-0 bg-cyan-400/30 rounded-full blur-xl group-hover:bg-cyan-400/50 transition-all" />
+              <div className="relative w-22 h-22 sm:w-28 sm:h-28 rounded-full bg-neutral-950 border-4 border-cyan-400 flex items-center justify-center overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] shrink-0 p-1">
                 <img
                   src="./logo.png"
                   alt="Logo CapiBaraML"
@@ -2993,14 +3016,14 @@ function App() {
             <div className="flex items-center justify-center gap-4 pt-3 border-t border-yellow-500/20">
               <button 
                 onClick={() => setShowPrivacyModal(true)} 
-                className={`font-black underline hover:scale-105 transition-transform ${isLight ? 'text-purple-700 hover:text-purple-900' : 'text-yellow-400 hover:text-yellow-300'}`}
+                className={`font-black underline hover:scale-105 transition-transform ${isLight ? 'text-purple-700 hover:text-purple-900' : 'text-purple-400 hover:text-purple-300'}`}
               >
                 🔒 Política de Privacidad
               </button>
               <span className="opacity-50">|</span>
               <button 
                 onClick={() => setShowTermsModal(true)} 
-                className={`font-black underline hover:scale-105 transition-transform ${isLight ? 'text-purple-700 hover:text-purple-900' : 'text-yellow-400 hover:text-yellow-300'}`}
+                className={`font-black underline hover:scale-105 transition-transform ${isLight ? 'text-purple-700 hover:text-purple-900' : 'text-purple-400 hover:text-purple-300'}`}
               >
                 📄 Términos y Condiciones
               </button>
