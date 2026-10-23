@@ -638,11 +638,11 @@ function CountdownTimer({ expiresAt }) {
 }
 
 // ==========================================
-// SECCIÓN TRABAJA CON NOSOTROS (FLECHA NEÓN TECNOLÓGICA estilo IMAGEN 1)
+// SECCIÓN TRABAJA CON NOSOTROS (FLECHA NEÓN TECNOLÓGICA estilo IMAGEN)
 // ==========================================
 function renderWorkWithUsSection(isLight) {
   return (
-    <div className="container mx-auto px-4 mb-16 relative z-10">
+    <div className="container mx-auto px-4 mt-6 mb-12 relative z-20">
       <div className={`rounded-3xl shadow-2xl p-6 sm:p-10 backdrop-blur-2xl border relative overflow-hidden ${
         isLight ? 'bg-white/90 border-cyan-200' : 'bg-neutral-900/90 border-cyan-500/30'
       }`}>
@@ -666,7 +666,7 @@ function renderWorkWithUsSection(isLight) {
             <p className={`text-xs sm:text-sm font-medium leading-relaxed mb-6 ${
               isLight ? 'text-gray-600' : 'text-neutral-300'
             }`}>
-              Súmate a nuestra red de promotores oficiales de CapiBaraML. Te asignamos un rol, etiquetas exclusivas y herramientas para que generes comisiones promocionando los mejores productos y cupones de Mercado Libre. ¡Trabaja con nosotros y crece con el proyecto!
+              Súmate a nuestra red de promotores oficiales de CapiBaraML. Te asignamos un rol, etiquetas exclusivas y herramientas automatizadas para que generes comisiones promocionando los mejores productos y cupones de Mercado Libre. ¡Trabaja con nosotros y crece con el proyecto!
             </p>
 
             <a
@@ -695,7 +695,7 @@ function renderWorkWithUsSection(isLight) {
               </div>
             </motion.div>
 
-            {/* 2. FLECHAS NEÓN TECNOLÓGICAS (ESTILO IMAGEN 1) */}
+            {/* 2. FLECHAS NEÓN TECNOLÓGICAS */}
             <div className="relative flex items-center justify-center w-24 sm:w-32 h-20">
               <svg
                 className="w-full h-full drop-shadow-[0_0_12px_rgba(6,182,212,0.8)]"
@@ -736,7 +736,6 @@ function renderWorkWithUsSection(isLight) {
                 />
 
                 {/* FLECHA PRINCIPAL TECNOLÓGICA HORIZONTAL */}
-                {/* Cuerpo cónico / estilizado */}
                 <path
                   d="M 10 32 C 40 32, 60 30, 98 30"
                   stroke="url(#neonCyanGrad)"
@@ -744,7 +743,7 @@ function renderWorkWithUsSection(isLight) {
                   strokeLinecap="round"
                 />
 
-                {/* Cabeza de flecha neón geométrica idéntica a la ref */}
+                {/* Cabeza de flecha neón geométrica */}
                 <path
                   d="M 94 18 L 122 30 L 94 42 L 100 30 Z"
                   fill="#38bdf8"
@@ -2666,14 +2665,14 @@ function App() {
       </AnimatePresence>
 
       <div
-        className={`relative overflow-hidden border-b pb-16 ${
+        className={`relative overflow-hidden border-b pb-8 ${
           isLight
             ? 'bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 border-transparent'
             : 'bg-gradient-to-b from-neutral-900 to-neutral-950 border-neutral-800'
         }`}
       >
         {!isLight && <div className="absolute inset-0 bg-black opacity-10" />}
-        <div className="relative container mx-auto px-4 pt-12 pb-8">
+        <div className="relative container mx-auto px-4 pt-12 pb-4">
           <div className="flex flex-col items-center text-center">
             
             <div
@@ -2720,7 +2719,7 @@ function App() {
             </h1>
 
             {!isMobileDevice && (
-              <div className={`inline-block backdrop-blur-sm px-6 py-3 rounded-full mb-4 ${
+              <div className={`inline-block backdrop-blur-sm px-6 py-3 rounded-full mb-2 ${
                 isLight ? 'bg-white/20' : 'bg-yellow-400/10 border border-yellow-400/30'
               }`}>
                 <p className="text-white font-semibold text-lg">
@@ -2731,6 +2730,9 @@ function App() {
           </div>
         </div>
       </div>
+
+      {/* SECCIÓN TRABAJA CON NOSOTROS POSICIONADA DIRECTAMENTE ABAJO DEL ENCABEZADO */}
+      {!isMobileDevice && renderWorkWithUsSection(isLight)}
 
       {isMobileDevice ? (
         <div className="container mx-auto px-4 mt-6 mb-16 relative z-20">
@@ -2803,7 +2805,6 @@ function App() {
           {renderCuponesBancariosSection()}
           {renderProductosSection()}
           {renderExclusiveProductsSection()}
-          {renderWorkWithUsSection(isLight)}
           {renderReelsSection()}
           {renderNewSection(products)}
         </>
