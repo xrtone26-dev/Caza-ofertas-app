@@ -406,9 +406,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
       console.error('Error de comunicación en chat:', error);
 
       let fallbackText = '¡Claro que sí! 🚀 Tenemos las mejores ofertas esperándote. ¡Dime qué marca, modelo o producto buscas para pasarte su enlace exacto de descuento! 🐹✨';
-      if (lowerText.includes('iphone') || lowerText.includes('apple') || lowerText.includes('celular')) {
-        fallbackText = '¡Claro que sí! 🚀 En la sección de tecnología tenemos superopciones en celulares con envio directo. ¡Dime qué presupuesto o modelo buscas y te paso su enlace de descuento! 🐹✨';
-      }
 
       setChatMessages((prev) => [
         ...prev,
@@ -493,12 +490,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
                 className="whitespace-nowrap px-3 py-1.5 rounded-full bg-yellow-400 text-black font-black text-[11px] hover:bg-yellow-300 transition shadow-sm cursor-pointer"
               >
                 🎟️ ¡Cupones Hoy!
-              </button>
-              <button
-                onClick={() => processAndSendMessage('¿Qué ofertas en celulares y tecnología me recomiendas hoy?')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-purple-700 text-white font-black text-[11px] hover:bg-purple-600 transition shadow-sm cursor-pointer"
-              >
-                📱 Ver Celulares
               </button>
               <button
                 onClick={() => processAndSendMessage('¿Qué terminales Point de Mercado Pago me recomiendas?')}
