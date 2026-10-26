@@ -1457,7 +1457,7 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES DIGITALES
+  // SECCIÓN DE CUPONES DIGITALES (AJUSTADA AL 100% DE ZOOM)
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
@@ -1518,9 +1518,9 @@ function App() {
               </p>
             </div>
           ) : (
-            <div className="relative px-2 sm:px-10">
+            <div className="relative px-2 sm:px-12">
               <div className="overflow-hidden py-4" ref={cuponesRef}>
-                <div className="flex gap-6 items-center">
+                <div className="flex gap-4 md:gap-6 items-center">
                   {filteredCupones.map((cupon, idx) => {
                     const cuponId = getSafeId(cupon) || cupon.title;
                     const currentReaction = userReactions[cuponId];
@@ -1628,17 +1628,18 @@ function App() {
                           </div>
                         </div>
 
+                        {/* Tarjeta de escritorio optimizada para 100% de zoom */}
                         <div className="hidden md:flex flex-col gap-2 w-full">
                           <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide">
                             {fechaActual}
                           </span>
                           <div 
                             onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                            className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer h-full"
+                            className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer h-full w-full"
                           >
-                            <div className="bg-white text-gray-900 p-5 flex flex-col justify-between items-center w-[260px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
-                              <div className="flex flex-col items-center justify-center my-auto py-2">
-                                <div className="w-36 h-36 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
+                            <div className="bg-white text-gray-900 p-4 sm:p-5 flex flex-col justify-between items-center w-[210px] sm:w-[230px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
+                              <div className="flex flex-col items-center justify-center my-auto py-1">
+                                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
                                   <img 
                                     src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolibre/logo__large_plus.png" 
                                     alt="Mercado Libre" 
@@ -1649,33 +1650,33 @@ function App() {
                                     }}
                                   />
                                 </div>
-                                <span className="font-black text-xs uppercase tracking-widest text-slate-800">
+                                <span className="font-black text-[11px] sm:text-xs uppercase tracking-widest text-slate-800 text-center">
                                   mercado libre
                                 </span>
                               </div>
 
-                              <div className="w-full text-center mt-2 pt-2 border-t border-gray-100">
-                                <span className="text-xs font-extrabold text-blue-600 tracking-tight block">
+                              <div className="w-full text-center mt-1 pt-2 border-t border-gray-100">
+                                <span className="text-[10px] sm:text-xs font-extrabold text-blue-600 tracking-tight block truncate">
                                   {cupon.description && cupon.description.includes('MAX') 
                                     ? cupon.description 
-                                    : (cupon.max_discount ? `DESCUENTO MAX: ${cupon.max_discount}` : 'DESCUENTO ESPECIAL')}
+                                    : (cupon.max_discount ? `DESC MAX: ${cupon.max_discount}` : 'DESCUENTO ESPECIAL')}
                                 </span>
                               </div>
 
                               <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
                             </div>
 
-                            <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-6 text-black flex flex-col justify-between relative`}>
-                              <div className="flex justify-between items-start gap-4 mb-3">
-                                <div className="flex flex-col">
-                                  <h3 className="text-2xl font-black uppercase tracking-tight drop-shadow-sm mb-2">
+                            <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-black flex flex-col justify-between relative overflow-hidden`}>
+                              <div className="flex justify-between items-start gap-2 mb-2">
+                                <div className="flex flex-col min-w-0 pr-1">
+                                  <h3 className="text-lg sm:text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 truncate">
                                     {cupon.title || '10% DE DESCUENTO'}
                                   </h3>
                                   <div>
-                                    <span className="block text-[10px] font-black uppercase tracking-widest text-black/70 mb-1">
+                                    <span className="block text-[9px] font-black uppercase tracking-widest text-black/70 mb-0.5">
                                       COPIAR Y CANJEAR
                                     </span>
-                                    <div className="text-2xl font-black tracking-widest font-mono bg-black/10 py-1.5 px-4 rounded-xl border border-black/25 inline-block select-all">
+                                    <div className="text-xl font-black tracking-widest font-mono bg-black/10 py-1 px-3 rounded-xl border border-black/25 inline-block select-all">
                                       {cupon.code && String(cupon.code).length > 3
                                         ? String(cupon.code).slice(0, 3) + '••••••'
                                         : (cupon.code || 'CAPI••••')}
@@ -1683,32 +1684,35 @@ function App() {
                                   </div>
                                 </div>
 
-                                <div className="flex flex-col items-end gap-2 text-right">
+                                <div className="flex flex-col items-end gap-1 text-right flex-shrink-0">
                                   <CountdownTimer expiresAt={cupon.expires_at} />
-                                  <div className="flex items-center gap-1.5 mt-1" onClick={(e) => e.stopPropagation()}>
+                                  <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
                                     <button
                                       onClick={() => handleReaction(cuponId, 'like')}
-                                      className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 border border-black/20 ${
+                                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-black/20 ${
                                         currentReaction === 'like' ? 'bg-black text-white' : 'bg-white/40 hover:bg-white/60 text-black'
                                       }`}
                                       title="Me gusta"
                                     >
-                                      <ThumbsUp size={12} /> <span>{counts.like}</span>
+                                      <ThumbsUp size={10} /> <span>{counts.like}</span>
                                     </button>
                                     <button
                                       onClick={() => handleReaction(cuponId, 'heart')}
-                                      className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 border border-black/20 ${
+                                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-black/20 ${
                                         currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-white/40 hover:bg-white/60 text-black'
                                       }`}
                                       title="Me encanta"
                                     >
-                                      <Heart size={12} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
+                                      <Heart size={10} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
                                     </button>
                                   </div>
-                                  <span className="text-[11px] font-extrabold uppercase tracking-tight text-black/90 max-w-[200px] leading-tight mt-1">
-                                    {cupon.min_purchase ? `COMPRA MÍNIMA APLICABLE: $${cupon.min_purchase} | DESCUENTO MÁXIMO: $${cupon.max_discount || '150'}` : (cupon.description || 'COMPRA MÍNIMA APLICABLE')}
-                                  </span>
                                 </div>
+                              </div>
+
+                              <div className="pt-2 border-t border-black/15 mt-auto">
+                                <span className="text-[10px] font-extrabold uppercase tracking-tight text-black/90 block leading-tight truncate">
+                                  {cupon.min_purchase ? `MÍN: $${cupon.min_purchase} | MÁX: $${cupon.max_discount || '150'}` : (cupon.description || 'COMPRA MÍNIMA APLICABLE')}
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -1724,13 +1728,13 @@ function App() {
                 <>
                   <button
                     onClick={scrollPrevCupones}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
+                    className="absolute -left-2 top-1/2 -translate-y-1/2 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
                   >
                     <ChevronLeft className="w-5 h-5 font-black" />
                   </button>
                   <button
                     onClick={scrollNextCupones}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
+                    className="absolute -right-2 top-1/2 -translate-y-1/2 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
                   >
                     <ChevronRight className="w-5 h-5 font-black" />
                   </button>
@@ -1750,7 +1754,7 @@ function App() {
   );
 
   // ==========================================
-  // SECCIÓN DE CUPONES BANCARIOS
+  // SECCIÓN DE CUPONES BANCARIOS (AJUSTADA AL 100% DE ZOOM)
   // ==========================================
   const renderCuponesBancariosSection = () => (
     <div className="container mx-auto px-4 mb-12 relative z-25">
@@ -1789,9 +1793,9 @@ function App() {
             </p>
           </div>
         ) : (
-          <div className="relative px-2 sm:px-10">
+          <div className="relative px-2 sm:px-12">
             <div className="overflow-hidden py-4" ref={bancariosRef}>
-              <div className="flex gap-6 items-center">
+              <div className="flex gap-4 md:gap-6 items-center">
                 {filteredCuponesBancarios.map((cupon, idx) => {
                   const cuponId = getSafeId(cupon) || cupon.title;
                   const currentReaction = userReactions[cuponId];
@@ -1890,46 +1894,47 @@ function App() {
                         </div>
                       </div>
 
+                      {/* Tarjeta bancaria de escritorio optimizada para 100% de zoom */}
                       <div className="hidden md:flex flex-col gap-2 w-full">
                         <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide">
                           {fechaActual}
                         </span>
                         <div 
                           onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                          className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer h-full"
+                          className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer h-full w-full"
                         >
-                          <div className="bg-white text-gray-900 p-5 flex flex-col justify-between items-center w-[260px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
-                            <div className="flex flex-col items-center justify-center my-auto py-2">
-                              <div className="w-36 h-36 rounded-full bg-white flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-3">
+                          <div className="bg-white text-gray-900 p-4 sm:p-5 flex flex-col justify-between items-center w-[210px] sm:w-[230px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
+                            <div className="flex flex-col items-center justify-center my-auto py-1">
+                              <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-white flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-3">
                                 {bank.logo ? (
                                   <img src={bank.logo} alt={bank.name} className="w-full h-full object-contain" />
                                 ) : (
-                                  <Building2 className="w-12 h-12 text-blue-600" />
+                                  <Building2 className="w-10 h-10 text-blue-600" />
                                 )}
                               </div>
-                              <span className="font-black text-xs uppercase tracking-widest text-slate-800">
+                              <span className="font-black text-[11px] sm:text-xs uppercase tracking-widest text-slate-800 text-center">
                                 {bank.name}
                               </span>
                             </div>
-                            <div className="w-full text-center mt-2 pt-2 border-t border-gray-100">
-                              <span className="text-xs font-extrabold text-blue-600 tracking-tight block">
+                            <div className="w-full text-center mt-1 pt-2 border-t border-gray-100">
+                              <span className="text-[10px] sm:text-xs font-extrabold text-blue-600 tracking-tight block truncate">
                                 PROMOCIÓN BANCARIA
                               </span>
                             </div>
                             <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
                           </div>
 
-                          <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-6 text-white flex flex-col justify-between relative`}>
-                            <div className="flex justify-between items-start gap-4 mb-3">
-                              <div className="flex flex-col">
-                                <h3 className="text-2xl font-black uppercase tracking-tight drop-shadow-sm mb-2">
+                          <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-white flex flex-col justify-between relative overflow-hidden`}>
+                            <div className="flex justify-between items-start gap-2 mb-2">
+                              <div className="flex flex-col min-w-0 pr-1">
+                                <h3 className="text-lg sm:text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 truncate">
                                   {cupon.title || 'DESCUENTO BANCARIO'}
                                 </h3>
                                 <div>
-                                  <span className="block text-[10px] font-black uppercase tracking-widest text-white/70 mb-1">
+                                  <span className="block text-[9px] font-black uppercase tracking-widest text-white/70 mb-0.5">
                                     CÓDIGO / BENEFICIO
                                   </span>
-                                  <div className="text-2xl font-black tracking-widest font-mono bg-black/20 py-1.5 px-4 rounded-xl border border-white/25 inline-block select-all">
+                                  <div className="text-xl font-black tracking-widest font-mono bg-black/20 py-1 px-3 rounded-xl border border-white/25 inline-block select-all">
                                     {cupon.code && String(cupon.code).length > 3
                                       ? String(cupon.code).slice(0, 3) + '••••••'
                                       : (cupon.code || 'BANC••••')}
@@ -1937,30 +1942,33 @@ function App() {
                                 </div>
                               </div>
 
-                              <div className="flex flex-col items-end gap-2 text-right">
+                              <div className="flex flex-col items-end gap-1 text-right flex-shrink-0">
                                 <CountdownTimer expiresAt={cupon.expires_at} />
-                                <div className="flex items-center gap-1.5 mt-1" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
                                   <button
                                     onClick={() => handleReaction(cuponId, 'like')}
-                                    className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 border border-white/20 ${
+                                    className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-white/20 ${
                                       currentReaction === 'like' ? 'bg-white text-black' : 'bg-black/40 hover:bg-black/60 text-white'
                                     }`}
                                   >
-                                    <ThumbsUp size={12} /> <span>{counts.like}</span>
+                                    <ThumbsUp size={10} /> <span>{counts.like}</span>
                                   </button>
                                   <button
                                     onClick={() => handleReaction(cuponId, 'heart')}
-                                    className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 border border-white/20 ${
+                                    className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-white/20 ${
                                       currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-black/40 hover:bg-black/60 text-white'
                                     }`}
                                   >
-                                    <Heart size={12} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
+                                    <Heart size={10} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
                                   </button>
                                 </div>
-                                <span className="text-[11px] font-extrabold uppercase tracking-tight text-white/90 max-w-[200px] leading-tight mt-1">
-                                  {cupon.description || 'BENEFICIOS Y MESES SIN INTERESES'}
-                                </span>
                               </div>
+                            </div>
+
+                            <div className="pt-2 border-t border-white/20 mt-auto">
+                              <span className="text-[10px] font-extrabold uppercase tracking-tight text-white/90 block leading-tight truncate">
+                                {cupon.description || 'BENEFICIOS Y MESES SIN INTERESES'}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -1976,13 +1984,13 @@ function App() {
               <>
                 <button
                   onClick={scrollPrevBancarios}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
+                  className="absolute -2 left-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
                 >
                   <ChevronLeft className="w-5 h-5 font-black" />
                 </button>
                 <button
                   onClick={scrollNextBancarios}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
+                  className="absolute -2 right-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
                 >
                   <ChevronRight className="w-5 h-5 font-black" />
                 </button>
