@@ -59,7 +59,7 @@ import axios from 'axios';
 import useEmblaCarousel from 'embla-carousel-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChatbotWidget from './components/ChatbotWidget';
-import ProfileModal from './components/ProfileModal';
+// import ProfileModal from './components/ProfileModal'; // COMENTADO: Módulo de perfil de usuario normal deshabilitado
 import AdminDashboard, { decodeCoupon } from './components/AdminDashboard'; 
 
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
@@ -638,7 +638,7 @@ function CountdownTimer({ expiresAt }) {
 }
 
 // ==========================================
-// SECCIÓN TRABAJA CON NOSOTROS (FLECHA NEÓN TECNOLÓGICA estilo IMAGEN)
+// SECCIÓN TRABAJA CON NOSOTROS
 // ==========================================
 function renderWorkWithUsSection(isLight) {
   return (
@@ -646,12 +646,10 @@ function renderWorkWithUsSection(isLight) {
       <div className={`rounded-3xl shadow-2xl p-6 sm:p-10 backdrop-blur-2xl border relative overflow-hidden ${
         isLight ? 'bg-white/90 border-cyan-200' : 'bg-neutral-900/90 border-cyan-500/30'
       }`}>
-        {/* Fondo decorativo resplandeciente estilo cyan */}
         <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col lg:flex-row items-center justify-between gap-10 relative z-10">
           
-          {/* LADO IZQUIERDO: TEXTO Y BOTÓN */}
           <div className="flex flex-col items-start text-left max-w-xl">
             <span className="inline-flex items-center gap-2 px-3.5 py-1 bg-cyan-400 text-black font-black text-xs uppercase rounded-full shadow-md mb-4 border border-black">
               🚀 OPORTUNIDAD DE COLABORACIÓN
@@ -679,10 +677,8 @@ function renderWorkWithUsSection(isLight) {
             </a>
           </div>
 
-          {/* LADO DERECHO: CONECTOR TECNOLÓGICO Y FLECHAS NEÓN */}
           <div className="flex items-center justify-center gap-3 sm:gap-6 shrink-0 py-4">
             
-            {/* 1. Círculo Equipo */}
             <motion.div
               animate={{ y: [0, -5, 0] }}
               transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
@@ -695,7 +691,6 @@ function renderWorkWithUsSection(isLight) {
               </div>
             </motion.div>
 
-            {/* 2. FLECHAS NEÓN TECNOLÓGICAS */}
             <div className="relative flex items-center justify-center w-24 sm:w-32 h-20">
               <svg
                 className="w-full h-full drop-shadow-[0_0_12px_rgba(6,182,212,0.8)]"
@@ -704,7 +699,6 @@ function renderWorkWithUsSection(isLight) {
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <defs>
-                  {/* Gradiente Cyan Neón */}
                   <linearGradient id="neonCyanGrad" x1="0%" y1="50%" x2="100%" y2="50%">
                     <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.2" />
                     <stop offset="40%" stopColor="#22d3ee" stopOpacity="0.8" />
@@ -717,11 +711,9 @@ function renderWorkWithUsSection(isLight) {
                   </linearGradient>
                 </defs>
 
-                {/* Destellos / Estrellas tecnológicas de fondo */}
                 <path d="M 15 12 L 17 15 L 20 15 L 17 17 L 18 20 L 15 18 L 12 20 L 13 17 L 10 15 L 13 15 Z" fill="url(#sparkleGrad)" opacity="0.6" />
                 <path d="M 115 42 L 116.5 44 L 119 44 L 117 45.5 L 118 48 L 115 46.5 L 112 48 L 113 45.5 L 111 44 L 113.5 44 Z" fill="url(#sparkleGrad)" opacity="0.8" />
 
-                {/* Flecha secundaria pequeña (inferior) */}
                 <path
                   d="M 25 38 L 65 38 A 6 6 0 0 0 71 32 L 71 30"
                   stroke="url(#neonCyanGrad)"
@@ -735,7 +727,6 @@ function renderWorkWithUsSection(isLight) {
                   opacity="0.6"
                 />
 
-                {/* FLECHA PRINCIPAL TECNOLÓGICA HORIZONTAL */}
                 <path
                   d="M 10 32 C 40 32, 60 30, 98 30"
                   stroke="url(#neonCyanGrad)"
@@ -743,7 +734,6 @@ function renderWorkWithUsSection(isLight) {
                   strokeLinecap="round"
                 />
 
-                {/* Cabeza de flecha neón geométrica */}
                 <path
                   d="M 94 18 L 122 30 L 94 42 L 100 30 Z"
                   fill="#38bdf8"
@@ -752,7 +742,6 @@ function renderWorkWithUsSection(isLight) {
                   strokeLinejoin="miter"
                 />
 
-                {/* Efecto de energía brillante que recorre el centro */}
                 <motion.circle
                   r="3"
                   fill="#FFFFFF"
@@ -771,7 +760,6 @@ function renderWorkWithUsSection(isLight) {
               </svg>
             </div>
 
-            {/* 3. Logo CapiBara */}
             <motion.div
               animate={{ y: [0, -5, 0] }}
               transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }}
@@ -984,7 +972,13 @@ function App() {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
+  
+  // ==========================================
+  // INICIO DE SESIÓN / USUARIO COMENTADO
+  // ==========================================
+  /*
   const [showCommunityPopup, setShowCommunityPopup] = useState(false);
+  */
   
   const [tiktokVideos, setTiktokVideos] = useState(() => {
     try {
@@ -1017,6 +1011,10 @@ function App() {
   const [cupones, setCupones] = useState([]);
   const [cuponesBancarios, setCuponesBancarios] = useState([]);
   
+  // ==========================================
+  // ESTADOS DE USUARIO COMENTADOS
+  // ==========================================
+  /*
   const [currentUser, setCurrentUser] = useState(() => {
     return localStorage.getItem('cazaUser') || null;
   });
@@ -1047,6 +1045,7 @@ function App() {
       }
     }
   }, [currentUser]);
+  */
 
   const [userReactions, setUserReactions] = useState(() => {
     try {
@@ -1091,7 +1090,7 @@ function App() {
     localStorage.setItem('couponReactionCounts', JSON.stringify(updatedCounts));
   };
 
-  const [showProfilePanel, setShowProfilePanel] = useState(false);
+  // const [showProfilePanel, setShowProfilePanel] = useState(false); // COMENTADO
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [productSearchInput, setProductSearchInput] = useState('');
@@ -1539,9 +1538,6 @@ function App() {
                     return (
                       <div key={cuponId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] min-w-0 flex flex-col gap-2">
                         
-                        {/* ========================================= */}
-                        {/* MÓVIL: CUPÓN Y FECHA ROTADOS 90°          */}
-                        {/* ========================================= */}
                         <div className="block md:hidden h-[500px] my-2 flex justify-center items-center overflow-hidden">
                           <div className="flex flex-col gap-2 -rotate-90 scale-90 sm:scale-95 transform-gpu origin-center">
                             
@@ -1632,9 +1628,6 @@ function App() {
                           </div>
                         </div>
 
-                        {/* ========================================= */}
-                        {/* WEB (DESKTOP): HORIZONTAL TRADICIONAL     */}
-                        {/* ========================================= */}
                         <div className="hidden md:flex flex-col gap-2 w-full">
                           <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide">
                             {fechaActual}
@@ -1757,7 +1750,7 @@ function App() {
   );
 
   // ==========================================
-  // SECCIÓN DE CUPONES BANCARIOS (CON LOGOS)
+  // SECCIÓN DE CUPONES BANCARIOS
   // ==========================================
   const renderCuponesBancariosSection = () => (
     <div className="container mx-auto px-4 mb-12 relative z-25">
@@ -1816,7 +1809,6 @@ function App() {
                   return (
                     <div key={cuponId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] min-w-0 flex flex-col gap-2">
                       
-                      {/* MÓVIL: ROTADO 90° */}
                       <div className="block md:hidden h-[500px] my-2 flex justify-center items-center overflow-hidden">
                         <div className="flex flex-col gap-2 -rotate-90 scale-90 sm:scale-95 transform-gpu origin-center">
                           <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide self-start">
@@ -1898,7 +1890,6 @@ function App() {
                         </div>
                       </div>
 
-                      {/* WEB: HORIZONTAL */}
                       <div className="hidden md:flex flex-col gap-2 w-full">
                         <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide">
                           {fechaActual}
@@ -2457,9 +2448,14 @@ function App() {
         </>
       )}
 
+      {/* MENÚ FLOTANTE DERECHO: BOTÓN DE PERFIL DE USUARIO COMENTADO, SE MANTIENE CONTADOR Y TEMA */}
       <div className={`fixed top-4 ${isMobileDevice ? 'right-2' : 'right-6'} z-[60] flex flex-col items-center gap-2.5 pointer-events-auto`}>
         <VisitorCounter isLight={isLight} />
 
+        {/* ========================================== */}
+        {/* BOTÓN DE PERFIL DE USUARIO COMENTADO       */}
+        {/* ========================================== */}
+        {/* 
         <div className="flex flex-col items-center gap-1">
           {currentUser && (
             <span className={`font-bold text-[10px] truncate max-w-[60px] text-center ${
@@ -2510,6 +2506,7 @@ function App() {
             )}
           </button>
         </div>
+        */}
 
         <button
           onClick={() => setShowThemeModal(true)}
@@ -2530,110 +2527,22 @@ function App() {
         )}
       </div>
 
+      {/* ========================================== */}
+      {/* MODALES DE AVISO DE USUARIO COMENTADOS      */}
+      {/* ========================================== */}
+      {/*
       <AnimatePresence>
         {missingPhone && !showProfilePanel && !phoneWarningDismissed && (
-          <div className="fixed inset-0 bg-black/95 backdrop-blur-md flex items-center justify-center z-[85] p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className={`relative rounded-3xl p-8 max-w-md w-full border text-center shadow-[0_0_40px_rgba(250,204,21,0.2)] ${
-                isLight ? 'bg-white border-yellow-500' : 'bg-neutral-900 border-yellow-500/50'
-              }`}
-            >
-              <div className="w-20 h-20 bg-yellow-400/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-400">
-                <Award className="w-10 h-10 animate-pulse" />
-              </div>
-              <h3 className={`text-2xl font-black mb-3 uppercase tracking-tight ${isLight ? 'text-gray-900' : 'text-white'}`}>
-                ¡Aviso Importante! 🏆
-              </h3>
-              <p className={`text-sm leading-relaxed mb-6 ${isLight ? 'text-gray-700' : 'text-neutral-300'}`}>
-                Para participar activamente en la gamificación y reclamar tus recompensas si quedas en el <strong>Top 5 del torneo mensual</strong>, es indispensable registrar tu <strong>número de teléfono (WhatsApp)</strong> para poder contactarte.
-                <br/><br/>
-                <span className="text-yellow-500 font-black">Si no lo haces, podrás navegar y jugar, pero estarás participando únicamente como espectador.</span>
-              </p>
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={() => setShowProfilePanel(true)}
-                  className="w-full py-3.5 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl text-sm uppercase transition-all shadow-lg flex items-center justify-center gap-2"
-                >
-                  Completar Perfil Ahora 🚀
-                </button>
-                <button
-                  onClick={() => {
-                    setPhoneWarningDismissed(true);
-                    sessionStorage.setItem('phoneWarningDismissed', 'true');
-                  }}
-                  className={`w-full py-3 font-bold rounded-xl text-xs uppercase transition-all border ${
-                    isLight ? 'bg-gray-100 text-gray-500 hover:bg-gray-200 border-gray-200' : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 border-neutral-700'
-                  }`}
-                >
-                  Entendido, participaré solo como espectador
-                </button>
-              </div>
-            </motion.div>
-          </div>
+          ...
         )}
       </AnimatePresence>
 
       <AnimatePresence>
         {showCommunityPopup && !currentUser && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[90] p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className={`relative rounded-3xl p-8 max-w-md w-full border text-center shadow-2xl ${
-                isLight ? 'bg-white border-purple-200 text-gray-800' : 'bg-neutral-900 border-yellow-400/50 text-neutral-100'
-              }`}
-            >
-              <button
-                onClick={() => {
-                  setShowCommunityPopup(false);
-                  sessionStorage.setItem('communityPopupDismissed', 'true');
-                }}
-                className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-
-              <div className="w-16 h-16 bg-yellow-400/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-400/40">
-                <Sparkles className="w-8 h-8 animate-pulse" />
-              </div>
-
-              <h3 className="text-2xl font-black mb-3 uppercase tracking-tight">
-                ¿Quieres unirte a nuestra comunidad?
-              </h3>
-
-              <p className="text-sm leading-relaxed mb-6 opacity-90">
-                Tenemos beneficios exclusivos para ti. Jugando, interactuando y descubriendo ofertas en nuestra plataforma, podrás <strong>ganar premios cada mes</strong> si te encuentras entre los usuarios con mayor actividad.
-              </p>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setShowCommunityPopup(false);
-                    sessionStorage.setItem('communityPopupDismissed', 'true');
-                    setShowProfilePanel(true);
-                  }}
-                  className="flex-1 py-3 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl text-xs uppercase transition-all shadow-lg"
-                >
-                  Crear Perfil 🚀
-                </button>
-                <button
-                  onClick={() => {
-                    setShowCommunityPopup(false);
-                    sessionStorage.setItem('communityPopupDismissed', 'true');
-                  }}
-                  className="px-5 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-bold rounded-xl text-xs transition-all border border-neutral-700"
-                >
-                  Cerrar
-                </button>
-              </div>
-            </motion.div>
-          </div>
+          ...
         )}
       </AnimatePresence>
+      */}
 
       <AnimatePresence>
         {showToast && (
@@ -2731,7 +2640,6 @@ function App() {
         </div>
       </div>
 
-      {/* SECCIÓN TRABAJA CON NOSOTROS POSICIONADA DIRECTAMENTE ABAJO DEL ENCABEZADO */}
       {!isMobileDevice && renderWorkWithUsSection(isLight)}
 
       {isMobileDevice ? (
@@ -2942,6 +2850,10 @@ function App() {
         </div>
       )}
 
+      {/* ========================================== */}
+      {/* PROFILE MODAL COMENTADO                     */}
+      {/* ========================================== */}
+      {/*
       <ProfileModal
         showProfilePanel={showProfilePanel}
         setShowProfilePanel={setShowProfilePanel}
@@ -2949,6 +2861,7 @@ function App() {
         setCurrentUser={setCurrentUser}
         isLight={isLight}
       />
+      */}
 
       <section className={`relative overflow-hidden py-24 px-4 border-b ${
         isLight 
@@ -3069,6 +2982,7 @@ function App() {
         </div>
       )}
 
+      {/* PANEL DE ADMIN INTACTO */}
       <AdminDashboard
         showAdminLogin={showAdminLogin}
         setShowAdminLogin={handleCloseAdminLogin}
