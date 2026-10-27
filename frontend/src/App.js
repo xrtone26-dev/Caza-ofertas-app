@@ -1319,7 +1319,7 @@ function App() {
       navigator.clipboard.writeText(cupon.code);
     }
     playSniperSound();
-    setToastMessage('Cupón copiado en el portapapeles, estas muy cerca de obtener un mejor precio en tus productos. seras dirigido a Mercado libre');
+    setToastMessage('Cupón copiado en el portapapeles, estas muy cerca de obtener un mejor precio en tus productos. seras dirigido a Mercado libre solo da clic en ir al producto para entrar');
     setShowToast(true);
 
     setTimeout(() => {
