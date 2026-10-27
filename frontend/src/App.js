@@ -973,13 +973,6 @@ function App() {
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   
-  // ==========================================
-  // INICIO DE SESIÓN / USUARIO COMENTADO
-  // ==========================================
-  /*
-  const [showCommunityPopup, setShowCommunityPopup] = useState(false);
-  */
-  
   const [tiktokVideos, setTiktokVideos] = useState(() => {
     try {
       const saved = localStorage.getItem('CapiBaraVideos');
@@ -1010,42 +1003,6 @@ function App() {
   const [descuentos, setDescuentos] = useState([]);
   const [cupones, setCupones] = useState([]);
   const [cuponesBancarios, setCuponesBancarios] = useState([]);
-  
-  // ==========================================
-  // ESTADOS DE USUARIO COMENTADOS
-  // ==========================================
-  /*
-  const [currentUser, setCurrentUser] = useState(() => {
-    return localStorage.getItem('cazaUser') || null;
-  });
-
-  const [phoneWarningDismissed, setPhoneWarningDismissed] = useState(() => {
-    return sessionStorage.getItem('phoneWarningDismissed') === 'true';
-  });
-
-  const missingPhone = typeof currentUser === 'object' && currentUser !== null && (!currentUser.telefono || currentUser.telefono.length !== 10);
-
-  useEffect(() => {
-    const usuarioGuardado = localStorage.getItem('cazaUser');
-    if (usuarioGuardado) {
-      setCurrentUser(usuarioGuardado);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!currentUser) {
-      const dismissed = sessionStorage.getItem('communityPopupDismissed');
-      if (!dismissed) {
-        const timer = setTimeout(() => {
-          if (!localStorage.getItem('cazaUser')) {
-            setShowCommunityPopup(true);
-          }
-        }, 60000);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [currentUser]);
-  */
 
   const [userReactions, setUserReactions] = useState(() => {
     try {
@@ -1090,7 +1047,6 @@ function App() {
     localStorage.setItem('couponReactionCounts', JSON.stringify(updatedCounts));
   };
 
-  // const [showProfilePanel, setShowProfilePanel] = useState(false); // COMENTADO
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [productSearchInput, setProductSearchInput] = useState('');
@@ -1457,7 +1413,7 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES DIGITALES (AJUSTADA AL 100% DE ZOOM)
+  // SECCIÓN DE CUPONES DIGITALES (BOTÓN LLAMATIVO ACTUALIZADO)
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
@@ -1546,8 +1502,7 @@ function App() {
                             </span>
 
                             <div 
-                              onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                              className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer w-[460px] h-[200px] flex-shrink-0"
+                              className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch w-[460px] h-[200px] flex-shrink-0"
                             >
                               <div className="bg-white text-gray-900 p-4 flex flex-col justify-between items-center w-[150px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
                                 <div className="flex flex-col items-center justify-center my-auto">
@@ -1578,23 +1533,35 @@ function App() {
 
                               <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 text-black flex flex-col justify-between relative`}>
                                 <div className="flex justify-between items-start gap-2 mb-1">
-                                  <div className="flex flex-col">
+                                  <div className="flex flex-col w-full">
                                     <h3 className="text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 leading-tight">
                                       {cupon.title || '12% DE DESCUENTO'}
                                     </h3>
-                                    <div>
-                                      <span className="block text-[8px] font-black uppercase tracking-widest text-black/70 mb-0.5">
-                                        COPIAR Y CANJEAR
-                                      </span>
-                                      <div className="text-base font-black tracking-widest font-mono bg-black/10 py-1 px-3 rounded-xl border border-black/25 inline-block select-all">
-                                        {cupon.code && String(cupon.code).length > 3
-                                          ? String(cupon.code).slice(0, 3) + '••••••'
-                                          : (cupon.code || 'CAPI••••')}
+                                    
+                                    {/* BOTÓN LLAMATIVO ACTUALIZADO */}
+                                    <button
+                                      onClick={() => handleCopiarIrMercadoLibre(cupon)}
+                                      className="group relative w-full bg-black/90 hover:bg-black text-yellow-300 border-2 border-dashed border-yellow-300 rounded-xl py-2 px-3 flex items-center justify-between shadow-md transition-all duration-200 hover:scale-[1.02] active:scale-95 cursor-pointer mt-1"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <span className="bg-yellow-300 text-black font-black text-[10px] px-1.5 py-0.5 rounded shadow-sm">
+                                          CÓDIGO
+                                        </span>
+                                        <span className="font-black text-xs tracking-widest text-white">
+                                          {cupon.code && String(cupon.code).length > 3
+                                            ? String(cupon.code).slice(0, 3) + '••••••'
+                                            : (cupon.code || 'CAPI••••')}
+                                        </span>
                                       </div>
-                                    </div>
+                                      <div className="flex items-center gap-1 bg-yellow-300 text-black font-black text-[10px] px-2 py-1 rounded-lg uppercase shadow-sm group-hover:bg-white transition-colors">
+                                        <span>Copiar</span>
+                                        <Copy size={12} />
+                                      </div>
+                                    </button>
+
                                   </div>
 
-                                  <div className="flex flex-col items-end gap-1 text-right">
+                                  <div className="flex flex-col items-end gap-1 text-right flex-shrink-0">
                                     <CountdownTimer expiresAt={cupon.expires_at} />
                                     <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
                                       <button
@@ -1634,8 +1601,7 @@ function App() {
                             {fechaActual}
                           </span>
                           <div 
-                            onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                            className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer h-full w-full"
+                            className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch h-full w-full"
                           >
                             <div className="bg-white text-gray-900 p-4 sm:p-5 flex flex-col justify-between items-center w-[210px] sm:w-[230px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
                               <div className="flex flex-col items-center justify-center my-auto py-1">
@@ -1668,20 +1634,38 @@ function App() {
 
                             <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-black flex flex-col justify-between relative overflow-hidden`}>
                               <div className="flex justify-between items-start gap-2 mb-2">
-                                <div className="flex flex-col min-w-0 pr-1">
+                                <div className="flex flex-col min-w-0 pr-1 flex-1">
                                   <h3 className="text-lg sm:text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 truncate">
                                     {cupon.title || '10% DE DESCUENTO'}
                                   </h3>
-                                  <div>
+                                  
+                                  {/* BOTÓN LLAMATIVO ACTUALIZADO (ESCRITORIO) */}
+                                  <div className="mt-1">
                                     <span className="block text-[9px] font-black uppercase tracking-widest text-black/70 mb-0.5">
-                                      COPIAR Y CANJEAR
+                                      📋 ¡Haz clic para copiar y canjear!
                                     </span>
-                                    <div className="text-xl font-black tracking-widest font-mono bg-black/10 py-1 px-3 rounded-xl border border-black/25 inline-block select-all">
-                                      {cupon.code && String(cupon.code).length > 3
-                                        ? String(cupon.code).slice(0, 3) + '••••••'
-                                        : (cupon.code || 'CAPI••••')}
-                                    </div>
+                                    <button
+                                      onClick={() => handleCopiarIrMercadoLibre(cupon)}
+                                      className="group relative w-full bg-black/90 hover:bg-black text-yellow-300 border-2 border-dashed border-yellow-300 rounded-xl py-2.5 px-3.5 flex items-center justify-between shadow-md transition-all duration-200 hover:scale-[1.02] active:scale-95 cursor-pointer"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <span className="bg-yellow-300 text-black font-black text-xs px-2 py-0.5 rounded shadow-sm">
+                                          CÓDIGO
+                                        </span>
+                                        <span className="font-black text-sm tracking-widest text-white font-mono">
+                                          {cupon.code && String(cupon.code).length > 3
+                                            ? String(cupon.code).slice(0, 3) + '••••••'
+                                            : (cupon.code || 'CAPI••••')}
+                                        </span>
+                                      </div>
+
+                                      <div className="flex items-center gap-1.5 bg-yellow-300 text-black font-black text-xs px-3 py-1.5 rounded-lg uppercase shadow-sm group-hover:bg-white transition-colors">
+                                        <span>Copiar</span>
+                                        <Copy size={14} className="stroke-[2.5]" />
+                                      </div>
+                                    </button>
                                   </div>
+
                                 </div>
 
                                 <div className="flex flex-col items-end gap-1 text-right flex-shrink-0">
@@ -1754,7 +1738,7 @@ function App() {
   );
 
   // ==========================================
-  // SECCIÓN DE CUPONES BANCARIOS (AJUSTADA AL 100% DE ZOOM)
+  // SECCIÓN DE CUPONES BANCARIOS (BOTÓN LLAMATIVO ACTUALIZADO)
   // ==========================================
   const renderCuponesBancariosSection = () => (
     <div className="container mx-auto px-4 mb-12 relative z-25">
@@ -1819,8 +1803,7 @@ function App() {
                             {fechaActual}
                           </span>
                           <div 
-                            onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                            className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer w-[460px] h-[200px] flex-shrink-0"
+                            className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch w-[460px] h-[200px] flex-shrink-0"
                           >
                             <div className="bg-white text-gray-900 p-4 flex flex-col justify-between items-center w-[150px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
                               <div className="flex flex-col items-center justify-center my-auto">
@@ -1845,23 +1828,35 @@ function App() {
 
                             <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 text-white flex flex-col justify-between relative`}>
                               <div className="flex justify-between items-start gap-2 mb-1">
-                                <div className="flex flex-col">
+                                <div className="flex flex-col w-full">
                                   <h3 className="text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 leading-tight">
                                     {cupon.title || 'DESCUENTO BANCARIO'}
                                   </h3>
-                                  <div>
-                                    <span className="block text-[8px] font-black uppercase tracking-widest text-white/70 mb-0.5">
-                                      CÓDIGO / TARJETA
-                                    </span>
-                                    <div className="text-base font-black tracking-widest font-mono bg-black/20 py-1 px-3 rounded-xl border border-white/25 inline-block select-all">
-                                      {cupon.code && String(cupon.code).length > 3
-                                        ? String(cupon.code).slice(0, 3) + '••••••'
-                                        : (cupon.code || 'BANC••••')}
+                                  
+                                  {/* BOTÓN LLAMATIVO BANCARIO */}
+                                  <button
+                                    onClick={() => handleCopiarIrMercadoLibre(cupon)}
+                                    className="group relative w-full bg-black/90 hover:bg-black text-yellow-300 border-2 border-dashed border-yellow-300 rounded-xl py-2 px-3 flex items-center justify-between shadow-md transition-all duration-200 hover:scale-[1.02] active:scale-95 cursor-pointer mt-1"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span className="bg-yellow-300 text-black font-black text-[10px] px-1.5 py-0.5 rounded shadow-sm">
+                                        CÓDIGO
+                                      </span>
+                                      <span className="font-black text-xs tracking-widest text-white">
+                                        {cupon.code && String(cupon.code).length > 3
+                                          ? String(cupon.code).slice(0, 3) + '••••••'
+                                          : (cupon.code || 'BANC••••')}
+                                      </span>
                                     </div>
-                                  </div>
+                                    <div className="flex items-center gap-1 bg-yellow-300 text-black font-black text-[10px] px-2 py-1 rounded-lg uppercase shadow-sm group-hover:bg-white transition-colors">
+                                      <span>Copiar</span>
+                                      <Copy size={12} />
+                                    </div>
+                                  </button>
+
                                 </div>
 
-                                <div className="flex flex-col items-end gap-1 text-right">
+                                <div className="flex flex-col items-end gap-1 text-right flex-shrink-0">
                                   <CountdownTimer expiresAt={cupon.expires_at} />
                                   <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
                                     <button
@@ -1900,8 +1895,7 @@ function App() {
                           {fechaActual}
                         </span>
                         <div 
-                          onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                          className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer h-full w-full"
+                          className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch h-full w-full"
                         >
                           <div className="bg-white text-gray-900 p-4 sm:p-5 flex flex-col justify-between items-center w-[210px] sm:w-[230px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
                             <div className="flex flex-col items-center justify-center my-auto py-1">
@@ -1926,20 +1920,38 @@ function App() {
 
                           <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-white flex flex-col justify-between relative overflow-hidden`}>
                             <div className="flex justify-between items-start gap-2 mb-2">
-                              <div className="flex flex-col min-w-0 pr-1">
+                              <div className="flex flex-col min-w-0 pr-1 flex-1">
                                 <h3 className="text-lg sm:text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 truncate">
                                   {cupon.title || 'DESCUENTO BANCARIO'}
                                 </h3>
-                                <div>
+                                
+                                {/* BOTÓN LLAMATIVO BANCARIO (ESCRITORIO) */}
+                                <div className="mt-1">
                                   <span className="block text-[9px] font-black uppercase tracking-widest text-white/70 mb-0.5">
-                                    CÓDIGO / BENEFICIO
+                                    📋 ¡Haz clic para copiar y canjear!
                                   </span>
-                                  <div className="text-xl font-black tracking-widest font-mono bg-black/20 py-1 px-3 rounded-xl border border-white/25 inline-block select-all">
-                                    {cupon.code && String(cupon.code).length > 3
-                                      ? String(cupon.code).slice(0, 3) + '••••••'
-                                      : (cupon.code || 'BANC••••')}
-                                  </div>
+                                  <button
+                                    onClick={() => handleCopiarIrMercadoLibre(cupon)}
+                                    className="group relative w-full bg-black/90 hover:bg-black text-yellow-300 border-2 border-dashed border-yellow-300 rounded-xl py-2.5 px-3.5 flex items-center justify-between shadow-md transition-all duration-200 hover:scale-[1.02] active:scale-95 cursor-pointer"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span className="bg-yellow-300 text-black font-black text-xs px-2 py-0.5 rounded shadow-sm">
+                                        CÓDIGO
+                                      </span>
+                                      <span className="font-black text-sm tracking-widest text-white font-mono">
+                                        {cupon.code && String(cupon.code).length > 3
+                                          ? String(cupon.code).slice(0, 3) + '••••••'
+                                          : (cupon.code || 'BANC••••')}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 bg-yellow-300 text-black font-black text-xs px-3 py-1.5 rounded-lg uppercase shadow-sm group-hover:bg-white transition-colors">
+                                      <span>Copiar</span>
+                                      <Copy size={14} className="stroke-[2.5]" />
+                                    </div>
+                                  </button>
                                 </div>
+
                               </div>
 
                               <div className="flex flex-col items-end gap-1 text-right flex-shrink-0">
@@ -2456,65 +2468,8 @@ function App() {
         </>
       )}
 
-      {/* MENÚ FLOTANTE DERECHO: BOTÓN DE PERFIL DE USUARIO COMENTADO, SE MANTIENE CONTADOR Y TEMA */}
       <div className={`fixed top-4 ${isMobileDevice ? 'right-2' : 'right-6'} z-[60] flex flex-col items-center gap-2.5 pointer-events-auto`}>
         <VisitorCounter isLight={isLight} />
-
-        {/* ========================================== */}
-        {/* BOTÓN DE PERFIL DE USUARIO COMENTADO       */}
-        {/* ========================================== */}
-        {/* 
-        <div className="flex flex-col items-center gap-1">
-          {currentUser && (
-            <span className={`font-bold text-[10px] truncate max-w-[60px] text-center ${
-              isLight ? 'text-purple-700' : 'text-yellow-400'
-            }`}>
-              @{
-                typeof currentUser === 'object' && currentUser !== null
-                  ? (currentUser.nickname || currentUser.nombre || 'User')
-                  : (currentUser || localStorage.getItem('cazaNick') || 'User')
-              }
-            </span>
-          )}
-          <button
-            onClick={() => setShowProfilePanel(true)}
-            className={`relative w-11 h-11 md:w-12 md:h-12 rounded-full shadow-2xl flex items-center justify-center overflow-hidden transition-all hover:scale-110 border-2 ${
-              isLight
-                ? 'bg-white text-purple-600 border-purple-200'
-                : 'bg-neutral-900 text-yellow-400 border-yellow-400/50'
-            }`}
-            title="Mi Perfil / Login"
-          >
-            {missingPhone && (
-              <span className="absolute top-0 right-0 flex h-3.5 w-3.5 z-20" title="Teléfono pendiente para gamificación">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-yellow-500 border-2 border-white"></span>
-              </span>
-            )}
-
-            {typeof currentUser === 'object' && currentUser !== null && currentUser.photoURL ? (
-              <img src={currentUser.photoURL} alt="Perfil" className="w-full h-full object-cover" />
-            ) : typeof currentUser === 'object' && currentUser !== null && currentUser.avatar ? (
-              <span className="text-xl leading-none">
-                {currentUser.avatar}
-              </span>
-            ) : localStorage.getItem('cazaAvatarImg') ? (
-              <img src={localStorage.getItem('cazaAvatarImg')} alt="Perfil" className="w-full h-full object-cover" />
-            ) : currentUser ? (
-              <span className="text-xl font-black">
-                {localStorage.getItem('cazaAvatar') || 
-                  String(
-                    typeof currentUser === 'object' && currentUser !== null
-                      ? (currentUser.nickname || currentUser.nombre || currentUser.email || 'U') 
-                      : currentUser
-                  ).charAt(0)}
-              </span>
-            ) : (
-              <User className="w-6 h-6" />
-            )}
-          </button>
-        </div>
-        */}
 
         <button
           onClick={() => setShowThemeModal(true)}
@@ -2534,23 +2489,6 @@ function App() {
           </div>
         )}
       </div>
-
-      {/* ========================================== */}
-      {/* MODALES DE AVISO DE USUARIO COMENTADOS      */}
-      {/* ========================================== */}
-      {/*
-      <AnimatePresence>
-        {missingPhone && !showProfilePanel && !phoneWarningDismissed && (
-          ...
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showCommunityPopup && !currentUser && (
-          ...
-        )}
-      </AnimatePresence>
-      */}
 
       <AnimatePresence>
         {showToast && (
@@ -2857,19 +2795,6 @@ function App() {
           </motion.div>
         </div>
       )}
-
-      {/* ========================================== */}
-      {/* PROFILE MODAL COMENTADO                     */}
-      {/* ========================================== */}
-      {/*
-      <ProfileModal
-        showProfilePanel={showProfilePanel}
-        setShowProfilePanel={setShowProfilePanel}
-        currentUser={currentUser}
-        setCurrentUser={setCurrentUser}
-        isLight={isLight}
-      />
-      */}
 
       <section className={`relative overflow-hidden py-24 px-4 border-b ${
         isLight 
