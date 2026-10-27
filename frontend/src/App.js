@@ -973,6 +973,13 @@ function App() {
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   
+  // ==========================================
+  // INICIO DE SESIÓN / USUARIO COMENTADO
+  // ==========================================
+  /*
+  const [showCommunityPopup, setShowCommunityPopup] = useState(false);
+  */
+  
   const [tiktokVideos, setTiktokVideos] = useState(() => {
     try {
       const saved = localStorage.getItem('CapiBaraVideos');
@@ -1003,6 +1010,42 @@ function App() {
   const [descuentos, setDescuentos] = useState([]);
   const [cupones, setCupones] = useState([]);
   const [cuponesBancarios, setCuponesBancarios] = useState([]);
+  
+  // ==========================================
+  // ESTADOS DE USUARIO COMENTADOS
+  // ==========================================
+  /*
+  const [currentUser, setCurrentUser] = useState(() => {
+    return localStorage.getItem('cazaUser') || null;
+  });
+
+  const [phoneWarningDismissed, setPhoneWarningDismissed] = useState(() => {
+    return sessionStorage.getItem('phoneWarningDismissed') === 'true';
+  });
+
+  const missingPhone = typeof currentUser === 'object' && currentUser !== null && (!currentUser.telefono || currentUser.telefono.length !== 10);
+
+  useEffect(() => {
+    const usuarioGuardado = localStorage.getItem('cazaUser');
+    if (usuarioGuardado) {
+      setCurrentUser(usuarioGuardado);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser) {
+      const dismissed = sessionStorage.getItem('communityPopupDismissed');
+      if (!dismissed) {
+        const timer = setTimeout(() => {
+          if (!localStorage.getItem('cazaUser')) {
+            setShowCommunityPopup(true);
+          }
+        }, 60000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [currentUser]);
+  */
 
   const [userReactions, setUserReactions] = useState(() => {
     try {
@@ -1047,6 +1090,7 @@ function App() {
     localStorage.setItem('couponReactionCounts', JSON.stringify(updatedCounts));
   };
 
+  // const [showProfilePanel, setShowProfilePanel] = useState(false); // COMENTADO
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [productSearchInput, setProductSearchInput] = useState('');
@@ -1413,7 +1457,7 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES DIGITALES (DISEÑO ORIGINAL LIMPIO RESTAURADO)
+  // SECCIÓN DE CUPONES DIGITALES (AJUSTADA AL 100% DE ZOOM)
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
@@ -1538,21 +1582,16 @@ function App() {
                                     <h3 className="text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 leading-tight">
                                       {cupon.title || '12% DE DESCUENTO'}
                                     </h3>
-                                   <div className="flex flex-col">
-  <span className="block text-[9px] font-black uppercase tracking-widest text-black/80 mb-1">
-    📋 HAZ CLIC PARA COPIAR Y CANJEAR
-  </span>
-  <div className="group/btn relative flex items-center justify-between gap-2 bg-black text-yellow-400 py-2 px-4 rounded-2xl border-2 border-white/40 shadow-lg transition-all transform hover:scale-105 hover:bg-neutral-900 cursor-pointer select-none">
-    <span className="text-base sm:text-lg font-black tracking-widest font-mono">
-      {cupon.code && String(cupon.code).length > 3
-        ? String(cupon.code).slice(0, 3) + '••••••'
-        : (cupon.code || 'CAPI••••')}
-    </span>
-    <span className="bg-yellow-400 text-black px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
-      <Copy size={12} className="stroke-[3]" /> Copiar
-    </span>
-  </div>
-</div>
+                                    <div>
+                                      <span className="block text-[8px] font-black uppercase tracking-widest text-black/70 mb-0.5">
+                                        COPIAR Y CANJEAR
+                                      </span>
+                                      <div className="text-base font-black tracking-widest font-mono bg-black/10 py-1 px-3 rounded-xl border border-black/25 inline-block select-all">
+                                        {cupon.code && String(cupon.code).length > 3
+                                          ? String(cupon.code).slice(0, 3) + '••••••'
+                                          : (cupon.code || 'CAPI••••')}
+                                      </div>
+                                    </div>
                                   </div>
 
                                   <div className="flex flex-col items-end gap-1 text-right">
@@ -1715,7 +1754,7 @@ function App() {
   );
 
   // ==========================================
-  // SECCIÓN DE CUPONES BANCARIOS (DISEÑO ORIGINAL LIMPIO RESTAURADO)
+  // SECCIÓN DE CUPONES BANCARIOS (AJUSTADA AL 100% DE ZOOM)
   // ==========================================
   const renderCuponesBancariosSection = () => (
     <div className="container mx-auto px-4 mb-12 relative z-25">
@@ -2417,8 +2456,65 @@ function App() {
         </>
       )}
 
+      {/* MENÚ FLOTANTE DERECHO: BOTÓN DE PERFIL DE USUARIO COMENTADO, SE MANTIENE CONTADOR Y TEMA */}
       <div className={`fixed top-4 ${isMobileDevice ? 'right-2' : 'right-6'} z-[60] flex flex-col items-center gap-2.5 pointer-events-auto`}>
         <VisitorCounter isLight={isLight} />
+
+        {/* ========================================== */}
+        {/* BOTÓN DE PERFIL DE USUARIO COMENTADO       */}
+        {/* ========================================== */}
+        {/* 
+        <div className="flex flex-col items-center gap-1">
+          {currentUser && (
+            <span className={`font-bold text-[10px] truncate max-w-[60px] text-center ${
+              isLight ? 'text-purple-700' : 'text-yellow-400'
+            }`}>
+              @{
+                typeof currentUser === 'object' && currentUser !== null
+                  ? (currentUser.nickname || currentUser.nombre || 'User')
+                  : (currentUser || localStorage.getItem('cazaNick') || 'User')
+              }
+            </span>
+          )}
+          <button
+            onClick={() => setShowProfilePanel(true)}
+            className={`relative w-11 h-11 md:w-12 md:h-12 rounded-full shadow-2xl flex items-center justify-center overflow-hidden transition-all hover:scale-110 border-2 ${
+              isLight
+                ? 'bg-white text-purple-600 border-purple-200'
+                : 'bg-neutral-900 text-yellow-400 border-yellow-400/50'
+            }`}
+            title="Mi Perfil / Login"
+          >
+            {missingPhone && (
+              <span className="absolute top-0 right-0 flex h-3.5 w-3.5 z-20" title="Teléfono pendiente para gamificación">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-yellow-500 border-2 border-white"></span>
+              </span>
+            )}
+
+            {typeof currentUser === 'object' && currentUser !== null && currentUser.photoURL ? (
+              <img src={currentUser.photoURL} alt="Perfil" className="w-full h-full object-cover" />
+            ) : typeof currentUser === 'object' && currentUser !== null && currentUser.avatar ? (
+              <span className="text-xl leading-none">
+                {currentUser.avatar}
+              </span>
+            ) : localStorage.getItem('cazaAvatarImg') ? (
+              <img src={localStorage.getItem('cazaAvatarImg')} alt="Perfil" className="w-full h-full object-cover" />
+            ) : currentUser ? (
+              <span className="text-xl font-black">
+                {localStorage.getItem('cazaAvatar') || 
+                  String(
+                    typeof currentUser === 'object' && currentUser !== null
+                      ? (currentUser.nickname || currentUser.nombre || currentUser.email || 'U') 
+                      : currentUser
+                  ).charAt(0)}
+              </span>
+            ) : (
+              <User className="w-6 h-6" />
+            )}
+          </button>
+        </div>
+        */}
 
         <button
           onClick={() => setShowThemeModal(true)}
@@ -2438,6 +2534,23 @@ function App() {
           </div>
         )}
       </div>
+
+      {/* ========================================== */}
+      {/* MODALES DE AVISO DE USUARIO COMENTADOS      */}
+      {/* ========================================== */}
+      {/*
+      <AnimatePresence>
+        {missingPhone && !showProfilePanel && !phoneWarningDismissed && (
+          ...
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showCommunityPopup && !currentUser && (
+          ...
+        )}
+      </AnimatePresence>
+      */}
 
       <AnimatePresence>
         {showToast && (
@@ -2744,6 +2857,19 @@ function App() {
           </motion.div>
         </div>
       )}
+
+      {/* ========================================== */}
+      {/* PROFILE MODAL COMENTADO                     */}
+      {/* ========================================== */}
+      {/*
+      <ProfileModal
+        showProfilePanel={showProfilePanel}
+        setShowProfilePanel={setShowProfilePanel}
+        currentUser={currentUser}
+        setCurrentUser={setCurrentUser}
+        isLight={isLight}
+      />
+      */}
 
       <section className={`relative overflow-hidden py-24 px-4 border-b ${
         isLight 
