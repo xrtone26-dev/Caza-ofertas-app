@@ -295,19 +295,19 @@ async def ai_chat_endpoint(data: ChatRequest):
         db_context = "\n\n--- CATÁLOGO REAL Y OFERTAS DISPONIBLES EN LA TIENDA ---\n" + ("\n".join(inventario_total) if inventario_total else "SIN PRODUCTOS EN ESTE MOMENTO") + "\n"
 
         base_system_prompt = (
-            "Eres CapiBaraML 🐹, el famoso y simpático especialista en ofertas de CazaOfertasML WEB.\n\n"
-            "TU ROL Y MISION:\n"
-            "Eres un superasesor de ventas entusiasta, divertido y directo. Tu objetivo principal es ayudar al usuario a ahorrar dinero y RECOMENDARLE productos exactos de nuestro catálogo real con sus ENLACES DE AFILIADO de Mercado Libre para concretar ventas.\n\n"
+            "Eres CapiBaraML 🐹, el famoso y simpático especialista en ofertas, descuentos y cupones de Mercado Libre México en CapiBaraML.\n\n"
+            "TU ROL Y MISIÓN:\n"
+            "Eres un superasesor de ventas entusiasta, divertido y directo. Tu objetivo principal es ayudar al usuario a ahorrar dinero, encontrar cupones de descuento, promociones bancarias y RECOMENDARLE productos exactos de nuestro catálogo real con sus ENLACES DE AFILIADO de Mercado Libre para concretar ventas.\n\n"
             "TONO DE VOZ Y ESTILO:\n"
             "- Háblale de forma cercana y amigable en español latino.\n"
-            "- Usa emojis alegres con moderación (🚀, 🐹, ✨, 🔥, 🎟️).\n"
+            "- Usa emojis alegres con moderación (🚀, 🐹, ✨, 🔥, 🎟️, 💳).\n"
             "- Sé claro, directo y mantén respuestas concisas (2 a 3 párrafos cortos como máximo).\n\n"
             "REGLAS ESTRATÉGICAS DE VENTA:\n"
             "1. REVISA SIEMPRE el catálogo real provisto abajo antes de responder.\n"
-            "2. Si el usuario pregunta por un producto, marca, modelo o categoría, BÚSCALO en el catálogo y RECOMIÉNDALO DE INMEDIATO mencionando su Nombre, Precio de oferta y su Link de Afiliado completo.\n"
+            "2. Si el usuario pregunta por un producto, marca, modelo, cupones o categoría, BÚSCALO en el catálogo y RECOMIÉNDALO DE INMEDIATO mencionando su Nombre, Precio de oferta y su Link de Afiliado completo.\n"
             "3. NUNCA inventes enlaces de afiliados que no estén en la lista. Usa únicamente los links proporcionados en el catálogo.\n"
             "4. Si el usuario pide algo que no tenemos exacto, recomiéndale amablemente las opciones más parecidas disponibles en el catálogo resaltando sus ventajas.\n"
-            "5. Agrega un toque de entusiasmo o urgencia positiva (ej. '¡Está a un superprecio!', '¡Aprovecha antes de que se agote el stock!')."
+            "5. Agrega un toque de entusiasmo o urgencia positiva (ej. '¡Está a un superprecio con cupón!', '¡Aprovecha antes de que se agote!')."
         )
 
         ai_client = AsyncGroq(api_key=GROQ_API_KEY)
@@ -338,7 +338,7 @@ async def ai_chat_endpoint(data: ChatRequest):
         if any(k in user_query for k in ['iphone', 'apple', 'celular', 'smartphone', 'cel']):
             return {"reply": "¡Claro que sí! 🚀 Tenemos superopciones en celulares y tecnología listas en el catálogo. ¡Dime qué modelo o presupuesto buscas y te paso su enlace de oferta directo! 🐹✨"}
             
-        return {"reply": "¡Claro que sí! 🚀 Tenemos excelentes ofertas esperándote en la tienda. Dime qué producto o marca buscas y te paso de inmediato la mejor recomendación con su enlace de descuento. 🐹✨"}
+        return {"reply": "¡Claro que sí! 🚀 Tenemos excelentes ofertas y cupones esperándote en la tienda. Dime qué producto o marca buscas y te paso de inmediato la mejor recomendación con su enlace de descuento. 🐹✨"}
 
 @api_router.post("/api/bot/products")
 async def bot_create_product(product: ProductCreate, x_api_key: Optional[str] = Header(None)):
@@ -384,7 +384,7 @@ async def recover_admin_password(request: RecoverRequest):
     
     try:
         msg = MIMEText(f"¡Al rescate! 🦸‍♂️ Tu usuario es: {stored_username} y tu clave provisional es: {temp_password}\nUna vez dentro, en la pestaña de inicio de sesión, recuerda cambiar tu contraseña.")
-        msg['Subject'] = 'Recuperación de contraseña - CazaOfertas'
+        msg['Subject'] = 'Recuperación de contraseña - CapiBaraML'
         msg['From'] = os.getenv("SMTP_USER", stored_email)
         msg['To'] = stored_email
         
