@@ -137,15 +137,15 @@ function VisitorCounter({ isLight }) {
 
   return (
     <div 
-      className={`w-11 h-11 md:w-12 md:h-12 rounded-full shadow-2xl flex flex-col items-center justify-center border-2 transition-all hover:scale-110 cursor-default select-none ${
+      className={`w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full shadow-2xl flex flex-col items-center justify-center border-2 transition-all hover:scale-110 cursor-default select-none ${
         isLight 
           ? 'bg-white text-purple-600 border-purple-200' 
           : 'bg-neutral-900 text-yellow-400 border-yellow-400/50'
       }`}
       title={`Visitantes: ${count.toLocaleString()}`}
     >
-      <Users className="w-3.5 h-3.5 mb-0.5 animate-pulse" />
-      <span className="text-[10px] font-black leading-none">{count}</span>
+      <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 mb-0.5 animate-pulse" />
+      <span className="text-[9px] sm:text-[10px] font-black leading-none">{count}</span>
     </div>
   );
 }
@@ -174,7 +174,7 @@ function FeatureCube({ isLight, isMobileDevice }) {
   }, [animate]);
 
   const neonShadow = `0 0 15px rgba(0,229,255,0.5), inset 0 0 15px rgba(0,229,255,0.3)`;
-  const cubeSize = isMobileDevice ? 220 : 280;
+  const cubeSize = isMobileDevice ? 200 : 280;
   const tz = cubeSize / 2;
 
   const baseFaceClasses = `absolute p-4 md:p-6 flex flex-col justify-between backdrop-blur-xl transition-colors border-[4px] border-dotted border-[#00e5ff] ${
@@ -183,13 +183,13 @@ function FeatureCube({ isLight, isMobileDevice }) {
       : 'bg-neutral-900/90 text-neutral-100'
   }`;
 
-  const iconContainerClasses = `w-12 h-12 md:w-14 md:h-14 rounded-2xl flex-shrink-0 flex items-center justify-center mb-2 md:mb-4 border-2 shadow-[0_0_10px_rgba(0,229,255,0.4)] ${
+  const iconContainerClasses = `w-11 h-11 md:w-14 md:h-14 rounded-2xl flex-shrink-0 flex items-center justify-center mb-2 md:mb-4 border-2 shadow-[0_0_10px_rgba(0,229,255,0.4)] ${
     isLight 
       ? 'bg-[#e0ffff] text-[#00b3cc] border-[#00e5ff]' 
       : 'bg-[#00e5ff]/10 text-[#00e5ff] border-[#00e5ff]/50'
   }`;
 
-  const badgeClasses = `text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-full border self-start shadow-[0_0_8px_rgba(0,229,255,0.3)] ${
+  const badgeClasses = `text-[8px] md:text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-full border self-start shadow-[0_0_8px_rgba(0,229,255,0.3)] ${
     isLight 
       ? 'bg-[#e0ffff] text-[#008b99] border-[#00e5ff]' 
       : 'bg-[#00e5ff]/10 text-[#00e5ff] border-[#00e5ff]/30'
@@ -275,12 +275,12 @@ function FeatureCube({ isLight, isMobileDevice }) {
             >
               <div className="flex justify-between items-start">
                 <div className={iconContainerClasses}>
-                  <Icon className="w-6 h-6 md:w-7 md:h-7" />
+                  <Icon className="w-5 h-5 md:w-7 md:h-7" />
                 </div>
                 <span className={badgeClasses}>{face.badge}</span>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg md:text-xl font-black tracking-tight mb-1 md:mb-2 leading-tight">{face.title}</h3>
+                <h3 className="text-base md:text-xl font-black tracking-tight mb-1 md:mb-2 leading-tight">{face.title}</h3>
                 <p className={`text-[10px] md:text-xs leading-relaxed opacity-80 font-medium ${isLight ? 'text-gray-600' : 'text-neutral-300'}`}>
                   {face.desc}
                 </p>
@@ -420,7 +420,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
       <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full">
         <div className="hidden md:block w-14"></div>
 
-        <div className="relative w-full max-w-[280px] sm:max-w-sm h-[480px] sm:h-[520px] bg-black rounded-3xl overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col select-none">
+        <div className="relative w-full max-w-[280px] sm:max-w-sm h-[460px] sm:h-[520px] bg-black rounded-3xl overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col select-none">
           <div className="absolute inset-0 w-full h-full overflow-hidden bg-black pointer-events-none">
             <iframe
               ref={iframeRef}
@@ -433,10 +433,10 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
           </div>
           <div className="absolute inset-0 z-10 pointer-events-none" />
 
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-3 z-30 pointer-events-auto">
+          <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2.5 sm:gap-3 z-30 pointer-events-auto">
             <button
               onClick={() => setIsMuted(!isMuted)}
-              className={`p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${!isMuted ? 'bg-yellow-400 text-black scale-110 font-black' : 'bg-black/70 text-white hover:bg-black'}`}
+              className={`p-2 sm:p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${!isMuted ? 'bg-yellow-400 text-black scale-110 font-black' : 'bg-black/70 text-white hover:bg-black'}`}
               title={isMuted ? "Activar audio" : "Silenciar"}
             >
               {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
@@ -444,7 +444,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
 
             <button
               onClick={togglePlay}
-              className={`p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${!isPlaying ? 'bg-yellow-400 text-black scale-110 font-black' : 'bg-black/70 text-white hover:bg-black'}`}
+              className={`p-2 sm:p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${!isPlaying ? 'bg-yellow-400 text-black scale-110 font-black' : 'bg-black/70 text-white hover:bg-black'}`}
               title={isPlaying ? "Pausar video" : "Reproducir video"}
             >
               {isPlaying ? <Pause size={18} /> : <Play size={18} />}
@@ -452,7 +452,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
 
             <button
               onClick={() => handleReaction('heart')}
-              className={`p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${currentReaction === 'heart' ? 'bg-pink-500 text-white scale-110' : 'bg-black/70 text-white hover:bg-black'}`}
+              className={`p-2 sm:p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${currentReaction === 'heart' ? 'bg-pink-500 text-white scale-110' : 'bg-black/70 text-white hover:bg-black'}`}
               title="Me encanta"
             >
               <Heart size={18} className={currentReaction === 'heart' ? 'fill-current' : ''} />
@@ -461,7 +461,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
 
             <button
               onClick={() => handleReaction('like')}
-              className={`p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${currentReaction === 'like' ? 'bg-blue-500 text-white scale-110' : 'bg-black/70 text-white hover:bg-black'}`}
+              className={`p-2 sm:p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${currentReaction === 'like' ? 'bg-blue-500 text-white scale-110' : 'bg-black/70 text-white hover:bg-black'}`}
               title="Me gusta"
             >
               <ThumbsUp size={18} />
@@ -470,7 +470,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
 
             <button
               onClick={() => handleReaction('dislike')}
-              className={`p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${currentReaction === 'dislike' ? 'bg-red-500 text-white scale-110' : 'bg-black/70 text-white hover:bg-red-900'}`}
+              className={`p-2 sm:p-2.5 rounded-full border-2 border-black transition-all shadow-lg ${currentReaction === 'dislike' ? 'bg-red-500 text-white scale-110' : 'bg-black/70 text-white hover:bg-red-900'}`}
               title="No me gusta"
             >
               <ThumbsDown size={18} />
@@ -479,7 +479,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
 
             <button
               onClick={() => setShowShareMenu(!showShareMenu)}
-              className="p-2.5 rounded-full bg-black/70 text-white border-2 border-black hover:bg-black hover:scale-110 transition-all shadow-lg"
+              className="p-2 sm:p-2.5 rounded-full bg-black/70 text-white border-2 border-black hover:bg-black hover:scale-110 transition-all shadow-lg"
               title="Compartir"
             >
               <Share2 size={18} />
@@ -631,7 +631,7 @@ function CountdownTimer({ expiresAt }) {
   }, [expiresAt]);
 
   return (
-    <span className="text-[10px] sm:text-xs font-black tracking-widest text-amber-300 uppercase bg-black/40 px-2.5 py-1 rounded-full border border-amber-400/30">
+    <span className="text-[10px] sm:text-xs font-black tracking-widest text-amber-300 uppercase bg-black/40 px-2.5 py-1 rounded-full border border-amber-400/30 whitespace-nowrap">
       {timeLeft || 'VENCE HOY'}
     </span>
   );
@@ -671,13 +671,13 @@ function renderWorkWithUsSection(isLight) {
               href="https://wa.me/523312229710?text=Hola,%20quiero%20postularme%20para%20unirme%20al%20equipo%20y%20ganar%20dinero%20con%20CapiBaraML"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-black rounded-2xl text-xs sm:text-sm uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black transition-all hover:scale-105"
+              className="inline-flex items-center gap-2 px-5 sm:px-6 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-black rounded-2xl text-xs sm:text-sm uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black transition-all hover:scale-105"
             >
               <FaWhatsapp size={20} /> POSTULARME POR WHATSAPP
             </a>
           </div>
 
-          <div className="flex items-center justify-center gap-3 sm:gap-6 shrink-0 py-4">
+          <div className="flex items-center justify-center gap-2 sm:gap-6 shrink-0 py-4 max-w-full">
             
             <motion.div
               animate={{ y: [0, -5, 0] }}
@@ -685,13 +685,13 @@ function renderWorkWithUsSection(isLight) {
               className="relative group"
             >
               <div className="absolute inset-0 bg-cyan-400/30 rounded-full blur-xl group-hover:bg-cyan-400/50 transition-all" />
-              <div className="relative w-22 h-22 sm:w-28 sm:h-28 rounded-full bg-cyan-400 border-4 border-black flex flex-col items-center justify-center text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] shrink-0">
-                <Users className="w-9 h-9 sm:w-11 sm:h-11 stroke-[2.5]" />
+              <div className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-cyan-400 border-4 border-black flex flex-col items-center justify-center text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] shrink-0">
+                <Users className="w-8 h-8 sm:w-11 sm:h-11 stroke-[2.5]" />
                 <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider mt-1">EQUIPO</span>
               </div>
             </motion.div>
 
-            <div className="relative flex items-center justify-center w-24 sm:w-32 h-20">
+            <div className="relative flex items-center justify-center w-20 sm:w-32 h-20">
               <svg
                 className="w-full h-full drop-shadow-[0_0_12px_rgba(6,182,212,0.8)]"
                 viewBox="0 0 140 60"
@@ -766,7 +766,7 @@ function renderWorkWithUsSection(isLight) {
               className="relative group"
             >
               <div className="absolute inset-0 bg-cyan-400/30 rounded-full blur-xl group-hover:bg-cyan-400/50 transition-all" />
-              <div className="relative w-22 h-22 sm:w-28 sm:h-28 rounded-full bg-neutral-950 border-4 border-cyan-400 flex items-center justify-center overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] shrink-0 p-1">
+              <div className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-neutral-950 border-4 border-cyan-400 flex items-center justify-center overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] shrink-0 p-1">
                 <img
                   src="./logo.png"
                   alt="Logo CapiBaraML"
@@ -816,7 +816,7 @@ function renderNewSection(products = []) {
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
             </div>
 
-            <div className="p-8 text-center bg-white">
+            <div className="p-6 sm:p-8 text-center bg-white">
               <h4 className="text-xl font-black text-black mb-4 tracking-tight">{promo.model_capacity}</h4>
 
               <div className="flex items-center justify-center gap-3 mb-6">
@@ -845,22 +845,22 @@ function renderNewSection(products = []) {
 
               <div className="mb-6">
                 <p className="text-black font-black text-xs mb-1">Precio final con descuentos aplicados</p>
-                <div className="text-[#5578F4] font-black text-5xl tracking-tight py-1">${finalPrice}</div>
+                <div className="text-[#5578F4] font-black text-4xl sm:text-5xl tracking-tight py-1">${finalPrice}</div>
               </div>
 
-              <div className="flex items-center justify-center gap-8 py-5 border-t border-b border-gray-300 mt-2 mb-5">
-                <div className="flex items-center gap-3">
-                  <CreditCard size={32} className="text-[#5578F4] flex-shrink-0" strokeWidth={1.5} />
+              <div className="flex items-center justify-center gap-4 sm:gap-8 py-5 border-t border-b border-gray-300 mt-2 mb-5">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <CreditCard size={28} className="text-[#5578F4] flex-shrink-0" strokeWidth={1.5} />
                   <div className="flex flex-col text-left">
                     <span className="text-[10px] text-gray-500 font-black uppercase leading-none tracking-wider mb-0.5">Hasta</span>
-                    <span className="text-black font-black text-[15px] leading-none">{promo.msi_text}</span>
+                    <span className="text-black font-black text-xs sm:text-[15px] leading-none">{promo.msi_text}</span>
                   </div>
                 </div>
                 <div className="w-[1px] h-10 bg-gray-300"></div>
-                <div className="flex items-center gap-3">
-                  <Truck size={32} className="text-[#5578F4] flex-shrink-0" strokeWidth={1.5} />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Truck size={28} className="text-[#5578F4] flex-shrink-0" strokeWidth={1.5} />
                   <div className="flex flex-col text-left">
-                    <span className="text-black font-black text-[15px] leading-none">{promo.shipping_text}</span>
+                    <span className="text-black font-black text-xs sm:text-[15px] leading-none">{promo.shipping_text}</span>
                   </div>
                 </div>
               </div>
@@ -1457,11 +1457,11 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES DIGITALES (AJUSTADA AL 100% DE ZOOM)
+  // SECCIÓN DE CUPONES DIGITALES (BLINDADA PARA MÓVIL, TABLET Y ESCRITORIO)
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
-      <div className="container mx-auto px-4 mb-12 relative z-25">
+      <div className="container mx-auto px-3 sm:px-4 mb-12 relative z-25">
         <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
           isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
         }`}>
@@ -1518,9 +1518,10 @@ function App() {
               </p>
             </div>
           ) : (
-            <div className="relative px-2 sm:px-12">
+            <div className="relative px-1 sm:px-10 lg:px-12">
               <div className="overflow-hidden py-4" ref={cuponesRef}>
-                <div className="flex gap-4 md:gap-6 items-center">
+                {/* 1 columna en móvil y tablet vertical (lg:flex-[0_0_calc(50%-12px)] pasa a 2 columnas en 1024px+) */}
+                <div className="flex gap-4 lg:gap-6 items-center">
                   {filteredCupones.map((cupon, idx) => {
                     const cuponId = getSafeId(cupon) || cupon.title;
                     const currentReaction = userReactions[cuponId];
@@ -1536,10 +1537,11 @@ function App() {
                     const fechaActual = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
 
                     return (
-                      <div key={cuponId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] min-w-0 flex flex-col gap-2">
+                      <div key={cuponId} className="flex-[0_0_100%] lg:flex-[0_0_calc(50%-12px)] min-w-0 flex flex-col gap-2">
                         
-                        <div className="block md:hidden h-[500px] my-2 flex justify-center items-center overflow-hidden">
-                          <div className="flex flex-col gap-2 -rotate-90 scale-90 sm:scale-95 transform-gpu origin-center">
+                        {/* VISTA MÓVIL (< 768px) ESCALADA SEGURA PARA PANTALLAS DE 320px A 767px */}
+                        <div className="block md:hidden h-[430px] sm:h-[480px] my-1 flex justify-center items-center overflow-hidden">
+                          <div className="flex flex-col gap-2 -rotate-90 scale-[0.78] min-[375px]:scale-[0.86] sm:scale-95 transform-gpu origin-center">
                             
                             <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide self-start">
                               {fechaActual}
@@ -1547,11 +1549,11 @@ function App() {
 
                             <div 
                               onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                              className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer w-[460px] h-[200px] flex-shrink-0"
+                              className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer w-[440px] h-[195px] flex-shrink-0"
                             >
-                              <div className="bg-white text-gray-900 p-4 flex flex-col justify-between items-center w-[150px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
+                              <div className="bg-white text-gray-900 p-4 flex flex-col justify-between items-center w-[145px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
                                 <div className="flex flex-col items-center justify-center my-auto">
-                                  <div className="w-22 h-22 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
+                                  <div className="w-20 h-20 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
                                     <img 
                                       src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolibre/logo__large_plus.png" 
                                       alt="Mercado Libre" 
@@ -1576,10 +1578,10 @@ function App() {
                                 <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
                               </div>
 
-                              <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 text-black flex flex-col justify-between relative`}>
+                              <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 text-black flex flex-col justify-between relative min-w-0`}>
                                 <div className="flex justify-between items-start gap-2 mb-1">
-                                  <div className="flex flex-col">
-                                    <h3 className="text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 leading-tight">
+                                  <div className="flex flex-col min-w-0">
+                                    <h3 className="text-lg font-black uppercase tracking-tight drop-shadow-sm mb-1 leading-tight truncate">
                                       {cupon.title || '12% DE DESCUENTO'}
                                     </h3>
                                     <div>
@@ -1594,7 +1596,7 @@ function App() {
                                     </div>
                                   </div>
 
-                                  <div className="flex flex-col items-end gap-1 text-right">
+                                  <div className="flex flex-col items-end gap-1 text-right shrink-0">
                                     <CountdownTimer expiresAt={cupon.expires_at} />
                                     <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
                                       <button
@@ -1618,7 +1620,7 @@ function App() {
                                 </div>
 
                                 <div className="pt-2 border-t border-black/15">
-                                  <span className="text-[9px] font-extrabold uppercase tracking-tight text-black/90 block leading-tight">
+                                  <span className="text-[9px] font-extrabold uppercase tracking-tight text-black/90 block leading-tight truncate">
                                     {cupon.min_purchase ? `COMPRA MÍNIMA APLICABLE: $${cupon.min_purchase} | DESCUENTO MÁXIMO: $${cupon.max_discount || '180'}` : (cupon.description || 'COMPRA MÍNIMA APLICABLE')}
                                   </span>
                                 </div>
@@ -1628,7 +1630,7 @@ function App() {
                           </div>
                         </div>
 
-                        {/* Tarjeta de escritorio optimizada para 100% de zoom */}
+                        {/* Tarjeta de tablet y escritorio optimizada */}
                         <div className="hidden md:flex flex-col gap-2 w-full">
                           <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide">
                             {fechaActual}
@@ -1637,9 +1639,9 @@ function App() {
                             onClick={() => handleCopiarIrMercadoLibre(cupon)}
                             className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer h-full w-full"
                           >
-                            <div className="bg-white text-gray-900 p-4 sm:p-5 flex flex-col justify-between items-center w-[210px] sm:w-[230px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
+                            <div className="bg-white text-gray-900 p-4 sm:p-5 flex flex-col justify-between items-center w-[190px] xl:w-[230px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
                               <div className="flex flex-col items-center justify-center my-auto py-1">
-                                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
+                                <div className="w-24 h-24 xl:w-32 xl:h-32 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
                                   <img 
                                     src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolibre/logo__large_plus.png" 
                                     alt="Mercado Libre" 
@@ -1666,17 +1668,17 @@ function App() {
                               <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
                             </div>
 
-                            <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-black flex flex-col justify-between relative overflow-hidden`}>
+                            <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-black flex flex-col justify-between relative overflow-hidden min-w-0`}>
                               <div className="flex justify-between items-start gap-2 mb-2">
                                 <div className="flex flex-col min-w-0 pr-1">
-                                  <h3 className="text-lg sm:text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 truncate">
+                                  <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 truncate">
                                     {cupon.title || '10% DE DESCUENTO'}
                                   </h3>
                                   <div>
                                     <span className="block text-[9px] font-black uppercase tracking-widest text-black/70 mb-0.5">
                                       COPIAR Y CANJEAR
                                     </span>
-                                    <div className="text-xl font-black tracking-widest font-mono bg-black/10 py-1 px-3 rounded-xl border border-black/25 inline-block select-all">
+                                    <div className="text-lg xl:text-xl font-black tracking-widest font-mono bg-black/10 py-1 px-3 rounded-xl border border-black/25 inline-block select-all">
                                       {cupon.code && String(cupon.code).length > 3
                                         ? String(cupon.code).slice(0, 3) + '••••••'
                                         : (cupon.code || 'CAPI••••')}
@@ -1728,13 +1730,13 @@ function App() {
                 <>
                   <button
                     onClick={scrollPrevCupones}
-                    className="absolute -left-2 top-1/2 -translate-y-1/2 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
+                    className="absolute -left-1 sm:-left-2 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
                   >
                     <ChevronLeft className="w-5 h-5 font-black" />
                   </button>
                   <button
                     onClick={scrollNextCupones}
-                    className="absolute -right-2 top-1/2 -translate-y-1/2 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
+                    className="absolute -right-1 sm:-right-2 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
                   >
                     <ChevronRight className="w-5 h-5 font-black" />
                   </button>
@@ -1754,10 +1756,10 @@ function App() {
   );
 
   // ==========================================
-  // SECCIÓN DE CUPONES BANCARIOS (AJUSTADA AL 100% DE ZOOM)
+  // SECCIÓN DE CUPONES BANCARIOS (BLINDADA PARA MÓVIL, TABLET Y ESCRITORIO)
   // ==========================================
   const renderCuponesBancariosSection = () => (
-    <div className="container mx-auto px-4 mb-12 relative z-25">
+    <div className="container mx-auto px-3 sm:px-4 mb-12 relative z-25">
       <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
         isLight ? 'bg-white border-blue-200' : 'bg-neutral-900/85 border-neutral-800'
       }`}>
@@ -1793,9 +1795,9 @@ function App() {
             </p>
           </div>
         ) : (
-          <div className="relative px-2 sm:px-12">
+          <div className="relative px-1 sm:px-10 lg:px-12">
             <div className="overflow-hidden py-4" ref={bancariosRef}>
-              <div className="flex gap-4 md:gap-6 items-center">
+              <div className="flex gap-4 lg:gap-6 items-center">
                 {filteredCuponesBancarios.map((cupon, idx) => {
                   const cuponId = getSafeId(cupon) || cupon.title;
                   const currentReaction = userReactions[cuponId];
@@ -1811,20 +1813,21 @@ function App() {
                   const fechaActual = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
 
                   return (
-                    <div key={cuponId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] min-w-0 flex flex-col gap-2">
+                    <div key={cuponId} className="flex-[0_0_100%] lg:flex-[0_0_calc(50%-12px)] min-w-0 flex flex-col gap-2">
                       
-                      <div className="block md:hidden h-[500px] my-2 flex justify-center items-center overflow-hidden">
-                        <div className="flex flex-col gap-2 -rotate-90 scale-90 sm:scale-95 transform-gpu origin-center">
+                      {/* VISTA MÓVIL (< 768px) ESCALADA SEGURA PARA PANTALLAS DE 320px A 767px */}
+                      <div className="block md:hidden h-[430px] sm:h-[480px] my-1 flex justify-center items-center overflow-hidden">
+                        <div className="flex flex-col gap-2 -rotate-90 scale-[0.78] min-[375px]:scale-[0.86] sm:scale-95 transform-gpu origin-center">
                           <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide self-start">
                             {fechaActual}
                           </span>
                           <div 
                             onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                            className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer w-[460px] h-[200px] flex-shrink-0"
+                            className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer w-[440px] h-[195px] flex-shrink-0"
                           >
-                            <div className="bg-white text-gray-900 p-4 flex flex-col justify-between items-center w-[150px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
+                            <div className="bg-white text-gray-900 p-4 flex flex-col justify-between items-center w-[145px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
                               <div className="flex flex-col items-center justify-center my-auto">
-                                <div className="w-22 h-22 rounded-full bg-white flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
+                                <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
                                   {bank.logo ? (
                                     <img src={bank.logo} alt={bank.name} className="w-full h-full object-contain" />
                                   ) : (
@@ -1843,10 +1846,10 @@ function App() {
                               <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
                             </div>
 
-                            <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 text-white flex flex-col justify-between relative`}>
+                            <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 text-white flex flex-col justify-between relative min-w-0`}>
                               <div className="flex justify-between items-start gap-2 mb-1">
-                                <div className="flex flex-col">
-                                  <h3 className="text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 leading-tight">
+                                <div className="flex flex-col min-w-0">
+                                  <h3 className="text-lg font-black uppercase tracking-tight drop-shadow-sm mb-1 leading-tight truncate">
                                     {cupon.title || 'DESCUENTO BANCARIO'}
                                   </h3>
                                   <div>
@@ -1861,7 +1864,7 @@ function App() {
                                   </div>
                                 </div>
 
-                                <div className="flex flex-col items-end gap-1 text-right">
+                                <div className="flex flex-col items-end gap-1 text-right shrink-0">
                                   <CountdownTimer expiresAt={cupon.expires_at} />
                                   <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
                                     <button
@@ -1885,7 +1888,7 @@ function App() {
                               </div>
 
                               <div className="pt-2 border-t border-white/20">
-                                <span className="text-[9px] font-extrabold uppercase tracking-tight text-white/90 block leading-tight">
+                                <span className="text-[9px] font-extrabold uppercase tracking-tight text-white/90 block leading-tight truncate">
                                   {cupon.description || 'BENEFICIOS EXCLUSIVOS CON TARJETA'}
                                 </span>
                               </div>
@@ -1894,7 +1897,7 @@ function App() {
                         </div>
                       </div>
 
-                      {/* Tarjeta bancaria de escritorio optimizada para 100% de zoom */}
+                      {/* Tarjeta bancaria de tablet y escritorio optimizada */}
                       <div className="hidden md:flex flex-col gap-2 w-full">
                         <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide">
                           {fechaActual}
@@ -1903,9 +1906,9 @@ function App() {
                           onClick={() => handleCopiarIrMercadoLibre(cupon)}
                           className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer h-full w-full"
                         >
-                          <div className="bg-white text-gray-900 p-4 sm:p-5 flex flex-col justify-between items-center w-[210px] sm:w-[230px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
+                          <div className="bg-white text-gray-900 p-4 sm:p-5 flex flex-col justify-between items-center w-[190px] xl:w-[230px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
                             <div className="flex flex-col items-center justify-center my-auto py-1">
-                              <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-white flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-3">
+                              <div className="w-24 h-24 xl:w-32 xl:h-32 rounded-full bg-white flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-3">
                                 {bank.logo ? (
                                   <img src={bank.logo} alt={bank.name} className="w-full h-full object-contain" />
                                 ) : (
@@ -1924,17 +1927,17 @@ function App() {
                             <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
                           </div>
 
-                          <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-white flex flex-col justify-between relative overflow-hidden`}>
+                          <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-white flex flex-col justify-between relative overflow-hidden min-w-0`}>
                             <div className="flex justify-between items-start gap-2 mb-2">
                               <div className="flex flex-col min-w-0 pr-1">
-                                <h3 className="text-lg sm:text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 truncate">
+                                <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 truncate">
                                   {cupon.title || 'DESCUENTO BANCARIO'}
                                 </h3>
                                 <div>
                                   <span className="block text-[9px] font-black uppercase tracking-widest text-white/70 mb-0.5">
                                     CÓDIGO / BENEFICIO
                                   </span>
-                                  <div className="text-xl font-black tracking-widest font-mono bg-black/20 py-1 px-3 rounded-xl border border-white/25 inline-block select-all">
+                                  <div className="text-lg xl:text-xl font-black tracking-widest font-mono bg-black/20 py-1 px-3 rounded-xl border border-white/25 inline-block select-all">
                                     {cupon.code && String(cupon.code).length > 3
                                       ? String(cupon.code).slice(0, 3) + '••••••'
                                       : (cupon.code || 'BANC••••')}
@@ -1984,13 +1987,13 @@ function App() {
               <>
                 <button
                   onClick={scrollPrevBancarios}
-                  className="absolute -2 left-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
                 >
                   <ChevronLeft className="w-5 h-5 font-black" />
                 </button>
                 <button
                   onClick={scrollNextBancarios}
-                  className="absolute -2 right-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
                 >
                   <ChevronRight className="w-5 h-5 font-black" />
                 </button>
@@ -2010,7 +2013,7 @@ function App() {
 
   const renderProductosSection = () => (
     regularProducts.length > 0 && (
-      <div className={`container mx-auto px-4 mb-16 relative z-10`}>
+      <div className={`container mx-auto px-3 sm:px-4 mb-16 relative z-10`}>
         <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
           isLight ? 'bg-white border-gray-100' : 'bg-neutral-900/85 border-neutral-800'
         }`}>
@@ -2173,21 +2176,21 @@ function App() {
   );
 
   const renderExclusiveProductsSection = () => (
-    <div className={`container mx-auto px-4 mb-16 relative z-10`}>
+    <div className={`container mx-auto px-3 sm:px-4 mb-16 relative z-10`}>
       <div className="bg-[#FFE600] rounded-3xl p-6 sm:p-10 mb-8 text-black shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border-4 border-black">
         <div className="flex flex-col items-start text-left max-w-xl z-10">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-4 leading-tight">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight mb-4 leading-tight">
             Vende con terminal Point, recibe tu dinero al instante
           </h2>
           <p className="font-bold text-sm sm:text-base mb-6 text-black/90">
             Lleva gratis una Tarjeta Debit Mastercard® para usar tu dinero.
           </p>
-          <div className="flex flex-wrap gap-4 items-center">
+          <div className="flex flex-wrap gap-3 sm:gap-4 items-center">
             <a 
               href="https://www.mercadopago.com.mx/herramientas-para-vender/lectores-point?code=7XYVCUKISD" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="bg-[#3483fa] hover:bg-[#2968c8] text-white font-black px-6 py-3.5 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black text-sm uppercase transition-transform hover:scale-105"
+              className="bg-[#3483fa] hover:bg-[#2968c8] text-white font-black px-5 sm:px-6 py-3.5 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black text-xs sm:text-sm uppercase transition-transform hover:scale-105"
             >
               Elegir terminal
             </a>
@@ -2201,11 +2204,11 @@ function App() {
           <img 
             src="https://http2.mlstatic.com/storage/pog-cm-admin/calm-assets/multi-mlm-hero--b6703c46.png" 
             alt="Terminales Point Mercado Pago" 
-            className="max-w-[280px] sm:max-w-[360px] md:max-w-[420px] h-auto object-contain drop-shadow-xl"
+            className="max-w-[240px] sm:max-w-[340px] lg:max-w-[420px] h-auto object-contain drop-shadow-xl"
           />
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full pt-6 border-t-2 border-black/20 z-10 md:col-span-2">
+        <div className="grid grid-cols-1 min-[400px]:grid-cols-2 sm:grid-cols-4 gap-4 w-full pt-6 border-t-2 border-black/20 z-10 md:col-span-2">
           <div className="flex items-center gap-2 text-xs font-black">
             <DollarSign size={20} className="text-black flex-shrink-0" />
             <span>Crédito inmediato y a tu medida²</span>
@@ -2267,7 +2270,7 @@ function App() {
 
                   return (
                     <div key={pId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0 flex">
-                      <div className="w-full rounded-3xl shadow-xl transition-all duration-300 overflow-hidden flex flex-col border bg-white text-gray-900 border-gray-200 relative p-6">
+                      <div className="w-full rounded-3xl shadow-xl transition-all duration-300 overflow-hidden flex flex-col border bg-white text-gray-900 border-gray-200 relative p-5 sm:p-6">
                         
                         <button
                           onClick={handleShareProduct}
@@ -2404,15 +2407,15 @@ function App() {
   );
 
   const renderReelsSection = () => (
-    <div className="container mx-auto px-4 mb-16 relative z-10">
-      <div className={`rounded-3xl shadow-xl p-8 backdrop-blur-xl border ${
+    <div className="container mx-auto px-3 sm:px-4 mb-16 relative z-10">
+      <div className={`rounded-3xl shadow-xl p-5 sm:p-8 backdrop-blur-xl border ${
         isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
       }`}>
         <div className="text-center mb-8">
-          <h2 className={`text-3xl md:text-4xl font-black mb-3 flex items-center justify-center gap-3 ${
+          <h2 className={`text-2xl sm:text-3xl md:text-4xl font-black mb-3 flex items-center justify-center gap-3 ${
             isLight ? 'text-purple-700' : 'text-neutral-100'
           }`}>
-            <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" /> Productos puestos a prueba por influencers
+            <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-yellow-400 animate-pulse shrink-0" /> Productos puestos a prueba por influencers
           </h2>
           <p className={`text-sm md:text-base max-w-xl mx-auto font-medium ${
             isLight ? 'text-gray-600' : 'text-neutral-400'
@@ -2435,35 +2438,36 @@ function App() {
     <div className={mainBgClass}>
       
       {/* ========================================== */}
-      {/* BARRA SUPERIOR DE WHATSAPP (TRÁFICO ADS)   */}
+      {/* BARRA SUPERIOR DE WHATSAPP (BLINDADA ADS)  */}
       {/* ========================================== */}
       <div className="sticky top-0 z-[75] w-full bg-[#25D366] border-b-4 border-black shadow-xl">
-        <div className="container mx-auto px-3 py-2.5 flex items-center justify-between sm:justify-center gap-3 sm:gap-5">
-          <div className="flex items-center gap-2 text-black min-w-0">
-            <span className="relative flex h-3 w-3 shrink-0">
+        <div className="container mx-auto px-2.5 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between sm:justify-center gap-2 sm:gap-5">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-black min-w-0">
+            <span className="relative flex h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-black"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 bg-black"></span>
             </span>
-            <p className="text-xs sm:text-sm font-black tracking-tight truncate">
-              🔥 ¡Recibe los mejores cupones flash y los mejores precios al instante, unete a nuestra comunidad privada! 🔥
+            <p className="text-[11px] sm:text-sm font-black tracking-tight truncate">
+              <span className="sm:hidden">🔥 Cupones flash al instante</span>
+              <span className="hidden sm:inline">🔥 ¡Recibe cupones flash y errores de precio al instante!</span>
             </p>
           </div>
           <a
             href="https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1"
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 inline-flex items-center gap-1.5 bg-black hover:bg-neutral-800 text-white font-black text-[11px] sm:text-xs uppercase px-3.5 py-2 rounded-full border-2 border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,0.4)] transition-transform hover:scale-105"
+            className="shrink-0 inline-flex items-center gap-1.5 bg-black hover:bg-neutral-800 text-white font-black text-[10px] sm:text-xs uppercase px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full border-2 border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,0.4)] transition-transform hover:scale-105 whitespace-nowrap"
           >
-            <FaWhatsapp className="w-4 h-4 text-[#25D366]" />
+            <FaWhatsapp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#25D366] shrink-0" />
             <span>Unirme al WhatsApp</span>
-            <ArrowRight className="w-3.5 h-3.5 hidden sm:inline" />
+            <ArrowRight className="w-3.5 h-3.5 hidden sm:inline shrink-0" />
           </a>
         </div>
       </div>
 
       <style>{`
         @media (max-width: 768px) {
-          [class*="chat-window"], [class*="bot-container"], [class*="chatbot"] {
+          [class*="chat-window"], [class*="bot-container"] {
             width: 100vw !important;
             height: 100vh !important;
             bottom: 0 !important;
@@ -2483,8 +2487,8 @@ function App() {
         </>
       )}
 
-      {/* MENÚ FLOTANTE DERECHO: BOTÓN DE PERFIL DE USUARIO COMENTADO, SE MANTIENE CONTADOR Y TEMA */}
-      <div className={`fixed top-16 ${isMobileDevice ? 'right-2' : 'right-6'} z-[60] flex flex-col items-center gap-2.5 pointer-events-auto`}>
+      {/* MENÚ FLOTANTE DERECHO: BLINDADO PARA QUE NO SE ENCIME CON LA BARRA SUPERIOR NI CON TARJETAS */}
+      <div className={`fixed top-[60px] sm:top-16 ${isMobileDevice ? 'right-2' : 'right-4 lg:right-6'} z-[60] flex flex-col items-center gap-2 sm:gap-2.5 pointer-events-auto`}>
         <VisitorCounter isLight={isLight} />
 
         {/* ========================================== */}
@@ -2545,18 +2549,18 @@ function App() {
 
         <button
           onClick={() => setShowThemeModal(true)}
-          className={`w-11 h-11 md:w-12 md:h-12 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 border-2 ${
+          className={`w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 border-2 ${
             isLight
               ? 'bg-white text-gray-600 border-gray-200'
               : 'bg-neutral-900 text-neutral-400 border-neutral-700'
           }`}
           title="Cambiar Tema"
         >
-          <Settings className="w-5 h-5 md:w-6 md:h-6" />
+          <Settings className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
         </button>
 
         {isMobileDevice && (
-          <div className="mt-1">
+          <div className="mt-0.5">
             <ChatbotWidget isLight={isLight} cupones={activeCupones} isMobileDevice={isMobileDevice} />
           </div>
         )}
@@ -2594,7 +2598,7 @@ function App() {
                   <Sparkles className="h-8 w-8 text-black" />
                 </div>
                 <div>
-                  <p className="text-lg font-black leading-tight uppercase">{toastMessage}</p>
+                  <p className="text-base sm:text-lg font-black leading-tight uppercase">{toastMessage}</p>
                 </div>
                 <button
                   onClick={() => setShowToast(false)}
@@ -2616,7 +2620,7 @@ function App() {
         }`}
       >
         {!isLight && <div className="absolute inset-0 bg-black opacity-10" />}
-        <div className="relative container mx-auto px-4 pt-12 pb-4">
+        <div className="relative container mx-auto px-4 pt-10 sm:pt-12 pb-4">
           <div className="flex flex-col items-center text-center">
             
             <div
@@ -2624,7 +2628,7 @@ function App() {
               onMouseMove={handleLogoMouseMove}
               onMouseLeave={handleLogoMouseLeave}
               onMouseEnter={handleLogoMouseEnter}
-              className="mb-6 cursor-pointer w-48 h-48 md:w-56 md:h-56 mx-auto"
+              className="mb-6 cursor-pointer w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 mx-auto"
               style={{ perspective: '800px' }}
             >
               <div
@@ -2658,7 +2662,7 @@ function App() {
               </div>
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
               CapiBaraML
             </h1>
 
@@ -2666,7 +2670,7 @@ function App() {
               <div className={`inline-block backdrop-blur-sm px-6 py-3 rounded-full mb-2 ${
                 isLight ? 'bg-white/20' : 'bg-yellow-400/10 border border-yellow-400/30'
               }`}>
-                <p className="text-white font-semibold text-lg">
+                <p className="text-white font-semibold text-base lg:text-lg">
                 "No compres caro, Nosotros ya hicimos la busqueda por ti"
                 </p>
               </div>
@@ -2678,11 +2682,11 @@ function App() {
       {!isMobileDevice && renderWorkWithUsSection(isLight)}
 
       {isMobileDevice ? (
-        <div className="container mx-auto px-4 mt-6 mb-16 relative z-20">
-          <div className="bg-neutral-900/90 border border-neutral-800 p-3 rounded-2xl mb-6 shadow-xl grid grid-cols-2 gap-2">
+        <div className="container mx-auto px-3 sm:px-4 mt-6 mb-16 relative z-20">
+          <div className="bg-neutral-900/90 border border-neutral-800 p-2.5 sm:p-3 rounded-2xl mb-6 shadow-xl grid grid-cols-2 gap-2">
             <button
               onClick={() => setMobileTab('cupones')}
-              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-3 px-2.5 sm:px-3 rounded-xl font-black text-[11px] sm:text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'cupones' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
@@ -2690,7 +2694,7 @@ function App() {
             </button>
             <button
               onClick={() => setMobileTab('productos')}
-              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-3 px-2.5 sm:px-3 rounded-xl font-black text-[11px] sm:text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'productos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
@@ -2698,7 +2702,7 @@ function App() {
             </button>
             <button
               onClick={() => setMobileTab('bancarios')}
-              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-3 px-2.5 sm:px-3 rounded-xl font-black text-[11px] sm:text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'bancarios' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-yellow-400 hover:bg-neutral-700 border border-yellow-500/40'
               }`}
             >
@@ -2706,7 +2710,7 @@ function App() {
             </button>
             <button
               onClick={() => setMobileTab('reels')}
-              className={`py-3 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-3 px-2.5 sm:px-3 rounded-xl font-black text-[11px] sm:text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
                 mobileTab === 'reels' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
@@ -2755,7 +2759,7 @@ function App() {
 
       {showTutorialModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
-          <div className={`relative rounded-3xl p-6 w-full max-w-3xl shadow-2xl border flex flex-col ${
+          <div className={`relative rounded-3xl p-5 sm:p-6 w-full max-w-3xl shadow-2xl border flex flex-col ${
             isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'
           }`}>
             <button onClick={() => setShowTutorialModal(false)} className={`absolute top-4 right-4 rounded-full p-2 transition-colors z-10 ${
@@ -2763,7 +2767,7 @@ function App() {
             }`}>
               <X className="w-6 h-6" />
             </button>
-            <h3 className={`text-2xl font-bold mb-4 text-center pr-8 ${isLight ? 'text-gray-800' : 'text-white'}`}>
+            <h3 className={`text-xl sm:text-2xl font-bold mb-4 text-center pr-8 ${isLight ? 'text-gray-800' : 'text-white'}`}>
               🎓 ¿Cómo aplicar tus cupones?
             </h3>
             <div className="aspect-video bg-black rounded-xl overflow-hidden relative border border-neutral-700">
@@ -2778,7 +2782,7 @@ function App() {
                 className="absolute inset-0 w-full h-full"
               ></iframe>
             </div>
-            <p className={`mt-4 text-center font-semibold ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+            <p className={`mt-4 text-center text-xs sm:text-base font-semibold ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
               Sigue estos sencillos pasos en el video para aprovechar tus descuentos al máximo. 💸
             </p>
           </div>
@@ -2801,7 +2805,7 @@ function App() {
               <X className="w-6 h-6" />
             </button>
 
-            <h3 className="text-2xl font-black mb-4 flex items-center gap-2">
+            <h3 className="text-xl sm:text-2xl font-black mb-4 flex items-center gap-2 pr-6">
               🔒 Política de Privacidad de CapiBaraML
             </h3>
             
@@ -2851,7 +2855,7 @@ function App() {
               <X className="w-6 h-6" />
             </button>
 
-            <h3 className="text-2xl font-black mb-4 flex items-center gap-2">
+            <h3 className="text-xl sm:text-2xl font-black mb-4 flex items-center gap-2 pr-6">
               📄 Términos y Condiciones de Uso
             </h3>
             
@@ -2898,14 +2902,14 @@ function App() {
       />
       */}
 
-      <section className={`relative overflow-hidden py-24 px-4 border-b ${
+      <section className={`relative overflow-hidden py-20 sm:py-24 px-4 border-b ${
         isLight 
           ? 'bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/50 border-gray-200 text-gray-800' 
           : 'bg-gradient-to-br from-neutral-950 via-neutral-900 to-black border-neutral-800 text-neutral-100'
       }`}>
         <div className="relative container mx-auto max-w-7xl z-10 flex flex-col items-center">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight mb-4">
               ¿Por qué unirte a nuestros canales?
             </h2>
           </div>
@@ -2925,7 +2929,7 @@ function App() {
             <h3 className="text-2xl font-bold mb-2">CapiBaraML</h3>
             <p className="text-gray-400">"Ahorra con estilo, compra con sabiduría"</p>
           </div>
-          <div className="flex justify-center space-x-6 mb-6">
+          <div className="flex justify-center space-x-4 sm:space-x-6 mb-6">
             {socialLinks.map((social, index) => {
               const Icon = social.icon;
               return (
@@ -2934,10 +2938,10 @@ function App() {
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 text-white shadow-lg ${social.color}`}
+                  className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 text-white shadow-lg ${social.color}`}
                   title={social.name}
                 >
-                  <Icon className="w-6 h-6" />
+                  <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
                 </a>
               );
             })}
@@ -2954,7 +2958,7 @@ function App() {
             )}
           </div>
 
-          <div className={`mt-8 pt-6 border-t text-xs sm:text-sm max-w-4xl mx-auto p-5 rounded-2xl border transition-all ${
+          <div className={`mt-8 pt-6 border-t text-xs sm:text-sm max-w-4xl mx-auto p-4 sm:p-5 rounded-2xl border transition-all ${
             isLight 
               ? 'bg-gray-100 border-purple-200 text-gray-700 shadow-md font-semibold' 
               : 'bg-neutral-900 border-yellow-400/40 text-neutral-200 shadow-[0_0_20px_rgba(250,204,21,0.15)] font-semibold'
@@ -2962,7 +2966,7 @@ function App() {
             <p className="mb-3 text-center leading-relaxed">
               📢 <strong className={isLight ? 'text-gray-900' : 'text-yellow-400'}>Aviso Legal y Afiliados:</strong> Mercado Libre y su logotipo son marcas registradas de Mercado Libre, S. de R.L. de C.V. Su utilización en este sitio es únicamente informativa como parte de su programa de afiliados.
             </p>
-            <div className="flex items-center justify-center gap-4 pt-3 border-t border-yellow-500/20">
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 pt-3 border-t border-yellow-500/20">
               <button 
                 onClick={() => setShowPrivacyModal(true)} 
                 className={`font-black underline hover:scale-105 transition-transform ${isLight ? 'text-purple-700 hover:text-purple-900' : 'text-purple-400 hover:text-purple-300'}`}
@@ -2984,7 +2988,7 @@ function App() {
 
       {showThemeModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
-          <div className={`rounded-3xl p-8 max-w-sm w-full shadow-2xl border ${
+          <div className={`rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border ${
             isLight ? 'bg-white text-gray-800 border-gray-200' : 'bg-neutral-900 text-neutral-100 border-neutral-800'
           }`}>
             <div className="flex justify-between items-center mb-6">
