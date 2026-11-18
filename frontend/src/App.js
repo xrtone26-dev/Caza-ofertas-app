@@ -1584,15 +1584,20 @@ function App() {
                                     <h3 className="text-lg font-black uppercase tracking-tight drop-shadow-sm mb-1 leading-tight truncate">
                                       {cupon.title || '12% DE DESCUENTO'}
                                     </h3>
-                                    <div>
-                                      <span className="block text-[8px] font-black uppercase tracking-widest text-black/70 mb-0.5">
-                                        COPIAR Y CANJEAR
-                                      </span>
-                                      <div className="text-base font-black tracking-widest font-mono bg-black/10 py-1 px-3 rounded-xl border border-black/25 inline-block select-all">
-                                        {cupon.code && String(cupon.code).length > 3
-                                          ? String(cupon.code).slice(0, 3) + '••••••'
-                                          : (cupon.code || 'CAPI••••')}
-                                      </div>
+                                  <div className="mt-1">
+                                      <button
+                                        type="button"
+                                        className="group/btn inline-flex items-center gap-2 bg-black text-yellow-400 hover:bg-neutral-900 py-1.5 px-3 rounded-xl border-2 border-white/90 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.45)] transition-all active:translate-y-0.5"
+                                      >
+                                        <span className="text-sm font-black tracking-widest font-mono">
+                                          {cupon.code && String(cupon.code).length > 3
+                                            ? String(cupon.code).slice(0, 3) + '••••••'
+                                            : (cupon.code || 'CAPI••••')}
+                                        </span>
+                                        <span className="flex items-center gap-1 bg-yellow-400 text-black text-[9px] font-black uppercase px-2 py-0.5 rounded-lg">
+                                          <Copy size={10} strokeWidth={3} /> COPIAR
+                                        </span>
+                                      </button>
                                     </div>
                                   </div>
 
