@@ -34,6 +34,7 @@ Eres CapiBaraML 🐹, el asistente virtual y vendedor estrella oficial de CapiBa
 TU PERSONALIDAD Y TONO DE VOZ:
 - Eres sumamente amigable, simpático, persuasivo, educado y cercano.
 - Tu objetivo principal es VENDER y ayudar al usuario a ahorrar: recomienda productos del catálogo proporcionado, comparte cupones activos e invita a unirse al grupo oficial de WhatsApp para recibir ofertas flash.
+- Respeta estrictamente el presupuesto del usuario y la categoría exacta que pide. Nunca recomiendes un celular o audífonos si el usuario pidió una pantalla/televisor.
 - Habla en español latino, usando emojis de forma moderada pero divertida (🚀, ✨, 🐹, 🎟️, 🔥).
 
 REGLAS ESTRICTAS DE FORMATO:
@@ -42,7 +43,6 @@ REGLAS ESTRICTAS DE FORMATO:
 3. Sé conciso, directo y persuasivo (máximo 3-4 líneas por respuesta).
 `;
 
-// Decodificador ligero por si los cupones llegan codificados desde el backend
 const decodeCouponIfNeeded = (item) => {
   if (!item || typeof item !== 'object') return item;
   const copy = { ...item };
@@ -55,6 +55,15 @@ const decodeCouponIfNeeded = (item) => {
   }
   return copy;
 };
+
+const normalizeText = (str = '') =>
+  String(str)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 export default function ChatbotWidget({ isLight, cupones = [], products = [], isMobileDevice = false }) {
   const [showChatWindow, setShowChatWindow] = useState(false);
@@ -69,11 +78,10 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
   const [chatMessages, setChatMessages] = useState([
     {
       sender: 'bot',
-      text: '¡Hola! Soy tu asistente **CapiBaraML** 🐹. ¿Qué oferta, producto o cupón andas buscando hoy? ¡Dime y te consigo el mejor descuento al instante! 🚀',
+      text: '¡Hola! Soy tu asistente **CapiBaraML** 🐹. ¿Qué oferta, producto o cupón andas buscando hoy? ¡Dime qué buscas y tu presupuesto para conseguirte la mejor opción al instante! 🚀',
     },
   ]);
 
-  // Mantener servidor despierto y sincronizar datos frescos cada 5 minutos
   useEffect(() => {
     const syncCatalog = async () => {
       try {
@@ -95,7 +103,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     return () => clearInterval(interval);
   }, []);
 
-  // Sincronizar props si App.js las pasa actualizadas
   useEffect(() => {
     if (Array.isArray(cupones) && cupones.length > 0) {
       setLocalCupones(cupones.map(decodeCouponIfNeeded));
@@ -108,7 +115,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     }
   }, [products]);
 
-  // Filtrar solo cupones vigentes (no expirados)
   const activeValidCupones = useMemo(() => {
     const now = Date.now();
     return localCupones.filter((c) => {
@@ -119,7 +125,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     });
   }, [localCupones]);
 
-  // Filtrar solo productos activos (excluyendo tarjetas promo especiales sin link directo si aplica)
   const activeValidProducts = useMemo(() => {
     return localProducts.filter((p) => p && p.active !== false);
   }, [localProducts]);
@@ -128,7 +133,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, showChatWindow, isTyping]);
 
-  // Bloquear scroll del fondo en móviles cuando el chat está abierto
   useEffect(() => {
     if (showChatWindow && window.innerWidth < 640) {
       document.body.style.overflow = 'hidden';
@@ -282,7 +286,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
   };
 
   // ==========================================
-  // TARJETAS DE CUPONES ACTIVOS (FILTRABLES POR PRESUPUESTO)
+  // TARJETAS DE CUPONES ACTIVOS
   // ==========================================
   const renderCuponesDirectCards = (customList = null, budgetAsked = null) => {
     const listToRender = customList || activeValidCupones;
@@ -386,7 +390,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
                 {prod.image_url && (
                   <img
                     src={prod.image_url}
-                    alt={title}
+                    alt=""
                     className="w-16 h-16 object-contain rounded-xl border border-gray-200 bg-white p-1 shrink-0"
                   />
                 )}
@@ -441,12 +445,16 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
   };
 
   // ==========================================
-  // TARJETA DE BÚSQUEDA EXTERNA + WHATSAPP (CUANDO NO ESTÁ EN CATÁLOGO)
+  // TARJETA DE BÚSQUEDA EXTERNA + WHATSAPP
   // ==========================================
-  const renderExternalSearchCard = (queryText) => (
+  const renderExternalSearchCard = (queryText, customReason = null) => (
     <div className="flex flex-col gap-2.5 mt-1">
       <p className="text-xs font-bold leading-snug">
-        No tengo cargado ahorita mismo un cupón específico para <strong>"{queryText}"</strong> en nuestra vitrina, ¡pero puedes buscarlo directo con descuento en Mercado Libre o pedirlo en nuestro WhatsApp VIP! 🐹🔥
+        {customReason || (
+          <>
+            Ahorita mismo no tengo cargado en nuestra vitrina un artículo exacto de <strong>"{queryText}"</strong>, ¡pero puedes buscarlo directo con ofertas en Mercado Libre o pedirlo en nuestro WhatsApp VIP! 🐹🔥
+          </>
+        )}
       </p>
       <a
         href={ML_SEARCH_AFFILIATE}
@@ -513,67 +521,209 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     if (msg.isMercadoPagoCard) return renderMercadoPagoTerminalCard();
     if (msg.isCuponesCard) return renderCuponesDirectCards(msg.customCupones, msg.budgetAsked);
     if (msg.isProductCards) return renderProductCards(msg.matchedProducts, msg.introText);
-    if (msg.isExternalSearch) return renderExternalSearchCard(msg.searchQuery);
+    if (msg.isExternalSearch) return renderExternalSearchCard(msg.searchQuery, msg.customReason);
 
     const text = msg.text || '';
     return <div>{renderMessageTextWithFormat(text)}</div>;
   };
 
   // ==========================================
-  // MOTOR DE INTENCIÓN LOCAL + IA (VENDEDOR INTELIGENTE)
+  // EXTRACTOR DE PRESUPUESTO DEL MENSAJE
   // ==========================================
-  const findMatchingProducts = (query) => {
-    const stopWords = new Set([
-      'hola', 'buenos', 'dias', 'tardes', 'noches', 'quiero', 'busco', 'tienes',
-      'tienen', 'algun', 'alguna', 'algunos', 'unas', 'unos', 'para', 'con',
-      'precio', 'oferta', 'ofertas', 'barato', 'baratos', 'comprar', 'ver',
-      'me', 'puedes', 'recomendar', 'recomiendas', 'por', 'favor', 'de', 'la', 'el', 'los', 'las', 'un', 'una'
-    ]);
-
-    const keywords = query
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9\s]/g, ' ')
-      .split(/\s+/)
-      .filter((w) => w.length >= 3 && !stopWords.has(w));
-
-    if (keywords.length === 0) return [];
-
-    return activeValidProducts.filter((prod) => {
-      const searchable = `${prod.title || ''} ${prod.description || ''} ${prod.model_capacity || ''}`
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
-
-      return keywords.some((kw) => searchable.includes(kw));
-    });
+  const extractBudgetFromText = (text) => {
+    const clean = text.replace(/,/g, '');
+    const patterns = [
+      /(?:tengo|presupuesto|maximo|máximo|menos de|hasta|de|por|unos|entre)\s*\$?\s*(\d{2,6})/i,
+      /\$\s*(\d{2,6})/i,
+    ];
+    for (const pat of patterns) {
+      const m = clean.match(pat);
+      if (m && m[1]) {
+        const val = Number(m[1]);
+        if (!isNaN(val) && val >= 50 && val <= 500000) return val;
+      }
+    }
+    return null;
   };
 
+  // ==========================================
+  // BUSCADOR INTELIGENTE DE PRODUCTOS (CON ANTI FALSOS POSITIVOS Y PRESUPUESTO)
+  // ==========================================
+  const searchCatalogSmart = (rawQuery) => {
+    const normQuery = normalizeText(rawQuery);
+    const budget = extractBudgetFromText(rawQuery);
+
+    // Reglas semánticas por categoría para evitar falsos positivos
+    const categoryRules = [
+      {
+        triggers: ['pantalla', 'pantallas', 'televisor', 'televisores', 'television', 'smart tv', 'tv'],
+        mustMatchTitle: ['smart tv', 'televisor', 'television', 'pantalla', 'roku tv', 'google tv', 'hisense', 'tcl', 'lg tv', 'samsung tv', 'qled', 'oled', 'uhd'],
+        excludeTitle: ['audifono', 'audifonos', 'celular', 'smartphone', 'iphone', 'soporte', 'base', 'brazo', 'funda', 'mica', 'protector', 'control remoto', 'reloj', 'smartwatch', 'tableta', 'ipad'],
+        cleanLabel: 'Pantalla / Smart TV'
+      },
+      {
+        triggers: ['celular', 'celulares', 'telefono', 'telefonos', 'smartphone', 'smartphones', 'iphone', 'galaxy', 'xiaomi', 'motorola', 'nothing phone'],
+        mustMatchTitle: ['celular', 'smartphone', 'telefono', 'iphone', 'galaxy', 'xiaomi', 'redmi', 'poco', 'motorola', 'moto g', 'moto edge', 'nothing phone', 'realme', 'honor'],
+        excludeTitle: ['funda', 'mica', 'cargador', 'cable', 'audifono', 'audifonos', 'soporte', 'base', 'reloj', 'smartwatch', 'ipad', 'tablet'],
+        cleanLabel: 'Celular / Smartphone'
+      },
+      {
+        triggers: ['audifono', 'audifonos', 'auricular', 'auriculares', 'headset', 'earbuds', 'buds', 'airpods'],
+        mustMatchTitle: ['audifono', 'audifonos', 'auricular', 'auriculares', 'headset', 'earbuds', 'buds', 'airpods', 'diadema'],
+        excludeTitle: ['funda', 'estuche', 'almohadilla', 'adaptador'],
+        cleanLabel: 'Audífonos'
+      },
+      {
+        triggers: ['laptop', 'laptops', 'computadora', 'notebook', 'macbook', 'pc'],
+        mustMatchTitle: ['laptop', 'notebook', 'macbook', 'chromebook', 'ultrabook', 'computadora'],
+        excludeTitle: ['mochila', 'funda', 'base', 'soporte', 'mouse', 'teclado', 'audifono', 'audifonos'],
+        cleanLabel: 'Laptop'
+      },
+      {
+        triggers: ['tablet', 'tablets', 'ipad'],
+        mustMatchTitle: ['tablet', 'ipad', 'galaxy tab', 'redmi pad'],
+        excludeTitle: ['funda', 'mica', 'lapiz', 'teclado'],
+        cleanLabel: 'Tablet / iPad'
+      },
+      {
+        triggers: ['reloj', 'smartwatch', 'band'],
+        mustMatchTitle: ['smartwatch', 'reloj', 'mi band', 'watch', 'amazfit', 'huawei watch'],
+        excludeTitle: ['extensible', 'correa', 'mica', 'cargador'],
+        cleanLabel: 'Smartwatch'
+      }
+    ];
+
+    const matchedRule = categoryRules.find((rule) =>
+      rule.triggers.some((t) => new RegExp(`\\b${t}\\b`, 'i').test(normQuery))
+    );
+
+    let candidates = [];
+    let cleanSearchLabel = rawQuery;
+
+    if (matchedRule) {
+      cleanSearchLabel = matchedRule.cleanLabel;
+      candidates = activeValidProducts.filter((prod) => {
+        // Buscamos SOLO en el título principal para no confundir "audífonos con pantalla LED" con una TV
+        const titleNorm = normalizeText(prod.title || prod.nombre || '');
+        const hasPositive = matchedRule.mustMatchTitle.some((kw) => titleNorm.includes(kw));
+        const hasNegative = matchedRule.excludeTitle.some((bad) => titleNorm.includes(bad));
+        return hasPositive && !hasNegative;
+      });
+    } else {
+      // Búsqueda general por palabras clave relevantes
+      const stopWords = new Set([
+        'hola', 'buenos', 'dias', 'tardes', 'noches', 'quiero', 'busco', 'tienes',
+        'tienen', 'algun', 'alguna', 'algunos', 'unas', 'unos', 'para', 'con',
+        'precio', 'oferta', 'ofertas', 'barato', 'baratos', 'comprar', 'ver',
+        'me', 'puedes', 'recomendar', 'recomiendas', 'por', 'favor', 'de', 'la',
+        'el', 'los', 'las', 'un', 'una', 'bueno', 'buena', 'buenos', 'tengo',
+        'presupuesto', 'menos', 'hasta', 'como', 'que', 'hay', 'plana'
+      ]);
+
+      const keywords = normQuery
+        .split(' ')
+        .filter((w) => w.length >= 3 && !stopWords.has(w) && !/^\d+$/.test(w));
+
+      if (keywords.length > 0) {
+        candidates = activeValidProducts.filter((prod) => {
+          const titleNorm = normalizeText(prod.title || prod.nombre || '');
+          const descNorm = normalizeText(prod.description || '');
+          // Prioridad: todas las palabras clave deben estar en título o descripción
+          return keywords.every((kw) => titleNorm.includes(kw) || descNorm.includes(kw));
+        });
+      }
+    }
+
+    // Ordenar de menor a mayor precio
+    candidates.sort((a, b) => {
+      const pa = Number(a.discount_price || a.precio || 999999);
+      const pb = Number(b.discount_price || b.precio || 999999);
+      return pa - pb;
+    });
+
+    // Aplicar filtro de presupuesto si el usuario indicó uno
+    if (budget && candidates.length > 0) {
+      const withinBudget = candidates.filter((prod) => {
+        const price = Number(prod.discount_price || prod.precio || 0);
+        return price > 0 && price <= budget * 1.05; // +5% tolerancia por si usa cupón
+      });
+
+      if (withinBudget.length > 0) {
+        return {
+          status: 'FOUND',
+          products: withinBudget,
+          budget,
+          cleanSearchLabel,
+        };
+      } else {
+        const cheapest = candidates[0];
+        const cheapestPrice = Number(cheapest.discount_price || cheapest.precio || 0);
+        return {
+          status: 'OVER_BUDGET',
+          products: candidates.slice(0, 3),
+          cheapestPrice,
+          budget,
+          cleanSearchLabel,
+        };
+      }
+    }
+
+    if (candidates.length > 0) {
+      return {
+        status: 'FOUND',
+        products: candidates,
+        budget,
+        cleanSearchLabel,
+      };
+    }
+
+    return {
+      status: 'NOT_FOUND',
+      products: [],
+      budget,
+      cleanSearchLabel,
+    };
+  };
+
+  // ==========================================
+  // PROCESADOR PRINCIPAL DE MENSAJES
+  // ==========================================
   const processAndSendMessage = async (textToSend) => {
     if (!textToSend.trim()) return;
 
     const userText = textToSend.trim();
-    const lowerText = userText
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '');
+    const normText = normalizeText(userText);
 
     const newHistory = [...chatMessages, { sender: 'user', text: userText }];
     setChatMessages(newHistory);
     setInputMessage('');
     setIsTyping(true);
 
-    // 1. Intención: Redes Sociales / WhatsApp / Grupos
+    // 1. Saludo simple
+    if (/^(hola|buenas|buenos dias|buenas tardes|buenas noches|hey|que tal|que onda)$/.test(normText)) {
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            text: '¡Hola! 🐹👋 ¿Qué producto o cupón estás buscando hoy? Dime qué necesitas y cuánto planeas gastar para mostrarte las mejores ofertas de nuestra página. 🚀',
+          },
+        ]);
+        setIsTyping(false);
+      }, 250);
+      return;
+    }
+
+    // 2. Intención: Redes Sociales / WhatsApp / Grupos
     if (
-      lowerText.includes('whatsapp') ||
-      lowerText.includes('telegram') ||
-      lowerText.includes('facebook') ||
-      lowerText.includes('youtube') ||
-      lowerText.includes('redes') ||
-      lowerText.includes('grupo') ||
-      lowerText.includes('canal') ||
-      lowerText.includes('comunidad')
+      normText.includes('whatsapp') ||
+      normText.includes('telegram') ||
+      normText.includes('facebook') ||
+      normText.includes('youtube') ||
+      normText.includes('redes') ||
+      normText.includes('grupo') ||
+      normText.includes('canal') ||
+      normText.includes('comunidad')
     ) {
       setTimeout(() => {
         setChatMessages((prev) => [
@@ -585,13 +735,13 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       return;
     }
 
-    // 2. Intención: Terminales Point Mercado Pago
+    // 3. Intención: Terminales Point Mercado Pago
     if (
-      lowerText.includes('terminal') ||
-      lowerText.includes('point') ||
-      lowerText.includes('lector') ||
-      lowerText.includes('mercado pago') ||
-      lowerText.includes('cobrar con tarjeta')
+      normText.includes('terminal') ||
+      normText.includes('point') ||
+      normText.includes('lector') ||
+      normText.includes('mercado pago') ||
+      normText.includes('cobrar con tarjeta')
     ) {
       setTimeout(() => {
         setChatMessages((prev) => [
@@ -603,11 +753,11 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       return;
     }
 
-    // 3. Intención: Ofertas Top / Productos Destacados
+    // 4. Intención: Ofertas Top / Productos Destacados
     if (
-      lowerText.includes('ofertas top') ||
-      lowerText.includes('destacados') ||
-      lowerText.includes('mejores ofertas')
+      normText.includes('ofertas top') ||
+      normText.includes('destacados') ||
+      normText.includes('mejores ofertas')
     ) {
       if (activeValidProducts.length > 0) {
         const topProducts = [...activeValidProducts]
@@ -629,15 +779,13 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       }
     }
 
-    // 4. Intención: Cupones (general o filtrado por presupuesto numérico)
-    const budgetMatch = userText.match(/\$?\s*([\d,]{3,7})/);
-    const numericBudget = budgetMatch ? Number(budgetMatch[1].replace(/\D/g, '')) : null;
-
+    // 5. Intención: Cupones (general o filtrado por presupuesto)
+    const numericBudget = extractBudgetFromText(userText);
     if (
-      lowerText.includes('cupon') ||
-      lowerText.includes('codigo') ||
-      (lowerText.includes('descuento') && !lowerText.includes('producto')) ||
-      (numericBudget && numericBudget >= 200 && (lowerText.includes('gastar') || lowerText.includes('compra')))
+      normText.includes('cupon') ||
+      normText.includes('codigo') ||
+      (normText.includes('descuento') && !normText.includes('producto')) ||
+      (numericBudget && (normText.includes('gastar') || normText.includes('compra')))
     ) {
       let filtered = activeValidCupones;
       if (numericBudget && numericBudget > 0) {
@@ -662,17 +810,22 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       return;
     }
 
-    // 5. Búsqueda directa en nuestro catálogo de productos
-    const matchedProducts = findMatchingProducts(userText);
-    if (matchedProducts.length > 0) {
+    // 6. Búsqueda inteligente en nuestro catálogo local
+    const searchResult = searchCatalogSmart(userText);
+
+    if (searchResult.status === 'FOUND') {
+      const intro = searchResult.budget
+        ? `¡Mira estas opciones de **${searchResult.cleanSearchLabel}** dentro de tu presupuesto de **$${searchResult.budget.toLocaleString('en-US')}**! 🐹🔥`
+        : `¡Mira lo que encontré de **${searchResult.cleanSearchLabel}** en nuestra vitrina de ofertas! 🐹🔥`;
+
       setTimeout(() => {
         setChatMessages((prev) => [
           ...prev,
           {
             sender: 'bot',
             isProductCards: true,
-            matchedProducts,
-            introText: `¡Mira lo que encontré en nuestra vitrina de ofertas para ti! 🐹🔥`,
+            matchedProducts: searchResult.products,
+            introText: intro,
           },
         ]);
         setIsTyping(false);
@@ -680,54 +833,38 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       return;
     }
 
-    // 6. Consulta a IA del Backend (con contexto real de productos y cupones activos)
-    const cleanProducts = activeValidProducts
-      .slice(0, 80)
-      .map((p) => ({
-        title: String(p.title || p.nombre || p.name || ''),
-        price: String(p.discount_price || p.precio || p.price || ''),
-        link: String(p.affiliate_link || p.link || p.url || ''),
-        description: String(p.description || p.descuento || p.specs || ''),
-      }));
-
-    try {
-      const response = await axios.post(
-        `${API}/chat`,
-        {
-          message: userText,
-          history: newHistory.slice(-8),
-          systemPrompt: SYSTEM_PROMPT,
-          products: cleanProducts,
-        },
-        { timeout: 18000 }
-      );
-
-      const botReply =
-        response.data && response.data.reply && response.data.reply.trim() !== ''
-          ? response.data.reply
-          : null;
-
-      if (botReply) {
+    if (searchResult.status === 'OVER_BUDGET') {
+      setTimeout(() => {
         setChatMessages((prev) => [
           ...prev,
-          { sender: 'bot', text: botReply },
+          {
+            sender: 'bot',
+            isExternalSearch: true,
+            searchQuery: `${searchResult.cleanSearchLabel} menos de $${searchResult.budget}`,
+            customReason: (
+              <>
+                Por <strong>${searchResult.budget.toLocaleString('en-US')}</strong> no tenemos <strong>{searchResult.cleanSearchLabel}</strong> en nuestra vitrina ahorita (los que tenemos arrancan desde <strong>${searchResult.cheapestPrice.toLocaleString('en-US')}</strong> 😅), ¡pero puedes buscar opciones económicas o reacondicionadas directo en Mercado Libre aquí! 👇
+              </>
+            ),
+          },
         ]);
-      } else {
-        throw new Error('Respuesta vacía de la API');
-      }
-    } catch (error) {
-      // Si el backend tarda o no tiene respuesta, cerramos venta con buscador afiliado + WhatsApp
+        setIsTyping(false);
+      }, 300);
+      return;
+    }
+
+    // 7. Si no se encontró en vitrina local, devolver búsqueda afiliada + WhatsApp VIP (sin inventar productos falsos)
+    setTimeout(() => {
       setChatMessages((prev) => [
         ...prev,
         {
           sender: 'bot',
           isExternalSearch: true,
-          searchQuery: userText,
+          searchQuery: searchResult.cleanSearchLabel,
         },
       ]);
-    } finally {
       setIsTyping(false);
-    }
+    }, 300);
   };
 
   const handleSendChatMessage = (e) => {
@@ -886,7 +1023,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Ej: audífonos, cupón de $2000, WhatsApp..."
+                placeholder="Ej: audífonos de 700, cupón de $2000..."
                 className={`flex-1 min-w-0 px-3.5 py-2.5 sm:py-3 text-base sm:text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all ${
                   isLight
                     ? 'bg-gray-50 border-gray-300 text-gray-800'
