@@ -31,16 +31,14 @@ const WHATSAPP_GROUP_LINK = 'https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mo
 const SYSTEM_PROMPT = `
 Eres CapiBaraML 🐹, el asistente virtual y vendedor estrella oficial de CapiBaraML WEB. 
 
-TU PERSONALIDAD Y TONO DE VOZ:
-- Eres sumamente amigable, simpático, persuasivo, educado y cercano.
-- Tu objetivo principal es VENDER y ayudar al usuario a ahorrar: recomienda productos exactos del catálogo, comparte cupones activos e invita a unirse al grupo oficial de WhatsApp para recibir ofertas flash.
-- Respeta estrictamente la categoría que pide el usuario (celular es celular, pantalla es pantalla, laptop es laptop). Nunca mezcles categorías ni recomiendes accesorios o repuestos cuando piden un equipo completo.
+DIRECTRICES DE VENTAS Y FILTRADO ESTRICTO:
+- Tu objetivo es VENDER y ayudar al usuario a ahorrar encontrando EXACTAMENTE lo que pide en el catálogo recibido.
+- REGLA DE ORO DE CALIDAD: Si el usuario pide un "iPhone", NUNCA recomiendes adaptadores, cámaras de seguridad o teléfonos genéricos de marcas desconocidas (como Qtouch o Xgody). Si no hay un iPhone real en el catálogo, admítelo con simpatía y sugiérele buscarlo en el enlace directo de Mercado Libre o pedirlo en WhatsApp VIP.
+- Si el usuario pide una "laptop", NUNCA recomiendes discos duros sueltos, micas, cables, cargadores o lentes de computadora. Solo computadoras portátiles reales.
+- Si el usuario pide una "pantalla" o "smart tv", NUNCA recomiendes cables HDMI, controles remotos sueltos, Echo Show o power banks. Solo televisores o pantallas reales.
+- Si el usuario indica un presupuesto (ej: "tengo $8,000"), respétalo estrictamente y selecciona solo productos cuyo precio final sea menor o igual a ese monto.
 - Habla en español latino, usando emojis de forma moderada pero divertida (🚀, ✨, 🐹, 🎟️, 🔥).
-
-REGLAS ESTRICTAS DE FORMATO:
-1. NUNCA generes tablas en Markdown.
-2. Destaca los precios, descuentos y cupones de los productos que recomiendes.
-3. Sé conciso, directo y persuasivo (máximo 3-4 líneas por respuesta).
+- Sé conciso, directo y persuasivo (máximo 3-4 líneas de texto).
 `;
 
 const decodeCouponIfNeeded = (item) => {
@@ -55,15 +53,6 @@ const decodeCouponIfNeeded = (item) => {
   }
   return copy;
 };
-
-const normalizeText = (str = '') =>
-  String(str)
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
 
 export default function ChatbotWidget({ isLight, cupones = [], products = [], isMobileDevice = false }) {
   const [showChatWindow, setShowChatWindow] = useState(false);
@@ -197,35 +186,12 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     setTimeout(() => setShowToast(false), 2500);
   };
 
-  // ==========================================
-  // TARJETA DE REDES SOCIALES Y GRUPOS
-  // ==========================================
   const renderSocialLinksCard = () => {
     const socials = [
-      {
-        name: 'WhatsApp VIP',
-        icon: FaWhatsapp,
-        url: WHATSAPP_GROUP_LINK,
-        color: 'bg-[#25D366] hover:bg-[#20bd5a]',
-      },
-      {
-        name: 'Telegram',
-        icon: FaTelegram,
-        url: 'https://t.me/+QFHGS37AyAk5M2Ex',
-        color: 'bg-[#229ED9] hover:bg-[#1a8ac2]',
-      },
-      {
-        name: 'Facebook',
-        icon: FaFacebook,
-        url: 'https://www.facebook.com/share/1RpfPkSzit/',
-        color: 'bg-[#1877F2] hover:bg-[#1367d5]',
-      },
-      {
-        name: 'YouTube',
-        icon: FaYoutube,
-        url: 'https://www.youtube.com/@CazaOfertasML06',
-        color: 'bg-[#FF0000] hover:bg-[#cc0000]',
-      },
+      { name: 'WhatsApp VIP', icon: FaWhatsapp, url: WHATSAPP_GROUP_LINK, color: 'bg-[#25D366] hover:bg-[#20bd5a]' },
+      { name: 'Telegram', icon: FaTelegram, url: 'https://t.me/+QFHGS37AyAk5M2Ex', color: 'bg-[#229ED9] hover:bg-[#1a8ac2]' },
+      { name: 'Facebook', icon: FaFacebook, url: 'https://www.facebook.com/share/1RpfPkSzit/', color: 'bg-[#1877F2] hover:bg-[#1367d5]' },
+      { name: 'YouTube', icon: FaYoutube, url: 'https://www.youtube.com/@CazaOfertasML06', color: 'bg-[#FF0000] hover:bg-[#cc0000]' },
     ];
 
     return (
@@ -255,9 +221,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     );
   };
 
-  // ==========================================
-  // TARJETA DE TERMINALES POINT MERCADO PAGO
-  // ==========================================
   const renderMercadoPagoTerminalCard = () => {
     return (
       <div className="flex flex-col gap-2.5 mt-1">
@@ -285,9 +248,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     );
   };
 
-  // ==========================================
-  // TARJETAS DE CUPONES ACTIVOS
-  // ==========================================
   const renderCuponesDirectCards = (customList = null, budgetAsked = null) => {
     const listToRender = customList || activeValidCupones;
 
@@ -368,9 +328,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     );
   };
 
-  // ==========================================
-  // TARJETAS DE PRODUCTOS FILTRADOS
-  // ==========================================
   const renderProductCards = (matchedList, introText) => {
     return (
       <div className="flex flex-col gap-3 mt-1">
@@ -444,9 +401,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     );
   };
 
-  // ==========================================
-  // TARJETA DE BÚSQUEDA EXTERNA + WHATSAPP
-  // ==========================================
   const renderExternalSearchCard = (queryText, customReason = null) => (
     <div className="flex flex-col gap-2.5 mt-1">
       <p className="text-xs font-bold leading-snug">
@@ -527,9 +481,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     return <div>{renderMessageTextWithFormat(text)}</div>;
   };
 
-  // ==========================================
-  // EXTRACTOR DE PRESUPUESTO BLINDADO
-  // ==========================================
   const extractBudgetFromText = (text) => {
     const clean = text.replace(/,/g, '');
     const m = clean.match(/(?:con|tengo|presupuesto|maximo|máximo|menos de|hasta|de|por|unos|entre)\s*\$?\s*(\d{2,6})/i) || clean.match(/\$\s*(\d{2,6})/i);
@@ -541,167 +492,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
   };
 
   // ==========================================
-  // EXTRACCIÓN DE INTENCIÓN DE PRODUCTO (SANITIZADOR DE CONSULTAS)
-  // ==========================================
-  const extractProductIntent = (rawText) => {
-    let t = normalizeText(rawText);
-    // Eliminar palabras de conversación comunes para aislar el producto real
-    const fillerWords = [
-      'recomiendame', 'recomienda', 'quiero', 'busco', 'tienes', 'tienen', 'un', 'una',
-      'unos', 'unas', 'el', 'la', 'los', 'las', 'por', 'favor', 'para', 'cuento', 'con',
-      'presupuesto', 'de', 'maximo', 'minimo', 'menos', 'hasta', 'que', 'cueste', 'cuesta', 'cuesten'
-    ];
-    
-    // Quitar montos numéricos y símbolos de dinero
-    t = t.replace(/\$\s*\d+/g, '').replace(/\b\d+\b/g, '');
-    
-    const words = t.split(' ').filter(w => w.length >= 2 && !fillerWords.includes(w));
-    return words.join(' ');
-  };
-
-  // ==========================================
-  // FILTRADOR ESTRICTO DE HARDWARE (CERO FALSOS POSITIVOS)
-  // ==========================================
-  const searchCatalogRigorous = (rawQuery) => {
-    const normQuery = normalizeText(rawQuery);
-    const intentQuery = extractProductIntent(rawQuery);
-    const budget = extractBudgetFromText(rawQuery);
-
-    const categories = [
-      {
-        name: 'laptop',
-        triggers: ['laptop', 'laptops', 'computadora', 'computadoras', 'notebook', 'macbook', 'pc', 'all in one'],
-        mustHaveKeywords: ['laptop', 'notebook', 'computadora', 'macbook', 'chromebook', 'ultrabook', 'all in one'],
-        hardwareSpecs: ['ram', 'ssd', 'hdd', 'intel', 'ryzen', 'core i', 'windows', 'gb', 'tb', 'ghz'],
-        forbiddenKeywords: ['cable', 'cargador', 'magsafe', 'funda', 'mochila', 'base', 'soporte', 'disco duro', 'memoria ram', 'mouse', 'teclado', 'lentes', 'gafas'],
-        cleanLabel: 'Laptop / Computadora'
-      },
-      {
-        name: 'celular',
-        triggers: ['celular', 'celulares', 'telefono', 'telefonos', 'smartphone', 'smartphones', 'iphone', 'galaxy', 'xiaomi', 'motorola', 'nothing phone', 'redmi', 'poco'],
-        mustHaveKeywords: ['celular', 'smartphone', 'telefono', 'iphone', 'galaxy', 'xiaomi', 'redmi', 'poco', 'motorola', 'moto', 'nothing phone', 'realme', 'honor', 'qtouch'],
-        hardwareSpecs: ['ram', 'rom', 'gb', 'mp', 'camara', 'dual sim', '5g', 'snapdragon', 'mediatek'],
-        forbiddenKeywords: ['cable', 'cargador', 'funda', 'mica', 'cristal', 'audifono', 'audifonos', 'auricular', 'auriculares', 'soporte', 'base', 'reloj', 'smartwatch', 'tablet', 'ipad', 'control remoto', 'enchufe', 'interruptor', 'modulo', 'sensor', 'camara de seguridad'],
-        cleanLabel: 'Celular / Smartphone'
-      },
-      {
-        name: 'consola',
-        triggers: ['consola', 'consolas', 'xbox', 'playstation', 'ps5', 'ps4', 'nintendo', 'switch', 'oled'],
-        mustHaveKeywords: ['consola', 'xbox series', 'playstation', 'nintendo switch', 'switch oled'],
-        hardwareSpecs: ['gb', 'ssd', 'digital', 'version', 'portatil'],
-        forbiddenKeywords: ['control', 'mando', 'bateria', 'cargador', 'estuche', 'funda', 'soporte', 'cable'],
-        cleanLabel: 'Consola de Videojuegos'
-      },
-      {
-        name: 'control',
-        triggers: ['control', 'controles', 'mando', 'mandos', 'gamepad', 'joystick'],
-        mustHaveKeywords: ['control', 'controlador', 'mando', 'gamepad', 'joystick'],
-        hardwareSpecs: ['inalambrico', 'cable', 'xbox', 'switch', 'pc'],
-        forbiddenKeywords: ['consola', 'soporte de pared'],
-        cleanLabel: 'Control / Mando'
-      },
-      {
-        name: 'pantalla',
-        triggers: ['pantalla', 'pantallas', 'televisor', 'televisores', 'television', 'smart tv', 'tv'],
-        mustHaveKeywords: ['smart tv', 'televisor', 'television', 'pantalla', 'roku tv', 'google tv', 'qled', 'oled', 'uhd', 'pulgadas'],
-        hardwareSpecs: ['pulgadas', '4k', '8k', 'uhd', 'hdmi', 'smart tv', 'hz'],
-        forbiddenKeywords: ['audifono', 'audifonos', 'auricular', 'auriculares', 'celular', 'smartphone', 'iphone', 'soporte', 'base', 'brazo', 'funda', 'mica', 'protector', 'reloj', 'smartwatch', 'tableta', 'ipad', 'power bank', 'bateria', 'sensor', 'control remoto', 'cable', 'estuche', 'nintendo'],
-        cleanLabel: 'Pantalla / Smart TV'
-      },
-      {
-        name: 'audifono',
-        triggers: ['audifono', 'audifonos', 'auricular', 'auriculares', 'headset', 'earbuds', 'buds', 'airpods'],
-        mustHaveKeywords: ['audifono', 'audifonos', 'auricular', 'auriculares', 'headset', 'earbuds', 'buds', 'airpods', 'diadema'],
-        hardwareSpecs: ['bluetooth', 'inalámbricos', 'inalambricos', 'cancelacion', 'microfono', 'gamer', 'rgb', 'tws'],
-        forbiddenKeywords: ['funda', 'estuche', 'almohadilla', 'adaptador', 'celular', 'smartphone', 'cable'],
-        cleanLabel: 'Audífonos'
-      }
-    ];
-
-    const matchedCat = categories.find((cat) =>
-      cat.triggers.some((t) => new RegExp(`\\b${t}\\b`, 'i').test(normQuery))
-    );
-
-    let candidates = [];
-    let cleanSearchLabel = intentQuery || rawQuery;
-
-    if (matchedCat) {
-      cleanSearchLabel = matchedCat.cleanLabel;
-      candidates = activeValidProducts.filter((prod) => {
-        const titleNorm = normalizeText(prod.title || prod.nombre || '');
-        const descNorm = normalizeText(prod.description || '');
-        const fullText = `${titleNorm} ${descNorm}`;
-
-        const hasMain = matchedCat.mustHaveKeywords.some((kw) => titleNorm.includes(kw));
-        const hasForbidden = matchedCat.forbiddenKeywords.some((bad) => titleNorm.includes(bad));
-        const hasSpec = matchedCat.hardwareSpecs.some((spec) => fullText.includes(spec));
-
-        return hasMain && !hasForbidden && hasSpec;
-      });
-    } else {
-      // Búsqueda general estricta por intención limpia
-      const keywords = intentQuery.split(' ').filter(w => w.length >= 3);
-      if (keywords.length > 0) {
-        candidates = activeValidProducts.filter((prod) => {
-          const titleNorm = normalizeText(prod.title || prod.nombre || '');
-          return keywords.every((kw) => titleNorm.includes(kw));
-        });
-      }
-    }
-
-    // Ordenar por precio ascendente
-    candidates.sort((a, b) => {
-      const pa = Number(a.discount_price || a.precio || 999999);
-      const pb = Number(b.discount_price || b.precio || 999999);
-      return pa - pb;
-    });
-
-    // Validar presupuesto
-    if (budget && candidates.length > 0) {
-      const withinBudget = candidates.filter((prod) => {
-        const price = Number(prod.discount_price || prod.precio || 0);
-        return price > 0 && price <= budget * 1.05;
-      });
-
-      if (withinBudget.length > 0) {
-        return {
-          status: 'FOUND',
-          products: withinBudget,
-          budget,
-          cleanSearchLabel,
-        };
-      } else {
-        const cheapest = candidates[0];
-        const cheapestPrice = Number(cheapest.discount_price || cheapest.precio || 0);
-        return {
-          status: 'OVER_BUDGET',
-          products: candidates.slice(0, 3),
-          cheapestPrice,
-          budget,
-          cleanSearchLabel,
-        };
-      }
-    }
-
-    if (candidates.length > 0) {
-      return {
-        status: 'FOUND',
-        products: candidates,
-        budget,
-        cleanSearchLabel,
-      };
-    }
-
-    return {
-      status: 'NOT_FOUND',
-      products: [],
-      budget,
-      cleanSearchLabel,
-    };
-  };
-
-  // ==========================================
-  // PROCESADOR DE MENSAJES
+  // MOTOR HÍBRIDO CON IA (ENVÍO DE CATÁLOGO LIMPIO A LA API)
   // ==========================================
   const processAndSendMessage = async (textToSend) => {
     if (!textToSend.trim()) return;
@@ -825,61 +616,73 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       return;
     }
 
-    // 6. Búsqueda rigurosa de hardware en el catálogo local
-    const searchResult = searchCatalogRigorous(userText);
+    // 6. Consulta inteligente a la IA del Backend con todo el catálogo real estructurado
+    const cleanProductsCatalog = activeValidProducts.map((p) => ({
+      title: String(p.title || p.nombre || ''),
+      price: Number(p.discount_price || p.precio || 0),
+      link: String(p.affiliate_link || p.link || p.url || ''),
+      image_url: String(p.image_url || ''),
+      coupon: String(p.coupon || ''),
+      discount_percentage: p.discount_percentage || null,
+    }));
 
-    if (searchResult.status === 'FOUND') {
-      const intro = searchResult.budget
-        ? `¡Mira estas opciones de **${searchResult.cleanSearchLabel}** dentro de tu presupuesto de **$${searchResult.budget.toLocaleString('en-US')}**! 🐹🔥`
-        : `¡Mira lo que encontré de **${searchResult.cleanSearchLabel}** en nuestra vitrina de ofertas! 🐹🔥`;
+    try {
+      const response = await axios.post(
+        `${API}/chat`,
+        {
+          message: userText,
+          history: newHistory.slice(-8),
+          systemPrompt: SYSTEM_PROMPT,
+          products: cleanProductsCatalog,
+        },
+        { timeout: 20000 }
+      );
 
-      setTimeout(() => {
-        setChatMessages((prev) => [
-          ...prev,
-          {
-            sender: 'bot',
-            isProductCards: true,
-            matchedProducts: searchResult.products,
-            introText: intro,
-          },
-        ]);
-        setIsTyping(false);
-      }, 300);
-      return;
-    }
+      const botReply =
+        response.data && response.data.reply && response.data.reply.trim() !== ''
+          ? response.data.reply
+          : null;
 
-    if (searchResult.status === 'OVER_BUDGET') {
-      setTimeout(() => {
-        setChatMessages((prev) => [
-          ...prev,
-          {
-            sender: 'bot',
-            isExternalSearch: true,
-            searchQuery: `${searchResult.cleanSearchLabel} menos de $${searchResult.budget}`,
-            customReason: (
-              <>
-                Por <strong>${searchResult.budget.toLocaleString('en-US')}</strong> no tenemos <strong>{searchResult.cleanSearchLabel}</strong> en nuestra vitrina ahorita (los equipos que tenemos arrancan desde <strong>${searchResult.cheapestPrice.toLocaleString('en-US')}</strong> 😅), ¡pero puedes buscar opciones económicas directo en Mercado Libre aquí! 👇
-              </>
-            ),
-          },
-        ]);
-        setIsTyping(false);
-      }, 300);
-      return;
-    }
+      if (botReply) {
+        // Intentar extraer coincidencias directas del catálogo si la IA menciona títulos o si el usuario buscó algo específico
+        const lowerReply = botReply.toLowerCase();
+        const matchedByAI = activeValidProducts.filter((p) => {
+          const t = (p.title || p.nombre || '').toLowerCase();
+          // Verificamos si algún término clave de la respuesta de la IA coincide con los productos
+          return t.split(' ').some((word) => word.length > 4 && lowerReply.includes(word));
+        });
 
-    // 7. Fallback externo si no hay stock local exacto
-    setTimeout(() => {
+        if (matchedByAI.length > 0 && (normText.includes('laptop') || normText.includes('iphone') || normText.includes('celular') || normText.includes('pantalla') || normText.includes('consola') || normText.includes('switch'))) {
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              sender: 'bot',
+              isProductCards: true,
+              matchedProducts: matchedByAI.slice(0, 4),
+              introText: botReply,
+            },
+          ]);
+        } else {
+          setChatMessages((prev) => [
+            ...prev,
+            { sender: 'bot', text: botReply },
+          ]);
+        }
+      } else {
+        throw new Error('Respuesta vacía');
+      }
+    } catch (error) {
       setChatMessages((prev) => [
         ...prev,
         {
           sender: 'bot',
           isExternalSearch: true,
-          searchQuery: searchResult.cleanSearchLabel,
+          searchQuery: userText,
         },
       ]);
+    } finally {
       setIsTyping(false);
-    }, 300);
+    }
   };
 
   const handleSendChatMessage = (e) => {
