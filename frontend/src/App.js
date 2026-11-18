@@ -2445,7 +2445,7 @@ function App() {
               <span className="relative inline-flex rounded-full h-3 w-3 bg-black"></span>
             </span>
             <p className="text-xs sm:text-sm font-black tracking-tight truncate">
-              🔥 ¡Recibe cupones flash y errores de precio al instante!
+              🔥 ¡Recibe los mejores cupones flash y los mejores precios al instante, unete a nuestra comunidad privada!
             </p>
           </div>
           <a
