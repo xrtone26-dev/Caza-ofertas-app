@@ -1,5 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Bot, Send, X, Copy, Minus, CreditCard, ExternalLink, Tag, ShoppingBag } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import {
+  Bot,
+  Send,
+  X,
+  Copy,
+  Minus,
+  CreditCard,
+  ExternalLink,
+  Tag,
+  ShoppingBag,
+  Flame,
+  Search
+} from 'lucide-react';
 import {
   FaWhatsapp,
   FaTelegram,
@@ -13,26 +25,43 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
 const MP_POINT_LINK = 'https://www.mercadopago.com.mx/herramientas-para-vender/lectores-point?code=7XYVCUKISD';
+const ML_SEARCH_AFFILIATE = 'https://mercadolibre.com/sec/1XFPeWr';
+const WHATSAPP_GROUP_LINK = 'https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1';
 
 const SYSTEM_PROMPT = `
-Eres CapiBaraML 🐹, el asistente virtual oficial de CazaOfertasML WEB. 
+Eres CapiBaraML 🐹, el asistente virtual y vendedor estrella oficial de CapiBaraML WEB. 
 
 TU PERSONALIDAD Y TONO DE VOZ:
-- Eres sumamente amigable, simpático, cómico, educado y cercano.
-- Responde siempre con entusiasmo, buena vibra y naturalidad a cualquier pregunta, broma, duda o saludo del usuario.
+- Eres sumamente amigable, simpático, persuasivo, educado y cercano.
+- Tu objetivo principal es VENDER y ayudar al usuario a ahorrar: recomienda productos del catálogo proporcionado, comparte cupones activos e invita a unirse al grupo oficial de WhatsApp para recibir ofertas flash.
 - Habla en español latino, usando emojis de forma moderada pero divertida (🚀, ✨, 🐹, 🎟️, 🔥).
 
-REGLAS STRICTAS DE FORMATO:
+REGLAS ESTRICTAS DE FORMATO:
 1. NUNCA generes tablas en Markdown.
-2. Destaca los precios y descuentos de los productos que recomiendes.
-3. Sé conciso, directo y enfocado en ayudar al usuario a encontrar las mejores ofertas.
+2. Destaca los precios, descuentos y cupones de los productos que recomiendes.
+3. Sé conciso, directo y persuasivo (máximo 3-4 líneas por respuesta).
 `;
 
-export default function ChatbotWidget({ isLight, cupones = [], products = [] }) {
+// Decodificador ligero por si los cupones llegan codificados desde el backend
+const decodeCouponIfNeeded = (item) => {
+  if (!item || typeof item !== 'object') return item;
+  const copy = { ...item };
+  if (copy.description && typeof copy.description === 'string') {
+    const expMatch = copy.description.match(/\|\|exp:(.*?)\|\|/);
+    if (expMatch && !copy.expires_at) {
+      copy.expires_at = expMatch[1];
+    }
+    copy.description = copy.description.replace(/\|\|exp:.*?\|\|/g, '').trim();
+  }
+  return copy;
+};
+
+export default function ChatbotWidget({ isLight, cupones = [], products = [], isMobileDevice = false }) {
   const [showChatWindow, setShowChatWindow] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [localCupones, setLocalCupones] = useState(cupones);
+  const [localCupones, setLocalCupones] = useState([]);
+  const [localProducts, setLocalProducts] = useState([]);
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
   const chatEndRef = useRef(null);
@@ -40,44 +69,76 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
   const [chatMessages, setChatMessages] = useState([
     {
       sender: 'bot',
-      text: '¡Hola! Soy tu asistente **CapiBaraML** 🐹. ¿Qué oferta, producto o descuento andas buscando hoy? ¡Dime y te consigo la mejor opción al instante! 🚀',
+      text: '¡Hola! Soy tu asistente **CapiBaraML** 🐹. ¿Qué oferta, producto o cupón andas buscando hoy? ¡Dime y te consigo el mejor descuento al instante! 🚀',
     },
   ]);
 
+  // Mantener servidor despierto y sincronizar datos frescos cada 5 minutos
   useEffect(() => {
-    const wakeUpServer = async () => {
+    const syncCatalog = async () => {
       try {
-        await axios.get(`${API}/offers?type=cupon`);
+        const [cupRes, prodRes] = await Promise.all([
+          axios.get(`${API}/offers?type=cupon&t=${Date.now()}`).catch(() => null),
+          axios.get(`${API}/products?t=${Date.now()}`).catch(() => null),
+        ]);
+        if (cupRes && Array.isArray(cupRes.data)) {
+          setLocalCupones(cupRes.data.map(decodeCouponIfNeeded));
+        }
+        if (prodRes && Array.isArray(prodRes.data)) {
+          setLocalProducts(prodRes.data);
+        }
       } catch (e) {}
     };
-    wakeUpServer();
-    const interval = setInterval(wakeUpServer, 10 * 60 * 1000);
+
+    syncCatalog();
+    const interval = setInterval(syncCatalog, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
+  // Sincronizar props si App.js las pasa actualizadas
   useEffect(() => {
-    const hasSeenChat = sessionStorage.getItem('hasSeenChatPopup');
-    if (!hasSeenChat) {
-      const timer = setTimeout(() => {
-        sessionStorage.setItem('hasSeenChatPopup', 'true');
-      }, 12000); 
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (cupones && cupones.length > 0) {
-      setLocalCupones(cupones);
-    } else {
-      axios.get(`${API}/offers?type=cupon`)
-        .then((res) => setLocalCupones(res.data))
-        .catch(() => {});
+    if (Array.isArray(cupones) && cupones.length > 0) {
+      setLocalCupones(cupones.map(decodeCouponIfNeeded));
     }
   }, [cupones]);
 
   useEffect(() => {
+    if (Array.isArray(products) && products.length > 0) {
+      setLocalProducts(products);
+    }
+  }, [products]);
+
+  // Filtrar solo cupones vigentes (no expirados)
+  const activeValidCupones = useMemo(() => {
+    const now = Date.now();
+    return localCupones.filter((c) => {
+      if (!c) return false;
+      if (!c.expires_at) return true;
+      const expTime = new Date(c.expires_at).getTime();
+      return isNaN(expTime) || expTime > now;
+    });
+  }, [localCupones]);
+
+  // Filtrar solo productos activos (excluyendo tarjetas promo especiales sin link directo si aplica)
+  const activeValidProducts = useMemo(() => {
+    return localProducts.filter((p) => p && p.active !== false);
+  }, [localProducts]);
+
+  useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, showChatWindow, isTyping]);
+
+  // Bloquear scroll del fondo en móviles cuando el chat está abierto
+  useEffect(() => {
+    if (showChatWindow && window.innerWidth < 640) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showChatWindow]);
 
   const playSniperSound = () => {
     try {
@@ -101,8 +162,9 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
 
   const maskCode = (code) => {
     if (!code) return '';
-    const visibleLength = Math.max(2, Math.floor(code.length / 2));
-    return code.substring(0, visibleLength) + '*'.repeat(code.length - visibleLength);
+    const str = String(code);
+    const visibleLength = Math.max(3, Math.floor(str.length / 2));
+    return str.substring(0, visibleLength) + '••••';
   };
 
   const handleCopiarIrMercadoLibre = (cupon) => {
@@ -111,7 +173,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
     }
     playSniperSound();
     
-    setToastMessage('¡Cupón copiado al portapapeles! Abriendo Mercado Libre en 3 segundos 🚀');
+    setToastMessage('¡Cupón copiado! Abriendo Mercado Libre 🚀');
     setShowToast(true);
 
     const linkDestino = cupon.link ? cupon.link : 'https://www.mercadolibre.com.mx';
@@ -119,15 +181,27 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
     setTimeout(() => {
       setShowToast(false);
       window.open(linkDestino, '_blank', 'noopener,noreferrer');
-    }, 3000); 
+    }, 1800); 
   };
 
+  const handleCopyProductCoupon = (code) => {
+    if (!code) return;
+    navigator.clipboard.writeText(code);
+    playSniperSound();
+    setToastMessage(`¡Cupón ${code} copiado al portapapeles! 🎟️`);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2500);
+  };
+
+  // ==========================================
+  // TARJETA DE REDES SOCIALES Y GRUPOS
+  // ==========================================
   const renderSocialLinksCard = () => {
     const socials = [
       {
-        name: 'WhatsApp',
+        name: 'WhatsApp VIP',
         icon: FaWhatsapp,
-        url: 'https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1',
+        url: WHATSAPP_GROUP_LINK,
         color: 'bg-[#25D366] hover:bg-[#20bd5a]',
       },
       {
@@ -152,7 +226,9 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
 
     return (
       <div className="flex flex-col gap-2.5 mt-1">
-        <p className="text-xs font-black mb-1">¡Únete a nuestras páginas y canales oficiales! 🚀</p>
+        <p className="text-xs font-black mb-0.5 leading-snug">
+          ¡Únete gratis a nuestras redes y recibe errores de precio y cupones flash antes que nadie! 🚀
+        </p>
         <div className="grid grid-cols-2 gap-2">
           {socials.map((s, idx) => {
             const Icon = s.icon;
@@ -162,9 +238,10 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
                 href={s.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${s.color} text-white p-2.5 rounded-xl flex items-center gap-2 font-black text-xs shadow-md transition-transform hover:scale-105 border border-black/30`}
+                onClick={playSniperSound}
+                className={`${s.color} text-white p-2.5 rounded-xl flex items-center gap-2 font-black text-[11px] shadow-md transition-transform hover:scale-105 border border-black/30`}
               >
-                <Icon size={20} className="flex-shrink-0" />
+                <Icon size={18} className="flex-shrink-0" />
                 <span className="truncate">{s.name}</span>
               </a>
             );
@@ -174,82 +251,111 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
     );
   };
 
+  // ==========================================
+  // TARJETA DE TERMINALES POINT MERCADO PAGO
+  // ==========================================
   const renderMercadoPagoTerminalCard = () => {
     return (
       <div className="flex flex-col gap-2.5 mt-1">
-        <p className="text-xs font-black text-white">¡Adquiere tu Terminal Point de Mercado Pago con descuento exclusivo y comisión preferencial! 💳🚀</p>
-        <div className="bg-[#009EE3] text-white border-2 border-black rounded-2xl p-4 shadow-xl flex flex-col gap-3">
-          <div className="flex items-center gap-2 font-black text-xs uppercase bg-black/30 py-1.5 px-3 rounded-lg text-center tracking-wide">
-            <CreditCard className="w-4 h-4" /> Terminales Point Mercado Pago
+        <p className="text-xs font-black leading-snug">
+          ¡Acepta tarjetas en tu negocio con Terminal Point de Mercado Pago con descuento exclusivo! 💳🚀
+        </p>
+        <div className="bg-[#009EE3] text-white border-2 border-black rounded-2xl p-3.5 shadow-xl flex flex-col gap-2.5">
+          <div className="flex items-center justify-center gap-1.5 font-black text-[11px] uppercase bg-black/30 py-1.5 px-3 rounded-lg tracking-wide">
+            <CreditCard className="w-4 h-4 shrink-0" /> Terminales Point Mercado Pago
           </div>
-          <p className="text-xs font-bold text-white/90 leading-tight">
-            Acepta todas las tarjetas de crédito, débito y vales con la tarifa más baja del mercado. ¡Incluye envío gratis y cuenta digital sin costo!
+          <p className="text-[11px] font-bold text-white/95 leading-snug">
+            Sin renta mensual ni RFC. Recibe tu dinero al instante, envío gratis y tarjeta Debit Mastercard® incluida.
           </p>
           <a
             href={MP_POINT_LINK}
             target="_blank"
             rel="noopener noreferrer"
             onClick={playSniperSound}
-            className="w-full bg-black hover:bg-neutral-900 text-[#009EE3] font-black py-3 px-4 rounded-xl text-xs uppercase flex items-center justify-center gap-2 transition-transform hover:scale-105 shadow-md border border-black"
+            className="w-full bg-[#FFE600] hover:bg-yellow-300 text-black font-black py-2.5 px-3 rounded-xl text-xs uppercase flex items-center justify-center gap-1.5 transition-transform hover:scale-105 shadow-md border-2 border-black"
           >
-            <ExternalLink size={16} /> Ver Terminales con Descuento 🚀
+            <ExternalLink size={15} /> Elegir Terminal con Descuento
           </a>
         </div>
       </div>
     );
   };
 
-  const renderCuponesDirectCards = () => {
-    if (!localCupones || localCupones.length === 0) {
+  // ==========================================
+  // TARJETAS DE CUPONES ACTIVOS (FILTRABLES POR PRESUPUESTO)
+  // ==========================================
+  const renderCuponesDirectCards = (customList = null, budgetAsked = null) => {
+    const listToRender = customList || activeValidCupones;
+
+    if (!listToRender || listToRender.length === 0) {
       return (
-        <div className="p-3 bg-neutral-800 text-yellow-400 rounded-xl text-xs font-bold text-center border border-yellow-400/30">
-          ⚡ No hay cupones activos guardados en este momento. ¡Revisa nuevamente en unos minutos!
+        <div className="flex flex-col gap-2.5">
+          <div className="p-3 bg-neutral-900 text-yellow-400 rounded-xl text-xs font-bold text-center border border-yellow-400/30">
+            {budgetAsked
+              ? `⚡ Por ahora no tenemos un cupón activo aplicable para $${budgetAsked.toLocaleString('en-US')}.`
+              : '⚡ No hay cupones activos en este momento. ¡Únete a nuestro WhatsApp para avisarte en cuanto salgan!'}
+          </div>
+          <a
+            href={WHATSAPP_GROUP_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full bg-[#25D366] text-black font-black py-2.5 px-3 rounded-xl text-xs uppercase flex items-center justify-center gap-2 border-2 border-black shadow"
+          >
+            <FaWhatsapp size={16} /> Avisarme en WhatsApp
+          </a>
         </div>
       );
     }
 
     return (
       <div className="flex flex-col gap-3 mt-1">
-        <p className="text-xs font-black text-white">¡Aquí tienes los cupones activos disponibles para ahorrar hoy! 🎟️🔥</p>
-        {localCupones.map((matchedCupon, idx) => {
+        <p className="text-xs font-black leading-snug">
+          {budgetAsked
+            ? `¡Estos cupones aplican perfecto para tu compra de $${budgetAsked.toLocaleString('en-US')}! 🎟️🔥`
+            : '¡Aquí tienes los cupones activos disponibles hoy! Toca para copiar e ir directo a Mercado Libre: 🎟️🔥'}
+        </p>
+        {listToRender.slice(0, 6).map((matchedCupon, idx) => {
           let cleanDesc = matchedCupon.description || '';
           let expDateStr = '';
 
-          const expMatch = cleanDesc.match(/\|\|exp:(.*?)\|\|/);
-          if (expMatch) {
-            expDateStr = expMatch[1].split('T')[0];
-            cleanDesc = cleanDesc.replace(/\|\|exp:.*?\|\|/g, '').trim();
-          } else if (matchedCupon.expires_at) {
-            expDateStr = new Date(matchedCupon.expires_at).toISOString().split('T')[0];
+          if (matchedCupon.expires_at) {
+            try {
+              expDateStr = new Date(matchedCupon.expires_at).toLocaleDateString('es-MX', {
+                day: '2-digit',
+                month: 'short',
+              });
+            } catch {}
           }
 
           return (
-            <div key={idx} className="bg-[#FFEA00] text-black border-2 border-black rounded-2xl p-3.5 shadow-lg flex flex-col gap-2">
-              <div className="font-black text-xs uppercase bg-black text-white py-1.5 px-3 rounded-lg text-center tracking-wide flex items-center justify-center gap-1.5">
-                <Tag size={14} className="text-yellow-400" /> {matchedCupon.title || 'Cupón Exclusivo'}
+            <div key={idx} className="bg-[#FFEA00] text-black border-2 border-black rounded-2xl p-3 shadow-lg flex flex-col gap-2">
+              <div className="font-black text-[11px] uppercase bg-black text-white py-1.5 px-2.5 rounded-lg text-center tracking-wide flex items-center justify-center gap-1.5">
+                <Tag size={13} className="text-yellow-400 shrink-0" />
+                <span className="truncate">{matchedCupon.title || 'Cupón Exclusivo'}</span>
               </div>
-              <div className="bg-white/80 border border-black/20 rounded-xl p-2 flex flex-col gap-1 text-xs font-bold text-neutral-900">
-                {cleanDesc ? (
-                  <p className="leading-tight">{cleanDesc}</p>
-                ) : (
-                  <p className="leading-tight">Aprovecha este descuento especial en Mercado Libre.</p>
-                )}
+              <div className="bg-white/90 border border-black/20 rounded-xl p-2 flex flex-col gap-1 text-[11px] font-bold text-neutral-900">
+                <p className="leading-tight">
+                  {matchedCupon.min_purchase
+                    ? `Compra mínima: $${Number(matchedCupon.min_purchase).toLocaleString('en-US')}${matchedCupon.max_discount ? ` | Tope: $${matchedCupon.max_discount}` : ''}`
+                    : (cleanDesc || 'Válido en productos seleccionados de Mercado Libre.')}
+                </p>
                 {matchedCupon.code && (
-                  <div className="text-center font-black text-sm bg-neutral-100 py-1 rounded border border-black/10 mt-1">
+                  <div className="text-center font-black text-xs bg-neutral-100 py-1 rounded border border-black/15 mt-0.5 font-mono">
                     CÓDIGO: <span className="text-purple-700 tracking-wider">{maskCode(matchedCupon.code)}</span>
                   </div>
                 )}
                 {expDateStr && (
-                  <div className="text-[11px] font-black text-neutral-700 mt-1 flex items-center justify-center gap-1">
-                    ⏰ Expira: {expDateStr}
+                  <div className="text-[10px] font-black text-neutral-600 flex items-center justify-center gap-1">
+                    ⏰ Vigencia estimada: {expDateStr}
                   </div>
                 )}
               </div>
               <button
                 onClick={() => handleCopiarIrMercadoLibre(matchedCupon)}
-                className="w-full bg-black hover:bg-neutral-900 text-[#FFEA00] font-black py-2.5 px-3 rounded-xl text-xs uppercase flex items-center justify-center gap-2 transition-transform hover:scale-105 shadow border border-black cursor-pointer"
+                className="w-full bg-[#22a947] hover:bg-[#1c8e3b] text-white font-black py-2 px-3 rounded-full text-[11px] uppercase flex items-center justify-center gap-1.5 transition-transform hover:scale-[1.02] active:scale-95 shadow-md cursor-pointer"
               >
-                <Copy size={14} /> Copiar Código e Ir a Meli 🚀
+                <span>Copiar cupón e ir a comprar</span>
+                <ExternalLink size={13} strokeWidth={2.5} />
               </button>
             </div>
           );
@@ -257,6 +363,111 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
       </div>
     );
   };
+
+  // ==========================================
+  // TARJETAS DE PRODUCTOS FILTRADOS DEL CATÁLOGO
+  // ==========================================
+  const renderProductCards = (matchedList, introText) => {
+    return (
+      <div className="flex flex-col gap-3 mt-1">
+        <p className="text-xs font-black leading-snug">{introText}</p>
+        {matchedList.slice(0, 5).map((prod, idx) => {
+          const title = prod.title || prod.nombre || 'Oferta Destacada';
+          const finalPrice = Number(prod.discount_price || prod.precio || 0);
+          const origPrice = Number(prod.original_price || 0);
+          const link = prod.affiliate_link || prod.link || prod.url || ML_SEARCH_AFFILIATE;
+
+          return (
+            <div
+              key={idx}
+              className="bg-white text-gray-900 border-2 border-black rounded-2xl p-3 shadow-lg flex flex-col gap-2"
+            >
+              <div className="flex gap-2.5 items-center">
+                {prod.image_url && (
+                  <img
+                    src={prod.image_url}
+                    alt={title}
+                    className="w-16 h-16 object-contain rounded-xl border border-gray-200 bg-white p-1 shrink-0"
+                  />
+                )}
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="text-xs font-black text-gray-900 line-clamp-2 leading-tight">
+                    {title}
+                  </span>
+                  <div className="flex items-baseline gap-1.5 mt-1 flex-wrap">
+                    {finalPrice > 0 && (
+                      <span className="text-base font-black text-green-600">
+                        ${finalPrice.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                      </span>
+                    )}
+                    {origPrice > finalPrice && (
+                      <span className="text-[11px] font-bold text-gray-400 line-through">
+                        ${origPrice.toLocaleString('en-US')}
+                      </span>
+                    )}
+                    {prod.discount_percentage && (
+                      <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md">
+                        -{prod.discount_percentage}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {prod.coupon && (
+                <button
+                  type="button"
+                  onClick={() => handleCopyProductCoupon(prod.coupon)}
+                  className="w-full bg-yellow-100 hover:bg-yellow-200 border border-dashed border-yellow-600 text-yellow-900 rounded-lg py-1 px-2 text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <Copy size={11} /> Cupón extra: {prod.coupon} (Clic para copiar)
+                </button>
+              )}
+
+              <a
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={playSniperSound}
+                className="w-full bg-[#22a947] hover:bg-[#1c8e3b] text-white font-black py-2 px-3 rounded-full text-[11px] uppercase flex items-center justify-center gap-1.5 shadow transition-transform hover:scale-[1.02]"
+              >
+                <ShoppingBag size={13} /> Ver Oferta en Mercado Libre
+              </a>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // ==========================================
+  // TARJETA DE BÚSQUEDA EXTERNA + WHATSAPP (CUANDO NO ESTÁ EN CATÁLOGO)
+  // ==========================================
+  const renderExternalSearchCard = (queryText) => (
+    <div className="flex flex-col gap-2.5 mt-1">
+      <p className="text-xs font-bold leading-snug">
+        No tengo cargado ahorita mismo un cupón específico para <strong>"{queryText}"</strong> en nuestra vitrina, ¡pero puedes buscarlo directo con descuento en Mercado Libre o pedirlo en nuestro WhatsApp VIP! 🐹🔥
+      </p>
+      <a
+        href={ML_SEARCH_AFFILIATE}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={playSniperSound}
+        className="w-full bg-[#FFE600] hover:bg-yellow-300 text-black font-black py-2.5 px-3 rounded-xl text-[11px] uppercase flex items-center justify-center gap-1.5 border-2 border-black shadow"
+      >
+        <Search size={14} /> Buscar "{queryText}" en Mercado Libre
+      </a>
+      <a
+        href={WHATSAPP_GROUP_LINK}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={playSniperSound}
+        className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-black py-2.5 px-3 rounded-xl text-[11px] uppercase flex items-center justify-center gap-1.5 border-2 border-black shadow"
+      >
+        <FaWhatsapp size={15} /> Pedir oferta en WhatsApp VIP
+      </a>
+    </div>
+  );
 
   const renderMessageTextWithFormat = (text) => {
     if (!text) return null;
@@ -272,7 +483,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
               target="_blank"
               rel="noopener noreferrer"
               onClick={playSniperSound}
-              className="inline-flex items-center gap-1.5 bg-black hover:bg-neutral-900 text-yellow-400 font-black px-3 py-2 rounded-xl text-xs shadow-md transition-transform hover:scale-105 border border-yellow-400/40"
+              className="inline-flex items-center gap-1.5 bg-[#22a947] hover:bg-[#1c8e3b] text-white font-black px-3.5 py-2 rounded-full text-xs shadow-md transition-transform hover:scale-105"
             >
               <ShoppingBag size={14} /> Ver Oferta en Mercado Libre 🚀
             </a>
@@ -298,49 +509,71 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
   };
 
   const renderMessageWithCouponCards = (msg) => {
-    if (msg.isSocialLinks) {
-      return renderSocialLinksCard();
-    }
-
-    if (msg.isMercadoPagoCard) {
-      return renderMercadoPagoTerminalCard();
-    }
-
-    if (msg.isCuponesCard) {
-      return renderCuponesDirectCards();
-    }
+    if (msg.isSocialLinks) return renderSocialLinksCard();
+    if (msg.isMercadoPagoCard) return renderMercadoPagoTerminalCard();
+    if (msg.isCuponesCard) return renderCuponesDirectCards(msg.customCupones, msg.budgetAsked);
+    if (msg.isProductCards) return renderProductCards(msg.matchedProducts, msg.introText);
+    if (msg.isExternalSearch) return renderExternalSearchCard(msg.searchQuery);
 
     const text = msg.text || '';
     return <div>{renderMessageTextWithFormat(text)}</div>;
   };
 
+  // ==========================================
+  // MOTOR DE INTENCIÓN LOCAL + IA (VENDEDOR INTELIGENTE)
+  // ==========================================
+  const findMatchingProducts = (query) => {
+    const stopWords = new Set([
+      'hola', 'buenos', 'dias', 'tardes', 'noches', 'quiero', 'busco', 'tienes',
+      'tienen', 'algun', 'alguna', 'algunos', 'unas', 'unos', 'para', 'con',
+      'precio', 'oferta', 'ofertas', 'barato', 'baratos', 'comprar', 'ver',
+      'me', 'puedes', 'recomendar', 'recomiendas', 'por', 'favor', 'de', 'la', 'el', 'los', 'las', 'un', 'una'
+    ]);
+
+    const keywords = query
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter((w) => w.length >= 3 && !stopWords.has(w));
+
+    if (keywords.length === 0) return [];
+
+    return activeValidProducts.filter((prod) => {
+      const searchable = `${prod.title || ''} ${prod.description || ''} ${prod.model_capacity || ''}`
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+
+      return keywords.some((kw) => searchable.includes(kw));
+    });
+  };
+
   const processAndSendMessage = async (textToSend) => {
     if (!textToSend.trim()) return;
 
-    const userText = textToSend;
-    const lowerText = userText.toLowerCase().trim();
+    const userText = textToSend.trim();
+    const lowerText = userText
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
     const newHistory = [...chatMessages, { sender: 'user', text: userText }];
     setChatMessages(newHistory);
     setInputMessage('');
     setIsTyping(true);
 
+    // 1. Intención: Redes Sociales / WhatsApp / Grupos
     if (
-      lowerText === '¡quiero un cupón de descuento urgente!' ||
-      (lowerText.includes('cupón') && lowerText.includes('urgente'))
-    ) {
-      setTimeout(() => {
-        setChatMessages((prev) => [
-          ...prev,
-          { sender: 'bot', isCuponesCard: true },
-        ]);
-        setIsTyping(false);
-      }, 300);
-      return;
-    }
-
-    if (
-      lowerText.includes('redes oficiales') ||
-      lowerText.includes('unirme a grupos')
+      lowerText.includes('whatsapp') ||
+      lowerText.includes('telegram') ||
+      lowerText.includes('facebook') ||
+      lowerText.includes('youtube') ||
+      lowerText.includes('redes') ||
+      lowerText.includes('grupo') ||
+      lowerText.includes('canal') ||
+      lowerText.includes('comunidad')
     ) {
       setTimeout(() => {
         setChatMessages((prev) => [
@@ -348,12 +581,17 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
           { sender: 'bot', isSocialLinks: true },
         ]);
         setIsTyping(false);
-      }, 300);
+      }, 250);
       return;
     }
 
+    // 2. Intención: Terminales Point Mercado Pago
     if (
-      lowerText.includes('terminales point de mercado pago')
+      lowerText.includes('terminal') ||
+      lowerText.includes('point') ||
+      lowerText.includes('lector') ||
+      lowerText.includes('mercado pago') ||
+      lowerText.includes('cobrar con tarjeta')
     ) {
       setTimeout(() => {
         setChatMessages((prev) => [
@@ -361,32 +599,107 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
           { sender: 'bot', isMercadoPagoCard: true },
         ]);
         setIsTyping(false);
+      }, 250);
+      return;
+    }
+
+    // 3. Intención: Ofertas Top / Productos Destacados
+    if (
+      lowerText.includes('ofertas top') ||
+      lowerText.includes('destacados') ||
+      lowerText.includes('mejores ofertas')
+    ) {
+      if (activeValidProducts.length > 0) {
+        const topProducts = [...activeValidProducts]
+          .sort((a, b) => Number(b.discount_percentage || 0) - Number(a.discount_percentage || 0))
+          .slice(0, 5);
+        setTimeout(() => {
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              sender: 'bot',
+              isProductCards: true,
+              matchedProducts: topProducts,
+              introText: '🔥 ¡Estas son las ofertas con mayor descuento disponibles ahora mismo en nuestra página!',
+            },
+          ]);
+          setIsTyping(false);
+        }, 250);
+        return;
+      }
+    }
+
+    // 4. Intención: Cupones (general o filtrado por presupuesto numérico)
+    const budgetMatch = userText.match(/\$?\s*([\d,]{3,7})/);
+    const numericBudget = budgetMatch ? Number(budgetMatch[1].replace(/\D/g, '')) : null;
+
+    if (
+      lowerText.includes('cupon') ||
+      lowerText.includes('codigo') ||
+      (lowerText.includes('descuento') && !lowerText.includes('producto')) ||
+      (numericBudget && numericBudget >= 200 && (lowerText.includes('gastar') || lowerText.includes('compra')))
+    ) {
+      let filtered = activeValidCupones;
+      if (numericBudget && numericBudget > 0) {
+        filtered = activeValidCupones.filter((c) => {
+          const min = Number(c.min_purchase || 0);
+          return min === 0 || numericBudget >= min;
+        });
+      }
+
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            isCuponesCard: true,
+            customCupones: filtered,
+            budgetAsked: numericBudget,
+          },
+        ]);
+        setIsTyping(false);
+      }, 250);
+      return;
+    }
+
+    // 5. Búsqueda directa en nuestro catálogo de productos
+    const matchedProducts = findMatchingProducts(userText);
+    if (matchedProducts.length > 0) {
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            isProductCards: true,
+            matchedProducts,
+            introText: `¡Mira lo que encontré en nuestra vitrina de ofertas para ti! 🐹🔥`,
+          },
+        ]);
+        setIsTyping(false);
       }, 300);
       return;
     }
 
-    const cleanProducts = Array.isArray(products)
-      ? products
-          .filter(p => p && typeof p === 'object')
-          .slice(0, 100)
-          .map(p => ({
-            title: String(p.title || p.nombre || p.name || ''),
-            price: String(p.discount_price || p.precio || p.price || ''),
-            link: String(p.affiliate_link || p.link || p.url || ''),
-            description: String(p.description || p.descuento || p.specs || '')
-          }))
-      : [];
+    // 6. Consulta a IA del Backend (con contexto real de productos y cupones activos)
+    const cleanProducts = activeValidProducts
+      .slice(0, 80)
+      .map((p) => ({
+        title: String(p.title || p.nombre || p.name || ''),
+        price: String(p.discount_price || p.precio || p.price || ''),
+        link: String(p.affiliate_link || p.link || p.url || ''),
+        description: String(p.description || p.descuento || p.specs || ''),
+      }));
 
     try {
       const response = await axios.post(
         `${API}/chat`,
         {
           message: userText,
-          history: newHistory.slice(-10),
+          history: newHistory.slice(-8),
           systemPrompt: SYSTEM_PROMPT,
           products: cleanProducts,
         },
-        { timeout: 25000 }
+        { timeout: 18000 }
       );
 
       const botReply =
@@ -403,15 +716,13 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
         throw new Error('Respuesta vacía de la API');
       }
     } catch (error) {
-      console.error('Error de comunicación en chat:', error);
-
-      let fallbackText = '¡Claro que sí! 🚀 Tenemos las mejores ofertas esperándote. ¡Dime qué marca, modelo o producto buscas para pasarte su enlace exacto de descuento! 🐹✨';
-
+      // Si el backend tarda o no tiene respuesta, cerramos venta con buscador afiliado + WhatsApp
       setChatMessages((prev) => [
         ...prev,
         {
           sender: 'bot',
-          text: fallbackText,
+          isExternalSearch: true,
+          searchQuery: userText,
         },
       ]);
     } finally {
@@ -434,7 +745,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
             initial={{ opacity: 0, y: -20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            className="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] bg-[#FFEA00] text-black border-4 border-black p-4 rounded-2xl shadow-2xl font-black text-xs uppercase max-w-sm text-center"
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-[9999] bg-[#FFEA00] text-black border-4 border-black px-4 py-3 rounded-2xl shadow-2xl font-black text-xs uppercase w-[90%] max-w-sm text-center"
           >
             {toastMessage}
           </motion.div>
@@ -442,29 +753,33 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
 
         {showChatWindow && (
           <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.9 }}
+            initial={{ opacity: 0, y: 30, scale: 0.94 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 40, scale: 0.9 }}
-            className={`fixed left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 right-auto sm:right-5 bottom-16 sm:bottom-24 z-[90] w-[95%] sm:w-[380px] md:w-[400px] rounded-3xl shadow-2xl border overflow-hidden flex flex-col h-[82vh] sm:h-[600px] max-h-[650px] ${
-              isLight ? 'bg-white border-yellow-300 text-gray-800' : 'bg-neutral-900 border-yellow-400/50 text-neutral-100'
+            exit={{ opacity: 0, y: 30, scale: 0.94 }}
+            transition={{ type: 'spring', damping: 24, stiffness: 300 }}
+            className={`fixed inset-x-2 bottom-2 top-[56px] sm:inset-auto sm:right-5 sm:bottom-24 z-[95] w-auto sm:w-[390px] md:w-[410px] h-[calc(100dvh-64px)] sm:h-[600px] sm:max-h-[82vh] rounded-3xl shadow-2xl border-2 overflow-hidden flex flex-col ${
+              isLight
+                ? 'bg-white border-yellow-400 text-gray-800'
+                : 'bg-neutral-900 border-yellow-400/60 text-neutral-100'
             }`}
           >
-            <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-4 text-black flex items-center justify-between font-bold border-b border-yellow-300 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-black text-yellow-400 flex items-center justify-center shadow-inner">
-                  <Bot className="w-6 h-6" />
+            {/* ENCABEZADO DEL CHAT */}
+            <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 px-3.5 py-3 sm:p-4 text-black flex items-center justify-between font-bold border-b-2 border-black shadow-sm shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black text-yellow-400 flex items-center justify-center shadow-inner shrink-0">
+                  <Bot className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
-                <div>
-                  <p className="text-sm font-black uppercase tracking-tight leading-tight">
-                    Asistente Capibara IA 🐹
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm font-black uppercase tracking-tight leading-tight truncate">
+                    Asistente CapiBara IA 🐹
                   </p>
-                  <span className="text-[10px] text-neutral-800 font-bold flex items-center gap-1.5 mt-0.5">
-                    <span className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse" />
-                    En línea - Listo para vender
+                  <span className="text-[10px] text-neutral-900 font-bold flex items-center gap-1.5 mt-0.5">
+                    <span className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse shrink-0" />
+                    <span className="truncate">En línea • Cazando descuentos</span>
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 shrink-0">
                 <button
                   onClick={() => setShowChatWindow(false)}
                   title="Minimizar"
@@ -482,31 +797,41 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
               </div>
             </div>
 
-            <div className={`px-3 py-2 border-b flex gap-1.5 overflow-x-auto text-xs ${
-              isLight ? 'bg-yellow-50 border-gray-200' : 'bg-neutral-900 border-neutral-800'
-            }`}>
+            {/* BARRA DE ACCIONES RÁPIDAS (CHIPS TÁCTILES) */}
+            <div
+              className={`px-2.5 py-2 border-b flex gap-1.5 overflow-x-auto no-scrollbar shrink-0 ${
+                isLight ? 'bg-yellow-50 border-gray-200' : 'bg-neutral-900 border-neutral-800'
+              }`}
+            >
               <button
                 onClick={() => processAndSendMessage('¡Quiero un cupón de descuento urgente!')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-yellow-400 text-black font-black text-[11px] hover:bg-yellow-300 transition shadow-sm cursor-pointer"
+                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-yellow-400 text-black font-black text-[11px] hover:bg-yellow-300 transition shadow-sm cursor-pointer shrink-0"
               >
-                🎟️ ¡Cupones Hoy!
+                🎟️ Cupones Hoy
+              </button>
+              <button
+                onClick={() => processAndSendMessage('Muéstrame las ofertas top')}
+                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-red-500 text-white font-black text-[11px] hover:bg-red-600 transition shadow-sm cursor-pointer shrink-0 flex items-center gap-1"
+              >
+                <Flame size={12} /> Ofertas Top
               </button>
               <button
                 onClick={() => processAndSendMessage('¿Qué terminales Point de Mercado Pago me recomiendas?')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-blue-600 text-white font-black text-[11px] hover:bg-blue-500 transition shadow-sm cursor-pointer"
+                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-blue-600 text-white font-black text-[11px] hover:bg-blue-500 transition shadow-sm cursor-pointer shrink-0"
               >
                 💳 Terminales Point
               </button>
               <button
-                onClick={() => processAndSendMessage('¡Muéstrame los links de todas nuestras páginas y redes oficiales!')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-neutral-800 text-yellow-400 border border-yellow-400/40 font-black text-[11px] hover:bg-neutral-700 transition cursor-pointer"
+                onClick={() => processAndSendMessage('Pásame sus redes oficiales y WhatsApp')}
+                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-[#25D366] text-black font-black text-[11px] hover:bg-[#20bd5a] transition shadow-sm cursor-pointer shrink-0"
               >
-                🏆 Grupos Oficiales
+                💬 WhatsApp y Redes
               </button>
             </div>
 
+            {/* ÁREA DE MENSAJES */}
             <div
-              className={`flex-1 p-4 overflow-y-auto space-y-4 text-sm whitespace-pre-line ${
+              className={`flex-1 p-3 sm:p-4 overflow-y-auto space-y-3.5 text-xs sm:text-sm whitespace-pre-line ${
                 isLight ? 'bg-gray-50' : 'bg-neutral-950'
               }`}
             >
@@ -518,11 +843,11 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
                   }`}
                 >
                   <div
-                    className={`max-w-[85%] p-3.5 rounded-2xl leading-relaxed ${
+                    className={`max-w-[90%] sm:max-w-[85%] p-3 sm:p-3.5 rounded-2xl leading-relaxed ${
                       msg.sender === 'user'
                         ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-black rounded-br-none font-bold shadow-md'
                         : isLight
-                        ? 'bg-white text-gray-800 shadow-md rounded-bl-none border border-gray-100'
+                        ? 'bg-white text-gray-800 shadow-md rounded-bl-none border border-gray-200'
                         : 'bg-neutral-800 text-neutral-100 shadow-md rounded-bl-none border border-neutral-700'
                     }`}
                   >
@@ -550,49 +875,54 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
               <div ref={chatEndRef} />
             </div>
 
+            {/* CAJA DE ENTRADA DE TEXTO */}
             <form
               onSubmit={handleSendChatMessage}
-              className={`p-3 flex gap-2 ${isLight ? 'bg-white' : 'bg-neutral-900'}`}
+              className={`p-2.5 sm:p-3 border-t flex gap-2 shrink-0 ${
+                isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'
+              }`}
             >
               <input
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Escribe el producto que buscas..."
-                className={`flex-1 px-4 py-3 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all ${
+                placeholder="Ej: audífonos, cupón de $2000, WhatsApp..."
+                className={`flex-1 min-w-0 px-3.5 py-2.5 sm:py-3 text-base sm:text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all ${
                   isLight
-                    ? 'bg-gray-50 border-gray-200 text-gray-800'
-                    : 'bg-neutral-950 border-neutral-800 text-neutral-100'
+                    ? 'bg-gray-50 border-gray-300 text-gray-800'
+                    : 'bg-neutral-950 border-neutral-700 text-neutral-100'
                 }`}
               />
               <button
                 type="submit"
                 disabled={!inputMessage.trim() || isTyping}
-                className="bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 disabled:hover:bg-yellow-400 text-black w-12 rounded-xl font-bold flex items-center justify-center transition-all shadow-md cursor-pointer"
+                className="bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 disabled:hover:bg-yellow-400 text-black w-11 sm:w-12 rounded-xl font-bold flex items-center justify-center transition-all shadow-md cursor-pointer shrink-0 border border-black"
               >
-                <Send className="w-5 h-5 ml-1" />
+                <Send className="w-5 h-5" />
               </button>
             </form>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* GLOBO DE SALUDO FLOTANTE */}
       {!showChatWindow && (
         <motion.div
           initial={{ opacity: 0, x: 20, scale: 0.8 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           transition={{ delay: 1.5, type: 'spring', stiffness: 260, damping: 20 }}
           onClick={() => setShowChatWindow(true)}
-          className="fixed right-16 sm:right-20 bottom-6 z-40 cursor-pointer group hidden sm:flex items-center gap-2 pointer-events-auto"
+          className="fixed right-[68px] sm:right-20 bottom-5 sm:bottom-6 z-40 cursor-pointer group flex items-center gap-2 pointer-events-auto"
         >
-          <div className="bg-white text-black font-black text-xs px-4 py-2.5 rounded-2xl shadow-xl border-2 border-black flex items-center gap-2 transition-transform group-hover:scale-105">
-            <span>¡Hola! <span className="inline-block animate-wave origin-bottom-right">👋</span></span>
-            <span className="text-[10px] text-gray-600 font-bold hidden sm:inline">¿Buscas ofertas hoy?</span>
+          <div className="bg-white text-black font-black text-[11px] sm:text-xs px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl shadow-xl border-2 border-black flex items-center gap-1.5 transition-transform group-hover:scale-105">
+            <span>¡Hola! 👋</span>
+            <span className="text-[10px] text-gray-700 font-bold">¿Buscas ofertas?</span>
           </div>
-          <div className="w-2 h-2 bg-white border-r-2 border-b-2 border-black transform rotate-[-45deg] -ml-3 hidden sm:block"></div>
+          <div className="w-2 h-2 bg-white border-r-2 border-b-2 border-black transform rotate-[-45deg] -ml-3"></div>
         </motion.div>
       )}
 
+      {/* BOTÓN FLOTANTE PRINCIPAL (FAB) */}
       <motion.button
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -602,13 +932,13 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [] }) 
         id="chatbot-fab"
         data-chatbot-slot="customer-service"
         onClick={() => setShowChatWindow(!showChatWindow)}
-        className="fixed right-5 bottom-5 z-40 group cursor-pointer"
+        className="fixed right-3.5 sm:right-5 bottom-4 sm:bottom-5 z-50 group cursor-pointer pointer-events-auto"
         aria-label="Abrir chat de atención"
       >
         <span className="absolute inset-0 rounded-full bg-yellow-400/40 blur-xl group-hover:blur-2xl transition" />
-        <span className="relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 text-black shadow-2xl shadow-yellow-400/50 border-2 border-yellow-300">
+        <span className="relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 text-black shadow-2xl shadow-yellow-400/50 border-2 border-black">
           <Bot className="w-6 h-6" strokeWidth={2.5} />
-          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-neutral-950 animate-pulse" />
+          <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-neutral-950 animate-pulse" />
         </span>
       </motion.button>
     </>
