@@ -1457,7 +1457,7 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES DIGITALES (BLINDADA + BOTÓN CLICKEABLE SIN ENCIMARSE)
+  // SECCIÓN DE CUPONES DIGITALES (CÓDIGO ARRIBA + PÍLDORA VERDE "Copiar cupón e ir a comprar" ABAJO)
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
@@ -1539,8 +1539,8 @@ function App() {
                       <div key={cuponId} className="flex-[0_0_100%] lg:flex-[0_0_calc(50%-12px)] min-w-0 flex flex-col gap-2">
                         
                         {/* VISTA MÓVIL (< 768px) */}
-                        <div className="block md:hidden h-[430px] sm:h-[480px] my-1 flex justify-center items-center overflow-hidden">
-                          <div className="flex flex-col gap-2 -rotate-90 scale-[0.78] min-[375px]:scale-[0.86] sm:scale-95 transform-gpu origin-center">
+                        <div className="block md:hidden h-[450px] sm:h-[500px] my-1 flex justify-center items-center overflow-hidden">
+                          <div className="flex flex-col gap-2 -rotate-90 scale-[0.76] min-[375px]:scale-[0.84] sm:scale-95 transform-gpu origin-center">
                             
                             <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide self-start">
                               {fechaActual}
@@ -1548,7 +1548,7 @@ function App() {
 
                             <div 
                               onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                              className="group relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer w-[440px] h-[200px] flex-shrink-0"
+                              className="group relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer w-[460px] h-[220px] flex-shrink-0"
                             >
                               <div className="bg-white text-gray-900 p-4 flex flex-col justify-between items-center w-[145px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
                                 <div className="flex flex-col items-center justify-center my-auto">
@@ -1578,11 +1578,18 @@ function App() {
                               </div>
 
                               <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 text-black flex flex-col justify-between relative min-w-0`}>
-                                {/* Fila superior: Título a la izquierda, Vencimiento y Reacciones a la derecha */}
+                                {/* Fila 1: Título + Código arriba | Vence + Reacciones a la derecha */}
                                 <div className="flex justify-between items-start gap-2">
-                                  <h3 className="text-base font-black uppercase tracking-tight drop-shadow-sm leading-tight truncate pr-1">
-                                    {cupon.title || '12% DE DESCUENTO'}
-                                  </h3>
+                                  <div className="flex flex-col min-w-0 pr-1">
+                                    <h3 className="text-base font-black uppercase tracking-tight drop-shadow-sm leading-tight truncate mb-1">
+                                      {cupon.title || '12% DE DESCUENTO'}
+                                    </h3>
+                                    <div className="text-sm font-black tracking-widest font-mono bg-black/15 py-0.5 px-2.5 rounded-lg border border-black/20 inline-block self-start select-all">
+                                      {cupon.code && String(cupon.code).length > 3
+                                        ? String(cupon.code).slice(0, 3) + '••••••'
+                                        : (cupon.code || 'CAPI••••')}
+                                    </div>
+                                  </div>
 
                                   <div className="flex flex-col items-end gap-1 text-right shrink-0">
                                     <CountdownTimer expiresAt={cupon.expires_at} />
@@ -1607,24 +1614,18 @@ function App() {
                                   </div>
                                 </div>
 
-                                {/* Fila intermedia exclusiva para el botón blanco/azul sin encimarse */}
+                                {/* Fila 2: Botón píldora verde debajo del código del cupón */}
                                 <div className="my-1.5">
                                   <button
                                     type="button"
-                                    className="w-full flex items-center justify-between gap-2 bg-white hover:bg-gray-50 text-slate-900 py-1.5 px-3 rounded-xl border-2 border-black/80 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.35)] transition-all active:translate-y-0.5"
+                                    className="w-full inline-flex items-center justify-center gap-2 bg-[#22a947] hover:bg-[#1c8e3b] text-white font-bold text-xs py-2 px-4 rounded-full shadow-md transition-all active:scale-95"
                                   >
-                                    <span className="text-sm font-black tracking-widest font-mono truncate">
-                                      {cupon.code && String(cupon.code).length > 3
-                                        ? String(cupon.code).slice(0, 3) + '••••••'
-                                        : (cupon.code || 'CAPI••••')}
-                                    </span>
-                                    <span className="shrink-0 inline-flex items-center gap-1 bg-[#3483fa] text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-lg shadow-sm">
-                                      <Copy size={10} strokeWidth={2.8} /> COPIAR
-                                    </span>
+                                    <span>Copiar cupón e ir a comprar</span>
+                                    <ExternalLink size={14} strokeWidth={2.3} className="shrink-0" />
                                   </button>
                                 </div>
 
-                                <div className="pt-1.5 border-t border-black/15">
+                                <div className="pt-1 border-t border-black/15">
                                   <span className="text-[9px] font-extrabold uppercase tracking-tight text-black/90 block leading-tight truncate">
                                     {cupon.min_purchase ? `COMPRA MÍNIMA APLICABLE: $${cupon.min_purchase} | DESCUENTO MÁXIMO: $${cupon.max_discount || '180'}` : (cupon.description || 'COMPRA MÍNIMA APLICABLE')}
                                   </span>
@@ -1674,11 +1675,18 @@ function App() {
                             </div>
 
                             <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-black flex flex-col justify-between relative overflow-hidden min-w-0`}>
-                              {/* Fila superior: Título a la izquierda, Vencimiento y Reacciones a la derecha */}
+                              {/* Fila 1: Título + Código arriba | Vence + Reacciones a la derecha */}
                               <div className="flex justify-between items-start gap-2">
-                                <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm truncate pr-1">
-                                  {cupon.title || '10% DE DESCUENTO'}
-                                </h3>
+                                <div className="flex flex-col min-w-0 pr-1">
+                                  <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm truncate mb-1">
+                                    {cupon.title || '10% DE DESCUENTO'}
+                                  </h3>
+                                  <div className="text-base xl:text-lg font-black tracking-widest font-mono bg-black/15 py-0.5 px-3 rounded-xl border border-black/20 inline-block self-start select-all">
+                                    {cupon.code && String(cupon.code).length > 3
+                                      ? String(cupon.code).slice(0, 3) + '••••••'
+                                      : (cupon.code || 'CAPI••••')}
+                                  </div>
+                                </div>
 
                                 <div className="flex flex-col items-end gap-1 text-right flex-shrink-0">
                                   <CountdownTimer expiresAt={cupon.expires_at} />
@@ -1705,20 +1713,14 @@ function App() {
                                 </div>
                               </div>
 
-                              {/* Fila intermedia separada: Botón blanco + azul ML sin tocar reacciones */}
+                              {/* Fila 2: Botón píldora verde debajo del código del cupón */}
                               <div className="my-2.5">
                                 <button
                                   type="button"
-                                  className="w-full flex items-center justify-between gap-2 bg-white hover:bg-gray-50 text-slate-900 py-2 px-3.5 rounded-xl border-2 border-black/80 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] group-hover:scale-[1.02] active:translate-y-0.5 transition-all cursor-pointer"
+                                  className="w-full inline-flex items-center justify-center gap-2 bg-[#22a947] group-hover:bg-[#1c8e3b] text-white font-bold text-xs xl:text-sm py-2.5 px-5 rounded-full shadow-md group-hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
                                 >
-                                  <span className="text-base xl:text-lg font-black tracking-widest font-mono truncate">
-                                    {cupon.code && String(cupon.code).length > 3
-                                      ? String(cupon.code).slice(0, 3) + '••••••'
-                                      : (cupon.code || 'CAPI••••')}
-                                  </span>
-                                  <span className="shrink-0 inline-flex items-center gap-1.5 bg-[#3483fa] group-hover:bg-[#2968c8] text-white text-[10px] xl:text-[11px] font-black uppercase px-3 py-1.5 rounded-lg shadow-sm transition-colors">
-                                    <Copy size={12} strokeWidth={2.8} /> COPIAR Y CANJEAR
-                                  </span>
+                                  <span>Copiar cupón e ir a comprar</span>
+                                  <ExternalLink size={16} strokeWidth={2.3} className="shrink-0" />
                                 </button>
                               </div>
 
@@ -1767,7 +1769,7 @@ function App() {
   );
 
   // ==========================================
-  // SECCIÓN DE CUPONES BANCARIOS (BLINDADA + BOTÓN CLICKEABLE SIN ENCIMARSE)
+  // SECCIÓN DE CUPONES BANCARIOS (CÓDIGO ARRIBA + PÍLDORA VERDE "Copiar cupón e ir a comprar" ABAJO)
   // ==========================================
   const renderCuponesBancariosSection = () => (
     <div className="container mx-auto px-3 sm:px-4 mb-12 relative z-25">
@@ -1827,14 +1829,14 @@ function App() {
                     <div key={cuponId} className="flex-[0_0_100%] lg:flex-[0_0_calc(50%-12px)] min-w-0 flex flex-col gap-2">
                       
                       {/* VISTA MÓVIL (< 768px) */}
-                      <div className="block md:hidden h-[430px] sm:h-[480px] my-1 flex justify-center items-center overflow-hidden">
-                        <div className="flex flex-col gap-2 -rotate-90 scale-[0.78] min-[375px]:scale-[0.86] sm:scale-95 transform-gpu origin-center">
+                      <div className="block md:hidden h-[450px] sm:h-[500px] my-1 flex justify-center items-center overflow-hidden">
+                        <div className="flex flex-col gap-2 -rotate-90 scale-[0.76] min-[375px]:scale-[0.84] sm:scale-95 transform-gpu origin-center">
                           <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide self-start">
                             {fechaActual}
                           </span>
                           <div 
                             onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                            className="group relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer w-[440px] h-[200px] flex-shrink-0"
+                            className="group relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer w-[460px] h-[220px] flex-shrink-0"
                           >
                             <div className="bg-white text-gray-900 p-4 flex flex-col justify-between items-center w-[145px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
                               <div className="flex flex-col items-center justify-center my-auto">
@@ -1859,9 +1861,16 @@ function App() {
 
                             <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 text-white flex flex-col justify-between relative min-w-0`}>
                               <div className="flex justify-between items-start gap-2">
-                                <h3 className="text-base font-black uppercase tracking-tight drop-shadow-sm leading-tight truncate pr-1">
-                                  {cupon.title || 'DESCUENTO BANCARIO'}
-                                </h3>
+                                <div className="flex flex-col min-w-0 pr-1">
+                                  <h3 className="text-base font-black uppercase tracking-tight drop-shadow-sm leading-tight truncate mb-1">
+                                    {cupon.title || 'DESCUENTO BANCARIO'}
+                                  </h3>
+                                  <div className="text-sm font-black tracking-widest font-mono bg-black/25 py-0.5 px-2.5 rounded-lg border border-white/25 inline-block self-start select-all">
+                                    {cupon.code && String(cupon.code).length > 3
+                                      ? String(cupon.code).slice(0, 3) + '••••••'
+                                      : (cupon.code || 'BANC••••')}
+                                  </div>
+                                </div>
 
                                 <div className="flex flex-col items-end gap-1 text-right shrink-0">
                                   <CountdownTimer expiresAt={cupon.expires_at} />
@@ -1886,24 +1895,18 @@ function App() {
                                 </div>
                               </div>
 
-                              {/* Fila intermedia separada para el botón blanco/azul */}
+                              {/* Botón píldora verde debajo del código del cupón */}
                               <div className="my-1.5">
                                 <button
                                   type="button"
-                                  className="w-full flex items-center justify-between gap-2 bg-white hover:bg-gray-50 text-slate-900 py-1.5 px-3 rounded-xl border-2 border-black/80 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.4)] transition-all active:translate-y-0.5"
+                                  className="w-full inline-flex items-center justify-center gap-2 bg-[#22a947] hover:bg-[#1c8e3b] text-white font-bold text-xs py-2 px-4 rounded-full shadow-md transition-all active:scale-95"
                                 >
-                                  <span className="text-sm font-black tracking-widest font-mono truncate">
-                                    {cupon.code && String(cupon.code).length > 3
-                                      ? String(cupon.code).slice(0, 3) + '••••••'
-                                      : (cupon.code || 'BANC••••')}
-                                  </span>
-                                  <span className="shrink-0 inline-flex items-center gap-1 bg-[#3483fa] text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-lg shadow-sm">
-                                    <Copy size={10} strokeWidth={2.8} /> COPIAR
-                                  </span>
+                                  <span>Copiar cupón e ir a comprar</span>
+                                  <ExternalLink size={14} strokeWidth={2.3} className="shrink-0" />
                                 </button>
                               </div>
 
-                              <div className="pt-1.5 border-t border-white/20">
+                              <div className="pt-1 border-t border-white/20">
                                 <span className="text-[9px] font-extrabold uppercase tracking-tight text-white/90 block leading-tight truncate">
                                   {cupon.description || 'BENEFICIOS EXCLUSIVOS CON TARJETA'}
                                 </span>
@@ -1945,9 +1948,16 @@ function App() {
 
                           <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-white flex flex-col justify-between relative overflow-hidden min-w-0`}>
                             <div className="flex justify-between items-start gap-2">
-                              <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm truncate pr-1">
-                                {cupon.title || 'DESCUENTO BANCARIO'}
-                              </h3>
+                              <div className="flex flex-col min-w-0 pr-1">
+                                <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm truncate mb-1">
+                                  {cupon.title || 'DESCUENTO BANCARIO'}
+                                </h3>
+                                <div className="text-base xl:text-lg font-black tracking-widest font-mono bg-black/25 py-0.5 px-3 rounded-xl border border-white/25 inline-block self-start select-all">
+                                  {cupon.code && String(cupon.code).length > 3
+                                    ? String(cupon.code).slice(0, 3) + '••••••'
+                                    : (cupon.code || 'BANC••••')}
+                                </div>
+                              </div>
 
                               <div className="flex flex-col items-end gap-1 text-right flex-shrink-0">
                                 <CountdownTimer expiresAt={cupon.expires_at} />
@@ -1972,20 +1982,14 @@ function App() {
                               </div>
                             </div>
 
-                            {/* Fila intermedia separada para el botón blanco/azul sin tocar reacciones */}
+                            {/* Botón píldora verde debajo del código del cupón */}
                             <div className="my-2.5">
                               <button
                                 type="button"
-                                className="w-full flex items-center justify-between gap-2 bg-white hover:bg-gray-50 text-slate-900 py-2 px-3.5 rounded-xl border-2 border-black/80 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.35)] group-hover:scale-[1.02] active:translate-y-0.5 transition-all cursor-pointer"
+                                className="w-full inline-flex items-center justify-center gap-2 bg-[#22a947] group-hover:bg-[#1c8e3b] text-white font-bold text-xs xl:text-sm py-2.5 px-5 rounded-full shadow-md group-hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
                               >
-                                <span className="text-base xl:text-lg font-black tracking-widest font-mono truncate">
-                                  {cupon.code && String(cupon.code).length > 3
-                                    ? String(cupon.code).slice(0, 3) + '••••••'
-                                    : (cupon.code || 'BANC••••')}
-                                </span>
-                                <span className="shrink-0 inline-flex items-center gap-1.5 bg-[#3483fa] group-hover:bg-[#2968c8] text-white text-[10px] xl:text-[11px] font-black uppercase px-3 py-1.5 rounded-lg shadow-sm transition-colors">
-                                  <Copy size={12} strokeWidth={2.8} /> COPIAR Y CANJEAR
-                                </span>
+                                <span>Copiar cupón e ir a comprar</span>
+                                <ExternalLink size={16} strokeWidth={2.3} className="shrink-0" />
                               </button>
                             </div>
 
