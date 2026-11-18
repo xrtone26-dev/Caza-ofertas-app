@@ -1457,7 +1457,7 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES DIGITALES (BLINDADA + BOTÓN CLICKEABLE DE ALTO CONTRASTE)
+  // SECCIÓN DE CUPONES DIGITALES (BLINDADA + BOTÓN CLICKEABLE SIN ENCIMARSE)
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
@@ -1538,7 +1538,7 @@ function App() {
                     return (
                       <div key={cuponId} className="flex-[0_0_100%] lg:flex-[0_0_calc(50%-12px)] min-w-0 flex flex-col gap-2">
                         
-                        {/* VISTA MÓVIL (< 768px) ESCALADA SEGURA PARA PANTALLAS DE 320px A 767px */}
+                        {/* VISTA MÓVIL (< 768px) */}
                         <div className="block md:hidden h-[430px] sm:h-[480px] my-1 flex justify-center items-center overflow-hidden">
                           <div className="flex flex-col gap-2 -rotate-90 scale-[0.78] min-[375px]:scale-[0.86] sm:scale-95 transform-gpu origin-center">
                             
@@ -1548,7 +1548,7 @@ function App() {
 
                             <div 
                               onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                              className="group relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer w-[440px] h-[195px] flex-shrink-0"
+                              className="group relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer w-[440px] h-[200px] flex-shrink-0"
                             >
                               <div className="bg-white text-gray-900 p-4 flex flex-col justify-between items-center w-[145px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
                                 <div className="flex flex-col items-center justify-center my-auto">
@@ -1578,35 +1578,19 @@ function App() {
                               </div>
 
                               <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 text-black flex flex-col justify-between relative min-w-0`}>
-                                <div className="flex justify-between items-start gap-2 mb-1">
-                                  <div className="flex flex-col min-w-0">
-                                    <h3 className="text-lg font-black uppercase tracking-tight drop-shadow-sm mb-1 leading-tight truncate">
-                                      {cupon.title || '12% DE DESCUENTO'}
-                                    </h3>
-                                    <div className="mt-1">
-                                      <button
-                                        type="button"
-                                        className="inline-flex items-center gap-2 bg-black text-yellow-400 group-hover:bg-neutral-900 py-1.5 px-3 rounded-xl border-2 border-white/90 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.45)] transition-all active:translate-y-0.5"
-                                      >
-                                        <span className="text-sm font-black tracking-widest font-mono">
-                                          {cupon.code && String(cupon.code).length > 3
-                                            ? String(cupon.code).slice(0, 3) + '••••••'
-                                            : (cupon.code || 'CAPI••••')}
-                                        </span>
-                                        <span className="flex items-center gap-1 bg-yellow-400 text-black text-[9px] font-black uppercase px-2 py-0.5 rounded-lg">
-                                          <Copy size={10} strokeWidth={3} /> COPIAR
-                                        </span>
-                                      </button>
-                                    </div>
-                                  </div>
+                                {/* Fila superior: Título a la izquierda, Vencimiento y Reacciones a la derecha */}
+                                <div className="flex justify-between items-start gap-2">
+                                  <h3 className="text-base font-black uppercase tracking-tight drop-shadow-sm leading-tight truncate pr-1">
+                                    {cupon.title || '12% DE DESCUENTO'}
+                                  </h3>
 
                                   <div className="flex flex-col items-end gap-1 text-right shrink-0">
                                     <CountdownTimer expiresAt={cupon.expires_at} />
-                                    <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
+                                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                                       <button
                                         onClick={() => handleReaction(cuponId, 'like')}
                                         className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-black/20 ${
-                                          currentReaction === 'like' ? 'bg-black text-white' : 'bg-white/40 text-black'
+                                          currentReaction === 'like' ? 'bg-black text-white' : 'bg-white/60 text-black'
                                         }`}
                                       >
                                         <ThumbsUp size={10} /> <span>{counts.like}</span>
@@ -1614,7 +1598,7 @@ function App() {
                                       <button
                                         onClick={() => handleReaction(cuponId, 'heart')}
                                         className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-black/20 ${
-                                          currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-white/40 text-black'
+                                          currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-white/60 text-black'
                                         }`}
                                       >
                                         <Heart size={10} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
@@ -1623,7 +1607,24 @@ function App() {
                                   </div>
                                 </div>
 
-                                <div className="pt-2 border-t border-black/15">
+                                {/* Fila intermedia exclusiva para el botón blanco/azul sin encimarse */}
+                                <div className="my-1.5">
+                                  <button
+                                    type="button"
+                                    className="w-full flex items-center justify-between gap-2 bg-white hover:bg-gray-50 text-slate-900 py-1.5 px-3 rounded-xl border-2 border-black/80 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.35)] transition-all active:translate-y-0.5"
+                                  >
+                                    <span className="text-sm font-black tracking-widest font-mono truncate">
+                                      {cupon.code && String(cupon.code).length > 3
+                                        ? String(cupon.code).slice(0, 3) + '••••••'
+                                        : (cupon.code || 'CAPI••••')}
+                                    </span>
+                                    <span className="shrink-0 inline-flex items-center gap-1 bg-[#3483fa] text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-lg shadow-sm">
+                                      <Copy size={10} strokeWidth={2.8} /> COPIAR
+                                    </span>
+                                  </button>
+                                </div>
+
+                                <div className="pt-1.5 border-t border-black/15">
                                   <span className="text-[9px] font-extrabold uppercase tracking-tight text-black/90 block leading-tight truncate">
                                     {cupon.min_purchase ? `COMPRA MÍNIMA APLICABLE: $${cupon.min_purchase} | DESCUENTO MÁXIMO: $${cupon.max_discount || '180'}` : (cupon.description || 'COMPRA MÍNIMA APLICABLE')}
                                   </span>
@@ -1673,35 +1674,19 @@ function App() {
                             </div>
 
                             <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-black flex flex-col justify-between relative overflow-hidden min-w-0`}>
-                              <div className="flex justify-between items-start gap-2 mb-2">
-                                <div className="flex flex-col min-w-0 pr-1">
-                                  <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1.5 truncate">
-                                    {cupon.title || '10% DE DESCUENTO'}
-                                  </h3>
-                                  <div className="mt-1">
-                                    <button
-                                      type="button"
-                                      className="inline-flex items-center gap-2.5 bg-black text-yellow-400 group-hover:bg-neutral-900 py-2 px-3.5 rounded-xl border-2 border-white/90 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.45)] group-hover:scale-[1.03] active:translate-y-0.5 transition-all cursor-pointer"
-                                    >
-                                      <span className="text-base xl:text-lg font-black tracking-widest font-mono">
-                                        {cupon.code && String(cupon.code).length > 3
-                                          ? String(cupon.code).slice(0, 3) + '••••••'
-                                          : (cupon.code || 'CAPI••••')}
-                                      </span>
-                                      <span className="flex items-center gap-1 bg-yellow-400 text-black text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-sm">
-                                        <Copy size={12} strokeWidth={2.8} /> COPIAR Y CANJEAR
-                                      </span>
-                                    </button>
-                                  </div>
-                                </div>
+                              {/* Fila superior: Título a la izquierda, Vencimiento y Reacciones a la derecha */}
+                              <div className="flex justify-between items-start gap-2">
+                                <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm truncate pr-1">
+                                  {cupon.title || '10% DE DESCUENTO'}
+                                </h3>
 
                                 <div className="flex flex-col items-end gap-1 text-right flex-shrink-0">
                                   <CountdownTimer expiresAt={cupon.expires_at} />
-                                  <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
+                                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                                     <button
                                       onClick={() => handleReaction(cuponId, 'like')}
                                       className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-black/20 ${
-                                        currentReaction === 'like' ? 'bg-black text-white' : 'bg-white/40 hover:bg-white/60 text-black'
+                                        currentReaction === 'like' ? 'bg-black text-white' : 'bg-white/60 hover:bg-white/80 text-black'
                                       }`}
                                       title="Me gusta"
                                     >
@@ -1710,7 +1695,7 @@ function App() {
                                     <button
                                       onClick={() => handleReaction(cuponId, 'heart')}
                                       className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-black/20 ${
-                                        currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-white/40 hover:bg-white/60 text-black'
+                                        currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-white/60 hover:bg-white/80 text-black'
                                       }`}
                                       title="Me encanta"
                                     >
@@ -1718,6 +1703,23 @@ function App() {
                                     </button>
                                   </div>
                                 </div>
+                              </div>
+
+                              {/* Fila intermedia separada: Botón blanco + azul ML sin tocar reacciones */}
+                              <div className="my-2.5">
+                                <button
+                                  type="button"
+                                  className="w-full flex items-center justify-between gap-2 bg-white hover:bg-gray-50 text-slate-900 py-2 px-3.5 rounded-xl border-2 border-black/80 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] group-hover:scale-[1.02] active:translate-y-0.5 transition-all cursor-pointer"
+                                >
+                                  <span className="text-base xl:text-lg font-black tracking-widest font-mono truncate">
+                                    {cupon.code && String(cupon.code).length > 3
+                                      ? String(cupon.code).slice(0, 3) + '••••••'
+                                      : (cupon.code || 'CAPI••••')}
+                                  </span>
+                                  <span className="shrink-0 inline-flex items-center gap-1.5 bg-[#3483fa] group-hover:bg-[#2968c8] text-white text-[10px] xl:text-[11px] font-black uppercase px-3 py-1.5 rounded-lg shadow-sm transition-colors">
+                                    <Copy size={12} strokeWidth={2.8} /> COPIAR Y CANJEAR
+                                  </span>
+                                </button>
                               </div>
 
                               <div className="pt-2 border-t border-black/15 mt-auto">
@@ -1765,7 +1767,7 @@ function App() {
   );
 
   // ==========================================
-  // SECCIÓN DE CUPONES BANCARIOS (BLINDADA + BOTÓN CLICKEABLE DE ALTO CONTRASTE)
+  // SECCIÓN DE CUPONES BANCARIOS (BLINDADA + BOTÓN CLICKEABLE SIN ENCIMARSE)
   // ==========================================
   const renderCuponesBancariosSection = () => (
     <div className="container mx-auto px-3 sm:px-4 mb-12 relative z-25">
@@ -1824,7 +1826,7 @@ function App() {
                   return (
                     <div key={cuponId} className="flex-[0_0_100%] lg:flex-[0_0_calc(50%-12px)] min-w-0 flex flex-col gap-2">
                       
-                      {/* VISTA MÓVIL (< 768px) ESCALADA SEGURA PARA PANTALLAS DE 320px A 767px */}
+                      {/* VISTA MÓVIL (< 768px) */}
                       <div className="block md:hidden h-[430px] sm:h-[480px] my-1 flex justify-center items-center overflow-hidden">
                         <div className="flex flex-col gap-2 -rotate-90 scale-[0.78] min-[375px]:scale-[0.86] sm:scale-95 transform-gpu origin-center">
                           <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide self-start">
@@ -1832,7 +1834,7 @@ function App() {
                           </span>
                           <div 
                             onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                            className="group relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer w-[440px] h-[195px] flex-shrink-0"
+                            className="group relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer w-[440px] h-[200px] flex-shrink-0"
                           >
                             <div className="bg-white text-gray-900 p-4 flex flex-col justify-between items-center w-[145px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
                               <div className="flex flex-col items-center justify-center my-auto">
@@ -1856,35 +1858,18 @@ function App() {
                             </div>
 
                             <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 text-white flex flex-col justify-between relative min-w-0`}>
-                              <div className="flex justify-between items-start gap-2 mb-1">
-                                <div className="flex flex-col min-w-0">
-                                  <h3 className="text-lg font-black uppercase tracking-tight drop-shadow-sm mb-1 leading-tight truncate">
-                                    {cupon.title || 'DESCUENTO BANCARIO'}
-                                  </h3>
-                                  <div className="mt-1">
-                                    <button
-                                      type="button"
-                                      className="inline-flex items-center gap-2 bg-black text-cyan-300 group-hover:bg-neutral-900 py-1.5 px-3 rounded-xl border-2 border-white/90 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.5)] transition-all active:translate-y-0.5"
-                                    >
-                                      <span className="text-sm font-black tracking-widest font-mono">
-                                        {cupon.code && String(cupon.code).length > 3
-                                          ? String(cupon.code).slice(0, 3) + '••••••'
-                                          : (cupon.code || 'BANC••••')}
-                                      </span>
-                                      <span className="flex items-center gap-1 bg-yellow-400 text-black text-[9px] font-black uppercase px-2 py-0.5 rounded-lg">
-                                        <Copy size={10} strokeWidth={3} /> COPIAR
-                                      </span>
-                                    </button>
-                                  </div>
-                                </div>
+                              <div className="flex justify-between items-start gap-2">
+                                <h3 className="text-base font-black uppercase tracking-tight drop-shadow-sm leading-tight truncate pr-1">
+                                  {cupon.title || 'DESCUENTO BANCARIO'}
+                                </h3>
 
                                 <div className="flex flex-col items-end gap-1 text-right shrink-0">
                                   <CountdownTimer expiresAt={cupon.expires_at} />
-                                  <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
+                                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                                     <button
                                       onClick={() => handleReaction(cuponId, 'like')}
                                       className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-white/20 ${
-                                        currentReaction === 'like' ? 'bg-white text-black' : 'bg-black/40 text-white'
+                                        currentReaction === 'like' ? 'bg-white text-black' : 'bg-black/30 text-white'
                                       }`}
                                     >
                                       <ThumbsUp size={10} /> <span>{counts.like}</span>
@@ -1892,7 +1877,7 @@ function App() {
                                     <button
                                       onClick={() => handleReaction(cuponId, 'heart')}
                                       className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-white/20 ${
-                                        currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-black/40 text-white'
+                                        currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-black/30 text-white'
                                       }`}
                                     >
                                       <Heart size={10} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
@@ -1901,7 +1886,24 @@ function App() {
                                 </div>
                               </div>
 
-                              <div className="pt-2 border-t border-white/20">
+                              {/* Fila intermedia separada para el botón blanco/azul */}
+                              <div className="my-1.5">
+                                <button
+                                  type="button"
+                                  className="w-full flex items-center justify-between gap-2 bg-white hover:bg-gray-50 text-slate-900 py-1.5 px-3 rounded-xl border-2 border-black/80 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.4)] transition-all active:translate-y-0.5"
+                                >
+                                  <span className="text-sm font-black tracking-widest font-mono truncate">
+                                    {cupon.code && String(cupon.code).length > 3
+                                      ? String(cupon.code).slice(0, 3) + '••••••'
+                                      : (cupon.code || 'BANC••••')}
+                                  </span>
+                                  <span className="shrink-0 inline-flex items-center gap-1 bg-[#3483fa] text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-lg shadow-sm">
+                                    <Copy size={10} strokeWidth={2.8} /> COPIAR
+                                  </span>
+                                </button>
+                              </div>
+
+                              <div className="pt-1.5 border-t border-white/20">
                                 <span className="text-[9px] font-extrabold uppercase tracking-tight text-white/90 block leading-tight truncate">
                                   {cupon.description || 'BENEFICIOS EXCLUSIVOS CON TARJETA'}
                                 </span>
@@ -1942,35 +1944,18 @@ function App() {
                           </div>
 
                           <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-white flex flex-col justify-between relative overflow-hidden min-w-0`}>
-                            <div className="flex justify-between items-start gap-2 mb-2">
-                              <div className="flex flex-col min-w-0 pr-1">
-                                <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1.5 truncate">
-                                  {cupon.title || 'DESCUENTO BANCARIO'}
-                                </h3>
-                                <div className="mt-1">
-                                  <button
-                                    type="button"
-                                    className="inline-flex items-center gap-2.5 bg-black text-cyan-300 group-hover:bg-neutral-900 py-2 px-3.5 rounded-xl border-2 border-white/90 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] group-hover:scale-[1.03] active:translate-y-0.5 transition-all cursor-pointer"
-                                  >
-                                    <span className="text-base xl:text-lg font-black tracking-widest font-mono">
-                                      {cupon.code && String(cupon.code).length > 3
-                                        ? String(cupon.code).slice(0, 3) + '••••••'
-                                        : (cupon.code || 'BANC••••')}
-                                    </span>
-                                    <span className="flex items-center gap-1 bg-yellow-400 text-black text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-sm">
-                                      <Copy size={12} strokeWidth={2.8} /> COPIAR Y CANJEAR
-                                    </span>
-                                  </button>
-                                </div>
-                              </div>
+                            <div className="flex justify-between items-start gap-2">
+                              <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm truncate pr-1">
+                                {cupon.title || 'DESCUENTO BANCARIO'}
+                              </h3>
 
                               <div className="flex flex-col items-end gap-1 text-right flex-shrink-0">
                                 <CountdownTimer expiresAt={cupon.expires_at} />
-                                <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                                   <button
                                     onClick={() => handleReaction(cuponId, 'like')}
                                     className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-white/20 ${
-                                      currentReaction === 'like' ? 'bg-white text-black' : 'bg-black/40 hover:bg-black/60 text-white'
+                                      currentReaction === 'like' ? 'bg-white text-black' : 'bg-black/30 hover:bg-black/50 text-white'
                                     }`}
                                   >
                                     <ThumbsUp size={10} /> <span>{counts.like}</span>
@@ -1978,13 +1963,30 @@ function App() {
                                   <button
                                     onClick={() => handleReaction(cuponId, 'heart')}
                                     className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-white/20 ${
-                                      currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-black/40 hover:bg-black/60 text-white'
+                                      currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-black/30 hover:bg-black/50 text-white'
                                     }`}
                                   >
                                     <Heart size={10} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
                                   </button>
                                 </div>
                               </div>
+                            </div>
+
+                            {/* Fila intermedia separada para el botón blanco/azul sin tocar reacciones */}
+                            <div className="my-2.5">
+                              <button
+                                type="button"
+                                className="w-full flex items-center justify-between gap-2 bg-white hover:bg-gray-50 text-slate-900 py-2 px-3.5 rounded-xl border-2 border-black/80 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.35)] group-hover:scale-[1.02] active:translate-y-0.5 transition-all cursor-pointer"
+                              >
+                                <span className="text-base xl:text-lg font-black tracking-widest font-mono truncate">
+                                  {cupon.code && String(cupon.code).length > 3
+                                    ? String(cupon.code).slice(0, 3) + '••••••'
+                                    : (cupon.code || 'BANC••••')}
+                                </span>
+                                <span className="shrink-0 inline-flex items-center gap-1.5 bg-[#3483fa] group-hover:bg-[#2968c8] text-white text-[10px] xl:text-[11px] font-black uppercase px-3 py-1.5 rounded-lg shadow-sm transition-colors">
+                                  <Copy size={12} strokeWidth={2.8} /> COPIAR Y CANJEAR
+                                </span>
+                              </button>
                             </div>
 
                             <div className="pt-2 border-t border-white/20 mt-auto">
