@@ -34,7 +34,7 @@ Eres CapiBaraML 🐹, el asistente virtual y vendedor estrella oficial de CapiBa
 TU PERSONALIDAD Y TONO DE VOZ:
 - Eres sumamente amigable, simpático, persuasivo, educado y cercano.
 - Tu objetivo principal es VENDER y ayudar al usuario a ahorrar: recomienda productos exactos del catálogo, comparte cupones activos e invita a unirse al grupo oficial de WhatsApp para recibir ofertas flash.
-- Respeta estrictamente la categoría que pide el usuario (celular es celular, pantalla es pantalla, laptop es laptop). Nunca mezcles categorías.
+- Respeta estrictamente la categoría que pide el usuario (celular es celular, pantalla es pantalla, laptop es laptop). Nunca mezcles categorías ni recomiendes accesorios o repuestos cuando piden un equipo completo.
 - Habla en español latino, usando emojis de forma moderada pero divertida (🚀, ✨, 🐹, 🎟️, 🔥).
 
 REGLAS ESTRICTAS DE FORMATO:
@@ -369,7 +369,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
   };
 
   // ==========================================
-  // TARJETAS DE PRODUCTOS FILTRADOS DEL CATÁLOGO
+  // TARJETAS DE PRODUCTOS FILTRADOS
   // ==========================================
   const renderProductCards = (matchedList, introText) => {
     return (
@@ -547,84 +547,98 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
   };
 
   // ==========================================
-  // BUSCADOR ESTRICTO DE PRODUCTOS (CERO FALSOS POSITIVOS)
+  // FILTRADOR ESTRICTO DE HARDWARE (CERO ACCESORIOS FALSOS)
   // ==========================================
-  const searchCatalogStrict = (rawQuery) => {
+  const searchCatalogRigorous = (rawQuery) => {
     const normQuery = normalizeText(rawQuery);
     const budget = extractBudgetFromText(rawQuery);
 
-    // Reglas estrictas por categoría
-    const categoryRules = [
+    // Definición estricta de hardware real por categoría
+    const categories = [
       {
-        name: 'pantalla',
-        triggers: ['pantalla', 'pantallas', 'televisor', 'televisores', 'television', 'smart tv', 'tv'],
-        // El título DEBE contener alguna de estas palabras clave reales de TV
-        mustHave: ['smart tv', 'televisor', 'television', 'pantalla', 'roku tv', 'google tv', 'hisense', 'tcl', 'lg', 'samsung', 'qled', 'oled', 'uhd', 'hdmi'],
-        // El título NUNCA debe contener estos accesorios falsos positivos
-        neverHave: ['audifono', 'audifonos', 'auricular', 'auriculares', 'celular', 'smartphone', 'iphone', 'soporte', 'base', 'brazo', 'funda', 'mica', 'protector', 'reloj', 'smartwatch', 'tableta', 'ipad', 'power bank', 'bateria', 'sensor'],
-        cleanLabel: 'Pantalla / Smart TV'
+        name: 'laptop',
+        triggers: ['laptop', 'laptops', 'computadora', 'computadoras', 'notebook', 'macbook', 'pc escritorio', 'all in one'],
+        // El título DEBE tener obligatoriamente al menos una especificación técnica de equipo completo
+        mustHaveKeywords: ['laptop', 'notebook', 'computadora', 'macbook', 'chromebook', 'all in one'],
+        hardwareSpecs: ['ram', 'ssd', 'hdd', 'intel', 'ryzen', 'core i', 'windows', 'gb', 'tb', 'ghz'],
+        // Si el título incluye esto, se descarta (evita cables MagSafe, cargadores, micas, discos sueltos)
+        forbiddenKeywords: ['cable', 'cargador', 'magsafe', 'funda', 'mochila', 'base', 'soporte', 'disco duro', 'ssd', 'hdd', 'memoria ram', 'mouse', 'teclado', 'lentes', 'gafas'],
+        cleanLabel: 'Laptop / Computadora'
       },
       {
         name: 'celular',
         triggers: ['celular', 'celulares', 'telefono', 'telefonos', 'smartphone', 'smartphones', 'iphone', 'galaxy', 'xiaomi', 'motorola', 'nothing phone', 'redmi', 'poco'],
-        mustHave: ['celular', 'smartphone', 'telefono', 'iphone', 'galaxy', 'xiaomi', 'redmi', 'poco', 'motorola', 'moto', 'nothing phone', 'realme', 'honor'],
-        neverHave: ['funda', 'mica', 'cargador', 'cable', 'audifono', 'audifonos', 'auricular', 'auriculares', 'soporte', 'base', 'reloj', 'smartwatch', 'ipad', 'tablet', 'funda'],
+        mustHaveKeywords: ['celular', 'smartphone', 'telefono', 'iphone', 'galaxy', 'xiaomi', 'redmi', 'poco', 'motorola', 'moto', 'nothing phone', 'realme', 'honor'],
+        hardwareSpecs: ['ram', 'rom', 'gb', 'mp', 'camara', 'dual sim', '5g', 'snapdragon', 'mediatek'],
+        forbiddenKeywords: ['cable', 'cargador', 'funda', 'mica', 'cristal', 'audifono', 'audifonos', 'auricular', 'auriculares', 'soporte', 'base', 'reloj', 'smartwatch', 'tablet', 'ipad', 'control remoto', 'enchufe', 'interruptor', 'modul', 'sensor'],
         cleanLabel: 'Celular / Smartphone'
+      },
+      {
+        name: 'pantalla',
+        triggers: ['pantalla', 'pantallas', 'televisor', 'televisores', 'television', 'smart tv', 'tv'],
+        mustHaveKeywords: ['smart tv', 'televisor', 'television', 'pantalla', 'roku tv', 'google tv', 'qled', 'oled', 'uhd', 'pulgadas'],
+        hardwareSpecs: ['pulgadas', '4k', '8k', 'uhd', 'hdmi', 'smart tv', 'hz'],
+        forbiddenKeywords: ['audifono', 'audifonos', 'auricular', 'auriculares', 'celular', 'smartphone', 'iphone', 'soporte', 'base', 'brazo', 'funda', 'mica', 'protector', 'reloj', 'smartwatch', 'tableta', 'ipad', 'power bank', 'bateria', 'sensor', 'control remoto', 'cable', 'estuche', 'nintendo'],
+        cleanLabel: 'Pantalla / Smart TV'
       },
       {
         name: 'audifono',
         triggers: ['audifono', 'audifonos', 'auricular', 'auriculares', 'headset', 'earbuds', 'buds', 'airpods'],
-        mustHave: ['audifono', 'audifonos', 'auricular', 'auriculares', 'headset', 'earbuds', 'buds', 'airpods', 'diadema'],
-        neverHave: ['funda', 'estuche', 'almohadilla', 'adaptador', 'celular', 'smartphone'],
+        mustHaveKeywords: ['audifono', 'audifonos', 'auricular', 'auriculares', 'headset', 'earbuds', 'buds', 'airpods', 'diadema'],
+        hardwareSpecs: ['bluetooth', 'inalámbricos', 'inalambricos', 'cancelacion', 'microfono', 'gamer', 'rgb', 'tws'],
+        forbiddenKeywords: ['funda', 'estuche', 'almohadilla', 'adaptador', 'celular', 'smartphone', 'cable'],
         cleanLabel: 'Audífonos'
-      },
-      {
-        name: 'laptop',
-        triggers: ['laptop', 'laptops', 'computadora', 'notebook', 'macbook', 'pc'],
-        mustHave: ['laptop', 'notebook', 'macbook', 'chromebook', 'ultrabook', 'computadora'],
-        neverHave: ['mochila', 'funda', 'base', 'soporte', 'mouse', 'teclado', 'audifono', 'audifonos', 'cargador', 'cable'],
-        cleanLabel: 'Laptop'
       },
       {
         name: 'tablet',
         triggers: ['tablet', 'tablets', 'ipad'],
-        mustHave: ['tablet', 'ipad', 'galaxy tab', 'redmi pad'],
-        neverHave: ['funda', 'mica', 'lapiz', 'teclado', 'soporte'],
+        mustHaveKeywords: ['tablet', 'ipad', 'galaxy tab', 'redmi pad'],
+        hardwareSpecs: ['ram', 'rom', 'gb', 'wifi', 'cellular'],
+        forbiddenKeywords: ['funda', 'mica', 'lapiz', 'teclado', 'soporte'],
         cleanLabel: 'Tablet / iPad'
       },
       {
-        name: 'reloj',
+        name: 'smartwatch',
         triggers: ['reloj', 'smartwatch', 'band'],
-        mustHave: ['smartwatch', 'reloj', 'mi band', 'watch', 'amazfit', 'huawei watch'],
-        neverHave: ['extensible', 'correa', 'mica', 'cargador'],
+        mustHaveKeywords: ['smartwatch', 'reloj inteligente', 'mi band', 'smart watch', 'amazfit', 'huawei watch'],
+        hardwareSpecs: ['bluetooth', 'pulsometro', 'monitor', 'gps', 'ip68'],
+        forbiddenKeywords: ['extensible', 'correa', 'mica', 'cargador'],
         cleanLabel: 'Smartwatch'
       }
     ];
 
-    const matchedRule = categoryRules.find((rule) =>
-      rule.triggers.some((t) => new RegExp(`\\b${t}\\b`, 'i').test(normQuery))
+    const matchedCat = categories.find((cat) =>
+      cat.triggers.some((t) => new RegExp(`\\b${t}\\b`, 'i').test(normQuery))
     );
 
     let candidates = [];
     let cleanSearchLabel = rawQuery;
 
-    if (matchedRule) {
-      cleanSearchLabel = matchedRule.cleanLabel;
+    if (matchedCat) {
+      cleanSearchLabel = matchedCat.cleanLabel;
       candidates = activeValidProducts.filter((prod) => {
         const titleNorm = normalizeText(prod.title || prod.nombre || '');
-        const hasRequired = matchedRule.mustHave.some((kw) => titleNorm.includes(kw));
-        const hasForbidden = matchedRule.neverHave.some((bad) => titleNorm.includes(bad));
-        return hasRequired && !hasForbidden;
+        const descNorm = normalizeText(prod.description || '');
+        const fullText = `${titleNorm} ${descNorm}`;
+
+        // 1. Debe incluir palabra clave principal
+        const hasMain = matchedCat.mustHaveKeywords.some((kw) => titleNorm.includes(kw));
+        // 2. NUNCA debe incluir accesorios prohibidos en el título
+        const hasForbidden = matchedCat.forbiddenKeywords.some((bad) => titleNorm.includes(bad));
+        // 3. Verificamos que tenga alguna especificación técnica real en todo el texto del producto
+        const hasSpec = matchedCat.hardwareSpecs.some((spec) => fullText.includes(spec));
+
+        return hasMain && !hasForbidden && hasSpec;
       });
     } else {
-      // Búsqueda general limpia (ignorando palabras de relleno)
+      // Búsqueda general por términos limpios
       const stopWords = new Set([
         'hola', 'buenos', 'dias', 'tardes', 'noches', 'quiero', 'busco', 'tienes',
         'tienen', 'algun', 'alguna', 'algunos', 'unas', 'unos', 'para', 'con',
         'precio', 'oferta', 'ofertas', 'barato', 'baratos', 'comprar', 'ver',
         'me', 'puedes', 'recomendar', 'recomiendas', 'por', 'favor', 'de', 'la',
         'el', 'los', 'las', 'un', 'una', 'bueno', 'buena', 'buenos', 'tengo',
-        'presupuesto', 'menos', 'hasta', 'como', 'que', 'hay', 'plana', 'tienes', 'tienen'
+        'presupuesto', 'menos', 'hasta', 'como', 'que', 'hay', 'plana', 'tienes'
       ]);
 
       const keywords = normQuery
@@ -634,7 +648,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       if (keywords.length > 0) {
         candidates = activeValidProducts.filter((prod) => {
           const titleNorm = normalizeText(prod.title || prod.nombre || '');
-          // Exigimos que al menos las dos primeras palabras clave aparezcan en el título
           return keywords.slice(0, 2).every((kw) => titleNorm.includes(kw));
         });
       }
@@ -816,8 +829,8 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       return;
     }
 
-    // 6. Búsqueda estricta en el catálogo local
-    const searchResult = searchCatalogStrict(userText);
+    // 6. Búsqueda rigurosa de hardware en el catálogo local
+    const searchResult = searchCatalogRigorous(userText);
 
     if (searchResult.status === 'FOUND') {
       const intro = searchResult.budget
@@ -849,7 +862,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
             searchQuery: `${searchResult.cleanSearchLabel} menos de $${searchResult.budget}`,
             customReason: (
               <>
-                Por <strong>${searchResult.budget.toLocaleString('en-US')}</strong> no tenemos <strong>{searchResult.cleanSearchLabel}</strong> en nuestra vitrina ahorita (los que tenemos arrancan desde <strong>${searchResult.cheapestPrice.toLocaleString('en-US')}</strong> 😅), ¡pero puedes buscar opciones económicas o reacondicionadas directo en Mercado Libre aquí! 👇
+                Por <strong>${searchResult.budget.toLocaleString('en-US')}</strong> no tenemos <strong>{searchResult.cleanSearchLabel}</strong> en nuestra vitrina ahorita (los equipos que tenemos arrancan desde <strong>${searchResult.cheapestPrice.toLocaleString('en-US')}</strong> 😅), ¡pero puedes buscar opciones económicas directo en Mercado Libre aquí! 👇
               </>
             ),
           },
@@ -859,7 +872,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       return;
     }
 
-    // 7. Fallback externo si no hay coincidencia estricta
+    // 7. Fallback externo si no hay stock local exacto
     setTimeout(() => {
       setChatMessages((prev) => [
         ...prev,
@@ -1029,7 +1042,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Ej: audífonos, pantalla, celular de 3000..."
+                placeholder="Ej: laptop de 8000, iphone, pantalla de tv..."
                 className={`flex-1 min-w-0 px-3.5 py-2.5 sm:py-3 text-base sm:text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all ${
                   isLight
                     ? 'bg-gray-50 border-gray-300 text-gray-800'
