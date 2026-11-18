@@ -2434,6 +2434,33 @@ function App() {
   return (
     <div className={mainBgClass}>
       
+      {/* ========================================== */}
+      {/* BARRA SUPERIOR DE WHATSAPP (TRÁFICO ADS)   */}
+      {/* ========================================== */}
+      <div className="sticky top-0 z-[75] w-full bg-[#25D366] border-b-4 border-black shadow-xl">
+        <div className="container mx-auto px-3 py-2.5 flex items-center justify-between sm:justify-center gap-3 sm:gap-5">
+          <div className="flex items-center gap-2 text-black min-w-0">
+            <span className="relative flex h-3 w-3 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-black"></span>
+            </span>
+            <p className="text-xs sm:text-sm font-black tracking-tight truncate">
+              🔥 ¡Recibe cupones flash y errores de precio al instante!
+            </p>
+          </div>
+          <a
+            href="https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 inline-flex items-center gap-1.5 bg-black hover:bg-neutral-800 text-white font-black text-[11px] sm:text-xs uppercase px-3.5 py-2 rounded-full border-2 border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,0.4)] transition-transform hover:scale-105"
+          >
+            <FaWhatsapp className="w-4 h-4 text-[#25D366]" />
+            <span>Unirme al WhatsApp</span>
+            <ArrowRight className="w-3.5 h-3.5 hidden sm:inline" />
+          </a>
+        </div>
+      </div>
+
       <style>{`
         @media (max-width: 768px) {
           [class*="chat-window"], [class*="bot-container"], [class*="chatbot"] {
@@ -2457,7 +2484,7 @@ function App() {
       )}
 
       {/* MENÚ FLOTANTE DERECHO: BOTÓN DE PERFIL DE USUARIO COMENTADO, SE MANTIENE CONTADOR Y TEMA */}
-      <div className={`fixed top-4 ${isMobileDevice ? 'right-2' : 'right-6'} z-[60] flex flex-col items-center gap-2.5 pointer-events-auto`}>
+      <div className={`fixed top-16 ${isMobileDevice ? 'right-2' : 'right-6'} z-[60] flex flex-col items-center gap-2.5 pointer-events-auto`}>
         <VisitorCounter isLight={isLight} />
 
         {/* ========================================== */}
