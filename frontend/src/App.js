@@ -1457,7 +1457,7 @@ function App() {
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
   // ==========================================
-  // SECCIÓN DE CUPONES DIGITALES (BLINDADA PARA MÓVIL, TABLET Y ESCRITORIO)
+  // SECCIÓN DE CUPONES DIGITALES (BLINDADA + BOTÓN CLICKEABLE DE ALTO CONTRASTE)
   // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
@@ -1520,7 +1520,6 @@ function App() {
           ) : (
             <div className="relative px-1 sm:px-10 lg:px-12">
               <div className="overflow-hidden py-4" ref={cuponesRef}>
-                {/* 1 columna en móvil y tablet vertical (lg:flex-[0_0_calc(50%-12px)] pasa a 2 columnas en 1024px+) */}
                 <div className="flex gap-4 lg:gap-6 items-center">
                   {filteredCupones.map((cupon, idx) => {
                     const cuponId = getSafeId(cupon) || cupon.title;
@@ -1549,7 +1548,7 @@ function App() {
 
                             <div 
                               onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                              className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer w-[440px] h-[195px] flex-shrink-0"
+                              className="group relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer w-[440px] h-[195px] flex-shrink-0"
                             >
                               <div className="bg-white text-gray-900 p-4 flex flex-col justify-between items-center w-[145px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
                                 <div className="flex flex-col items-center justify-center my-auto">
@@ -1584,10 +1583,10 @@ function App() {
                                     <h3 className="text-lg font-black uppercase tracking-tight drop-shadow-sm mb-1 leading-tight truncate">
                                       {cupon.title || '12% DE DESCUENTO'}
                                     </h3>
-                                  <div className="mt-1">
+                                    <div className="mt-1">
                                       <button
                                         type="button"
-                                        className="group/btn inline-flex items-center gap-2 bg-black text-yellow-400 hover:bg-neutral-900 py-1.5 px-3 rounded-xl border-2 border-white/90 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.45)] transition-all active:translate-y-0.5"
+                                        className="inline-flex items-center gap-2 bg-black text-yellow-400 group-hover:bg-neutral-900 py-1.5 px-3 rounded-xl border-2 border-white/90 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.45)] transition-all active:translate-y-0.5"
                                       >
                                         <span className="text-sm font-black tracking-widest font-mono">
                                           {cupon.code && String(cupon.code).length > 3
@@ -1642,7 +1641,7 @@ function App() {
                           </span>
                           <div 
                             onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                            className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer h-full w-full"
+                            className="group relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer h-full w-full"
                           >
                             <div className="bg-white text-gray-900 p-4 sm:p-5 flex flex-col justify-between items-center w-[190px] xl:w-[230px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
                               <div className="flex flex-col items-center justify-center my-auto py-1">
@@ -1676,18 +1675,23 @@ function App() {
                             <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-black flex flex-col justify-between relative overflow-hidden min-w-0`}>
                               <div className="flex justify-between items-start gap-2 mb-2">
                                 <div className="flex flex-col min-w-0 pr-1">
-                                  <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 truncate">
+                                  <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1.5 truncate">
                                     {cupon.title || '10% DE DESCUENTO'}
                                   </h3>
-                                  <div>
-                                    <span className="block text-[9px] font-black uppercase tracking-widest text-black/70 mb-0.5">
-                                      COPIAR Y CANJEAR
-                                    </span>
-                                    <div className="text-lg xl:text-xl font-black tracking-widest font-mono bg-black/10 py-1 px-3 rounded-xl border border-black/25 inline-block select-all">
-                                      {cupon.code && String(cupon.code).length > 3
-                                        ? String(cupon.code).slice(0, 3) + '••••••'
-                                        : (cupon.code || 'CAPI••••')}
-                                    </div>
+                                  <div className="mt-1">
+                                    <button
+                                      type="button"
+                                      className="inline-flex items-center gap-2.5 bg-black text-yellow-400 group-hover:bg-neutral-900 py-2 px-3.5 rounded-xl border-2 border-white/90 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.45)] group-hover:scale-[1.03] active:translate-y-0.5 transition-all cursor-pointer"
+                                    >
+                                      <span className="text-base xl:text-lg font-black tracking-widest font-mono">
+                                        {cupon.code && String(cupon.code).length > 3
+                                          ? String(cupon.code).slice(0, 3) + '••••••'
+                                          : (cupon.code || 'CAPI••••')}
+                                      </span>
+                                      <span className="flex items-center gap-1 bg-yellow-400 text-black text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-sm">
+                                        <Copy size={12} strokeWidth={2.8} /> COPIAR Y CANJEAR
+                                      </span>
+                                    </button>
                                   </div>
                                 </div>
 
@@ -1761,7 +1765,7 @@ function App() {
   );
 
   // ==========================================
-  // SECCIÓN DE CUPONES BANCARIOS (BLINDADA PARA MÓVIL, TABLET Y ESCRITORIO)
+  // SECCIÓN DE CUPONES BANCARIOS (BLINDADA + BOTÓN CLICKEABLE DE ALTO CONTRASTE)
   // ==========================================
   const renderCuponesBancariosSection = () => (
     <div className="container mx-auto px-3 sm:px-4 mb-12 relative z-25">
@@ -1828,7 +1832,7 @@ function App() {
                           </span>
                           <div 
                             onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                            className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer w-[440px] h-[195px] flex-shrink-0"
+                            className="group relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer w-[440px] h-[195px] flex-shrink-0"
                           >
                             <div className="bg-white text-gray-900 p-4 flex flex-col justify-between items-center w-[145px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
                               <div className="flex flex-col items-center justify-center my-auto">
@@ -1857,15 +1861,20 @@ function App() {
                                   <h3 className="text-lg font-black uppercase tracking-tight drop-shadow-sm mb-1 leading-tight truncate">
                                     {cupon.title || 'DESCUENTO BANCARIO'}
                                   </h3>
-                                  <div>
-                                    <span className="block text-[8px] font-black uppercase tracking-widest text-white/70 mb-0.5">
-                                      CÓDIGO / TARJETA
-                                    </span>
-                                    <div className="text-base font-black tracking-widest font-mono bg-black/20 py-1 px-3 rounded-xl border border-white/25 inline-block select-all">
-                                      {cupon.code && String(cupon.code).length > 3
-                                        ? String(cupon.code).slice(0, 3) + '••••••'
-                                        : (cupon.code || 'BANC••••')}
-                                    </div>
+                                  <div className="mt-1">
+                                    <button
+                                      type="button"
+                                      className="inline-flex items-center gap-2 bg-black text-cyan-300 group-hover:bg-neutral-900 py-1.5 px-3 rounded-xl border-2 border-white/90 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.5)] transition-all active:translate-y-0.5"
+                                    >
+                                      <span className="text-sm font-black tracking-widest font-mono">
+                                        {cupon.code && String(cupon.code).length > 3
+                                          ? String(cupon.code).slice(0, 3) + '••••••'
+                                          : (cupon.code || 'BANC••••')}
+                                      </span>
+                                      <span className="flex items-center gap-1 bg-yellow-400 text-black text-[9px] font-black uppercase px-2 py-0.5 rounded-lg">
+                                        <Copy size={10} strokeWidth={3} /> COPIAR
+                                      </span>
+                                    </button>
                                   </div>
                                 </div>
 
@@ -1909,7 +1918,7 @@ function App() {
                         </span>
                         <div 
                           onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                          className="relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer h-full w-full"
+                          className="group relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer h-full w-full"
                         >
                           <div className="bg-white text-gray-900 p-4 sm:p-5 flex flex-col justify-between items-center w-[190px] xl:w-[230px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
                             <div className="flex flex-col items-center justify-center my-auto py-1">
@@ -1935,18 +1944,23 @@ function App() {
                           <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-white flex flex-col justify-between relative overflow-hidden min-w-0`}>
                             <div className="flex justify-between items-start gap-2 mb-2">
                               <div className="flex flex-col min-w-0 pr-1">
-                                <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1 truncate">
+                                <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm mb-1.5 truncate">
                                   {cupon.title || 'DESCUENTO BANCARIO'}
                                 </h3>
-                                <div>
-                                  <span className="block text-[9px] font-black uppercase tracking-widest text-white/70 mb-0.5">
-                                    CÓDIGO / BENEFICIO
-                                  </span>
-                                  <div className="text-lg xl:text-xl font-black tracking-widest font-mono bg-black/20 py-1 px-3 rounded-xl border border-white/25 inline-block select-all">
-                                    {cupon.code && String(cupon.code).length > 3
-                                      ? String(cupon.code).slice(0, 3) + '••••••'
-                                      : (cupon.code || 'BANC••••')}
-                                  </div>
+                                <div className="mt-1">
+                                  <button
+                                    type="button"
+                                    className="inline-flex items-center gap-2.5 bg-black text-cyan-300 group-hover:bg-neutral-900 py-2 px-3.5 rounded-xl border-2 border-white/90 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] group-hover:scale-[1.03] active:translate-y-0.5 transition-all cursor-pointer"
+                                  >
+                                    <span className="text-base xl:text-lg font-black tracking-widest font-mono">
+                                      {cupon.code && String(cupon.code).length > 3
+                                        ? String(cupon.code).slice(0, 3) + '••••••'
+                                        : (cupon.code || 'BANC••••')}
+                                    </span>
+                                    <span className="flex items-center gap-1 bg-yellow-400 text-black text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-sm">
+                                      <Copy size={12} strokeWidth={2.8} /> COPIAR Y CANJEAR
+                                    </span>
+                                  </button>
                                 </div>
                               </div>
 
