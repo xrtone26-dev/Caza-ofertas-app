@@ -30,11 +30,12 @@ const WHATSAPP_GROUP_LINK = 'https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mo
 const WHATSAPP_PERSONAL_NUMBER = '523312229710';
 
 const SYSTEM_PROMPT = `
-Eres CapiBaraML 🐹, el asistente virtual y vendedor estrella oficial de CapiBaraML WEB. 
+Eres CapiBaraML 🐹, el asistente virtual oficial de CapiBaraML WEB. 
 
 DIRECTRICES DE VENTAS Y FILTRADO ESTRICTO:
-- Tu objetivo es VENDER y ayudar al usuario a ahorrar encontrando EXACTAMENTE lo que pide en el catálogo recibido.
+- Tu objetivo es ahorrarle dinero al usuario y ayudarle a encontrar las mejores ofertas, remates y cupones activos en Mercado Libre.
 - Responde ÚNICAMENTE sobre la consulta actual del usuario. No mezcles temas de mensajes anteriores.
+- NUNCA uses la palabra "afiliado", "link de afiliado" ni "enlace de afiliado". Di siempre "enlace de oferta" o "enlace directo".
 - NUNCA inventes links ni escribas "TU_CAMPID_AQUI". Usa únicamente los links reales proporcionados en el catálogo.
 - Si no tenemos un producto, invítalo a escribirnos por WhatsApp al 33 1222 9710 para rastrearle la mejor oferta.
 - Habla en español latino, usando emojis de forma moderada pero divertida (🚀, ✨, 🐹, 🎟️, 🔥).
@@ -66,6 +67,13 @@ const normalizeStr = (s = '') =>
 const hasWholeWord = (text, words) =>
   words.some((w) => new RegExp(`\\b${w}\\b`, 'i').test(text));
 
+// Limpia cualquier mención a "afiliado" o parámetros de prueba en respuestas de la IA
+const sanitizeBotReply = (text = '') =>
+  String(text)
+    .replace(/\?campid=TU_CAMPID_AQUI/gi, '')
+    .replace(/\b(link|enlace)s?\s+de\s+afiliad[oa]s?\b/gi, 'enlace de oferta')
+    .replace(/\bafiliad[oa]s?\b/gi, 'oficiales');
+
 const filterStrictCatalog = (userText, catalog) => {
   const norm = normalizeStr(userText);
   const cleanNumText = userText.replace(/,/g, '');
@@ -77,7 +85,7 @@ const filterStrictCatalog = (userText, catalog) => {
   // Detectar si es una pregunta conversacional general (no búsqueda de producto)
   const isConversational =
     /^(hola|buenas|buenos dias|buenas tardes|buenas noches|hey|que tal|que onda|gracias|muchas gracias|ok|vale|perfecto|adios|bye)$/.test(norm) ||
-    hasWholeWord(norm, ['quien eres', 'como funciona', 'como funcionan', 'como uso', 'como aplico', 'ayuda', 'garantia', 'envio', 'confiable', 'seguro']);
+    hasWholeWord(norm, ['garantia', 'envio', 'confiable', 'seguro']);
 
   if (isConversational) {
     return { status: 'GENERAL_CHAT', items: [], budget, categoryLabel: '', isCategorySearch: false };
@@ -172,7 +180,6 @@ const filterStrictCatalog = (userText, catalog) => {
   } else if (isScreen) {
     categoryLabel = 'Pantallas / Smart TV';
     minPriceFloor = 1500;
-    // Se quitó 'uhd' de mustHave para evitar PCs con "Intel UHD Graphics"
     const mustHave = ['smart tv', 'televisor', 'television', 'pantalla', 'roku tv', 'google tv', 'qled', 'oled'];
     const exclude = [
       'pc', 'prodesk', 'all in one', 'escritorio', 'windows', 'ssd', 'ram', 'graphics',
@@ -284,7 +291,6 @@ const filterStrictCatalog = (userText, catalog) => {
     return { status: 'FOUND', items: filtered, budget, categoryLabel };
   }
 
-  // Si buscó un producto específico (como "tenis") y no hay stock, ir directo a tarjeta con WhatsApp 3312229710
   return { status: 'NOT_FOUND_IN_CAT', items: [], budget, categoryLabel: categoryLabel || userText };
 };
 
@@ -744,6 +750,41 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     setInputMessage('');
     setIsTyping(true);
 
+    // 0. Preguntas sobre qué hace / para qué sirve el bot
+    const isAboutBot =
+      lowerText.includes('para que sirves') ||
+      lowerText.includes('cual es tu funcion') ||
+      lowerText.includes('que haces') ||
+      lowerText.includes('que se supone que haces') ||
+      lowerText.includes('como me puedes ayudar') ||
+      lowerText.includes('como me ayudas') ||
+      lowerText.includes('que puedes hacer') ||
+      lowerText.includes('como funcionas') ||
+      lowerText.includes('como funciona') ||
+      lowerText.includes('quien eres') ||
+      lowerText.includes('que eres') ||
+      hasWholeWord(lowerText, ['funcion', 'sirves', 'duda', 'dudas', 'ayuda']);
+
+    if (isAboutBot) {
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            text:
+              '¡Hola! Soy **CapiBaraML** 🐹, tu cazador personal de ofertas. Mi misión es **ahorrarte dinero y tiempo** al comprar en Mercado Libre:\n\n' +
+              '🔍 **Busco por ti:** Dime qué producto necesitas y tu presupuesto (ej. *"laptop de $10,000"* o *"iPhone"*) y te muestro las mejores ofertas reales.\n' +
+              '🎟️ **Cupones activos:** Te paso los códigos de descuento vigentes del día listos para copiar.\n' +
+              '🔥 **Remates verificados:** Monitoreamos precios bajos y liquidaciones 24/7.\n' +
+              '💬 **Atención directa:** Si no tenemos lo que buscas en vitrina, te conecto con nuestro equipo por WhatsApp para rastrearlo al mejor precio.\n\n' +
+              '¿Qué oferta te gustaría buscar ahorita? 🚀',
+          },
+        ]);
+        setIsTyping(false);
+      }, 250);
+      return;
+    }
+
     if (hasWholeWord(lowerText, ['whatsapp', 'telegram', 'facebook', 'youtube', 'redes', 'grupo', 'grupos', 'canal', 'canales'])) {
       setTimeout(() => {
         setChatMessages((prev) => [...prev, { sender: 'bot', isSocialLinks: true }]);
@@ -872,7 +913,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       const botReply = response.data?.reply?.trim();
 
       if (botReply) {
-        const cleanReply = botReply.replace(/\?campid=TU_CAMPID_AQUI/g, '');
+        const cleanReply = sanitizeBotReply(botReply);
         setChatMessages((prev) => [
           ...prev,
           { sender: 'bot', text: cleanReply },
