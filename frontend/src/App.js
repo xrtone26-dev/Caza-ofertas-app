@@ -116,6 +116,27 @@ const isProductFresh = (product) => {
   return Date.now() - publishedTime <= SEVEN_DAYS_MS;
 };
 
+const getRemainingDays = (product) => {
+  const rawDate =
+    product?.created_at ||
+    product?.createdAt ||
+    product?.updated_at ||
+    product?.updatedAt ||
+    product?.date ||
+    product?.fecha;
+
+  if (!rawDate) return 7;
+
+  const publishedTime = new Date(rawDate).getTime();
+  if (isNaN(publishedTime)) return 7;
+
+  const elapsedMs = Date.now() - publishedTime;
+  const remainingMs = SEVEN_DAYS_MS - elapsedMs;
+  const daysLeft = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
+
+  return Math.min(7, Math.max(1, daysLeft));
+};
+
 export const getBankInfo = (title = '') => {
   const t = (title || '').toLowerCase();
   if (t.includes('bbva')) {
@@ -2089,6 +2110,7 @@ function App() {
                 <div className="flex gap-6">
                   {filteredProducts.map((product) => {
                     const pId = getSafeId(product) || product.title;
+                    const remainingDays = getRemainingDays(product);
                     const origPriceNum = Number(product.original_price || 0);
                     const formattedOriginalPrice = origPriceNum < 100 && origPriceNum > 0 
                       ? (origPriceNum * 1000).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
@@ -2120,6 +2142,15 @@ function App() {
                                 -{product.discount_percentage}%
                               </div>
                             )}
+                            <span
+                              className={`absolute bottom-2.5 right-3 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black select-none border ${
+                                isLight
+                                  ? 'bg-gray-100/90 text-gray-500 border-gray-300'
+                                  : 'bg-neutral-800/90 text-neutral-400 border-neutral-700'
+                              }`}
+                            >
+                              {remainingDays}
+                            </span>
                           </div>
                           <div className="p-4 sm:p-6 flex flex-col flex-1">
                             <h3 className={`text-lg sm:text-xl font-bold mb-2 line-clamp-2 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}>{product.title}</h3>
@@ -2260,6 +2291,7 @@ function App() {
               <div className="flex gap-6 items-stretch">
                 {exclusiveProducts.map((product) => {
                   const pId = getSafeId(product) || product.title;
+                  const remainingDays = getRemainingDays(product);
                   const origPriceNum = Number(product.original_price || 0);
                   const formattedOriginalPrice = origPriceNum < 100 && origPriceNum > 0 
                     ? (origPriceNum * 1000).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
@@ -2287,6 +2319,10 @@ function App() {
                         >
                           <Share2 size={12} /> Compartir
                         </button>
+
+                        <span className="absolute top-3 right-3 z-20 w-5 h-5 rounded-full bg-gray-100 text-gray-500 border border-gray-300 flex items-center justify-center text-[10px] font-black select-none">
+                          {remainingDays}
+                        </span>
 
                         <div className="relative pt-6 px-4 pb-2 text-center bg-white flex justify-center items-center h-48">
                           <img src={product.image_url} alt={product.title} className="max-h-full max-w-full object-contain drop-shadow-md" />
