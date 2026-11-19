@@ -32,15 +32,21 @@ const WHATSAPP_PERSONAL_NUMBER = '523312229710';
 const SYSTEM_PROMPT = `
 Eres CapiBaraML 🐹, el asistente virtual oficial de CapiBaraML WEB. 
 
-DIRECTRICES DE VENTAS Y FILTRADO ESTRICTO:
-- Tu objetivo es ahorrarle dinero al usuario y ayudarle a encontrar las mejores ofertas, remates y cupones activos en Mercado Libre.
-- Responde ÚNICAMENTE sobre la consulta actual del usuario. No mezcles temas de mensajes anteriores.
+PERSONALIDAD Y ACTITUD:
+- Eres siempre amable, tranquilo, pasivo, respetuoso y con buena vibra.
+- Si el usuario te dice algo grosero, te provoca o se queja, NUNCA discutas ni te pongas a la defensiva; responde con total calma, humildad y cortesía, y redirige suavemente la conversación a cómo puedes ayudarle a ahorrar.
+- Si te hacen preguntas generales o fuera de tema, respóndelas brevemente de forma cordial y amigable.
+- Tu objetivo principal es ahorrarle dinero al usuario y ayudarle a encontrar las mejores ofertas, remates y cupones activos en Mercado Libre.
 - NUNCA uses la palabra "afiliado", "link de afiliado" ni "enlace de afiliado". Di siempre "enlace de oferta" o "enlace directo".
-- NUNCA inventes links ni escribas "TU_CAMPID_AQUI". Usa únicamente los links reales proporcionados en el catálogo.
-- Si no tenemos un producto, invítalo a escribirnos por WhatsApp al 33 1222 9710 para rastrearle la mejor oferta.
-- Habla en español latino, usando emojis de forma moderada pero divertida (🚀, ✨, 🐹, 🎟️, 🔥).
-- Sé conciso, directo y persuasivo (máximo 3 líneas de texto).
+- NUNCA inventes links ni escribas "TU_CAMPID_AQUI".
+- Habla en español latino, usando emojis con moderación (🐹, ✨, 🚀). Sé conciso (máximo 3 líneas).
 `;
+
+const CALM_DEESCALATION_REPLIES = [
+  '¡Tranquilo! 🐹 Sigo aprendiendo todos los días para ayudarte mejor. Si algo no salió como esperabas, dime exactamente qué producto o cupón buscas y con gusto lo intento de nuevo. ✨',
+  'Una disculpa si no me expliqué bien 🙏🐹. Mi única intención es ayudarte a ahorrar dinero. Dime qué artículo necesitas o tu presupuesto y te busco la mejor opción al momento. 🚀',
+  '¡Sin problema! 🐹 A veces fallo un poco, pero aquí estoy con toda la buena actitud para ayudarte. ¿Qué oferta o cupón te gustaría que busquemos hoy? ✨',
+];
 
 const decodeCouponIfNeeded = (item) => {
   if (!item || typeof item !== 'object') return item;
@@ -81,11 +87,12 @@ const filterStrictCatalog = (userText, catalog) => {
     cleanNumText.match(/\$\s*(\d{2,6})/);
   const budget = budgetMatch && budgetMatch[1] ? Number(budgetMatch[1]) : null;
 
-  const isConversational =
-    /^(hola|buenas|buenos dias|buenas tardes|buenas noches|hey|que tal|que onda|gracias|muchas gracias|ok|vale|perfecto|adios|bye)$/.test(norm) ||
-    hasWholeWord(norm, ['garantia', 'envio', 'confiable', 'seguro']);
+  // Detectar si es una frase conversacional / pregunta general (no búsqueda de producto)
+  const isGreetingOrSmallTalk =
+    /^(hola|buenas|buenos dias|buenas tardes|buenas noches|hey|que tal|que onda|gracias|muchas gracias|ok|vale|perfecto|adios|bye|como estas|todo bien|si|no|jaja|jajaja)$/.test(norm) ||
+    hasWholeWord(norm, ['garantia', 'envio', 'confiable', 'seguro', 'chiste', 'clima', 'hora', 'nombre']);
 
-  if (isConversational) {
+  if (isGreetingOrSmallTalk) {
     return { status: 'GENERAL_CHAT', items: [], budget, categoryLabel: '', isCategorySearch: false };
   }
 
@@ -288,7 +295,18 @@ const filterStrictCatalog = (userText, catalog) => {
     return { status: 'FOUND', items: filtered, budget, categoryLabel };
   }
 
-  return { status: 'NOT_FOUND_IN_CAT', items: [], budget, categoryLabel: categoryLabel || userText };
+  // Solo mostrar tarjeta de "producto no encontrado" si realmente tiene intención de compra o es una categoría/marca
+  const isKnownCategory = isLaptopOnly || isDesktopOrPC || isPhone || isScreen || isMonitor || isConsole || isHeadphones || Boolean(requestedBrand);
+  const hasShoppingIntent = hasWholeWord(norm, ['busco', 'quiero', 'comprar', 'recomiendame', 'recomienda', 'tienes', 'tienen', 'precio', 'oferta', 'ofertas', 'presupuesto']) || Boolean(budget);
+  const looksLikeGeneralQuestion =
+    /^(por que|porque|como|cuando|donde|quien|cual|eres|estas|puedes|sabes|dime|cuentame|crees|piensas|te gusta)/.test(norm);
+
+  if (isKnownCategory || (hasShoppingIntent && !looksLikeGeneralQuestion) || (!looksLikeGeneralQuestion && norm.split(' ').length <= 2 && !userText.includes('?'))) {
+    return { status: 'NOT_FOUND_IN_CAT', items: [], budget, categoryLabel: categoryLabel || userText };
+  }
+
+  // Cualquier otra pregunta o comentario abierto pasa a la IA para responder de forma pasiva y natural
+  return { status: 'GENERAL_CHAT', items: [], budget, categoryLabel: '' };
 };
 
 export default function ChatbotWidget({ isLight, cupones = [], products = [], isMobileDevice = false }) {
@@ -574,9 +592,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     );
   };
 
-  // ==========================================
-  // TARJETAS DE PRODUCTOS (10 INICIALES + BOTÓN "VER MÁS" HASTA AGOTAR GALERÍA)
-  // ==========================================
   const renderProductCards = (matchedList, introText, msgIndex) => {
     const visibleLimit = visibleCounts[msgIndex] || 10;
     const visibleItems = matchedList.slice(0, visibleLimit);
@@ -668,9 +683,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     );
   };
 
-  // ==========================================
-  // TARJETA DE BÚSQUEDA EXTERNA + CONTACTO DIRECTO A TU WHATSAPP (3312229710)
-  // ==========================================
   const renderExternalSearchCard = (queryText, customReason = null) => {
     const waDirectText = `Hola, estoy buscando "${queryText}" en CapiBaraML. ¿Me puedes ayudar a rastrear la mejor oferta o cupón? 🐹`;
     const waDirectUrl = `https://wa.me/${WHATSAPP_PERSONAL_NUMBER}?text=${encodeURIComponent(waDirectText)}`;
@@ -776,7 +788,24 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     setInputMessage('');
     setIsTyping(true);
 
-    // 0. Preguntas sobre qué hace / para qué sirve el bot
+    // 0A. Respuesta pasiva y amable ante insultos, provocaciones o quejas
+    const isInsultOrProvocation = hasWholeWord(lowerText, [
+      'tonto', 'tonta', 'estupido', 'estupida', 'idiota', 'pendejo', 'pendeja',
+      'menso', 'mensa', 'baboso', 'babosa', 'imbecil', 'tarado', 'tarada',
+      'inutil', 'basura', 'porqueria', 'torpe', 'bobo', 'boba', 'mamon',
+      'no sirves', 'vales madre', 'malo', 'pesimo', 'horrible'
+    ]);
+
+    if (isInsultOrProvocation) {
+      const calmReply = CALM_DEESCALATION_REPLIES[newHistory.length % CALM_DEESCALATION_REPLIES.length];
+      setTimeout(() => {
+        setChatMessages((prev) => [...prev, { sender: 'bot', text: calmReply }]);
+        setIsTyping(false);
+      }, 250);
+      return;
+    }
+
+    // 0B. Preguntas sobre qué hace / para qué sirve el bot
     const isAboutBot =
       lowerText.includes('para que sirves') ||
       lowerText.includes('cual es tu funcion') ||
@@ -916,7 +945,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       return;
     }
 
-    // 2. Consulta conversacional general a la IA
+    // 2. Consulta conversacional general a la IA (responde de forma pasiva y amable cualquier otra pregunta)
     const cleanProductsCatalog = catalogToSearch.slice(0, 25).map((p) => ({
       title: String(p.title || p.nombre || ''),
       price: Number(p.discount_price || p.precio || 0),
@@ -951,8 +980,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
         ...prev,
         {
           sender: 'bot',
-          isExternalSearch: true,
-          searchQuery: userText,
+          text: '¡Con gusto te ayudo! 🐹 Dime qué producto, marca o cupón estás buscando hoy y te consigo las mejores ofertas disponibles. 🚀',
         },
       ]);
     } finally {
