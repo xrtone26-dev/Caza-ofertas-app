@@ -33,6 +33,7 @@ const SYSTEM_PROMPT = `
 Eres CapiBaraML 🐹, el asistente virtual oficial de CapiBaraML WEB. 
 
 PERSONALIDAD Y ACTITUD:
+- SIEMPRE responde 100% en español latino. NUNCA respondas en inglés bajo ninguna circunstancia.
 - Eres siempre amable, tranquilo, pasivo, respetuoso y con buena vibra.
 - Si el usuario te dice algo grosero, te provoca o se queja, NUNCA discutas ni te pongas a la defensiva; responde con total calma, humildad y cortesía, y redirige suavemente la conversación a cómo puedes ayudarle a ahorrar.
 - Si el usuario solo está charlando (saludos, chistes, "otro", preguntas generales), respóndele de forma natural, simpática y breve siguiendo el hilo de la conversación.
@@ -66,12 +67,17 @@ const normalizeStr = (s = '') =>
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    // Separa marcas pegadas a números de modelo (ej. "iphone18" -> "iphone 18", "iphone17e" -> "iphone 17e")
+    .replace(/\b(iphone|ipad|macbook|galaxy|redmi|poco|moto|motorola|switch|xbox)(\d)/gi, '$1 $2')
     .replace(/[^a-z0-9\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
 const hasWholeWord = (text, words) =>
   words.some((w) => new RegExp(`\\b${w}\\b`, 'i').test(text));
+
+const isEnglishRefusal = (text = '') =>
+  /\b(i['’]?m sorry|i cannot|i can['’]?t help|as an ai|i am unable|sorry, but i can['’]?t)\b/i.test(String(text));
 
 const sanitizeBotReply = (text = '') =>
   String(text)
@@ -81,17 +87,55 @@ const sanitizeBotReply = (text = '') =>
 
 const extractBudget = (userText = '') => {
   const cleanNumText = userText.replace(/,/g, '');
-  const budgetMatch =
-    cleanNumText.match(/(?:presupuesto|tengo|cuento con|maximo|máximo|hasta|menos de|para|de)\s*(?:de\s*)?\$?\s*(\d{2,6})/i) ||
-    cleanNumText.match(/\$\s*(\d{2,6})/);
-  return budgetMatch && budgetMatch[1] ? Number(budgetMatch[1]) : null;
+
+  // 1. Con palabra clave o signo de pesos (ej. "de 8000", "$500", "tengo 2000")
+  const explicitMatch =
+    cleanNumText.match(/(?:presupuesto|tengo|cuento con|maximo|máximo|hasta|menos de|para|de)\s*(?:de\s*)?\$?\s*(\d{3,6})\b/i) ||
+    cleanNumText.match(/\$\s*(\d{2,6})\b/);
+  if (explicitMatch && explicitMatch[1]) {
+    const val = Number(explicitMatch[1]);
+    if (val >= 50 && val <= 500000) return val;
+  }
+
+  // 2. Monto suelto junto al producto (ej. "laptop 10000", "celular 5000", "pantalla 15000")
+  // Excluye capacidades (256gb, 512gb) y modelos de GPU/CPU comunes (3050, 4060, 5060, 5070)
+  const ignoredModelNums = new Set([128, 256, 512, 1024, 3050, 3060, 4050, 4060, 4070, 5060, 5070, 6500]);
+  const bareMatches = [...cleanNumText.matchAll(/\b(\d{3,6})\b(?!\s*(?:gb|tb|hz|pulgadas|mp|mah|w|mm|cm))/gi)];
+  for (const m of bareMatches) {
+    const val = Number(m[1]);
+    if (val >= 500 && val <= 500000 && !ignoredModelNums.has(val)) {
+      return val;
+    }
+  }
+
+  return null;
+};
+
+// Extrae tokens de modelo/versión específicos (ej. "18", "17", "17e", "pro", "max", "air", "gamer", "55", "oled")
+const extractModelTokens = (normQuery, budget) => {
+  const budgetStr = budget ? String(budget) : null;
+  const knownModifiers = new Set([
+    'pro', 'max', 'plus', 'mini', 'ultra', 'air', 'lite', 'slim', 'gamer',
+    'oled', 'qled', 'digital', 'standard', 'neon', 'series', 'fe', 'se',
+    'm1', 'm2', 'm3', 'm4', 'm5', 'i3', 'i5', 'i7', 'i9', 'ryzen',
+    '16e', '17e', 's24', 's25', 's26', 'ps4', 'ps5'
+  ]);
+
+  return normQuery.split(' ').filter((tok) => {
+    if (!tok || tok === budgetStr) return false;
+    if (knownModifiers.has(tok)) return true;
+    // Números cortos de modelo o pulgadas (ej. "13", "14", "15", "16", "17", "18", "32", "55", "65", "75")
+    if (/^\d{1,2}$/.test(tok) && Number(tok) >= 1 && Number(tok) <= 99) return true;
+    // Letras sueltas de modelo Xbox Series X / S
+    if ((tok === 'x' || tok === 's') && hasWholeWord(normQuery, ['xbox', 'series'])) return true;
+    return false;
+  });
 };
 
 const filterStrictCatalog = (userText, catalog) => {
   const norm = normalizeStr(userText);
   const budget = extractBudget(userText);
 
-  // Detectar saludos, despedidas, seguimientos de charla o preguntas generales
   const isGreetingOrSmallTalk =
     /^(hola|buen dia|buenos dias|buenas tardes|buenas noches|buenas|excelente dia|feliz dia|hey|que tal|que onda|gracias|muchas gracias|mil gracias|ok|okay|vale|perfecto|genial|super|chido|adios|bye|hasta luego|nos vemos|como estas|todo bien|si|no|otro|otra|mas|otro chiste|cuenta otro|jaja|jajaja|jajajaja|xd|lol)$/.test(norm) ||
     hasWholeWord(norm, ['garantia', 'envio', 'confiable', 'seguro', 'chiste', 'chistes', 'clima', 'hora', 'nombre']);
@@ -141,6 +185,7 @@ const filterStrictCatalog = (userText, catalog) => {
     const mustHave = ['laptop', 'laptops', 'portatil', 'macbook', 'notebook', 'chromebook', 'ultrabook'];
     const exclude = [
       'all in one', 'escritorio', 'prodesk', 'optiplex', 'sff', 'gabinete',
+      'consola', 'console', 'nintendo', 'switch', 'playstation', 'ps5', 'ps4', 'xbox', 'portal', 'reproductor',
       'iphone', 'celular', 'smartphone', 'funda', 'mochila', 'cargador', 'cable',
       'magsafe', 'disco solido', 'disco duro', 'lentes', 'gafas', 'soporte',
       'base', 'monitor', 'mouse', 'teclado', 'adaptador', 'bateria'
@@ -159,7 +204,12 @@ const filterStrictCatalog = (userText, catalog) => {
     categoryLabel = 'Computadoras / PC';
     minPriceFloor = 2200;
     const mustHave = ['computadora', 'all in one', 'prodesk', 'optiplex', 'pc', 'laptop', 'portatil', 'macbook'];
-    const exclude = ['funda', 'mochila', 'cargador', 'cable', 'disco solido', 'disco duro', 'lentes', 'gafas', 'soporte', 'base', 'mouse', 'teclado', 'adaptador', 'audifono', 'audifonos', 'control', 'gamepad'];
+    const exclude = [
+      'consola', 'nintendo', 'switch', 'playstation', 'ps5', 'xbox', 'portal',
+      'funda', 'mochila', 'cargador', 'cable', 'disco solido', 'disco duro',
+      'lentes', 'gafas', 'soporte', 'base', 'mouse', 'teclado', 'adaptador',
+      'audifono', 'audifonos', 'control', 'gamepad'
+    ];
     filtered = catalog.filter((p) => {
       const t = normalizeStr(p.title || p.nombre || '');
       const price = Number(p.discount_price || p.precio || 0);
@@ -274,6 +324,19 @@ const filterStrictCatalog = (userText, catalog) => {
     });
   }
 
+  // Filtrado por modelo/versión exacto (ej. "iphone 18", "iphone 17 pro", "laptop gamer", "pantalla 55")
+  const modelTokens = extractModelTokens(norm, budget);
+  if (modelTokens.length > 0 && filtered.length > 0) {
+    const exactModelMatches = filtered.filter((p) => {
+      const t = normalizeStr(p.title || p.nombre || '');
+      return modelTokens.every((tok) => new RegExp(`\\b${tok}\\b`, 'i').test(t));
+    });
+    filtered = exactModelMatches;
+    if (categoryLabel) {
+      categoryLabel = `${categoryLabel} ${modelTokens.join(' ').toUpperCase()}`;
+    }
+  }
+
   if (budget && budget > 0 && filtered.length > 0) {
     const withinBudget = filtered.filter((p) => {
       const price = Number(p.discount_price || p.precio || 0);
@@ -299,7 +362,6 @@ const filterStrictCatalog = (userText, catalog) => {
     return { status: 'FOUND', items: filtered, budget, categoryLabel };
   }
 
-  // Solo mostrar tarjeta de "producto no encontrado" si hay intención clara de compra o categoría de producto
   const isKnownCategory = isLaptopOnly || isDesktopOrPC || isPhone || isScreen || isMonitor || isConsole || isHeadphones || Boolean(requestedBrand);
   const isCommonProductNoun = hasWholeWord(norm, [
     'tenis', 'zapatos', 'ropa', 'playera', 'camisa', 'pantalon', 'chamarra', 'gorra',
@@ -318,7 +380,6 @@ const filterStrictCatalog = (userText, catalog) => {
     return { status: 'NOT_FOUND_IN_CAT', items: [], budget, categoryLabel: categoryLabel || userText };
   }
 
-  // Cualquier otra frase o charla natural pasa a la IA
   return { status: 'GENERAL_CHAT', items: [], budget, categoryLabel: '' };
 };
 
@@ -805,7 +866,9 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     const isInsultOrProvocation = hasWholeWord(lowerText, [
       'tonto', 'tonta', 'estupido', 'estupida', 'idiota', 'pendejo', 'pendeja',
       'menso', 'mensa', 'baboso', 'babosa', 'imbecil', 'imbesil', 'tarado', 'tarada',
-      'inutil', 'basura', 'porqueria', 'torpe', 'bobo', 'boba', 'mamon',
+      'inutil', 'basura', 'porqueria', 'torpe', 'bobo', 'boba', 'mamon', 'mamona',
+      'perra', 'perro', 'puta', 'puto', 'zorra', 'cabron', 'cabrona', 'culero', 'culera',
+      'verga', 'chinga', 'chingas', 'mierda', 'maldito', 'maldita',
       'no sirves', 'vales madre', 'malo', 'pesimo', 'horrible'
     ]);
 
@@ -818,7 +881,37 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       return;
     }
 
-    // 0B. Preguntas sobre qué hace / para qué sirve el bot
+    // 0B. Cómo usar / aplicar un cupón
+    const isHowToUseCoupon =
+      hasWholeWord(lowerText, ['cupon', 'cupones', 'codigo']) &&
+      (lowerText.includes('como uso') ||
+        lowerText.includes('como usar') ||
+        lowerText.includes('como aplico') ||
+        lowerText.includes('como aplicar') ||
+        lowerText.includes('como canjeo') ||
+        lowerText.includes('como canjear') ||
+        lowerText.includes('donde pongo') ||
+        lowerText.includes('donde se pone'));
+
+    if (isHowToUseCoupon) {
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            text:
+              '¡Usar tu cupón es súper fácil! 🎟️✨\n\n' +
+              '1️⃣ Dale clic al botón verde **"Copiar cupón e ir a comprar"** (se copia solo y te abre Mercado Libre).\n' +
+              '2️⃣ Agrega al carrito los productos que cumplan con la compra mínima del cupón.\n' +
+              '3️⃣ Antes de pagar, toca **"Ingresar código de cupón"**, pega el código y ¡listo, descuento aplicado! 🚀',
+          },
+        ]);
+        setIsTyping(false);
+      }, 250);
+      return;
+    }
+
+    // 0C. Preguntas sobre qué hace / para qué sirve el bot
     const isAboutBot =
       lowerText.includes('para que sirves') ||
       lowerText.includes('cual es tu funcion') ||
@@ -841,7 +934,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
             sender: 'bot',
             text:
               '¡Hola! Soy **CapiBaraML** 🐹, tu cazador personal de ofertas. Mi misión es **ahorrarte dinero y tiempo** al comprar en Mercado Libre:\n\n' +
-              '🔍 **Busco por ti:** Dime qué producto necesitas y tu presupuesto (ej. *"laptop de $10,000"* o *"iPhone"*) y te muestro las mejores ofertas reales.\n' +
+              '🔍 **Busco por ti:** Dime qué producto necesitas y tu presupuesto (ej. *"laptop de $10,000"* o *"iPhone 17"*) y te muestro las mejores ofertas reales.\n' +
               '🎟️ **Cupones activos:** Te paso los códigos de descuento vigentes del día listos para copiar.\n' +
               '🔥 **Remates verificados:** Monitoreamos precios bajos y liquidaciones 24/7.\n' +
               '💬 **Atención directa:** Si no tenemos lo que buscas en vitrina, te conecto con nuestro equipo por WhatsApp para rastrearlo al mejor precio.\n\n' +
@@ -929,7 +1022,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       }
     }
 
-    // 1. Búsqueda estricta por categoría, marca, piso de precio y presupuesto
+    // 1. Búsqueda estricta por categoría, marca, modelo, piso de precio y presupuesto
     const catalogResult = filterStrictCatalog(userText, catalogToSearch);
 
     if (catalogResult.status === 'FOUND') {
@@ -981,7 +1074,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       return;
     }
 
-    // 2. Consulta conversacional general a la IA (conservando los últimos 4 mensajes de texto para entender "otro", saludos, etc.)
+    // 2. Consulta conversacional general a la IA (con bloqueo anti-inglés)
     const recentTextHistory = newHistory
       .filter((m) => typeof m.text === 'string' && m.text.trim() !== '')
       .slice(-4);
@@ -1001,11 +1094,16 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       const botReply = response.data?.reply?.trim();
 
       if (botReply) {
-        const cleanReply = sanitizeBotReply(botReply);
-        setChatMessages((prev) => [
-          ...prev,
-          { sender: 'bot', text: cleanReply },
-        ]);
+        if (isEnglishRefusal(botReply)) {
+          const calmReply = CALM_DEESCALATION_REPLIES[newHistory.length % CALM_DEESCALATION_REPLIES.length];
+          setChatMessages((prev) => [...prev, { sender: 'bot', text: calmReply }]);
+        } else {
+          const cleanReply = sanitizeBotReply(botReply);
+          setChatMessages((prev) => [
+            ...prev,
+            { sender: 'bot', text: cleanReply },
+          ]);
+        }
       } else {
         throw new Error('Respuesta vacía');
       }
@@ -1188,7 +1286,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Ej: laptop de 8000, iphone, pantalla..."
+                placeholder="Ej: laptop 10000, iphone 18, pantalla..."
                 className={`flex-1 min-w-0 px-3.5 py-2.5 sm:py-3 text-base sm:text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all ${
                   isLight
                     ? 'bg-gray-50 border-gray-300 text-gray-800'
