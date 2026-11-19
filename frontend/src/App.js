@@ -64,6 +64,7 @@ import AdminDashboard, { decodeCoupon } from './components/AdminDashboard';
 
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 // ==========================================
 // FUNCIONES UTILITARIAS Y DE SEGURIDAD
@@ -93,6 +94,26 @@ export const getSafeId = (item) => {
     if (typeof val === 'object' && val.$oid) return String(val.$oid);
   }
   return null;
+};
+
+const isProductFresh = (product) => {
+  if (!product) return false;
+  if (product.active === false) return false;
+
+  const rawDate =
+    product.created_at ||
+    product.createdAt ||
+    product.updated_at ||
+    product.updatedAt ||
+    product.date ||
+    product.fecha;
+
+  if (!rawDate) return true;
+
+  const publishedTime = new Date(rawDate).getTime();
+  if (isNaN(publishedTime)) return true;
+
+  return Date.now() - publishedTime <= SEVEN_DAYS_MS;
 };
 
 export const getBankInfo = (title = '') => {
@@ -787,7 +808,7 @@ function renderWorkWithUsSection(isLight) {
 // RENDER NEW SECTION
 // ==========================================
 function renderNewSection(products = []) {
-  const promoProducts = products.filter(p => p.is_promo_card && p.active !== false);
+  const promoProducts = products.filter(p => p.is_promo_card && isProductFresh(p));
 
   if (promoProducts.length === 0) return null; 
 
@@ -973,13 +994,6 @@ function App() {
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   
-  // ==========================================
-  // INICIO DE SESIÓN / USUARIO COMENTADO
-  // ==========================================
-  /*
-  const [showCommunityPopup, setShowCommunityPopup] = useState(false);
-  */
-  
   const [tiktokVideos, setTiktokVideos] = useState(() => {
     try {
       const saved = localStorage.getItem('CapiBaraVideos');
@@ -1011,42 +1025,6 @@ function App() {
   const [cupones, setCupones] = useState([]);
   const [cuponesBancarios, setCuponesBancarios] = useState([]);
   
-  // ==========================================
-  // ESTADOS DE USUARIO COMENTADOS
-  // ==========================================
-  /*
-  const [currentUser, setCurrentUser] = useState(() => {
-    return localStorage.getItem('cazaUser') || null;
-  });
-
-  const [phoneWarningDismissed, setPhoneWarningDismissed] = useState(() => {
-    return sessionStorage.getItem('phoneWarningDismissed') === 'true';
-  });
-
-  const missingPhone = typeof currentUser === 'object' && currentUser !== null && (!currentUser.telefono || currentUser.telefono.length !== 10);
-
-  useEffect(() => {
-    const usuarioGuardado = localStorage.getItem('cazaUser');
-    if (usuarioGuardado) {
-      setCurrentUser(usuarioGuardado);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!currentUser) {
-      const dismissed = sessionStorage.getItem('communityPopupDismissed');
-      if (!dismissed) {
-        const timer = setTimeout(() => {
-          if (!localStorage.getItem('cazaUser')) {
-            setShowCommunityPopup(true);
-          }
-        }, 60000);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [currentUser]);
-  */
-
   const [userReactions, setUserReactions] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('couponReactions') || '{}');
@@ -1090,7 +1068,6 @@ function App() {
     localStorage.setItem('couponReactionCounts', JSON.stringify(updatedCounts));
   };
 
-  // const [showProfilePanel, setShowProfilePanel] = useState(false); // COMENTADO
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [productSearchInput, setProductSearchInput] = useState('');
@@ -1273,7 +1250,23 @@ function App() {
   const loadPublicProducts = async () => {
     try {
       const response = await axios.get(`${API}/products?t=${Date.now()}`);
-      setProducts(response.data);
+      const allProducts = Array.isArray(response.data) ? response.data : [];
+
+      const freshProducts = allProducts.filter(isProductFresh);
+      const expiredProducts = allProducts.filter((p) => !isProductFresh(p));
+
+      setProducts(freshProducts);
+
+      if (isAuthenticated && adminPassword && expiredProducts.length > 0) {
+        expiredProducts.forEach((expProd) => {
+          const pId = getSafeId(expProd);
+          if (pId) {
+            axios
+              .delete(`${API}/products/${pId}?password=${adminPassword}`)
+              .catch(() => {});
+          }
+        });
+      }
     } catch (error) {}
   };
 
@@ -1416,6 +1409,7 @@ function App() {
   
   const exclusiveProducts = useMemo(() => {
     return products.filter(p => {
+      if (!isProductFresh(p)) return false;
       const pId = getSafeId(p) || p.title;
       const isManual = manualExclusives.includes(pId);
       if (isManual) return true;
@@ -1436,6 +1430,7 @@ function App() {
   const regularProducts = useMemo(() => {
     const exclusiveIds = new Set(exclusiveProducts.map(p => getSafeId(p) || p.title));
     return products.filter(p => {
+      if (!isProductFresh(p)) return false;
       const pId = getSafeId(p) || p.title;
       return !exclusiveIds.has(pId) && !p.is_promo_card;
     });
@@ -1456,9 +1451,6 @@ function App() {
     ? 'min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-800 relative overflow-x-hidden font-sans'
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
-  // ==========================================
-  // SECCIÓN DE CUPONES DIGITALES (CÓDIGO ARRIBA + PÍLDORA VERDE "Copiar cupón e ir a comprar" ABAJO)
-  // ==========================================
   const renderCuponesSection = () => (
     activeCupones.length > 0 && (
       <div className="container mx-auto px-3 sm:px-4 mb-12 relative z-25">
@@ -1578,7 +1570,6 @@ function App() {
                               </div>
 
                               <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 text-black flex flex-col justify-between relative min-w-0`}>
-                                {/* Fila 1: Título + Código arriba | Vence + Reacciones a la derecha */}
                                 <div className="flex justify-between items-start gap-2">
                                   <div className="flex flex-col min-w-0 pr-1">
                                     <h3 className="text-base font-black uppercase tracking-tight drop-shadow-sm leading-tight truncate mb-1">
@@ -1614,7 +1605,6 @@ function App() {
                                   </div>
                                 </div>
 
-                                {/* Fila 2: Botón píldora verde debajo del código del cupón */}
                                 <div className="my-1.5">
                                   <button
                                     type="button"
@@ -1675,7 +1665,6 @@ function App() {
                             </div>
 
                             <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-black flex flex-col justify-between relative overflow-hidden min-w-0`}>
-                              {/* Fila 1: Título + Código arriba | Vence + Reacciones a la derecha */}
                               <div className="flex justify-between items-start gap-2">
                                 <div className="flex flex-col min-w-0 pr-1">
                                   <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm truncate mb-1">
@@ -1713,7 +1702,6 @@ function App() {
                                 </div>
                               </div>
 
-                              {/* Fila 2: Botón píldora verde debajo del código del cupón */}
                               <div className="my-2.5">
                                 <button
                                   type="button"
@@ -1768,9 +1756,6 @@ function App() {
     )
   );
 
-  // ==========================================
-  // SECCIÓN DE CUPONES BANCARIOS (CÓDIGO ARRIBA + PÍLDORA VERDE "Copiar cupón e ir a comprar" ABAJO)
-  // ==========================================
   const renderCuponesBancariosSection = () => (
     <div className="container mx-auto px-3 sm:px-4 mb-12 relative z-25">
       <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
@@ -1895,7 +1880,6 @@ function App() {
                                 </div>
                               </div>
 
-                              {/* Botón píldora verde debajo del código del cupón */}
                               <div className="my-1.5">
                                 <button
                                   type="button"
@@ -1982,7 +1966,6 @@ function App() {
                               </div>
                             </div>
 
-                            {/* Botón píldora verde debajo del código del cupón */}
                             <div className="my-2.5">
                               <button
                                 type="button"
@@ -2516,62 +2499,6 @@ function App() {
       <div className={`fixed top-[60px] sm:top-16 ${isMobileDevice ? 'right-2' : 'right-4 lg:right-6'} z-[60] flex flex-col items-center gap-2 sm:gap-2.5 pointer-events-auto`}>
         <VisitorCounter isLight={isLight} />
 
-        {/* ========================================== */}
-        {/* BOTÓN DE PERFIL DE USUARIO COMENTADO       */}
-        {/* ========================================== */}
-        {/* 
-        <div className="flex flex-col items-center gap-1">
-          {currentUser && (
-            <span className={`font-bold text-[10px] truncate max-w-[60px] text-center ${
-              isLight ? 'text-purple-700' : 'text-yellow-400'
-            }`}>
-              @{
-                typeof currentUser === 'object' && currentUser !== null
-                  ? (currentUser.nickname || currentUser.nombre || 'User')
-                  : (currentUser || localStorage.getItem('cazaNick') || 'User')
-              }
-            </span>
-          )}
-          <button
-            onClick={() => setShowProfilePanel(true)}
-            className={`relative w-11 h-11 md:w-12 md:h-12 rounded-full shadow-2xl flex items-center justify-center overflow-hidden transition-all hover:scale-110 border-2 ${
-              isLight
-                ? 'bg-white text-purple-600 border-purple-200'
-                : 'bg-neutral-900 text-yellow-400 border-yellow-400/50'
-            }`}
-            title="Mi Perfil / Login"
-          >
-            {missingPhone && (
-              <span className="absolute top-0 right-0 flex h-3.5 w-3.5 z-20" title="Teléfono pendiente para gamificación">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-yellow-500 border-2 border-white"></span>
-              </span>
-            )}
-
-            {typeof currentUser === 'object' && currentUser !== null && currentUser.photoURL ? (
-              <img src={currentUser.photoURL} alt="Perfil" className="w-full h-full object-cover" />
-            ) : typeof currentUser === 'object' && currentUser !== null && currentUser.avatar ? (
-              <span className="text-xl leading-none">
-                {currentUser.avatar}
-              </span>
-            ) : localStorage.getItem('cazaAvatarImg') ? (
-              <img src={localStorage.getItem('cazaAvatarImg')} alt="Perfil" className="w-full h-full object-cover" />
-            ) : currentUser ? (
-              <span className="text-xl font-black">
-                {localStorage.getItem('cazaAvatar') || 
-                  String(
-                    typeof currentUser === 'object' && currentUser !== null
-                      ? (currentUser.nickname || currentUser.nombre || currentUser.email || 'U') 
-                      : currentUser
-                  ).charAt(0)}
-              </span>
-            ) : (
-              <User className="w-6 h-6" />
-            )}
-          </button>
-        </div>
-        */}
-
         <button
           onClick={() => setShowThemeModal(true)}
           className={`w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 border-2 ${
@@ -2586,27 +2513,10 @@ function App() {
 
         {isMobileDevice && (
           <div className="mt-0.5">
-            <ChatbotWidget isLight={isLight} cupones={activeCupones} isMobileDevice={isMobileDevice} />
+            <ChatbotWidget isLight={isLight} cupones={activeCupones} products={products} isMobileDevice={isMobileDevice} />
           </div>
         )}
       </div>
-
-      {/* ========================================== */}
-      {/* MODALES DE AVISO DE USUARIO COMENTADOS      */}
-      {/* ========================================== */}
-      {/*
-      <AnimatePresence>
-        {missingPhone && !showProfilePanel && !phoneWarningDismissed && (
-          ...
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showCommunityPopup && !currentUser && (
-          ...
-        )}
-      </AnimatePresence>
-      */}
 
       <AnimatePresence>
         {showToast && (
@@ -2629,7 +2539,7 @@ function App() {
                   onClick={() => setShowToast(false)}
                   className="absolute top-4 right-4 text-black hover:text-gray-700 transition-colors bg-white rounded-full p-1 border-2 border-black"
                 >
-                  <X className="h-5 h-5 font-black" />
+                  <X className="h-5 w-5 font-black" />
                 </button>
               </div>
             </div>
@@ -2914,19 +2824,6 @@ function App() {
         </div>
       )}
 
-      {/* ========================================== */}
-      {/* PROFILE MODAL COMENTADO                     */}
-      {/* ========================================== */}
-      {/*
-      <ProfileModal
-        showProfilePanel={showProfilePanel}
-        setShowProfilePanel={setShowProfilePanel}
-        currentUser={currentUser}
-        setCurrentUser={setCurrentUser}
-        isLight={isLight}
-      />
-      */}
-
       <section className={`relative overflow-hidden py-20 sm:py-24 px-4 border-b ${
         isLight 
           ? 'bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/50 border-gray-200 text-gray-800' 
@@ -3066,7 +2963,7 @@ function App() {
 
       {!isMobileDevice && (
         <div className="fixed bottom-4 right-4 z-50 pointer-events-auto">
-          <ChatbotWidget isLight={isLight} cupones={activeCupones} isMobileDevice={isMobileDevice} />
+          <ChatbotWidget isLight={isLight} cupones={activeCupones} products={products} isMobileDevice={isMobileDevice} />
         </div>
       )}
     </div>
