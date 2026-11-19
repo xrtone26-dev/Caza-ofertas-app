@@ -32,14 +32,18 @@ const WHATSAPP_PERSONAL_NUMBER = '523312229710';
 const SYSTEM_PROMPT = `
 Eres CapiBaraML 🐹, el asistente virtual oficial de CapiBaraML WEB. 
 
-PERSONALIDAD Y ACTITUD:
+PERSONALIDAD Y REGLAS ESTRICTAS:
 - SIEMPRE responde 100% en español latino. NUNCA respondas en inglés bajo ninguna circunstancia.
 - Eres siempre amable, tranquilo, pasivo, respetuoso y con buena vibra.
 - Si el usuario te dice algo grosero, te provoca o se queja, NUNCA discutas ni te pongas a la defensiva; responde con total calma, humildad y cortesía, y redirige suavemente la conversación a cómo puedes ayudarle a ahorrar.
 - Si el usuario solo está charlando (saludos, chistes, "otro", preguntas generales), respóndele de forma natural, simpática y breve siguiendo el hilo de la conversación.
 - Tu objetivo principal es ahorrarle dinero al usuario y ayudarle a encontrar las mejores ofertas, remates y cupones activos en Mercado Libre.
 - NUNCA uses la palabra "afiliado", "link de afiliado" ni "enlace de afiliado". Di siempre "enlace de oferta" o "enlace directo".
-- NUNCA inventes links ni escribas "TU_CAMPID_AQUI".
+- NUNCA inventes links, correos electrónicos, cuentas de Instagram ni teléfonos. NUNCA escribas "TU_CAMPID_AQUI".
+- NO somos vendedores en Mercado Libre, así que NUNCA le digas al usuario que use "Contactar al vendedor" ni el chat de ayuda de Mercado Libre para hablar con nosotros.
+- NUESTROS ÚNICOS CANALES REALES DE ASESORÍA Y CONTACTO SON:
+  1. WhatsApp directo de atención personalizada: 33 1222 9710.
+  2. Grupo VIP de WhatsApp, canal de Telegram, página de Facebook y YouTube oficiales de CapiBaraML.
 - Habla en español latino, usando emojis con moderación (🐹, ✨, 🚀). Sé conciso (máximo 3 líneas).
 `;
 
@@ -808,6 +812,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     
     return parts.map((part, index) => {
       if (part.match(urlRegex)) {
+        const isWhatsAppLink = part.includes('wa.me') || part.includes('whatsapp.com');
         return (
           <div key={`link-btn-${index}`} className="my-2">
             <a
@@ -815,9 +820,21 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
               target="_blank"
               rel="noopener noreferrer"
               onClick={playSniperSound}
-              className="inline-flex items-center gap-1.5 bg-[#22a947] hover:bg-[#1c8e3b] text-white font-black px-3.5 py-2 rounded-full text-xs shadow-md transition-transform hover:scale-105"
+              className={`inline-flex items-center gap-1.5 ${
+                isWhatsAppLink
+                  ? 'bg-[#25D366] hover:bg-[#20bd5a] text-white'
+                  : 'bg-[#22a947] hover:bg-[#1c8e3b] text-white'
+              } font-black px-3.5 py-2 rounded-full text-xs shadow-md transition-transform hover:scale-105`}
             >
-              <ShoppingBag size={14} /> Ver Oferta en Mercado Libre 🚀
+              {isWhatsAppLink ? (
+                <>
+                  <FaWhatsapp size={15} /> Escribir por WhatsApp (33 1222 9710)
+                </>
+              ) : (
+                <>
+                  <ShoppingBag size={14} /> Ver Oferta en Mercado Libre 🚀
+                </>
+              )}
             </a>
           </div>
         );
@@ -939,6 +956,36 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
               '🔥 **Remates verificados:** Monitoreamos precios bajos y liquidaciones 24/7.\n' +
               '💬 **Atención directa:** Si no tenemos lo que buscas en vitrina, te conecto con nuestro equipo por WhatsApp para rastrearlo al mejor precio.\n\n' +
               '¿Qué oferta te gustaría buscar ahorita? 🚀',
+          },
+        ]);
+        setIsTyping(false);
+      }, 250);
+      return;
+    }
+
+    // 0D. Asesoría personalizada o contacto directo con el equipo
+    const isContactOrAdvice =
+      hasWholeWord(lowerText, ['asesoria', 'asesor', 'contacto', 'contactar', 'soporte', 'humano']) ||
+      lowerText.includes('hablar con ustedes') ||
+      lowerText.includes('hablar con alguien') ||
+      lowerText.includes('atencion personalizada') ||
+      lowerText.includes('tu numero') ||
+      lowerText.includes('su numero') ||
+      lowerText.includes('tu telefono') ||
+      lowerText.includes('su telefono') ||
+      lowerText.includes('numero de contacto');
+
+    if (isContactOrAdvice) {
+      const waAdviceUrl = `https://wa.me/${WHATSAPP_PERSONAL_NUMBER}?text=${encodeURIComponent('Hola, quiero recibir asesoría personalizada con el equipo de CapiBaraML 🐹')}`;
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            text:
+              '¡Con mucho gusto te atendemos personalmente! 🐹✨\n\n' +
+              'Nuestra asesoría es directa por **WhatsApp al 33 1222 9710**. Escríbenos qué producto buscas o tu presupuesto y nuestro equipo te ayuda a rastrear la mejor oferta:\n' +
+              `${waAdviceUrl}`,
           },
         ]);
         setIsTyping(false);
