@@ -27,6 +27,7 @@ const API = BACKEND_URL;
 const MP_POINT_LINK = 'https://www.mercadopago.com.mx/herramientas-para-vender/lectores-point?code=7XYVCUKISD';
 const ML_SEARCH_AFFILIATE = 'https://mercadolibre.com/sec/1XFPeWr';
 const WHATSAPP_GROUP_LINK = 'https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1';
+const WHATSAPP_PERSONAL_NUMBER = '523312229710';
 
 const SYSTEM_PROMPT = `
 Eres CapiBaraML 🐹, el asistente virtual y vendedor estrella oficial de CapiBaraML WEB. 
@@ -35,7 +36,7 @@ DIRECTRICES DE VENTAS Y FILTRADO ESTRICTO:
 - Tu objetivo es VENDER y ayudar al usuario a ahorrar encontrando EXACTAMENTE lo que pide en el catálogo recibido.
 - Responde ÚNICAMENTE sobre la consulta actual del usuario. No mezcles temas de mensajes anteriores.
 - NUNCA inventes links ni escribas "TU_CAMPID_AQUI". Usa únicamente los links reales proporcionados en el catálogo.
-- Respeta estrictamente la categoría y el presupuesto del usuario.
+- Si no tenemos un producto, invítalo a escribirnos por WhatsApp al 33 1222 9710 para rastrearle la mejor oferta.
 - Habla en español latino, usando emojis de forma moderada pero divertida (🚀, ✨, 🐹, 🎟️, 🔥).
 - Sé conciso, directo y persuasivo (máximo 3 líneas de texto).
 `;
@@ -73,6 +74,15 @@ const filterStrictCatalog = (userText, catalog) => {
     cleanNumText.match(/\$\s*(\d{2,6})/);
   const budget = budgetMatch && budgetMatch[1] ? Number(budgetMatch[1]) : null;
 
+  // Detectar si es una pregunta conversacional general (no búsqueda de producto)
+  const isConversational =
+    /^(hola|buenas|buenos dias|buenas tardes|buenas noches|hey|que tal|que onda|gracias|muchas gracias|ok|vale|perfecto|adios|bye)$/.test(norm) ||
+    hasWholeWord(norm, ['quien eres', 'como funciona', 'como funcionan', 'como uso', 'como aplico', 'ayuda', 'garantia', 'envio', 'confiable', 'seguro']);
+
+  if (isConversational) {
+    return { status: 'GENERAL_CHAT', items: [], budget, categoryLabel: '', isCategorySearch: false };
+  }
+
   // Detectar si pidió una marca específica para exigirla en el título
   const brandFilters = [
     { trigger: ['iphone'], required: ['iphone'], label: 'iPhone', minPrice: 3000 },
@@ -88,14 +98,16 @@ const filterStrictCatalog = (userText, catalog) => {
   ];
   const requestedBrand = brandFilters.find((b) => hasWholeWord(norm, b.trigger));
 
-  const isLaptop = hasWholeWord(norm, ['laptop', 'laptops', 'lap top', 'computadora', 'computadoras', 'portatil', 'portatiles', 'macbook', 'notebook']);
+  const isLaptopOnly = hasWholeWord(norm, ['laptop', 'laptops', 'lap top', 'portatil', 'portatiles', 'macbook', 'notebook']);
+  const isDesktopOrPC = !isLaptopOnly && hasWholeWord(norm, ['computadora', 'computadoras', 'pc', 'all in one', 'escritorio']);
   const isPhone = hasWholeWord(norm, ['celular', 'celulares', 'telefono', 'telefonos', 'smartphone', 'smartphones', 'iphone']);
   const isScreen = hasWholeWord(norm, ['pantalla', 'pantallas', 'tv', 'smart tv', 'televisor', 'televisores', 'television']);
   const isMonitor = hasWholeWord(norm, ['monitor', 'monitores']);
-  const isConsole = hasWholeWord(norm, ['consola', 'consolas', 'xbox', 'switch', 'nintendo', 'ps5', 'playstation']) && !hasWholeWord(norm, ['control', 'mando', 'estuche', 'funda', 'bateria']);
+  const isConsole =
+    hasWholeWord(norm, ['consola', 'consolas', 'xbox', 'switch', 'nintendo', 'ps5', 'playstation']) &&
+    !hasWholeWord(norm, ['control', 'mando', 'estuche', 'funda', 'bateria', 'audifono', 'audifonos', 'headset']);
   const isHeadphones = hasWholeWord(norm, ['audifono', 'audifonos', 'auricular', 'auriculares', 'headset', 'earbuds', 'buds', 'airpods']);
 
-  // Frases universales que delatan accesorios/refacciones
   const accessoryPhrases = [
     'para laptop', 'para macbook', 'para computadora', 'para iphone', 'para celular',
     'para smartphone', 'para telefono', 'para smart tv', 'para tv', 'para pantalla',
@@ -107,11 +119,31 @@ const filterStrictCatalog = (userText, catalog) => {
   let minPriceFloor = 0;
   let filtered = [];
 
-  if (isLaptop) {
+  if (isLaptopOnly) {
     categoryLabel = requestedBrand ? requestedBrand.label : 'Laptops / Portátiles';
-    minPriceFloor = 2000;
-    const mustHave = ['laptop', 'laptops', 'portatil', 'macbook', 'notebook', 'chromebook', 'ultrabook', 'all in one'];
-    const exclude = ['iphone', 'celular', 'smartphone', 'funda', 'mochila', 'cargador', 'cable', 'magsafe', 'disco solido', 'disco duro', 'lentes', 'gafas', 'soporte', 'base', 'monitor', 'mouse', 'teclado', 'adaptador', 'bateria'];
+    minPriceFloor = 2200;
+    const mustHave = ['laptop', 'laptops', 'portatil', 'macbook', 'notebook', 'chromebook', 'ultrabook'];
+    const exclude = [
+      'all in one', 'escritorio', 'prodesk', 'optiplex', 'sff', 'gabinete',
+      'iphone', 'celular', 'smartphone', 'funda', 'mochila', 'cargador', 'cable',
+      'magsafe', 'disco solido', 'disco duro', 'lentes', 'gafas', 'soporte',
+      'base', 'monitor', 'mouse', 'teclado', 'adaptador', 'bateria'
+    ];
+    filtered = catalog.filter((p) => {
+      const t = normalizeStr(p.title || p.nombre || '');
+      const price = Number(p.discount_price || p.precio || 0);
+      return (
+        price >= minPriceFloor &&
+        hasWholeWord(t, mustHave) &&
+        !hasWholeWord(t, exclude) &&
+        !accessoryPhrases.some((ph) => t.includes(ph))
+      );
+    });
+  } else if (isDesktopOrPC) {
+    categoryLabel = 'Computadoras / PC';
+    minPriceFloor = 2200;
+    const mustHave = ['computadora', 'all in one', 'prodesk', 'optiplex', 'pc', 'laptop', 'portatil', 'macbook'];
+    const exclude = ['funda', 'mochila', 'cargador', 'cable', 'disco solido', 'disco duro', 'lentes', 'gafas', 'soporte', 'base', 'mouse', 'teclado', 'adaptador', 'audifono', 'audifonos', 'control', 'gamepad'];
     filtered = catalog.filter((p) => {
       const t = normalizeStr(p.title || p.nombre || '');
       const price = Number(p.discount_price || p.precio || 0);
@@ -140,8 +172,17 @@ const filterStrictCatalog = (userText, catalog) => {
   } else if (isScreen) {
     categoryLabel = 'Pantallas / Smart TV';
     minPriceFloor = 1500;
-    const mustHave = ['smart tv', 'televisor', 'television', 'pantalla', 'roku tv', 'google tv', 'qled', 'oled', 'uhd'];
-    const exclude = ['laptop', 'portatil', 'iphone', 'celular', 'smartphone', 'audifono', 'audifonos', 'auricular', 'control', 'remoto', 'cable', 'hdmi', 'soporte', 'base', 'brazo', 'power bank', 'bateria', 'sensor', 'echo show', 'bocina', 'soundbar', 'barra de sonido', 'proyector', 'nintendo', 'switch', 'camara', 'vigilancia', 'seguridad', 'tira led', 'led rgb', 'funda', 'estuche', 'kit', 'zte', 'huawei', 'motorola', 'xiaomi'];
+    // Se quitó 'uhd' de mustHave para evitar PCs con "Intel UHD Graphics"
+    const mustHave = ['smart tv', 'televisor', 'television', 'pantalla', 'roku tv', 'google tv', 'qled', 'oled'];
+    const exclude = [
+      'pc', 'prodesk', 'all in one', 'escritorio', 'windows', 'ssd', 'ram', 'graphics',
+      'core i3', 'core i5', 'core i7', 'ryzen', 'laptop', 'portatil', 'iphone', 'celular',
+      'smartphone', 'audifono', 'audifonos', 'auricular', 'control', 'remoto', 'cable',
+      'hdmi', 'soporte', 'base', 'brazo', 'power bank', 'bateria', 'sensor', 'echo show',
+      'bocina', 'soundbar', 'barra de sonido', 'proyector', 'nintendo', 'switch',
+      'camara', 'vigilancia', 'seguridad', 'tira led', 'led rgb', 'funda', 'estuche',
+      'kit', 'zte', 'huawei', 'motorola', 'xiaomi'
+    ];
     filtered = catalog.filter((p) => {
       const t = normalizeStr(p.title || p.nombre || '');
       const price = Number(p.discount_price || p.precio || 0);
@@ -164,9 +205,13 @@ const filterStrictCatalog = (userText, catalog) => {
     });
   } else if (isConsole) {
     categoryLabel = requestedBrand ? `Consolas ${requestedBrand.label}` : 'Consolas de Videojuegos';
-    minPriceFloor = 2500;
-    const mustHave = ['consola', 'xbox series', 'nintendo switch', 'playstation', 'ps5'];
-    const exclude = ['control', 'controlador', 'mando', 'gamepad', 'joystick', 'estuche', 'funda', 'kit', 'accesorios', 'bateria', 'cargador', 'soporte', 'cable'];
+    minPriceFloor = 3500;
+    const mustHave = ['consola', 'console', 'xbox series', 'nintendo switch', 'playstation', 'ps5'];
+    const exclude = [
+      'audifono', 'audifonos', 'auricular', 'auriculares', 'headset', 'diadema', 'microfono',
+      'control', 'controlador', 'mando', 'gamepad', 'joystick', 'estuche', 'funda', 'kit',
+      'accesorios', 'bateria', 'cargador', 'soporte', 'cable', 'game pass', 'tarjeta'
+    ];
     filtered = catalog.filter((p) => {
       const t = normalizeStr(p.title || p.nombre || '');
       const price = Number(p.discount_price || p.precio || 0);
@@ -207,7 +252,6 @@ const filterStrictCatalog = (userText, catalog) => {
     }
   }
 
-  // Si pidió marca específica (ej. "iphone"), exigir que esté en el título
   if (requestedBrand && filtered.length > 0) {
     filtered = filtered.filter((p) => {
       const t = normalizeStr(p.title || p.nombre || '');
@@ -215,9 +259,6 @@ const filterStrictCatalog = (userText, catalog) => {
     });
   }
 
-  const isCategorySearch = isLaptop || isPhone || isScreen || isMonitor || isConsole || isHeadphones || Boolean(requestedBrand);
-
-  // Filtrar por presupuesto si indicó monto
   if (budget && budget > 0 && filtered.length > 0) {
     const withinBudget = filtered.filter((p) => {
       const price = Number(p.discount_price || p.precio || 0);
@@ -225,31 +266,26 @@ const filterStrictCatalog = (userText, catalog) => {
     });
 
     if (withinBudget.length > 0) {
-      // Ordenar por el más cercano al presupuesto (mejor equipo dentro de su rango)
       withinBudget.sort(
         (a, b) => Number(b.discount_price || b.precio || 0) - Number(a.discount_price || a.precio || 0)
       );
-      return { status: 'FOUND', items: withinBudget, budget, categoryLabel, isCategorySearch };
+      return { status: 'FOUND', items: withinBudget, budget, categoryLabel };
     }
 
     filtered.sort(
       (a, b) => Number(a.discount_price || a.precio || 999999) - Number(b.discount_price || b.precio || 999999)
     );
     const cheapestPrice = Number(filtered[0].discount_price || filtered[0].precio || 0);
-    return { status: 'OVER_BUDGET', items: [], budget, cheapestPrice, categoryLabel, isCategorySearch };
+    return { status: 'OVER_BUDGET', items: [], budget, cheapestPrice, categoryLabel };
   }
 
   if (filtered.length > 0) {
-    // Sin presupuesto: ordenar por mayor descuento primero
     filtered.sort((a, b) => Number(b.discount_percentage || 0) - Number(a.discount_percentage || 0));
-    return { status: 'FOUND', items: filtered, budget, categoryLabel, isCategorySearch };
+    return { status: 'FOUND', items: filtered, budget, categoryLabel };
   }
 
-  if (isCategorySearch) {
-    return { status: 'NOT_FOUND_IN_CAT', items: [], budget, categoryLabel, isCategorySearch };
-  }
-
-  return { status: 'GENERAL_CHAT', items: [], budget, categoryLabel, isCategorySearch: false };
+  // Si buscó un producto específico (como "tenis") y no hay stock, ir directo a tarjeta con WhatsApp 3312229710
+  return { status: 'NOT_FOUND_IN_CAT', items: [], budget, categoryLabel: categoryLabel || userText };
 };
 
 export default function ChatbotWidget({ isLight, cupones = [], products = [], isMobileDevice = false }) {
@@ -600,35 +636,52 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     );
   };
 
-  const renderExternalSearchCard = (queryText, customReason = null) => (
-    <div className="flex flex-col gap-2.5 mt-1">
-      <p className="text-xs font-bold leading-snug">
-        {customReason || (
-          <>
-            Ahorita mismo no tengo cargado en nuestra vitrina un artículo exacto de <strong>"{queryText}"</strong>, ¡pero puedes buscarlo directo con ofertas en Mercado Libre o pedirlo en nuestro WhatsApp VIP! 🐹🔥
-          </>
-        )}
-      </p>
-      <a
-        href={ML_SEARCH_AFFILIATE}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={playSniperSound}
-        className="w-full bg-[#FFE600] hover:bg-yellow-300 text-black font-black py-2.5 px-3 rounded-xl text-[11px] uppercase flex items-center justify-center gap-1.5 border-2 border-black shadow"
-      >
-        <Search size={14} /> Buscar "{queryText}" en Mercado Libre
-      </a>
-      <a
-        href={WHATSAPP_GROUP_LINK}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={playSniperSound}
-        className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-black py-2.5 px-3 rounded-xl text-[11px] uppercase flex items-center justify-center gap-1.5 border-2 border-black shadow"
-      >
-        <FaWhatsapp size={15} /> Pedir oferta en WhatsApp VIP
-      </a>
-    </div>
-  );
+  // ==========================================
+  // TARJETA DE BÚSQUEDA EXTERNA + CONTACTO DIRECTO A TU WHATSAPP (3312229710)
+  // ==========================================
+  const renderExternalSearchCard = (queryText, customReason = null) => {
+    const waDirectText = `Hola, estoy buscando "${queryText}" en CapiBaraML. ¿Me puedes ayudar a rastrear la mejor oferta o cupón? 🐹`;
+    const waDirectUrl = `https://wa.me/${WHATSAPP_PERSONAL_NUMBER}?text=${encodeURIComponent(waDirectText)}`;
+
+    return (
+      <div className="flex flex-col gap-2.5 mt-1">
+        <p className="text-xs font-bold leading-snug">
+          {customReason || (
+            <>
+              Ahorita mismo no tengo cargado en nuestra vitrina un artículo exacto de <strong>"{queryText}"</strong>, ¡pero escríbenos directo a nuestro WhatsApp y nuestro equipo te lo rastrea al mejor precio! 🐹🔥
+            </>
+          )}
+        </p>
+        <a
+          href={waDirectUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={playSniperSound}
+          className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-black py-2.5 px-3 rounded-xl text-[11px] uppercase flex items-center justify-center gap-1.5 border-2 border-black shadow"
+        >
+          <FaWhatsapp size={16} /> Pedir por WhatsApp (33 1222 9710)
+        </a>
+        <a
+          href={ML_SEARCH_AFFILIATE}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={playSniperSound}
+          className="w-full bg-[#FFE600] hover:bg-yellow-300 text-black font-black py-2.5 px-3 rounded-xl text-[11px] uppercase flex items-center justify-center gap-1.5 border-2 border-black shadow"
+        >
+          <Search size={14} /> Buscar "{queryText}" en Mercado Libre
+        </a>
+        <a
+          href={WHATSAPP_GROUP_LINK}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={playSniperSound}
+          className="w-full bg-neutral-900 hover:bg-neutral-800 text-[#25D366] font-black py-2 px-3 rounded-xl text-[10px] uppercase flex items-center justify-center gap-1.5 border border-[#25D366]/50 shadow"
+        >
+          <FaWhatsapp size={14} /> Unirme al Grupo VIP de Ofertas
+        </a>
+      </div>
+    );
+  };
 
   const renderMessageTextWithFormat = (text) => {
     if (!text) return null;
@@ -715,7 +768,6 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       return;
     }
 
-    // Asegurar catálogo cargado si el usuario preguntó antes de terminar el primer fetch
     let catalogToSearch = activeValidProducts;
     if (catalogToSearch.length === 0) {
       try {
@@ -776,7 +828,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
           searchQuery: `${catalogResult.categoryLabel} hasta $${catalogResult.budget}`,
           customReason: (
             <>
-              Por <strong>${catalogResult.budget.toLocaleString('en-US')}</strong> no tenemos <strong>{catalogResult.categoryLabel}</strong> en nuestra vitrina ahorita (los que tenemos arrancan desde <strong>${catalogResult.cheapestPrice.toLocaleString('en-US')}</strong> 😅), ¡pero puedes buscar opciones en ese rango en Mercado Libre o pedirlas en nuestro WhatsApp VIP! 🐹🔥
+              Por <strong>${catalogResult.budget.toLocaleString('en-US')}</strong> no tenemos <strong>{catalogResult.categoryLabel}</strong> en nuestra vitrina ahorita (los que tenemos arrancan desde <strong>${catalogResult.cheapestPrice.toLocaleString('en-US')}</strong> 😅). ¡Escríbenos directo por WhatsApp y te rastreamos una opción en tu presupuesto! 👇
             </>
           ),
         },
@@ -798,7 +850,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       return;
     }
 
-    // 2. Consulta general a la IA
+    // 2. Consulta conversacional general a la IA
     const cleanProductsCatalog = catalogToSearch.slice(0, 25).map((p) => ({
       title: String(p.title || p.nombre || ''),
       price: Number(p.discount_price || p.precio || 0),
