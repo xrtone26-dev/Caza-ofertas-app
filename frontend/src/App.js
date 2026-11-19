@@ -2493,7 +2493,7 @@ function App() {
             </span>
             <p className="text-[11px] sm:text-sm font-black tracking-tight truncate">
               <span className="sm:hidden">🔥 Cupones flash al instante</span>
-              <span className="hidden sm:inline">🔥 ¡Recibe cupones flash y errores de precio al instante!</span>
+              <span className="hidden sm:inline">🔥 ¡Recibe las mejores ofertas, cupones  y errores de precio al instante!</span>
             </p>
           </div>
           <a
