@@ -67,7 +67,6 @@ const normalizeStr = (s = '') =>
 const hasWholeWord = (text, words) =>
   words.some((w) => new RegExp(`\\b${w}\\b`, 'i').test(text));
 
-// Limpia cualquier mención a "afiliado" o parámetros de prueba en respuestas de la IA
 const sanitizeBotReply = (text = '') =>
   String(text)
     .replace(/\?campid=TU_CAMPID_AQUI/gi, '')
@@ -82,7 +81,6 @@ const filterStrictCatalog = (userText, catalog) => {
     cleanNumText.match(/\$\s*(\d{2,6})/);
   const budget = budgetMatch && budgetMatch[1] ? Number(budgetMatch[1]) : null;
 
-  // Detectar si es una pregunta conversacional general (no búsqueda de producto)
   const isConversational =
     /^(hola|buenas|buenos dias|buenas tardes|buenas noches|hey|que tal|que onda|gracias|muchas gracias|ok|vale|perfecto|adios|bye)$/.test(norm) ||
     hasWholeWord(norm, ['garantia', 'envio', 'confiable', 'seguro']);
@@ -91,7 +89,6 @@ const filterStrictCatalog = (userText, catalog) => {
     return { status: 'GENERAL_CHAT', items: [], budget, categoryLabel: '', isCategorySearch: false };
   }
 
-  // Detectar si pidió una marca específica para exigirla en el título
   const brandFilters = [
     { trigger: ['iphone'], required: ['iphone'], label: 'iPhone', minPrice: 3000 },
     { trigger: ['macbook'], required: ['macbook'], label: 'MacBook', minPrice: 5000 },
@@ -300,6 +297,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
   const [isTyping, setIsTyping] = useState(false);
   const [localCupones, setLocalCupones] = useState([]);
   const [localProducts, setLocalProducts] = useState([]);
+  const [visibleCounts, setVisibleCounts] = useState({});
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
   const chatEndRef = useRef(null);
@@ -424,6 +422,13 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     setToastMessage(`¡Cupón ${code} copiado al portapapeles! 🎟️`);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2500);
+  };
+
+  const handleLoadMoreProducts = (msgIndex) => {
+    setVisibleCounts((prev) => ({
+      ...prev,
+      [msgIndex]: (prev[msgIndex] || 10) + 10,
+    }));
   };
 
   const renderSocialLinksCard = () => {
@@ -569,11 +574,22 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     );
   };
 
-  const renderProductCards = (matchedList, introText) => {
+  // ==========================================
+  // TARJETAS DE PRODUCTOS (10 INICIALES + BOTÓN "VER MÁS" HASTA AGOTAR GALERÍA)
+  // ==========================================
+  const renderProductCards = (matchedList, introText, msgIndex) => {
+    const visibleLimit = visibleCounts[msgIndex] || 10;
+    const visibleItems = matchedList.slice(0, visibleLimit);
+    const remaining = matchedList.length - visibleItems.length;
+
     return (
       <div className="flex flex-col gap-3 mt-1">
         <p className="text-xs font-black leading-snug">{renderMessageTextWithFormat(introText)}</p>
-        {matchedList.slice(0, 5).map((prod, idx) => {
+        <p className="text-[10px] font-bold opacity-75 -mt-1.5">
+          Mostrando {visibleItems.length} de {matchedList.length} ofertas encontradas
+        </p>
+
+        {visibleItems.map((prod, idx) => {
           const title = prod.title || prod.nombre || 'Oferta Destacada';
           const finalPrice = Number(prod.discount_price || prod.precio || 0);
           const origPrice = Number(prod.original_price || 0);
@@ -638,6 +654,16 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
             </div>
           );
         })}
+
+        {remaining > 0 && (
+          <button
+            type="button"
+            onClick={() => handleLoadMoreProducts(msgIndex)}
+            className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-2.5 px-3 rounded-xl text-xs uppercase flex items-center justify-center gap-1.5 border-2 border-black shadow-md transition-transform hover:scale-[1.02] active:scale-95 cursor-pointer"
+          >
+            <span>Ver más ofertas ({remaining} disponibles) 👇</span>
+          </button>
+        )}
       </div>
     );
   };
@@ -728,11 +754,11 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     });
   };
 
-  const renderMessageWithCouponCards = (msg) => {
+  const renderMessageWithCouponCards = (msg, msgIndex) => {
     if (msg.isSocialLinks) return renderSocialLinksCard();
     if (msg.isMercadoPagoCard) return renderMercadoPagoTerminalCard();
     if (msg.isCuponesCard) return renderCuponesDirectCards(msg.customCupones, msg.budgetAsked);
-    if (msg.isProductCards) return renderProductCards(msg.matchedProducts, msg.introText);
+    if (msg.isProductCards) return renderProductCards(msg.matchedProducts, msg.introText, msgIndex);
     if (msg.isExternalSearch) return renderExternalSearchCard(msg.searchQuery, msg.customReason);
 
     const text = msg.text || '';
@@ -823,8 +849,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     if (lowerText.includes('ofertas top') || lowerText.includes('destacados') || lowerText.includes('mejores ofertas')) {
       if (catalogToSearch.length > 0) {
         const topProducts = [...catalogToSearch]
-          .sort((a, b) => Number(b.discount_percentage || 0) - Number(a.discount_percentage || 0))
-          .slice(0, 5);
+          .sort((a, b) => Number(b.discount_percentage || 0) - Number(a.discount_percentage || 0));
         setChatMessages((prev) => [
           ...prev,
           {
@@ -852,7 +877,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
         {
           sender: 'bot',
           isProductCards: true,
-          matchedProducts: catalogResult.items.slice(0, 5),
+          matchedProducts: catalogResult.items,
           introText: intro,
         },
       ]);
@@ -1063,7 +1088,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
                     }`}
                   >
                     {msg.sender === 'bot'
-                      ? renderMessageWithCouponCards(msg)
+                      ? renderMessageWithCouponCards(msg, index)
                       : renderMessageTextWithFormat(msg.text)}
                   </div>
                 </div>
