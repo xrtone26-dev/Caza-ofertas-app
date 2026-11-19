@@ -30,23 +30,25 @@ const WHATSAPP_GROUP_LINK = 'https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mo
 const WHATSAPP_PERSONAL_NUMBER = '523312229710';
 
 const SYSTEM_PROMPT = `
-Eres CapiBaraML 🐹, el asistente virtual oficial de CapiBaraML WEB. 
+Eres CapiBaraML 🐹, el asistente virtual oficial de CapiBaraML WEB.
 
-PERSONALIDAD Y ACTITUD:
-- Eres siempre amable, tranquilo, pasivo, respetuoso y con buena vibra.
-- Si el usuario te dice algo grosero, te provoca o se queja, NUNCA discutas ni te pongas a la defensiva; responde con total calma, humildad y cortesía, y redirige suavemente la conversación a cómo puedes ayudarle a ahorrar.
-- Si el usuario solo está charlando (saludos, chistes, "otro", preguntas generales), respóndele de forma natural, simpática y breve siguiendo el hilo de la conversación.
-- Tu objetivo principal es ahorrarle dinero al usuario y ayudarle a encontrar las mejores ofertas, remates y cupones activos en Mercado Libre.
-- NUNCA uses la palabra "afiliado", "link de afiliado" ni "enlace de afiliado". Di siempre "enlace de oferta" o "enlace directo".
-- NUNCA inventes links ni escribas "TU_CAMPID_AQUI".
-- Habla en español latino, usando emojis con moderación (🐹, ✨, 🚀). Sé conciso (máximo 3 líneas).
+PERSONALIDAD Y CONVERSACIÓN:
+- Habla SIEMPRE 100% en español latino. NUNCA respondas en inglés.
+- Sé natural, cercano, tranquilo, educado y con buena vibra.
+- Si alguien te insulta o provoca, responde siempre con calma, humildad y buena actitud sin discutir.
+- Tu función principal es ahorrarle dinero a la gente cazando las mejores ofertas, remates y cupones de Mercado Libre.
+- NUNCA uses la palabra "afiliado", "link de afiliado" ni "enlace de afiliado". Di "enlace de oferta" o "enlace directo".
+- NUNCA inventes enlaces ni escribas "TU_CAMPID_AQUI".
+- Si te preguntan cómo usar un cupón, explícales brevemente: 1) darle clic a "Copiar cupón e ir a comprar", 2) agregar al carrito productos que cumplan el mínimo de compra, 3) pegar el código en "Ingresar código de cupón" antes de pagar.
+
+ACCIONES VISUALES (ÚSALAS SOLO CUANDO CORRESPONDA):
+Al final de tu respuesta, puedes incluir UNA de estas etiquetas exactas si el usuario realmente pide ver eso (NO las uses si solo está charlando, bromeando o preguntando cómo funciona algo):
+- Si pide ver cupones disponibles: agrega [CUPONES] (o [CUPONES: monto] si dijo cuánto gastará, ej. [CUPONES: 2000]).
+- Si pide redes sociales, WhatsApp, Telegram o grupos: agrega [REDES].
+- Si pide terminales Point de Mercado Pago: agrega [POINT].
+- Si pide ver las ofertas top / más baratas / destacados: agrega [OFERTAS_TOP].
+- Si busca comprar un producto específico (ej. laptop, iphone, pantalla, xbox, audífonos, tenis): agrega [PRODUCTOS: nombre_corto | presupuesto_numerico_o_0] (ej. [PRODUCTOS: laptop | 8000] o [PRODUCTOS: iphone | 0]).
 `;
-
-const CALM_DEESCALATION_REPLIES = [
-  '¡Tranquilo! 🐹 Sigo aprendiendo todos los días para ayudarte mejor. Si algo no salió como esperabas, dime exactamente qué producto o cupón buscas y con gusto lo intento de nuevo. ✨',
-  'Una disculpa si no me expliqué bien 🙏🐹. Mi única intención es ayudarte a ahorrar dinero. Dime qué artículo necesitas o tu presupuesto y te busco la mejor opción al momento. 🚀',
-  '¡Sin problema! 🐹 A veces fallo un poco, pero aquí estoy con toda la buena actitud para ayudarte. ¿Qué oferta o cupón te gustaría que busquemos hoy? ✨',
-];
 
 const decodeCouponIfNeeded = (item) => {
   if (!item || typeof item !== 'object') return item;
@@ -73,32 +75,19 @@ const normalizeStr = (s = '') =>
 const hasWholeWord = (text, words) =>
   words.some((w) => new RegExp(`\\b${w}\\b`, 'i').test(text));
 
+const isEnglishRefusal = (text = '') =>
+  /\b(i['’]?m sorry|i cannot|i can['’]?t help|as an ai|i am unable|sorry, but i can['’]?t)\b/i.test(String(text));
+
 const sanitizeBotReply = (text = '') =>
   String(text)
     .replace(/\?campid=TU_CAMPID_AQUI/gi, '')
     .replace(/\b(link|enlace)s?\s+de\s+afiliad[oa]s?\b/gi, 'enlace de oferta')
     .replace(/\bafiliad[oa]s?\b/gi, 'oficiales');
 
-const extractBudget = (userText = '') => {
-  const cleanNumText = userText.replace(/,/g, '');
-  const budgetMatch =
-    cleanNumText.match(/(?:presupuesto|tengo|cuento con|maximo|máximo|hasta|menos de|para|de)\s*(?:de\s*)?\$?\s*(\d{2,6})/i) ||
-    cleanNumText.match(/\$\s*(\d{2,6})/);
-  return budgetMatch && budgetMatch[1] ? Number(budgetMatch[1]) : null;
-};
-
-const filterStrictCatalog = (userText, catalog) => {
-  const norm = normalizeStr(userText);
-  const budget = extractBudget(userText);
-
-  // Detectar saludos, despedidas, seguimientos de charla o preguntas generales
-  const isGreetingOrSmallTalk =
-    /^(hola|buen dia|buenos dias|buenas tardes|buenas noches|buenas|excelente dia|feliz dia|hey|que tal|que onda|gracias|muchas gracias|mil gracias|ok|okay|vale|perfecto|genial|super|chido|adios|bye|hasta luego|nos vemos|como estas|todo bien|si|no|otro|otra|mas|otro chiste|cuenta otro|jaja|jajaja|jajajaja|xd|lol)$/.test(norm) ||
-    hasWholeWord(norm, ['garantia', 'envio', 'confiable', 'seguro', 'chiste', 'chistes', 'clima', 'hora', 'nombre']);
-
-  if (isGreetingOrSmallTalk) {
-    return { status: 'GENERAL_CHAT', items: [], budget, categoryLabel: '', isCategorySearch: false };
-  }
+// Filtro limpio de catálogo (solo se ejecuta cuando la IA lo solicita con [PRODUCTOS: ...])
+const filterCatalogForAI = (queryText, budgetNum, catalog) => {
+  const norm = normalizeStr(queryText);
+  const budget = budgetNum && budgetNum > 0 ? Number(budgetNum) : null;
 
   const brandFilters = [
     { trigger: ['iphone'], required: ['iphone'], label: 'iPhone', minPrice: 3000 },
@@ -106,7 +95,6 @@ const filterStrictCatalog = (userText, catalog) => {
     { trigger: ['samsung', 'galaxy'], required: ['samsung', 'galaxy'], label: 'Samsung Galaxy' },
     { trigger: ['xiaomi', 'redmi', 'poco'], required: ['xiaomi', 'redmi', 'poco'], label: 'Xiaomi / Redmi' },
     { trigger: ['motorola'], required: ['motorola', 'moto g', 'moto e', 'moto edge'], label: 'Motorola' },
-    { trigger: ['nothing'], required: ['nothing'], label: 'Nothing Phone' },
     { trigger: ['xbox'], required: ['xbox'], label: 'Xbox' },
     { trigger: ['switch', 'nintendo'], required: ['switch', 'nintendo'], label: 'Nintendo Switch' },
     { trigger: ['playstation', 'ps5', 'ps4'], required: ['playstation', 'ps5', 'ps4'], label: 'PlayStation' },
@@ -115,10 +103,8 @@ const filterStrictCatalog = (userText, catalog) => {
   const requestedBrand = brandFilters.find((b) => hasWholeWord(norm, b.trigger));
 
   const isLaptopOnly = hasWholeWord(norm, ['laptop', 'laptops', 'lap top', 'portatil', 'portatiles', 'macbook', 'notebook']);
-  const isDesktopOrPC = !isLaptopOnly && hasWholeWord(norm, ['computadora', 'computadoras', 'pc', 'all in one', 'escritorio']);
   const isPhone = hasWholeWord(norm, ['celular', 'celulares', 'telefono', 'telefonos', 'smartphone', 'smartphones', 'iphone']);
   const isScreen = hasWholeWord(norm, ['pantalla', 'pantallas', 'tv', 'smart tv', 'televisor', 'televisores', 'television']);
-  const isMonitor = hasWholeWord(norm, ['monitor', 'monitores']);
   const isConsole =
     hasWholeWord(norm, ['consola', 'consolas', 'xbox', 'switch', 'nintendo', 'ps5', 'playstation']) &&
     !hasWholeWord(norm, ['control', 'mando', 'estuche', 'funda', 'bateria', 'audifono', 'audifonos', 'headset']);
@@ -131,134 +117,46 @@ const filterStrictCatalog = (userText, catalog) => {
     'lcd para', 'display', 'tactil', 'refaccion', 'repuesto'
   ];
 
-  let categoryLabel = '';
-  let minPriceFloor = 0;
   let filtered = [];
 
   if (isLaptopOnly) {
-    categoryLabel = requestedBrand ? requestedBrand.label : 'Laptops / Portátiles';
-    minPriceFloor = 2200;
     const mustHave = ['laptop', 'laptops', 'portatil', 'macbook', 'notebook', 'chromebook', 'ultrabook'];
-    const exclude = [
-      'all in one', 'escritorio', 'prodesk', 'optiplex', 'sff', 'gabinete',
-      'iphone', 'celular', 'smartphone', 'funda', 'mochila', 'cargador', 'cable',
-      'magsafe', 'disco solido', 'disco duro', 'lentes', 'gafas', 'soporte',
-      'base', 'monitor', 'mouse', 'teclado', 'adaptador', 'bateria'
-    ];
+    const exclude = ['all in one', 'escritorio', 'prodesk', 'optiplex', 'sff', 'iphone', 'celular', 'smartphone', 'funda', 'mochila', 'cargador', 'cable', 'magsafe', 'disco solido', 'disco duro', 'lentes', 'gafas', 'soporte', 'base', 'monitor', 'mouse', 'teclado', 'adaptador', 'bateria'];
     filtered = catalog.filter((p) => {
       const t = normalizeStr(p.title || p.nombre || '');
-      const price = Number(p.discount_price || p.precio || 0);
-      return (
-        price >= minPriceFloor &&
-        hasWholeWord(t, mustHave) &&
-        !hasWholeWord(t, exclude) &&
-        !accessoryPhrases.some((ph) => t.includes(ph))
-      );
-    });
-  } else if (isDesktopOrPC) {
-    categoryLabel = 'Computadoras / PC';
-    minPriceFloor = 2200;
-    const mustHave = ['computadora', 'all in one', 'prodesk', 'optiplex', 'pc', 'laptop', 'portatil', 'macbook'];
-    const exclude = ['funda', 'mochila', 'cargador', 'cable', 'disco solido', 'disco duro', 'lentes', 'gafas', 'soporte', 'base', 'mouse', 'teclado', 'adaptador', 'audifono', 'audifonos', 'control', 'gamepad'];
-    filtered = catalog.filter((p) => {
-      const t = normalizeStr(p.title || p.nombre || '');
-      const price = Number(p.discount_price || p.precio || 0);
-      return (
-        price >= minPriceFloor &&
-        hasWholeWord(t, mustHave) &&
-        !hasWholeWord(t, exclude) &&
-        !accessoryPhrases.some((ph) => t.includes(ph))
-      );
+      return Number(p.discount_price || p.precio || 0) >= 2200 && hasWholeWord(t, mustHave) && !hasWholeWord(t, exclude) && !accessoryPhrases.some((ph) => t.includes(ph));
     });
   } else if (isPhone) {
-    categoryLabel = requestedBrand ? requestedBrand.label : 'Celulares / Smartphones';
-    minPriceFloor = requestedBrand?.minPrice || 1200;
+    const minP = requestedBrand?.minPrice || 1200;
     const mustHave = ['iphone', 'celular', 'smartphone', 'telefono', 'galaxy', 'xiaomi', 'redmi', 'poco', 'motorola', 'realme', 'honor', 'nothing phone', 'oppo', 'huawei'];
-    const exclude = ['laptop', 'macbook', 'portatil', 'ipad', 'tablet', 'funda', 'mica', 'cristal', 'cargador', 'cable', 'audifono', 'audifonos', 'auricular', 'auriculares', 'buds', 'airpods', 'reloj', 'smartwatch', 'watch', 'camara', 'vigilancia', 'seguridad', 'adaptador', 'soporte', 'base', 'control', 'remoto', 'enchufe', 'interruptor', 'sensor', 'modulo', 'bocina'];
+    const exclude = ['laptop', 'macbook', 'portatil', 'ipad', 'tablet', 'funda', 'mica', 'cristal', 'cargador', 'cable', 'audifono', 'audifonos', 'auricular', 'buds', 'airpods', 'reloj', 'smartwatch', 'watch', 'camara', 'vigilancia', 'seguridad', 'adaptador', 'soporte', 'base', 'control', 'remoto', 'enchufe', 'interruptor', 'sensor', 'modulo', 'bocina'];
     filtered = catalog.filter((p) => {
       const t = normalizeStr(p.title || p.nombre || '');
-      const price = Number(p.discount_price || p.precio || 0);
-      return (
-        price >= minPriceFloor &&
-        hasWholeWord(t, mustHave) &&
-        !hasWholeWord(t, exclude) &&
-        !accessoryPhrases.some((ph) => t.includes(ph))
-      );
+      return Number(p.discount_price || p.precio || 0) >= minP && hasWholeWord(t, mustHave) && !hasWholeWord(t, exclude) && !accessoryPhrases.some((ph) => t.includes(ph));
     });
   } else if (isScreen) {
-    categoryLabel = 'Pantallas / Smart TV';
-    minPriceFloor = 1500;
     const mustHave = ['smart tv', 'televisor', 'television', 'pantalla', 'roku tv', 'google tv', 'qled', 'oled'];
-    const exclude = [
-      'pc', 'prodesk', 'all in one', 'escritorio', 'windows', 'ssd', 'ram', 'graphics',
-      'core i3', 'core i5', 'core i7', 'ryzen', 'laptop', 'portatil', 'iphone', 'celular',
-      'smartphone', 'audifono', 'audifonos', 'auricular', 'control', 'remoto', 'cable',
-      'hdmi', 'soporte', 'base', 'brazo', 'power bank', 'bateria', 'sensor', 'echo show',
-      'bocina', 'soundbar', 'barra de sonido', 'proyector', 'nintendo', 'switch',
-      'camara', 'vigilancia', 'seguridad', 'tira led', 'led rgb', 'funda', 'estuche',
-      'kit', 'zte', 'huawei', 'motorola', 'xiaomi'
-    ];
+    const exclude = ['pc', 'prodesk', 'all in one', 'escritorio', 'windows', 'ssd', 'ram', 'graphics', 'core i3', 'core i5', 'core i7', 'ryzen', 'laptop', 'portatil', 'iphone', 'celular', 'smartphone', 'audifono', 'audifonos', 'control', 'remoto', 'cable', 'hdmi', 'soporte', 'base', 'power bank', 'bateria', 'sensor', 'echo show', 'bocina', 'soundbar', 'proyector', 'nintendo', 'switch', 'camara', 'vigilancia', 'tira led', 'funda', 'estuche', 'kit', 'zte', 'huawei'];
     filtered = catalog.filter((p) => {
       const t = normalizeStr(p.title || p.nombre || '');
-      const price = Number(p.discount_price || p.precio || 0);
-      return (
-        price >= minPriceFloor &&
-        hasWholeWord(t, mustHave) &&
-        !hasWholeWord(t, exclude) &&
-        !accessoryPhrases.some((ph) => t.includes(ph))
-      );
-    });
-  } else if (isMonitor) {
-    categoryLabel = 'Monitores';
-    minPriceFloor = 700;
-    const mustHave = ['monitor'];
-    const exclude = ['soporte', 'base', 'brazo', 'cable', 'funda', 'camara', 'bebe', 'presion', 'cardiaco'];
-    filtered = catalog.filter((p) => {
-      const t = normalizeStr(p.title || p.nombre || '');
-      const price = Number(p.discount_price || p.precio || 0);
-      return price >= minPriceFloor && hasWholeWord(t, mustHave) && !hasWholeWord(t, exclude);
+      return Number(p.discount_price || p.precio || 0) >= 1500 && hasWholeWord(t, mustHave) && !hasWholeWord(t, exclude) && !accessoryPhrases.some((ph) => t.includes(ph));
     });
   } else if (isConsole) {
-    categoryLabel = requestedBrand ? `Consolas ${requestedBrand.label}` : 'Consolas de Videojuegos';
-    minPriceFloor = 3500;
     const mustHave = ['consola', 'console', 'xbox series', 'nintendo switch', 'playstation', 'ps5'];
-    const exclude = [
-      'audifono', 'audifonos', 'auricular', 'auriculares', 'headset', 'diadema', 'microfono',
-      'control', 'controlador', 'mando', 'gamepad', 'joystick', 'estuche', 'funda', 'kit',
-      'accesorios', 'bateria', 'cargador', 'soporte', 'cable', 'game pass', 'tarjeta'
-    ];
+    const exclude = ['audifono', 'audifonos', 'auricular', 'headset', 'diadema', 'control', 'controlador', 'mando', 'gamepad', 'joystick', 'estuche', 'funda', 'kit', 'accesorios', 'bateria', 'cargador', 'soporte', 'cable', 'game pass', 'tarjeta'];
     filtered = catalog.filter((p) => {
       const t = normalizeStr(p.title || p.nombre || '');
-      const price = Number(p.discount_price || p.precio || 0);
-      return (
-        price >= minPriceFloor &&
-        hasWholeWord(t, mustHave) &&
-        !hasWholeWord(t, exclude) &&
-        !accessoryPhrases.some((ph) => t.includes(ph))
-      );
+      return Number(p.discount_price || p.precio || 0) >= 3500 && hasWholeWord(t, mustHave) && !hasWholeWord(t, exclude) && !accessoryPhrases.some((ph) => t.includes(ph));
     });
   } else if (isHeadphones) {
-    categoryLabel = 'Audífonos';
-    minPriceFloor = 100;
     const mustHave = ['audifono', 'audifonos', 'auricular', 'auriculares', 'headset', 'earbuds', 'buds', 'airpods'];
     const exclude = ['funda', 'estuche', 'almohadilla', 'adaptador', 'cable', 'celular', 'smartphone'];
     filtered = catalog.filter((p) => {
       const t = normalizeStr(p.title || p.nombre || '');
-      const price = Number(p.discount_price || p.precio || 0);
-      return price >= minPriceFloor && hasWholeWord(t, mustHave) && !hasWholeWord(t, exclude);
+      return Number(p.discount_price || p.precio || 0) >= 100 && hasWholeWord(t, mustHave) && !hasWholeWord(t, exclude);
     });
   } else {
-    const stopWords = new Set([
-      'hola', 'tengo', 'un', 'una', 'unos', 'unas', 'el', 'la', 'los', 'las',
-      'de', 'del', 'con', 'por', 'para', 'presupuesto', 'recomiendame', 'recomienda',
-      'busco', 'quiero', 'dame', 'algun', 'alguna', 'bueno', 'buena', 'buenos',
-      'buenas', 'barato', 'barata', 'maximo', 'hasta', 'menos', 'cuento', 'tienes', 'tienen'
-    ]);
-    const terms = norm
-      .split(' ')
-      .filter((w) => w.length >= 3 && !stopWords.has(w) && !/^\d+$/.test(w));
-
-    categoryLabel = terms.join(' ');
+    const terms = norm.split(' ').filter((w) => w.length >= 3);
     if (terms.length > 0) {
       filtered = catalog.filter((p) => {
         const t = normalizeStr(p.title || p.nombre || '');
@@ -268,58 +166,28 @@ const filterStrictCatalog = (userText, catalog) => {
   }
 
   if (requestedBrand && filtered.length > 0) {
-    filtered = filtered.filter((p) => {
-      const t = normalizeStr(p.title || p.nombre || '');
-      return hasWholeWord(t, requestedBrand.required);
-    });
+    filtered = filtered.filter((p) => hasWholeWord(normalizeStr(p.title || p.nombre || ''), requestedBrand.required));
   }
 
-  if (budget && budget > 0 && filtered.length > 0) {
+  if (budget && filtered.length > 0) {
     const withinBudget = filtered.filter((p) => {
       const price = Number(p.discount_price || p.precio || 0);
       return price > 0 && price <= budget;
     });
-
     if (withinBudget.length > 0) {
-      withinBudget.sort(
-        (a, b) => Number(b.discount_price || b.precio || 0) - Number(a.discount_price || a.precio || 0)
-      );
-      return { status: 'FOUND', items: withinBudget, budget, categoryLabel };
+      withinBudget.sort((a, b) => Number(b.discount_price || b.precio || 0) - Number(a.discount_price || a.precio || 0));
+      return { status: 'FOUND', items: withinBudget, budget };
     }
-
-    filtered.sort(
-      (a, b) => Number(a.discount_price || a.precio || 999999) - Number(b.discount_price || b.precio || 999999)
-    );
-    const cheapestPrice = Number(filtered[0].discount_price || filtered[0].precio || 0);
-    return { status: 'OVER_BUDGET', items: [], budget, cheapestPrice, categoryLabel };
+    filtered.sort((a, b) => Number(a.discount_price || a.precio || 999999) - Number(b.discount_price || b.precio || 999999));
+    return { status: 'OVER_BUDGET', items: [], budget, cheapestPrice: Number(filtered[0].discount_price || filtered[0].precio || 0) };
   }
 
   if (filtered.length > 0) {
     filtered.sort((a, b) => Number(b.discount_percentage || 0) - Number(a.discount_percentage || 0));
-    return { status: 'FOUND', items: filtered, budget, categoryLabel };
+    return { status: 'FOUND', items: filtered, budget };
   }
 
-  // Solo mostrar tarjeta de "producto no encontrado" si hay intención clara de compra o categoría de producto
-  const isKnownCategory = isLaptopOnly || isDesktopOrPC || isPhone || isScreen || isMonitor || isConsole || isHeadphones || Boolean(requestedBrand);
-  const isCommonProductNoun = hasWholeWord(norm, [
-    'tenis', 'zapatos', 'ropa', 'playera', 'camisa', 'pantalon', 'chamarra', 'gorra',
-    'firetv', 'fire tv', 'roku', 'alexa', 'echo', 'bocina', 'silla', 'colchon',
-    'bicicleta', 'moto', 'perfume', 'camara', 'impresora', 'microondas', 'refrigerador',
-    'lavadora', 'licuadora', 'cafetera', 'freidora', 'mochila', 'reloj', 'smartwatch',
-    'teclado', 'mouse', 'microfono', 'proyector', 'tablet', 'ipad', 'disco', 'ssd', 'memoria'
-  ]);
-  const hasShoppingIntent =
-    hasWholeWord(norm, ['busco', 'quiero', 'comprar', 'recomiendame', 'recomienda', 'tienes', 'tienen', 'precio', 'oferta', 'ofertas', 'presupuesto']) ||
-    Boolean(budget);
-  const looksLikeGeneralQuestion =
-    /^(por que|porque|como|cuando|donde|quien|cual|eres|estas|puedes|sabes|dime|cuentame|crees|piensas|te gusta)/.test(norm);
-
-  if (isKnownCategory || isCommonProductNoun || (hasShoppingIntent && !looksLikeGeneralQuestion)) {
-    return { status: 'NOT_FOUND_IN_CAT', items: [], budget, categoryLabel: categoryLabel || userText };
-  }
-
-  // Cualquier otra frase o charla natural pasa a la IA
-  return { status: 'GENERAL_CHAT', items: [], budget, categoryLabel: '' };
+  return { status: 'NOT_FOUND', items: [], budget };
 };
 
 export default function ChatbotWidget({ isLight, cupones = [], products = [], isMobileDevice = false }) {
@@ -462,7 +330,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     }));
   };
 
-  const renderSocialLinksCard = () => {
+  const renderSocialLinksCard = (introText) => {
     const socials = [
       { name: 'WhatsApp VIP', icon: FaWhatsapp, url: WHATSAPP_GROUP_LINK, color: 'bg-[#25D366] hover:bg-[#20bd5a]' },
       { name: 'Telegram', icon: FaTelegram, url: 'https://t.me/+QFHGS37AyAk5M2Ex', color: 'bg-[#229ED9] hover:bg-[#1a8ac2]' },
@@ -473,7 +341,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     return (
       <div className="flex flex-col gap-2.5 mt-1">
         <p className="text-xs font-black mb-0.5 leading-snug">
-          ¡Únete gratis a nuestras redes y recibe errores de precio y cupones flash antes que nadie! 🚀
+          {introText ? renderMessageTextWithFormat(introText) : '¡Únete gratis a nuestras redes y recibe errores de precio y cupones flash antes que nadie! 🚀'}
         </p>
         <div className="grid grid-cols-2 gap-2">
           {socials.map((s, idx) => {
@@ -497,11 +365,11 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     );
   };
 
-  const renderMercadoPagoTerminalCard = () => {
+  const renderMercadoPagoTerminalCard = (introText) => {
     return (
       <div className="flex flex-col gap-2.5 mt-1">
         <p className="text-xs font-black leading-snug">
-          ¡Acepta tarjetas en tu negocio con Terminal Point de Mercado Pago con descuento exclusivo! 💳🚀
+          {introText ? renderMessageTextWithFormat(introText) : '¡Acepta tarjetas en tu negocio con Terminal Point de Mercado Pago con descuento exclusivo! 💳🚀'}
         </p>
         <div className="bg-[#009EE3] text-white border-2 border-black rounded-2xl p-3.5 shadow-xl flex flex-col gap-2.5">
           <div className="flex items-center justify-center gap-1.5 font-black text-[11px] uppercase bg-black/30 py-1.5 px-3 rounded-lg tracking-wide">
@@ -524,7 +392,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     );
   };
 
-  const renderCuponesDirectCards = (customList = null, budgetAsked = null) => {
+  const renderCuponesDirectCards = (customList = null, budgetAsked = null, introText = '') => {
     const listToRender = customList || activeValidCupones;
 
     if (!listToRender || listToRender.length === 0) {
@@ -550,7 +418,9 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     return (
       <div className="flex flex-col gap-3 mt-1">
         <p className="text-xs font-black leading-snug">
-          {budgetAsked
+          {introText
+            ? renderMessageTextWithFormat(introText)
+            : budgetAsked
             ? `¡Estos cupones aplican perfecto para tu compra de $${budgetAsked.toLocaleString('en-US')}! 🎟️🔥`
             : '¡Aquí tienes los cupones activos disponibles hoy! Toca para copiar e ir directo a Mercado Libre: 🎟️🔥'}
         </p>
@@ -780,9 +650,9 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
   };
 
   const renderMessageWithCouponCards = (msg, msgIndex) => {
-    if (msg.isSocialLinks) return renderSocialLinksCard();
-    if (msg.isMercadoPagoCard) return renderMercadoPagoTerminalCard();
-    if (msg.isCuponesCard) return renderCuponesDirectCards(msg.customCupones, msg.budgetAsked);
+    if (msg.isSocialLinks) return renderSocialLinksCard(msg.introText);
+    if (msg.isMercadoPagoCard) return renderMercadoPagoTerminalCard(msg.introText);
+    if (msg.isCuponesCard) return renderCuponesDirectCards(msg.customCupones, msg.budgetAsked, msg.introText);
     if (msg.isProductCards) return renderProductCards(msg.matchedProducts, msg.introText, msgIndex);
     if (msg.isExternalSearch) return renderExternalSearchCard(msg.searchQuery, msg.customReason);
 
@@ -790,224 +660,236 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     return <div>{renderMessageTextWithFormat(text)}</div>;
   };
 
-  const processAndSendMessage = async (textToSend) => {
+  // ==========================================
+  // ENVÍO 100% CONVERSACIONAL IMPULSADO POR LA IA
+  // ==========================================
+  const processAndSendMessage = async (textToSend, quickAction = null) => {
     if (!textToSend.trim()) return;
 
     const userText = textToSend.trim();
-    const lowerText = normalizeStr(userText);
-
     const newHistory = [...chatMessages, { sender: 'user', text: userText }];
     setChatMessages(newHistory);
     setInputMessage('');
     setIsTyping(true);
 
-    // 0A. Respuesta pasiva y amable ante insultos, provocaciones o quejas
-    const isInsultOrProvocation = hasWholeWord(lowerText, [
-      'tonto', 'tonta', 'estupido', 'estupida', 'idiota', 'pendejo', 'pendeja',
-      'menso', 'mensa', 'baboso', 'babosa', 'imbecil', 'imbesil', 'tarado', 'tarada',
-      'inutil', 'basura', 'porqueria', 'torpe', 'bobo', 'boba', 'mamon',
-      'no sirves', 'vales madre', 'malo', 'pesimo', 'horrible'
-    ]);
-
-    if (isInsultOrProvocation) {
-      const calmReply = CALM_DEESCALATION_REPLIES[newHistory.length % CALM_DEESCALATION_REPLIES.length];
-      setTimeout(() => {
-        setChatMessages((prev) => [...prev, { sender: 'bot', text: calmReply }]);
-        setIsTyping(false);
-      }, 250);
-      return;
-    }
-
-    // 0B. Preguntas sobre qué hace / para qué sirve el bot
-    const isAboutBot =
-      lowerText.includes('para que sirves') ||
-      lowerText.includes('cual es tu funcion') ||
-      lowerText.includes('que haces') ||
-      lowerText.includes('que se supone que haces') ||
-      lowerText.includes('como me puedes ayudar') ||
-      lowerText.includes('como me ayudas') ||
-      lowerText.includes('que puedes hacer') ||
-      lowerText.includes('como funcionas') ||
-      lowerText.includes('como funciona') ||
-      lowerText.includes('quien eres') ||
-      lowerText.includes('que eres') ||
-      hasWholeWord(lowerText, ['funcion', 'sirves', 'duda', 'dudas', 'ayuda']);
-
-    if (isAboutBot) {
-      setTimeout(() => {
-        setChatMessages((prev) => [
-          ...prev,
-          {
-            sender: 'bot',
-            text:
-              '¡Hola! Soy **CapiBaraML** 🐹, tu cazador personal de ofertas. Mi misión es **ahorrarte dinero y tiempo** al comprar en Mercado Libre:\n\n' +
-              '🔍 **Busco por ti:** Dime qué producto necesitas y tu presupuesto (ej. *"laptop de $10,000"* o *"iPhone"*) y te muestro las mejores ofertas reales.\n' +
-              '🎟️ **Cupones activos:** Te paso los códigos de descuento vigentes del día listos para copiar.\n' +
-              '🔥 **Remates verificados:** Monitoreamos precios bajos y liquidaciones 24/7.\n' +
-              '💬 **Atención directa:** Si no tenemos lo que buscas en vitrina, te conecto con nuestro equipo por WhatsApp para rastrearlo al mejor precio.\n\n' +
-              '¿Qué oferta te gustaría buscar ahorita? 🚀',
-          },
-        ]);
-        setIsTyping(false);
-      }, 250);
-      return;
-    }
-
-    if (hasWholeWord(lowerText, ['whatsapp', 'telegram', 'facebook', 'youtube', 'redes', 'grupo', 'grupos', 'canal', 'canales'])) {
-      setTimeout(() => {
-        setChatMessages((prev) => [...prev, { sender: 'bot', isSocialLinks: true }]);
-        setIsTyping(false);
-      }, 250);
-      return;
-    }
-
-    if (hasWholeWord(lowerText, ['terminal', 'terminales', 'point', 'lector', 'mercado pago'])) {
-      setTimeout(() => {
-        setChatMessages((prev) => [...prev, { sender: 'bot', isMercadoPagoCard: true }]);
-        setIsTyping(false);
-      }, 250);
-      return;
-    }
-
-    // Detección de cupones (con soporte de filtro por presupuesto)
-    const isCouponRequest =
-      hasWholeWord(lowerText, ['cupon', 'cupones', 'codigo', 'codigos']) ||
-      (hasWholeWord(lowerText, ['descuento', 'descuentos']) &&
-        !hasWholeWord(lowerText, ['laptop', 'celular', 'iphone', 'pantalla', 'tv', 'consola', 'xbox', 'switch', 'audifonos']));
-
-    if (isCouponRequest) {
-      const couponBudget = extractBudget(userText);
-      let filteredCoupons = activeValidCupones;
-      if (couponBudget && couponBudget > 0) {
-        filteredCoupons = activeValidCupones.filter((c) => {
-          const min = Number(c.min_purchase || 0);
-          return min === 0 || couponBudget >= min;
-        });
-      }
-
+    // Atajos directos SOLO cuando el usuario toca uno de los 4 botones rápidos superiores
+    if (quickAction === 'cupones') {
       setTimeout(() => {
         setChatMessages((prev) => [
           ...prev,
           {
             sender: 'bot',
             isCuponesCard: true,
-            customCupones: filteredCoupons,
-            budgetAsked: couponBudget,
+            customCupones: activeValidCupones,
+            memoryText: `Mostré ${activeValidCupones.length} cupones activos de Mercado Libre (ej. ${activeValidCupones[0]?.title || 'cupones del día'}).`,
           },
         ]);
         setIsTyping(false);
-      }, 250);
+      }, 200);
       return;
     }
 
-    let catalogToSearch = activeValidProducts;
-    if (catalogToSearch.length === 0) {
-      try {
-        const res = await axios.get(`${API}/products?t=${Date.now()}`, { timeout: 12000 });
-        if (Array.isArray(res.data)) {
-          setLocalProducts(res.data);
-          catalogToSearch = res.data.filter((p) => p && p.active !== false);
-        }
-      } catch (e) {}
-    }
-
-    if (lowerText.includes('ofertas top') || lowerText.includes('destacados') || lowerText.includes('mejores ofertas')) {
-      if (catalogToSearch.length > 0) {
-        const topProducts = [...catalogToSearch]
-          .sort((a, b) => Number(b.discount_percentage || 0) - Number(a.discount_percentage || 0));
+    if (quickAction === 'redes') {
+      setTimeout(() => {
         setChatMessages((prev) => [
           ...prev,
-          {
-            sender: 'bot',
-            isProductCards: true,
-            matchedProducts: topProducts,
-            introText: '🔥 ¡Estas son las ofertas con mayor descuento disponibles ahora mismo en nuestra página!',
-          },
+          { sender: 'bot', isSocialLinks: true, memoryText: 'Mostré los enlaces a WhatsApp VIP, Telegram, Facebook y YouTube.' },
         ]);
         setIsTyping(false);
-        return;
-      }
+      }, 200);
+      return;
     }
 
-    // 1. Búsqueda estricta por categoría, marca, piso de precio y presupuesto
-    const catalogResult = filterStrictCatalog(userText, catalogToSearch);
+    if (quickAction === 'point') {
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          { sender: 'bot', isMercadoPagoCard: true, memoryText: 'Mostré la oferta de Terminales Point de Mercado Pago.' },
+        ]);
+        setIsTyping(false);
+      }, 200);
+      return;
+    }
 
-    if (catalogResult.status === 'FOUND') {
-      const intro = catalogResult.budget
-        ? `¡Aquí tienes las mejores opciones de **${catalogResult.categoryLabel}** dentro de tu presupuesto de **$${catalogResult.budget.toLocaleString('en-US')}**! 🐹🔥`
-        : `¡Aquí tienes las mejores opciones de **${catalogResult.categoryLabel}** en nuestra vitrina! 🐹🔥`;
-
+    if (quickAction === 'ofertas_top') {
+      let catalog = activeValidProducts;
+      if (catalog.length === 0) {
+        try {
+          const res = await axios.get(`${API}/products?t=${Date.now()}`, { timeout: 12000 });
+          if (Array.isArray(res.data)) {
+            setLocalProducts(res.data);
+            catalog = res.data.filter((p) => p && p.active !== false);
+          }
+        } catch (e) {}
+      }
+      const topProducts = [...catalog].sort((a, b) => Number(b.discount_percentage || 0) - Number(a.discount_percentage || 0));
       setChatMessages((prev) => [
         ...prev,
         {
           sender: 'bot',
           isProductCards: true,
-          matchedProducts: catalogResult.items,
-          introText: intro,
+          matchedProducts: topProducts,
+          introText: '🔥 ¡Estas son las ofertas con mayor descuento disponibles ahora mismo en nuestra página!',
+          memoryText: 'Mostré las ofertas top con mayor descuento.',
         },
       ]);
       setIsTyping(false);
       return;
     }
 
-    if (catalogResult.status === 'OVER_BUDGET') {
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          sender: 'bot',
-          isExternalSearch: true,
-          searchQuery: `${catalogResult.categoryLabel} hasta $${catalogResult.budget}`,
-          customReason: (
-            <>
-              Por <strong>${catalogResult.budget.toLocaleString('en-US')}</strong> no tenemos <strong>{catalogResult.categoryLabel}</strong> en nuestra vitrina ahorita (los que tenemos arrancan desde <strong>${catalogResult.cheapestPrice.toLocaleString('en-US')}</strong> 😅). ¡Escríbenos directo por WhatsApp y te rastreamos una opción en tu presupuesto! 👇
-            </>
-          ),
-        },
-      ]);
-      setIsTyping(false);
-      return;
-    }
-
-    if (catalogResult.status === 'NOT_FOUND_IN_CAT') {
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          sender: 'bot',
-          isExternalSearch: true,
-          searchQuery: catalogResult.categoryLabel || userText,
-        },
-      ]);
-      setIsTyping(false);
-      return;
-    }
-
-    // 2. Consulta conversacional general a la IA (conservando los últimos 4 mensajes de texto para entender "otro", saludos, etc.)
-    const recentTextHistory = newHistory
-      .filter((m) => typeof m.text === 'string' && m.text.trim() !== '')
-      .slice(-4);
+    // Construir historial real (incluyendo memoria de tarjetas mostradas anteriormente)
+    const conversationHistory = newHistory
+      .map((m) => ({
+        sender: m.sender,
+        text: m.text || m.memoryText || m.introText || '',
+      }))
+      .filter((m) => m.text.trim() !== '')
+      .slice(-8);
 
     try {
       const response = await axios.post(
         `${API}/chat`,
         {
           message: userText,
-          history: recentTextHistory,
+          history: conversationHistory,
           systemPrompt: SYSTEM_PROMPT,
           products: [],
         },
         { timeout: 20000 }
       );
 
-      const botReply = response.data?.reply?.trim();
+      let botReply = response.data?.reply?.trim() || '';
 
-      if (botReply) {
-        const cleanReply = sanitizeBotReply(botReply);
+      if (!botReply || isEnglishRefusal(botReply)) {
+        botReply = '¡Tranquilo! 🐹 Aquí estoy con toda la buena actitud para ayudarte. Dime qué producto, oferta o cupón necesitas y con gusto lo buscamos. ✨';
+      }
+
+      botReply = sanitizeBotReply(botReply);
+
+      // Interpretar si la IA decidió mostrar alguna tarjeta interactiva
+      const cuponMatch = botReply.match(/\[CUPONES(?::\s*(\d+))?\]/i);
+      const redesMatch = botReply.match(/\[REDES\]/i);
+      const pointMatch = botReply.match(/\[POINT\]/i);
+      const topMatch = botReply.match(/\[OFERTAS_TOP\]/i);
+      const prodMatch = botReply.match(/\[PRODUCTOS:\s*([^|\]]+)(?:\|\s*(\d+))?\]/i);
+
+      const cleanIntro = botReply
+        .replace(/\[CUPONES(?::\s*\d+)?\]/gi, '')
+        .replace(/\[REDES\]/gi, '')
+        .replace(/\[POINT\]/gi, '')
+        .replace(/\[OFERTAS_TOP\]/gi, '')
+        .replace(/\[PRODUCTOS:[^\]]+\]/gi, '')
+        .trim();
+
+      if (cuponMatch) {
+        const budget = cuponMatch[1] ? Number(cuponMatch[1]) : null;
+        let filtered = activeValidCupones;
+        if (budget && budget > 0) {
+          filtered = activeValidCupones.filter((c) => Number(c.min_purchase || 0) <= budget);
+        }
         setChatMessages((prev) => [
           ...prev,
-          { sender: 'bot', text: cleanReply },
+          {
+            sender: 'bot',
+            isCuponesCard: true,
+            customCupones: filtered,
+            budgetAsked: budget,
+            introText: cleanIntro,
+            memoryText: `${cleanIntro} (Mostré ${filtered.length} cupones activos).`,
+          },
         ]);
+      } else if (redesMatch) {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            isSocialLinks: true,
+            introText: cleanIntro,
+            memoryText: `${cleanIntro} (Mostré los enlaces de WhatsApp, Telegram, Facebook y YouTube).`,
+          },
+        ]);
+      } else if (pointMatch) {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            isMercadoPagoCard: true,
+            introText: cleanIntro,
+            memoryText: `${cleanIntro} (Mostré las Terminales Point de Mercado Pago).`,
+          },
+        ]);
+      } else if (topMatch) {
+        const topProducts = [...activeValidProducts].sort((a, b) => Number(b.discount_percentage || 0) - Number(a.discount_percentage || 0));
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            isProductCards: true,
+            matchedProducts: topProducts,
+            introText: cleanIntro || '🔥 ¡Estas son las ofertas con mayor descuento disponibles ahora mismo!',
+            memoryText: 'Mostré las ofertas top de la página.',
+          },
+        ]);
+      } else if (prodMatch) {
+        const query = prodMatch[1].trim();
+        const budget = prodMatch[2] ? Number(prodMatch[2]) : 0;
+
+        let catalogToSearch = activeValidProducts;
+        if (catalogToSearch.length === 0) {
+          try {
+            const res = await axios.get(`${API}/products?t=${Date.now()}`, { timeout: 12000 });
+            if (Array.isArray(res.data)) {
+              setLocalProducts(res.data);
+              catalogToSearch = res.data.filter((p) => p && p.active !== false);
+            }
+          } catch (e) {}
+        }
+
+        const result = filterCatalogForAI(query, budget, catalogToSearch);
+
+        if (result.status === 'FOUND') {
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              sender: 'bot',
+              isProductCards: true,
+              matchedProducts: result.items,
+              introText: cleanIntro || `¡Aquí tienes las mejores opciones de **${query}** en nuestra vitrina! 🐹🔥`,
+              memoryText: `Mostré ${result.items.length} opciones de ${query}${budget ? ` hasta $${budget}` : ''}.`,
+            },
+          ]);
+        } else if (result.status === 'OVER_BUDGET') {
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              sender: 'bot',
+              isExternalSearch: true,
+              searchQuery: `${query} hasta $${budget}`,
+              customReason: (
+                <>
+                  Por <strong>${budget.toLocaleString('en-US')}</strong> no tenemos <strong>{query}</strong> en nuestra vitrina ahorita (los que tenemos arrancan desde <strong>${result.cheapestPrice.toLocaleString('en-US')}</strong> 😅). ¡Escríbenos directo por WhatsApp y te rastreamos una opción en tu presupuesto! 👇
+                </>
+              ),
+              memoryText: `Informé que no tenemos ${query} por $${budget} y ofrecí WhatsApp 33 1222 9710.`,
+            },
+          ]);
+        } else {
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              sender: 'bot',
+              isExternalSearch: true,
+              searchQuery: query,
+              memoryText: `Informé que no tenemos ${query} en vitrina y ofrecí WhatsApp 33 1222 9710 y búsqueda en Mercado Libre.`,
+            },
+          ]);
+        }
       } else {
-        throw new Error('Respuesta vacía');
+        // Respuesta conversacional pura y fluida
+        setChatMessages((prev) => [
+          ...prev,
+          { sender: 'bot', text: cleanIntro || botReply },
+        ]);
       }
     } catch (error) {
       setChatMessages((prev) => [
@@ -1103,28 +985,28 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
             >
               <button
                 type="button"
-                onClick={() => processAndSendMessage('¡Quiero un cupón de descuento urgente!')}
+                onClick={() => processAndSendMessage('¡Quiero un cupón de descuento urgente!', 'cupones')}
                 className="whitespace-nowrap px-3 py-1.5 rounded-full bg-yellow-400 text-black font-black text-[11px] hover:bg-yellow-300 transition shadow-sm cursor-pointer shrink-0"
               >
                 🎟️ Cupones Hoy
               </button>
               <button
                 type="button"
-                onClick={() => processAndSendMessage('Muéstrame las ofertas top')}
+                onClick={() => processAndSendMessage('Muéstrame las ofertas top', 'ofertas_top')}
                 className="whitespace-nowrap px-3 py-1.5 rounded-full bg-red-500 text-white font-black text-[11px] hover:bg-red-600 transition shadow-sm cursor-pointer shrink-0 flex items-center gap-1"
               >
                 <Flame size={12} /> Ofertas Top
               </button>
               <button
                 type="button"
-                onClick={() => processAndSendMessage('¿Qué terminales Point de Mercado Pago me recomiendas?')}
+                onClick={() => processAndSendMessage('¿Qué terminales Point de Mercado Pago me recomiendas?', 'point')}
                 className="whitespace-nowrap px-3 py-1.5 rounded-full bg-blue-600 text-white font-black text-[11px] hover:bg-blue-500 transition shadow-sm cursor-pointer shrink-0"
               >
                 💳 Terminales Point
               </button>
               <button
                 type="button"
-                onClick={() => processAndSendMessage('Pásame sus redes oficiales y WhatsApp')}
+                onClick={() => processAndSendMessage('Pásame sus redes oficiales y WhatsApp', 'redes')}
                 className="whitespace-nowrap px-3 py-1.5 rounded-full bg-[#25D366] text-black font-black text-[11px] hover:bg-[#20bd5a] transition shadow-sm cursor-pointer shrink-0"
               >
                 💬 WhatsApp y Redes
@@ -1188,7 +1070,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Ej: laptop de 8000, iphone, pantalla..."
+                placeholder="Ej: laptop de 8000, iphone, ¿cómo uso el cupón?..."
                 className={`flex-1 min-w-0 px-3.5 py-2.5 sm:py-3 text-base sm:text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all ${
                   isLight
                     ? 'bg-gray-50 border-gray-300 text-gray-800'
