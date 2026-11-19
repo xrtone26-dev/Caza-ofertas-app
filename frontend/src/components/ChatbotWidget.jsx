@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  Bot,
   Send,
   X,
   Copy,
@@ -24,6 +23,7 @@ import axios from 'axios';
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 
+const LOGO_URL = './logo.png';
 const MP_POINT_LINK = 'https://www.mercadopago.com.mx/herramientas-para-vender/lectores-point?code=7XYVCUKISD';
 const ML_SEARCH_AFFILIATE = 'https://mercadolibre.com/sec/1XFPeWr';
 const WHATSAPP_GROUP_LINK = 'https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1';
@@ -35,7 +35,7 @@ Eres CapiBaraML 🐹, el asistente virtual oficial de CapiBaraML WEB.
 PERSONALIDAD Y ACTITUD:
 - Eres siempre amable, tranquilo, pasivo, respetuoso y con buena vibra.
 - Si el usuario te dice algo grosero, te provoca o se queja, NUNCA discutas ni te pongas a la defensiva; responde con total calma, humildad y cortesía, y redirige suavemente la conversación a cómo puedes ayudarle a ahorrar.
-- Si te hacen preguntas generales o fuera de tema, respóndelas brevemente de forma cordial y amigable.
+- Si el usuario solo está charlando (saludos, chistes, "otro", preguntas generales), respóndele de forma natural, simpática y breve siguiendo el hilo de la conversación.
 - Tu objetivo principal es ahorrarle dinero al usuario y ayudarle a encontrar las mejores ofertas, remates y cupones activos en Mercado Libre.
 - NUNCA uses la palabra "afiliado", "link de afiliado" ni "enlace de afiliado". Di siempre "enlace de oferta" o "enlace directo".
 - NUNCA inventes links ni escribas "TU_CAMPID_AQUI".
@@ -79,18 +79,22 @@ const sanitizeBotReply = (text = '') =>
     .replace(/\b(link|enlace)s?\s+de\s+afiliad[oa]s?\b/gi, 'enlace de oferta')
     .replace(/\bafiliad[oa]s?\b/gi, 'oficiales');
 
-const filterStrictCatalog = (userText, catalog) => {
-  const norm = normalizeStr(userText);
+const extractBudget = (userText = '') => {
   const cleanNumText = userText.replace(/,/g, '');
   const budgetMatch =
-    cleanNumText.match(/(?:presupuesto|tengo|cuento con|maximo|máximo|hasta|menos de|de)\s*(?:de\s*)?\$?\s*(\d{2,6})/i) ||
+    cleanNumText.match(/(?:presupuesto|tengo|cuento con|maximo|máximo|hasta|menos de|para|de)\s*(?:de\s*)?\$?\s*(\d{2,6})/i) ||
     cleanNumText.match(/\$\s*(\d{2,6})/);
-  const budget = budgetMatch && budgetMatch[1] ? Number(budgetMatch[1]) : null;
+  return budgetMatch && budgetMatch[1] ? Number(budgetMatch[1]) : null;
+};
 
-  // Detectar si es una frase conversacional / pregunta general (no búsqueda de producto)
+const filterStrictCatalog = (userText, catalog) => {
+  const norm = normalizeStr(userText);
+  const budget = extractBudget(userText);
+
+  // Detectar saludos, despedidas, seguimientos de charla o preguntas generales
   const isGreetingOrSmallTalk =
-    /^(hola|buenas|buenos dias|buenas tardes|buenas noches|hey|que tal|que onda|gracias|muchas gracias|ok|vale|perfecto|adios|bye|como estas|todo bien|si|no|jaja|jajaja)$/.test(norm) ||
-    hasWholeWord(norm, ['garantia', 'envio', 'confiable', 'seguro', 'chiste', 'clima', 'hora', 'nombre']);
+    /^(hola|buen dia|buenos dias|buenas tardes|buenas noches|buenas|excelente dia|feliz dia|hey|que tal|que onda|gracias|muchas gracias|mil gracias|ok|okay|vale|perfecto|genial|super|chido|adios|bye|hasta luego|nos vemos|como estas|todo bien|si|no|otro|otra|mas|otro chiste|cuenta otro|jaja|jajaja|jajajaja|xd|lol)$/.test(norm) ||
+    hasWholeWord(norm, ['garantia', 'envio', 'confiable', 'seguro', 'chiste', 'chistes', 'clima', 'hora', 'nombre']);
 
   if (isGreetingOrSmallTalk) {
     return { status: 'GENERAL_CHAT', items: [], budget, categoryLabel: '', isCategorySearch: false };
@@ -295,17 +299,26 @@ const filterStrictCatalog = (userText, catalog) => {
     return { status: 'FOUND', items: filtered, budget, categoryLabel };
   }
 
-  // Solo mostrar tarjeta de "producto no encontrado" si realmente tiene intención de compra o es una categoría/marca
+  // Solo mostrar tarjeta de "producto no encontrado" si hay intención clara de compra o categoría de producto
   const isKnownCategory = isLaptopOnly || isDesktopOrPC || isPhone || isScreen || isMonitor || isConsole || isHeadphones || Boolean(requestedBrand);
-  const hasShoppingIntent = hasWholeWord(norm, ['busco', 'quiero', 'comprar', 'recomiendame', 'recomienda', 'tienes', 'tienen', 'precio', 'oferta', 'ofertas', 'presupuesto']) || Boolean(budget);
+  const isCommonProductNoun = hasWholeWord(norm, [
+    'tenis', 'zapatos', 'ropa', 'playera', 'camisa', 'pantalon', 'chamarra', 'gorra',
+    'firetv', 'fire tv', 'roku', 'alexa', 'echo', 'bocina', 'silla', 'colchon',
+    'bicicleta', 'moto', 'perfume', 'camara', 'impresora', 'microondas', 'refrigerador',
+    'lavadora', 'licuadora', 'cafetera', 'freidora', 'mochila', 'reloj', 'smartwatch',
+    'teclado', 'mouse', 'microfono', 'proyector', 'tablet', 'ipad', 'disco', 'ssd', 'memoria'
+  ]);
+  const hasShoppingIntent =
+    hasWholeWord(norm, ['busco', 'quiero', 'comprar', 'recomiendame', 'recomienda', 'tienes', 'tienen', 'precio', 'oferta', 'ofertas', 'presupuesto']) ||
+    Boolean(budget);
   const looksLikeGeneralQuestion =
     /^(por que|porque|como|cuando|donde|quien|cual|eres|estas|puedes|sabes|dime|cuentame|crees|piensas|te gusta)/.test(norm);
 
-  if (isKnownCategory || (hasShoppingIntent && !looksLikeGeneralQuestion) || (!looksLikeGeneralQuestion && norm.split(' ').length <= 2 && !userText.includes('?'))) {
+  if (isKnownCategory || isCommonProductNoun || (hasShoppingIntent && !looksLikeGeneralQuestion)) {
     return { status: 'NOT_FOUND_IN_CAT', items: [], budget, categoryLabel: categoryLabel || userText };
   }
 
-  // Cualquier otra pregunta o comentario abierto pasa a la IA para responder de forma pasiva y natural
+  // Cualquier otra frase o charla natural pasa a la IA
   return { status: 'GENERAL_CHAT', items: [], budget, categoryLabel: '' };
 };
 
@@ -791,7 +804,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     // 0A. Respuesta pasiva y amable ante insultos, provocaciones o quejas
     const isInsultOrProvocation = hasWholeWord(lowerText, [
       'tonto', 'tonta', 'estupido', 'estupida', 'idiota', 'pendejo', 'pendeja',
-      'menso', 'mensa', 'baboso', 'babosa', 'imbecil', 'tarado', 'tarada',
+      'menso', 'mensa', 'baboso', 'babosa', 'imbecil', 'imbesil', 'tarado', 'tarada',
       'inutil', 'basura', 'porqueria', 'torpe', 'bobo', 'boba', 'mamon',
       'no sirves', 'vales madre', 'malo', 'pesimo', 'horrible'
     ]);
@@ -856,9 +869,32 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       return;
     }
 
-    if (hasWholeWord(lowerText, ['cupon', 'cupones', 'codigo', 'codigos'])) {
+    // Detección de cupones (con soporte de filtro por presupuesto)
+    const isCouponRequest =
+      hasWholeWord(lowerText, ['cupon', 'cupones', 'codigo', 'codigos']) ||
+      (hasWholeWord(lowerText, ['descuento', 'descuentos']) &&
+        !hasWholeWord(lowerText, ['laptop', 'celular', 'iphone', 'pantalla', 'tv', 'consola', 'xbox', 'switch', 'audifonos']));
+
+    if (isCouponRequest) {
+      const couponBudget = extractBudget(userText);
+      let filteredCoupons = activeValidCupones;
+      if (couponBudget && couponBudget > 0) {
+        filteredCoupons = activeValidCupones.filter((c) => {
+          const min = Number(c.min_purchase || 0);
+          return min === 0 || couponBudget >= min;
+        });
+      }
+
       setTimeout(() => {
-        setChatMessages((prev) => [...prev, { sender: 'bot', isCuponesCard: true }]);
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            isCuponesCard: true,
+            customCupones: filteredCoupons,
+            budgetAsked: couponBudget,
+          },
+        ]);
         setIsTyping(false);
       }, 250);
       return;
@@ -945,21 +981,19 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       return;
     }
 
-    // 2. Consulta conversacional general a la IA (responde de forma pasiva y amable cualquier otra pregunta)
-    const cleanProductsCatalog = catalogToSearch.slice(0, 25).map((p) => ({
-      title: String(p.title || p.nombre || ''),
-      price: Number(p.discount_price || p.precio || 0),
-      link: String(p.affiliate_link || p.link || p.url || ''),
-    }));
+    // 2. Consulta conversacional general a la IA (conservando los últimos 4 mensajes de texto para entender "otro", saludos, etc.)
+    const recentTextHistory = newHistory
+      .filter((m) => typeof m.text === 'string' && m.text.trim() !== '')
+      .slice(-4);
 
     try {
       const response = await axios.post(
         `${API}/chat`,
         {
           message: userText,
-          history: [{ sender: 'user', text: userText }],
+          history: recentTextHistory,
           systemPrompt: SYSTEM_PROMPT,
-          products: cleanProductsCatalog,
+          products: [],
         },
         { timeout: 20000 }
       );
@@ -1021,11 +1055,15 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
                 : 'bg-neutral-900 border-yellow-400/60 text-neutral-100'
             }`}
           >
-            {/* ENCABEZADO DEL CHAT */}
+            {/* ENCABEZADO DEL CHAT CON LOGO DE CAPIBARA */}
             <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 px-3.5 py-3 sm:p-4 text-black flex items-center justify-between font-bold border-b-2 border-black shadow-sm shrink-0">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black text-yellow-400 flex items-center justify-center shadow-inner shrink-0">
-                  <Bot className="w-5 h-5 sm:w-6 sm:h-6" />
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black border-2 border-black overflow-hidden flex items-center justify-center shadow-inner shrink-0">
+                  <img
+                    src={LOGO_URL}
+                    alt="CapiBaraML"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm font-black uppercase tracking-tight leading-tight truncate">
@@ -1176,7 +1214,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
           animate={{ opacity: 1, x: 0, scale: 1 }}
           transition={{ delay: 1.5, type: 'spring', stiffness: 260, damping: 20 }}
           onClick={() => setShowChatWindow(true)}
-          className="fixed right-[68px] sm:right-20 bottom-5 sm:bottom-6 z-40 cursor-pointer group flex items-center gap-2 pointer-events-auto"
+          className="fixed right-[72px] sm:right-20 bottom-5 sm:bottom-6 z-40 cursor-pointer group flex items-center gap-2 pointer-events-auto"
         >
           <div className="bg-white text-black font-black text-[11px] sm:text-xs px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl shadow-xl border-2 border-black flex items-center gap-1.5 transition-transform group-hover:scale-105">
             <span>¡Hola! 👋</span>
@@ -1186,7 +1224,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
         </motion.div>
       )}
 
-      {/* BOTÓN FLOTANTE PRINCIPAL (FAB) */}
+      {/* BOTÓN FLOTANTE PRINCIPAL (FAB) CON LOGO DE CAPIBARA */}
       <motion.button
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -1200,8 +1238,12 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
         aria-label="Abrir chat de atención"
       >
         <span className="absolute inset-0 rounded-full bg-yellow-400/40 blur-xl group-hover:blur-2xl transition" />
-        <span className="relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 text-black shadow-2xl shadow-yellow-400/50 border-2 border-black">
-          <Bot className="w-6 h-6" strokeWidth={2.5} />
+        <span className="relative flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black shadow-2xl shadow-yellow-400/50 border-2 border-yellow-400 overflow-visible">
+          <img
+            src={LOGO_URL}
+            alt="CapiBaraML"
+            className="w-full h-full object-cover rounded-full"
+          />
           <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-neutral-950 animate-pulse" />
         </span>
       </motion.button>
