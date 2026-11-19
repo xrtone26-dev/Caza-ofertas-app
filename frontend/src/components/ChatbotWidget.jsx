@@ -33,12 +33,11 @@ Eres CapiBaraML 🐹, el asistente virtual y vendedor estrella oficial de CapiBa
 
 DIRECTRICES DE VENTAS Y FILTRADO ESTRICTO:
 - Tu objetivo es VENDER y ayudar al usuario a ahorrar encontrando EXACTAMENTE lo que pide en el catálogo recibido.
-- REGLA DE ORO DE CALIDAD: Si el usuario pide un "iPhone", NUNCA recomiendes adaptadores, cámaras de seguridad o teléfonos genéricos de marcas desconocidas (como Qtouch o Xgody). Si no hay un iPhone real en el catálogo, admítelo con simpatía y sugiérele buscarlo en el enlace directo de Mercado Libre o pedirlo en WhatsApp VIP.
-- Si el usuario pide una "laptop", NUNCA recomiendes discos duros sueltos, micas, cables, cargadores o lentes de computadora. Solo computadoras portátiles reales.
-- Si el usuario pide una "pantalla" o "smart tv", NUNCA recomiendes cables HDMI, controles remotos sueltos, Echo Show o power banks. Solo televisores o pantallas reales.
-- Si el usuario indica un presupuesto (ej: "tengo $8,000"), respétalo estrictamente y selecciona solo productos cuyo precio final sea menor o igual a ese monto.
+- Responde ÚNICAMENTE sobre la consulta actual del usuario. No mezcles temas de mensajes anteriores.
+- NUNCA inventes links ni escribas "TU_CAMPID_AQUI". Usa únicamente los links reales proporcionados en el catálogo.
+- Respeta estrictamente la categoría y el presupuesto del usuario.
 - Habla en español latino, usando emojis de forma moderada pero divertida (🚀, ✨, 🐹, 🎟️, 🔥).
-- Sé conciso, directo y persuasivo (máximo 3-4 líneas de texto).
+- Sé conciso, directo y persuasivo (máximo 3 líneas de texto).
 `;
 
 const decodeCouponIfNeeded = (item) => {
@@ -54,32 +53,99 @@ const decodeCouponIfNeeded = (item) => {
   return copy;
 };
 
-// Helper no destructivo para extraer presupuesto y categoría/término de búsqueda
-const parseQueryAndBudget = (text = '') => {
-  const cleanNumText = text.replace(/,/g, '');
+const normalizeStr = (s = '') =>
+  String(s)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+const filterStrictCatalog = (userText, catalog) => {
+  const norm = normalizeStr(userText);
+  const cleanNumText = userText.replace(/,/g, '');
   const budgetMatch =
     cleanNumText.match(/(?:presupuesto|tengo|cuento con|maximo|máximo|hasta|menos de|de)\s*(?:de\s*)?\$?\s*(\d{2,6})/i) ||
     cleanNumText.match(/\$\s*(\d{2,6})/);
   const budget = budgetMatch && budgetMatch[1] ? Number(budgetMatch[1]) : null;
 
-  const norm = text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
+  const isLaptop = /\b(laptop|laptops|computadora|computadoras|portatil|portatiles|macbook|notebook)\b/.test(norm);
+  const isPhone = /\b(celular|celulares|telefono|telefonos|smartphone|smartphones|iphone|galaxy|xiaomi|motorola|redmi)\b/.test(norm);
+  const isScreen = /\b(pantalla|pantallas|tv|smart tv|televisor|televisores|television|monitor|monitores)\b/.test(norm);
 
-  const stopWords = new Set([
-    'hola', 'tengo', 'un', 'una', 'unos', 'unas', 'el', 'la', 'los', 'las',
-    'de', 'del', 'con', 'por', 'para', 'presupuesto', 'recomiendame', 'recomienda',
-    'busco', 'quiero', 'dame', 'algun', 'alguna', 'bueno', 'buena', 'buenos',
-    'buenas', 'barato', 'barata', 'maximo', 'hasta', 'menos', 'cuento'
-  ]);
+  let categoryLabel = '';
+  let filtered = [];
 
-  const terms = norm
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .split(/\s+/)
-    .filter((w) => w.length >= 2 && !stopWords.has(w) && !/^\d+$/.test(w));
+  if (isLaptop) {
+    categoryLabel = 'Laptops / Portátiles';
+    const mustHave = ['laptop', 'portatil', 'macbook', 'notebook', 'chromebook', 'all in one'];
+    const exclude = ['iphone', 'celular', 'smartphone', 'funda', 'mochila', 'cargador', 'cable', 'magsafe', 'disco solido', 'ssd 512', 'lentes', 'gafas', 'soporte', 'base', 'monitor'];
+    filtered = catalog.filter((p) => {
+      const t = normalizeStr(p.title || p.nombre || '');
+      return mustHave.some((k) => t.includes(k)) && !exclude.some((bad) => t.includes(bad));
+    });
+  } else if (isPhone) {
+    categoryLabel = 'Celulares / Smartphones';
+    const mustHave = ['iphone', 'celular', 'smartphone', 'telefono', 'galaxy', 'xiaomi', 'redmi', 'motorola', 'moto', 'realme', 'honor', 'nothing phone', 'poco'];
+    const exclude = ['laptop', 'macbook', 'portatil', 'ipad', 'tablet', 'funda', 'mica', 'cargador', 'cable', 'audifono', 'auricular', 'buds', 'airpods', 'reloj', 'watch', 'camara de seguridad', 'adaptador', 'soporte'];
+    filtered = catalog.filter((p) => {
+      const t = normalizeStr(p.title || p.nombre || '');
+      return mustHave.some((k) => t.includes(k)) && !exclude.some((bad) => t.includes(bad));
+    });
+  } else if (isScreen) {
+    categoryLabel = 'Pantallas / Smart TV';
+    const mustHave = ['smart tv', 'pantalla', 'televisor', 'television', 'monitor', 'roku tv', 'google tv'];
+    const exclude = ['laptop', 'portatil', 'iphone', 'celular', 'smartphone', 'audifono', 'auricular', 'control remoto', 'cable hdmi', 'soporte', 'base', 'power bank', 'bateria', 'sensor', 'echo show', 'bocina', 'barra de sonido', 'proyector', 'nintendo'];
+    filtered = catalog.filter((p) => {
+      const t = normalizeStr(p.title || p.nombre || '');
+      return mustHave.some((k) => t.includes(k)) && !exclude.some((bad) => t.includes(bad));
+    });
+  } else {
+    const stopWords = new Set([
+      'hola', 'tengo', 'un', 'una', 'unos', 'unas', 'el', 'la', 'los', 'las',
+      'de', 'del', 'con', 'por', 'para', 'presupuesto', 'recomiendame', 'recomienda',
+      'busco', 'quiero', 'dame', 'algun', 'alguna', 'bueno', 'buena', 'buenos',
+      'buenas', 'barato', 'barata', 'maximo', 'hasta', 'menos', 'cuento'
+    ]);
+    const terms = norm
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter((w) => w.length >= 3 && !stopWords.has(w) && !/^\d+$/.test(w));
 
-  return { budget, terms, norm };
+    categoryLabel = terms.join(' ');
+    if (terms.length > 0) {
+      filtered = catalog.filter((p) => {
+        const t = normalizeStr(p.title || p.nombre || '');
+        return terms.every((term) => t.includes(term));
+      });
+    }
+  }
+
+  // Ordenar de menor a mayor precio
+  filtered.sort((a, b) => Number(a.discount_price || a.precio || 999999) - Number(b.discount_price || b.precio || 999999));
+
+  const isCategorySearch = isLaptop || isPhone || isScreen || filtered.length > 0;
+
+  if (budget && budget > 0 && filtered.length > 0) {
+    const withinBudget = filtered.filter((p) => {
+      const price = Number(p.discount_price || p.precio || 0);
+      return price > 0 && price <= budget;
+    });
+
+    if (withinBudget.length > 0) {
+      return { status: 'FOUND', items: withinBudget, budget, categoryLabel, isCategorySearch };
+    }
+    const cheapestPrice = Number(filtered[0].discount_price || filtered[0].precio || 0);
+    return { status: 'OVER_BUDGET', items: [], budget, cheapestPrice, categoryLabel, isCategorySearch };
+  }
+
+  if (filtered.length > 0) {
+    return { status: 'FOUND', items: filtered, budget, categoryLabel, isCategorySearch };
+  }
+
+  if (isCategorySearch) {
+    return { status: 'NOT_FOUND_IN_CAT', items: [], budget, categoryLabel, isCategorySearch };
+  }
+
+  return { status: 'GENERAL_CHAT', items: [], budget, categoryLabel, isCategorySearch: false };
 };
 
 export default function ChatbotWidget({ isLight, cupones = [], products = [], isMobileDevice = false }) {
@@ -510,45 +576,8 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
   };
 
   // ==========================================
-  // MOTOR HÍBRIDO CON IA (ENVÍO DE CATÁLOGO LIMPIO A LA API + RESPALDO LOCAL)
+  // MOTOR HÍBRIDO CON IA (FILTRADO ESTRICTO POR CATEGORÍA Y PRESUPUESTO)
   // ==========================================
-  const findFallbackProducts = (rawQuery) => {
-    const { budget, terms, norm } = parseQueryAndBudget(rawQuery);
-    const isPhoneQuery = /\b(celular|celulares|telefono|telefonos|smartphone|smartphones|iphone|galaxy|xiaomi|motorola|redmi)\b/.test(norm);
-    const phoneExclude = ['funda', 'mica', 'cristal', 'cargador', 'cable', 'audifono', 'audifonos', 'soporte', 'base', 'reloj', 'smartwatch', 'camara de seguridad', 'adaptador'];
-
-    let pool = activeValidProducts.filter((p) => {
-      const titleNorm = (p.title || p.nombre || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
-
-      if (isPhoneQuery) {
-        const hasForbidden = phoneExclude.some((bad) => titleNorm.includes(bad));
-        const hasPhoneWord = ['celular', 'smartphone', 'telefono', 'iphone', 'galaxy', 'xiaomi', 'redmi', 'motorola', 'moto', 'realme', 'honor', 'qtouch'].some((k) => titleNorm.includes(k));
-        return hasPhoneWord && !hasForbidden;
-      }
-
-      const activeTerms = terms.filter((t) => !['celular', 'celulares', 'telefono', 'telefonos', 'smartphone', 'smartphones'].includes(t));
-      if (activeTerms.length === 0) return true;
-      return activeTerms.some((t) => titleNorm.includes(t));
-    });
-
-    if (budget && budget > 0) {
-      const withinBudget = pool.filter((p) => {
-        const price = Number(p.discount_price || p.precio || 0);
-        return price > 0 && price <= budget * 1.05;
-      });
-      if (withinBudget.length > 0) {
-        pool = withinBudget;
-      } else {
-        return { overBudget: true, budget, label: isPhoneQuery ? 'Celular / Smartphone' : rawQuery };
-      }
-    }
-
-    return { items: pool, budget, label: isPhoneQuery ? 'Celular / Smartphone' : rawQuery };
-  };
-
   const processAndSendMessage = async (textToSend) => {
     if (!textToSend.trim()) return;
 
@@ -584,13 +613,90 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       return;
     }
 
-    const cleanProductsCatalog = activeValidProducts.map((p) => ({
+    if (lowerText.includes('ofertas top') || lowerText.includes('destacados') || lowerText.includes('mejores ofertas')) {
+      if (activeValidProducts.length > 0) {
+        const topProducts = [...activeValidProducts]
+          .sort((a, b) => Number(b.discount_percentage || 0) - Number(a.discount_percentage || 0))
+          .slice(0, 5);
+        setTimeout(() => {
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              sender: 'bot',
+              isProductCards: true,
+              matchedProducts: topProducts,
+              introText: '🔥 ¡Estas son las ofertas con mayor descuento disponibles ahora mismo en nuestra página!',
+            },
+          ]);
+          setIsTyping(false);
+        }, 250);
+        return;
+      }
+    }
+
+    // 1. Evaluar estrictamente el catálogo real por categoría y presupuesto
+    const catalogResult = filterStrictCatalog(userText, activeValidProducts);
+
+    if (catalogResult.status === 'FOUND') {
+      const intro = catalogResult.budget
+        ? `¡Aquí tienes las mejores opciones de **${catalogResult.categoryLabel}** dentro de tu presupuesto de **$${catalogResult.budget.toLocaleString('en-US')}**! 🐹🔥`
+        : `¡Aquí tienes las mejores opciones de **${catalogResult.categoryLabel}** en nuestra vitrina! 🐹🔥`;
+
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            isProductCards: true,
+            matchedProducts: catalogResult.items.slice(0, 5),
+            introText: intro,
+          },
+        ]);
+        setIsTyping(false);
+      }, 250);
+      return;
+    }
+
+    if (catalogResult.status === 'OVER_BUDGET') {
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            isExternalSearch: true,
+            searchQuery: `${catalogResult.categoryLabel} hasta $${catalogResult.budget}`,
+            customReason: (
+              <>
+                Por <strong>${catalogResult.budget.toLocaleString('en-US')}</strong> no tenemos <strong>{catalogResult.categoryLabel}</strong> en nuestra vitrina ahorita (los que tenemos arrancan desde <strong>${catalogResult.cheapestPrice.toLocaleString('en-US')}</strong> 😅), ¡pero puedes buscar opciones en ese rango en Mercado Libre o pedirlas en nuestro WhatsApp VIP! 🐹🔥
+              </>
+            ),
+          },
+        ]);
+        setIsTyping(false);
+      }, 250);
+      return;
+    }
+
+    if (catalogResult.status === 'NOT_FOUND_IN_CAT') {
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            isExternalSearch: true,
+            searchQuery: catalogResult.categoryLabel || userText,
+          },
+        ]);
+        setIsTyping(false);
+      }, 250);
+      return;
+    }
+
+    // 2. Consulta general a la IA (sin arrastrar historial viejo de otras búsquedas)
+    const cleanProductsCatalog = activeValidProducts.slice(0, 25).map((p) => ({
       title: String(p.title || p.nombre || ''),
       price: Number(p.discount_price || p.precio || 0),
       link: String(p.affiliate_link || p.link || p.url || ''),
-      image_url: String(p.image_url || ''),
-      coupon: String(p.coupon || ''),
-      discount_percentage: p.discount_percentage || null,
     }));
 
     try {
@@ -598,7 +704,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
         `${API}/chat`,
         {
           message: userText,
-          history: newHistory.slice(-8),
+          history: [{ sender: 'user', text: userText }],
           systemPrompt: SYSTEM_PROMPT,
           products: cleanProductsCatalog,
         },
@@ -608,85 +714,23 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
       const botReply = response.data?.reply?.trim();
 
       if (botReply) {
-        const lowerReply = botReply.toLowerCase();
-        const matchedByAI = activeValidProducts.filter((p) => {
-          const t = (p.title || p.nombre || '').toLowerCase();
-          const words = t.split(' ').filter(w => w.length > 4);
-          return words.some(w => lowerReply.includes(w));
-        });
-
-        if (matchedByAI.length > 0) {
-          setChatMessages((prev) => [
-            ...prev,
-            {
-              sender: 'bot',
-              isProductCards: true,
-              matchedProducts: matchedByAI.slice(0, 4),
-              introText: botReply,
-            },
-          ]);
-        } else {
-          const localMatch = findFallbackProducts(userText);
-          if (localMatch.items && localMatch.items.length > 0) {
-            setChatMessages((prev) => [
-              ...prev,
-              {
-                sender: 'bot',
-                isProductCards: true,
-                matchedProducts: localMatch.items.slice(0, 4),
-                introText: botReply,
-              },
-            ]);
-          } else {
-            setChatMessages((prev) => [
-              ...prev,
-              { sender: 'bot', text: botReply },
-            ]);
-          }
-        }
+        const cleanReply = botReply.replace(/\?campid=TU_CAMPID_AQUI/g, '');
+        setChatMessages((prev) => [
+          ...prev,
+          { sender: 'bot', text: cleanReply },
+        ]);
       } else {
         throw new Error('Respuesta vacía');
       }
     } catch (error) {
-      const localMatch = findFallbackProducts(userText);
-      if (localMatch.items && localMatch.items.length > 0) {
-        setChatMessages((prev) => [
-          ...prev,
-          {
-            sender: 'bot',
-            isProductCards: true,
-            matchedProducts: localMatch.items.slice(0, 4),
-            introText: localMatch.budget
-              ? `¡Mira estas opciones de **${localMatch.label}** dentro de tu presupuesto de **$${localMatch.budget.toLocaleString('en-US')}**! 🐹🔥`
-              : `¡Mira estas opciones de **${localMatch.label}** disponibles en nuestra vitrina! 🐹🔥`,
-          },
-        ]);
-      } else if (localMatch.overBudget) {
-        setChatMessages((prev) => [
-          ...prev,
-          {
-            sender: 'bot',
-            isExternalSearch: true,
-            searchQuery: `${localMatch.label} hasta $${localMatch.budget}`,
-            customReason: (
-              <>
-                Por <strong>${localMatch.budget.toLocaleString('en-US')}</strong> no tenemos <strong>{localMatch.label}</strong> en nuestra vitrina ahorita, ¡pero puedes buscar más opciones en Mercado Libre o pedirlas en nuestro WhatsApp VIP! 🐹🔥
-              </>
-            ),
-          },
-        ]);
-      } else {
-        const { terms } = parseQueryAndBudget(userText);
-        const cleanQuery = terms.length > 0 ? terms.join(' ') : userText;
-        setChatMessages((prev) => [
-          ...prev,
-          {
-            sender: 'bot',
-            isExternalSearch: true,
-            searchQuery: cleanQuery,
-          },
-        ]);
-      }
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          sender: 'bot',
+          isExternalSearch: true,
+          searchQuery: userText,
+        },
+      ]);
     } finally {
       setIsTyping(false);
     }
