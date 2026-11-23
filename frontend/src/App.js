@@ -66,6 +66,15 @@ const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
+const QUICK_FILTERS = [
+  { id: 'all', label: 'Todos', query: '', maxPrice: null },
+  { id: 'phones', label: 'Celulares', query: 'iphone galaxy redmi poco moto celular smartphone', maxPrice: null },
+  { id: 'laptops', label: 'Laptops', query: 'laptop macbook portatil notebook', maxPrice: null },
+  { id: 'tv', label: 'Pantallas', query: 'smart tv televisor pantalla roku google tv', maxPrice: null },
+  { id: 'under1k', label: 'Hasta $1,000', query: '', maxPrice: 1000 },
+  { id: 'under3k', label: 'Hasta $3,000', query: '', maxPrice: 3000 },
+];
+
 // ==========================================
 // FUNCIONES UTILITARIAS Y DE SEGURIDAD
 // ==========================================
@@ -266,8 +275,8 @@ function FeatureCube({ isLight, isMobileDevice }) {
       id: 'left',
       transform: `rotateY(-90deg) translateZ(${tz}px)`,
       icon: Award,
-      title: 'Premios Mensuales',
-      desc: 'Participa en nuestra comunidad, gana puntos y obtén recompensas exclusivas.',
+      title: 'Alertas en Comunidad',
+      desc: 'Entérate antes que nadie de cupones relámpago, remates y errores de precio activos.',
       badge: 'Comunidad Activa'
     },
     {
@@ -1092,6 +1101,7 @@ function App() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [productSearchInput, setProductSearchInput] = useState('');
+  const [selectedQuickFilter, setSelectedQuickFilter] = useState('all');
   const [couponSearchTerm, setCouponSearchTerm] = useState(''); 
   const [bancarioSearchTerm, setBancarioSearchTerm] = useState('');
   const [showToast, setShowToast] = useState(false);
@@ -1333,7 +1343,7 @@ function App() {
       navigator.clipboard.writeText(cupon.code);
     }
     playSniperSound();
-    setToastMessage('Cupón copiado en el portapapeles, estas muy cerca de obtener un mejor precio en tus productos. seras dirigido a Mercado libre solo da clic en ir al producto para entrar');
+    setToastMessage(`Cupón ${cupon.code || ''} copiado al portapapeles. Pégalo antes de pagar en Mercado Libre; te llevamos al enlace directo.`);
     setShowToast(true);
 
     setTimeout(() => {
@@ -1458,15 +1468,29 @@ function App() {
   }, [products, exclusiveProducts]);
 
   const filteredProducts = useMemo(() => {
-    const lowerSearch = searchTerm.toLowerCase();
-    return regularProducts.filter(
-      (p) => {
-        const titleMatch = p.title ? p.title.toLowerCase().includes(lowerSearch) : false;
-        const descMatch = p.description ? p.description.toLowerCase().includes(lowerSearch) : false;
-        return titleMatch || descMatch;
+    const activeChip = QUICK_FILTERS.find((f) => f.id === selectedQuickFilter) || QUICK_FILTERS[0];
+    const lowerSearch = searchTerm.trim().toLowerCase();
+
+    return regularProducts.filter((p) => {
+      const titleLower = p.title ? String(p.title).toLowerCase() : '';
+      const descLower = p.description ? String(p.description).toLowerCase() : '';
+      const combined = `${titleLower} ${descLower}`;
+
+      if (activeChip.id !== 'all') {
+        if (activeChip.maxPrice) {
+          const price = Number(p.discount_price || p.precio || 0);
+          if (!(price > 0 && price <= activeChip.maxPrice)) return false;
+        } else if (activeChip.query) {
+          const keywords = activeChip.query.split(' ');
+          const matchesChip = keywords.some((kw) => combined.includes(kw));
+          if (!matchesChip) return false;
+        }
       }
-    );
-  }, [regularProducts, searchTerm]);
+
+      if (!lowerSearch) return true;
+      return titleLower.includes(lowerSearch) || descLower.includes(lowerSearch);
+    });
+  }, [regularProducts, searchTerm, selectedQuickFilter]);
 
   const mainBgClass = isLight
     ? 'min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-800 relative overflow-x-hidden font-sans'
@@ -1770,7 +1794,7 @@ function App() {
           <div className={`mt-6 pt-4 border-t text-center text-xs md:text-sm font-medium ${
             isLight ? 'border-purple-200 text-purple-900/70' : 'border-neutral-800 text-neutral-400'
           }`}>
-            ℹ️ Nota informativa: La disponibilidad y vigencia de cada cupón son estimadas, ya que su validez está sujeta a un límite determinado de redenciones.
+            ℹ️ Nota informativa: Copia el código, agrégalo antes de pagar en Mercado Libre y recuerda que la disponibilidad y vigencia de cada cupón son estimadas y sujetas a un límite de redenciones.
           </div>
         </div>
       </div>
@@ -2052,12 +2076,35 @@ function App() {
             </h2>
           </div>
 
-          <div className="max-w-xl mx-auto mb-8 flex flex-col gap-3 px-2">
-            {searchTerm && (
+          <div className="max-w-2xl mx-auto mb-8 flex flex-col gap-3 px-2">
+            <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
+              {QUICK_FILTERS.map((chip) => {
+                const isSelected = selectedQuickFilter === chip.id;
+                return (
+                  <button
+                    key={chip.id}
+                    type="button"
+                    onClick={() => setSelectedQuickFilter(chip.id)}
+                    className={`px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-black transition-all cursor-pointer border ${
+                      isSelected
+                        ? 'bg-yellow-400 text-black border-black shadow-sm scale-[1.02]'
+                        : isLight
+                        ? 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
+                        : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700'
+                    }`}
+                  >
+                    {chip.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {(searchTerm || selectedQuickFilter !== 'all') && (
               <button
                 onClick={() => {
                   setSearchTerm('');
                   setProductSearchInput('');
+                  setSelectedQuickFilter('all');
                 }}
                 className="self-start flex items-center gap-1 px-3.5 py-2 rounded-xl font-black text-xs uppercase transition-transform hover:scale-105 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] bg-yellow-400 text-black border-2 border-black"
                 title="Regresar a todos los productos"
@@ -2098,10 +2145,10 @@ function App() {
           {filteredProducts.length === 0 ? (
             <div className="text-center py-12 px-2">
               <p className={`text-sm sm:text-base mb-4 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-                No encontramos ningún producto local con ese nombre. ¿Quieres buscarlo directamente en Mercado Libre?
+                No encontramos ningún producto local con ese filtro. ¿Quieres buscarlo directamente en Mercado Libre?
               </p>
               <button onClick={handleSearchOnMercadoLibre} className="bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 rounded-xl font-black text-xs sm:text-sm uppercase transition-all shadow-lg">
-                Buscar "{searchTerm}" en Mercado Libre 🚀
+                Buscar {searchTerm ? `"${searchTerm}"` : 'ofertas'} en Mercado Libre 🚀
               </button>
             </div>
           ) : (
@@ -2633,9 +2680,12 @@ function App() {
               </div>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-2 drop-shadow-lg">
               CapiBaraML
             </h1>
+            <p className="text-white/95 font-bold text-xs sm:text-sm md:text-base mb-4 max-w-xl">
+              Cupones activos, remates y ofertas verificadas de Mercado Libre para ahorrar en cada compra.
+            </p>
 
             {!isMobileDevice && (
               <div className={`inline-block backdrop-blur-sm px-6 py-3 rounded-full mb-2 ${
