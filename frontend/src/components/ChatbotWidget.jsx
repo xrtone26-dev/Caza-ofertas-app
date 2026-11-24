@@ -456,6 +456,12 @@ export default function ChatbotWidget({ isLight, cupones, products, isMobileDevi
     return localProducts.filter((p) => p && p.active !== false);
   }, [localProducts]);
 
+  const [showGreeting, setShowGreeting] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setShowGreeting(false), isMobileDevice ? 7000 : 12000);
+    return () => clearTimeout(t);
+  }, [isMobileDevice]);
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, showChatWindow, isTyping]);
@@ -1356,8 +1362,8 @@ export default function ChatbotWidget({ isLight, cupones, products, isMobileDevi
         )}
       </AnimatePresence>
 
-      {/* GLOBO DE SALUDO FLOTANTE */}
-      {!showChatWindow && (
+      {/* GLOBO DE SALUDO FLOTANTE (se oculta solo para no tapar contenido) */}
+      {!showChatWindow && showGreeting && (
         <motion.div
           initial={{ opacity: 0, x: 20, scale: 0.8 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
