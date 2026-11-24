@@ -387,7 +387,7 @@ const filterStrictCatalog = (userText, catalog) => {
   return { status: 'GENERAL_CHAT', items: [], budget, categoryLabel: '' };
 };
 
-export default function ChatbotWidget({ isLight, cupones, products, isMobileDevice = false }) {
+export default function ChatbotWidget({ isLight, cupones, products, isMobileDevice = false, hasBottomNav = false }) {
   const [showChatWindow, setShowChatWindow] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -1369,7 +1369,7 @@ export default function ChatbotWidget({ isLight, cupones, products, isMobileDevi
           animate={{ opacity: 1, x: 0, scale: 1 }}
           transition={{ delay: 1.5, type: 'spring', stiffness: 260, damping: 20 }}
           onClick={() => setShowChatWindow(true)}
-          className="fixed right-[72px] sm:right-20 bottom-5 sm:bottom-6 z-40 cursor-pointer group flex items-center gap-2 pointer-events-auto"
+          className={`fixed right-[72px] sm:right-20 ${hasBottomNav ? 'bottom-[84px]' : 'bottom-5'} sm:bottom-6 z-40 cursor-pointer group flex items-center gap-2 pointer-events-auto`}
         >
           <div className="bg-white text-black font-black text-[11px] sm:text-xs px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl shadow-xl border-2 border-black flex items-center gap-1.5 transition-transform group-hover:scale-105">
             <span>¡Hola! 👋</span>
@@ -1389,7 +1389,7 @@ export default function ChatbotWidget({ isLight, cupones, products, isMobileDevi
         id="chatbot-fab"
         data-chatbot-slot="customer-service"
         onClick={() => setShowChatWindow(!showChatWindow)}
-        className="fixed right-3.5 sm:right-5 bottom-4 sm:bottom-5 z-50 group cursor-pointer pointer-events-auto"
+        className={`fixed right-3.5 sm:right-5 ${hasBottomNav ? 'bottom-[76px]' : 'bottom-4'} sm:bottom-5 z-50 group cursor-pointer pointer-events-auto`}
         aria-label="Abrir chat de atención"
       >
         <span className="absolute inset-0 rounded-full bg-yellow-400/40 blur-xl group-hover:blur-2xl transition" />

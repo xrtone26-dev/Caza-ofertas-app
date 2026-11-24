@@ -120,7 +120,7 @@ export function AmountSearchInput({ id, label, helper, value, onChange, onClear,
 // FLECHAS DE CARRUSEL
 // ==========================================
 export function CarouselArrows({ onPrev, onNext, label, topClass = 'top-1/2' }) {
-  const base = `absolute ${topClass} -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white text-gray-900 border-2 border-black shadow-xl flex items-center justify-center hover:bg-gray-100 transition`;
+  const base = `absolute ${topClass} -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white text-gray-700 border border-gray-200 shadow-lg flex items-center justify-center hover:text-[#3483FA] transition-colors`;
   return (
     <>
       <button type="button" onClick={onPrev} aria-label={`${label} anterior`} className={`${base} left-0 sm:-left-2`}>
