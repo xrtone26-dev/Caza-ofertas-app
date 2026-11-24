@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { X, Plus, Edit2, Trash2, Video, Copy, ShoppingCart, Image as ImageIcon, Star, Lock, Sparkles, CreditCard } from 'lucide-react';
 import axios from 'axios';
 import CouponsAdminBank from './CouponsAdminBank';
@@ -30,6 +30,33 @@ export default function AdminDashboard({
   tiktokVideos,
   setTiktokVideos,
 }) {
+  // Sesión del panel: el backend entrega un token firmado al iniciar sesión.
+  // La contraseña ya nunca viaja en la URL; el token se guarda solo en memoria.
+  const adminTokenRef = useRef('');
+  const adminHttp = useMemo(() => {
+    const instance = axios.create({ baseURL: API });
+    instance.interceptors.request.use((config) => {
+      if (adminTokenRef.current) {
+        config.headers = { ...(config.headers || {}), Authorization: `Bearer ${adminTokenRef.current}` };
+      }
+      return config;
+    });
+    instance.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        const url = error?.config?.url || '';
+        if (error?.response?.status === 401 && adminTokenRef.current && !url.includes('/admin/login') && !url.includes('/admin/change-password')) {
+          adminTokenRef.current = '';
+          setIsAuthenticated(false);
+          setShowAdminPanel(false);
+          alert('Tu sesión de administrador expiró. Vuelve a iniciar sesión.');
+        }
+        return Promise.reject(error);
+      }
+    );
+    return instance;
+  }, [API]);
+
   const [allOffers, setAllOffers] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [adminSection, setAdminSection] = useState('offers');
@@ -118,8 +145,8 @@ export default function AdminDashboard({
 
   const loadAllOffers = async () => {
     try {
-      const response = await axios.get(`${API}/admin/offers`, {
-        params: { password: adminPassword, t: Date.now() },
+      const response = await adminHttp.get(`/admin/offers`, {
+        params: { t: Date.now() },
       });
       
       const decodedOffers = response.data.map(decodeCoupon);
@@ -140,8 +167,8 @@ export default function AdminDashboard({
 
   const loadAllProducts = async () => {
     try {
-      const response = await axios.get(`${API}/admin/products`, {
-        params: { password: adminPassword, t: Date.now() },
+      const response = await adminHttp.get(`/admin/products`, {
+        params: { t: Date.now() },
       });
       setAllProducts(response.data);
     } catch (error) {
@@ -151,10 +178,12 @@ export default function AdminDashboard({
 
   const handleAdminLogin = async () => {
     try {
-      const response = await axios.post(`${API}/admin/login`, {
+      const response = await adminHttp.post(`/admin/login`, {
         password: adminPassword,
       });
-      if (response.data.success) {
+      if (response.data.success && response.data.token) {
+        adminTokenRef.current = response.data.token;
+        setAdminPassword('');
         setIsAuthenticated(true);
         setShowAdminLogin(false);
         setShowAdminPanel(true);
@@ -163,33 +192,39 @@ export default function AdminDashboard({
       }
     } catch (error) {
       console.error("Error en login:", error);
-      alert('Contraseña incorrecta');
+      const status = error?.response?.status;
+      if (status === 429) alert('Demasiados intentos fallidos. Espera 15 minutos e inténtalo de nuevo.');
+      else if (status === 503) alert('El acceso admin no está configurado en el servidor (falta ADMIN_PASSWORD).');
+      else alert('Contraseña incorrecta');
     }
   };
 
   const handleRecover = async () => {
     try {
-      const response = await axios.post(`${API}/admin/recover`, { identifier: recoverIdentifier });
+      const response = await adminHttp.post(`/admin/recover`, { identifier: recoverIdentifier });
       if (response.data.success) {
-        alert('¡Bzz bzz! 🐝 Se ha enviado un correo con tu clave provisional. Revisa tu bandeja de entrada.');
+        alert('Si los datos coinciden, te enviamos una clave provisional (válida 30 minutos). Revisa el correo del administrador. Tu contraseña actual sigue funcionando.');
         setLoginMode('login');
       }
     } catch (error) {
-      alert('Usuario o correo no encontrado. ¿Seguro que eres el admin? 🥸');
+      const status = error?.response?.status;
+      if (status === 503) alert('La recuperación por correo no está configurada en el servidor.');
+      else if (status === 429) alert('Demasiados intentos. Espera 15 minutos.');
+      else alert('No se pudo enviar el correo de recuperación. Inténtalo más tarde.');
     }
   };
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${API}/admin/change-password`, changePwData);
+      const response = await adminHttp.post(`/admin/change-password`, changePwData);
       if (response.data.success) {
+        if (response.data.token) adminTokenRef.current = response.data.token;
         alert('¡Contraseña actualizada con éxito! A salvo de los piratas informáticos 🏴‍☠️');
-        setAdminPassword(changePwData.new_password);
         setChangePwData({ current_password: '', new_password: '' });
       }
     } catch (error) {
-      alert('La contraseña actual es incorrecta. 🛑');
+      alert(error?.response?.data?.detail || 'La contraseña actual es incorrecta. 🛑');
     }
   };
 
@@ -259,8 +294,7 @@ export default function AdminDashboard({
         type: 'cupon',
         id: 'offer_' + Date.now(),
       };
-      await axios.post(
-        `${API}/admin/offers?password=${adminPassword}`,
+      await adminHttp.post(`/admin/offers`,
         offerData
       );
       setShowAddOfferModal(false);
@@ -288,8 +322,7 @@ export default function AdminDashboard({
       if (updates.expires_at) desc += ` ||exp:${updates.expires_at}||`;
 
       const updateData = { ...updates, min_purchase: rawMin, type: 'cupon', description: desc };
-      await axios.patch(
-        `${API}/admin/offers/${offerId}?password=${adminPassword}`,
+      await adminHttp.patch(`/admin/offers/${offerId}`,
         updateData
       );
       loadAllOffers();
@@ -307,8 +340,7 @@ export default function AdminDashboard({
     if (!offerId) return;
     if (window.confirm('¿Estás seguro de eliminar este cupón?')) {
       try {
-        await axios.delete(
-          `${API}/admin/offers/${offerId}?password=${adminPassword}`
+        await adminHttp.delete(`/admin/offers/${offerId}`
         );
         loadAllOffers();
         if (loadPublicOffers) loadPublicOffers();
@@ -331,8 +363,7 @@ export default function AdminDashboard({
           ? parseInt(newProduct.discount_percentage)
           : null,
       };
-      await axios.post(
-        `${API}/admin/products?password=${adminPassword}`,
+      await adminHttp.post(`/admin/products`,
         productData
       );
       setShowAddProductModal(false);
@@ -363,8 +394,7 @@ export default function AdminDashboard({
       else
         updateData.discount_percentage = null;
 
-      await axios.patch(
-        `${API}/admin/products/${productId}?password=${adminPassword}`,
+      await adminHttp.patch(`/admin/products/${productId}`,
         updateData
       );
       loadAllProducts();
@@ -386,8 +416,7 @@ export default function AdminDashboard({
         original_price: parsePrice(newPromo.original_price),
         discount_price: parsePrice(newPromo.discount_price),
       };
-      await axios.post(
-        `${API}/admin/products?password=${adminPassword}`,
+      await adminHttp.post(`/admin/products`,
         promoData
       );
       setShowAddPromoModal(false);
@@ -413,8 +442,7 @@ export default function AdminDashboard({
       updateData.original_price = parsePrice(updateData.original_price);
       updateData.discount_price = parsePrice(updateData.discount_price);
 
-      await axios.patch(
-        `${API}/admin/products/${promoId}?password=${adminPassword}`,
+      await adminHttp.patch(`/admin/products/${promoId}`,
         updateData
       );
       loadAllProducts();
@@ -432,8 +460,7 @@ export default function AdminDashboard({
     if (!productId) return;
     if (window.confirm('¿Estás seguro de eliminar este ítem?')) {
       try {
-        await axios.delete(
-          `${API}/admin/products/${productId}?password=${adminPassword}`
+        await adminHttp.delete(`/admin/products/${productId}`
         );
         loadAllProducts();
         if (loadPublicProducts) loadPublicProducts();
@@ -447,9 +474,7 @@ export default function AdminDashboard({
   const handleDeleteAllProducts = async () => {
     setIsDeletingAll(true);
     try {
-      const response = await axios.delete(`${API}/admin/products`, {
-        params: { password: adminPassword }
-      });
+      const response = await adminHttp.delete(`/admin/products`);
       loadAllProducts();
       if (loadPublicProducts) loadPublicProducts();
       setShowDeleteAllProductsModal(false);
@@ -736,7 +761,7 @@ export default function AdminDashboard({
             {adminSection === 'bank' && (
               <CouponsAdminBank 
                 API={API} 
-                adminPassword={adminPassword} 
+                adminHttp={adminHttp} 
                 getSafeId={getSafeId} 
                 loadPublicOffers={loadPublicOffers} 
               />
