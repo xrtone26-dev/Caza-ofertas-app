@@ -12,9 +12,6 @@ const GAME_LABELS = {
   clicker: 'Click Challenge'
 };
 const EMPTY_SCORES = { '2048': 0, tetris: 0, memory: 0, ninja: 0, clicker: 0 };
-// Premio mensual: se configura en frontend/.env con REACT_APP_GAMES_MONTHLY_PRIZE
-// (por ejemplo "Tarjeta de regalo de $200"). Si está vacío no se promete ningún premio.
-const DEFAULT_MONTHLY_PRIZE = (process.env.REACT_APP_GAMES_MONTHLY_PRIZE || '').trim();
 
 // ---------------------------------------------------------------------------
 // CONFIGURACIÓN DEL MEMORAMA
@@ -109,13 +106,12 @@ const TETRIS_SHAPES = {
   Z: { shape: [[1,1,0],[0,1,1],[0,0,0]], color: '#ef4444' }
 };
 
-export default function GamesZone({ currentUser, isLight, monthlyPrize = DEFAULT_MONTHLY_PRIZE }) {
+export default function GamesZone({ currentUser, isLight }) {
   const [activeGame, setActiveGame] = useState('2048'); 
   const [gamePhase, setGamePhase] = useState('menu'); 
   const [isEffectsMuted, setIsEffectsMuted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const playerName = (currentUser && String(currentUser).trim()) || 'Jugador';
-  const prizeText = (monthlyPrize || '').trim();
 
   // Detectar dispositivo móvil para ajustar controles
   useEffect(() => {
@@ -136,7 +132,7 @@ export default function GamesZone({ currentUser, isLight, monthlyPrize = DEFAULT
 
   const gameContainerRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [timeLeftMonth, setTimeLeftMonth] = useState('0d 0h 0m 0s');
+  const [, setTimeLeftMonth] = useState('0d 0h 0m 0s');
 
   // Récords independientes
   const [highScores, setHighScores] = useState(() => {
@@ -577,9 +573,9 @@ export default function GamesZone({ currentUser, isLight, monthlyPrize = DEFAULT
       detailText = ` (Líneas: ${tetrisLines}, Nivel: ${tetrisLevel})`;
     }
 
-    const text = `¡Conseguí ${finalScore} puntos en ${gameTitle}!${detailText} 🚀 ¿Puedes superarme? Juega ahora en: https://caza-ofertas-app.vercel.app/`;
+    const text = `¡Conseguí ${finalScore} puntos en ${gameTitle}!${detailText} 🚀 ¿Puedes superarme? Juega ahora en: https://capibaraml.com`;
     if (navigator.share) {
-      navigator.share({ title: 'CazaOfertasML Games', text }).catch(() => {});
+      navigator.share({ title: 'CapiBaraML Games', text }).catch(() => {});
     } else {
       navigator.clipboard.writeText(text).then(() => alert('¡Puntaje detallado y enlace copiados al portapapeles!'));
     }
@@ -1659,8 +1655,12 @@ export default function GamesZone({ currentUser, isLight, monthlyPrize = DEFAULT
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (gamePhase !== 'playing') return;
+      if (e.ctrlKey || e.altKey || e.metaKey) return;
+      const tgt = e.target && e.target.tagName;
+      if (tgt === 'INPUT' || tgt === 'TEXTAREA' || tgt === 'SELECT') return;
 
       if (activeGame === '2048' && !is2048Paused) {
+        if (e.repeat) return; // una pulsación = un movimiento (mantener la tecla ya no dispara varios)
         if (['ArrowUp', 'KeyW'].includes(e.code)) { move2048('up'); }
         if (['ArrowDown', 'KeyS'].includes(e.code)) { move2048('down'); }
         if (['ArrowLeft', 'KeyA'].includes(e.code)) { move2048('left'); }
@@ -1708,7 +1708,17 @@ export default function GamesZone({ currentUser, isLight, monthlyPrize = DEFAULT
     if (!touchStartRef.current.x || !touchStartRef.current.y || e.changedTouches.length === 0) return;
     const diffX = e.changedTouches[0].clientX - touchStartRef.current.x;
     const diffY = e.changedTouches[0].clientY - touchStartRef.current.y;
-    const minSwipeDistance = 50;
+    const minSwipeDistance = activeGame === 'tetris' ? 24 : 30;
+    const absX = Math.abs(diffX);
+    const absY = Math.abs(diffY);
+
+    // Toque corto sin desplazamiento: en Tetris rota la pieza.
+    if (activeGame === 'tetris' && !isTetrisPaused && tetrisCurrent && absX < 10 && absY < 10) {
+      playSoundEffect('rotate');
+      setTetrisCurrent(prev => rotateTetrisPiece(prev));
+      touchStartRef.current = { x: 0, y: 0 };
+      return;
+    }
 
     if (activeGame === '2048' && !is2048Paused) {
       if (Math.abs(diffX) > Math.abs(diffY)) {
@@ -1723,12 +1733,14 @@ export default function GamesZone({ currentUser, isLight, monthlyPrize = DEFAULT
     } else if (activeGame === 'tetris' && !isTetrisPaused && tetrisCurrent) {
       if (Math.abs(diffX) > Math.abs(diffY)) {
         if (Math.abs(diffX) > minSwipeDistance) {
-          if (diffX > 0 && !checkTetrisCollision(tetrisCurrent, tetrisGrid, 1, 0)) {
+          // Un swipe largo mueve varias columnas (una por cada ~28px), deteniéndose en paredes/piezas.
+          const dir = diffX > 0 ? 1 : -1;
+          const wanted = Math.max(1, Math.round(absX / 28));
+          let steps = 0;
+          while (steps < wanted && !checkTetrisCollision(tetrisCurrent, tetrisGrid, dir * (steps + 1), 0)) steps += 1;
+          if (steps > 0) {
             playSoundEffect('move');
-            setTetrisCurrent(prev => ({ ...prev, x: prev.x + 1 }));
-          } else if (diffX < 0 && !checkTetrisCollision(tetrisCurrent, tetrisGrid, -1, 0)) {
-            playSoundEffect('move');
-            setTetrisCurrent(prev => ({ ...prev, x: prev.x - 1 }));
+            setTetrisCurrent(prev => ({ ...prev, x: prev.x + dir * steps }));
           }
         }
       } else {
@@ -1789,8 +1801,7 @@ export default function GamesZone({ currentUser, isLight, monthlyPrize = DEFAULT
       <div className="my-auto w-full flex flex-col items-center">
         <h2 className="text-3xl font-black text-yellow-400 mb-2 uppercase tracking-widest">JUEGO PAUSADO</h2>
         <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 my-4 max-w-sm w-full space-y-1 shadow-lg">
-          <p className="text-sm font-black text-white">Juego desarrollado por Omar Navarro</p>
-          <p className="text-xs text-neutral-400">para CazaOfertasML</p>
+          <p className="text-sm font-black text-white">Juego desarrollado por Omar Navarro para CapiBaraML</p>
         </div>
 
         <div className="flex flex-col gap-3 w-full max-w-xs">
@@ -1816,33 +1827,6 @@ export default function GamesZone({ currentUser, isLight, monthlyPrize = DEFAULT
   return (
     <div className="container mx-auto px-4 mb-16 relative z-10">
       
-      {/* BANNER SUPERIOR TORNEO MENSUAL */}
-      <div className="mb-8 bg-gradient-to-r from-neutral-900 via-neutral-950 to-neutral-900 border-2 border-yellow-400/40 rounded-3xl p-6 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-4 text-center md:text-left">
-          <div className="w-14 h-14 bg-yellow-400 text-black rounded-2xl flex items-center justify-center shrink-0 shadow-lg font-black text-2xl">
-            🏆
-          </div>
-          <div>
-            <h3 className="text-lg md:text-xl font-black text-white uppercase tracking-tight">
-              {prizeText ? '🎁 PREMIO DEL MES' : '🎮 RETO DEL MES'}
-            </h3>
-            <p className="text-xs text-neutral-400 mt-0.5">
-              {prizeText
-                ? `Premio configurado para este mes: ${prizeText}.`
-                : 'Rompe tus propios récords este mes. El premio mensual aún no está configurado: lo anunciaremos en cuanto esté listo.'}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 bg-black/60 px-6 py-3 rounded-2xl border border-yellow-400/30">
-          <Clock className="w-5 h-5 text-yellow-400 animate-pulse" />
-          <div className="text-left">
-            <span className="text-[10px] uppercase tracking-widest text-neutral-400 block font-bold">El mes termina en</span>
-            <span className="text-sm font-black text-yellow-400">{timeLeftMonth}</span>
-          </div>
-        </div>
-      </div>
-
       <div className={`rounded-3xl shadow-xl p-4 md:p-8 backdrop-blur-xl border ${isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'}`}>
         <h2 className={`text-2xl sm:text-3xl font-bold text-center mb-6 flex items-center justify-center gap-2 ${isLight ? 'text-purple-700' : 'text-neutral-100 font-black'}`}>
           <Gamepad2 className="w-8 h-8 text-yellow-400" /> ZONA DE JUEGOS CAPIBARAML
@@ -1935,7 +1919,7 @@ export default function GamesZone({ currentUser, isLight, monthlyPrize = DEFAULT
                       {activeGame === 'ninja' && 'Ninja Cut HD'}
                       {activeGame === 'clicker' && 'Click Challenge'}
                     </h3>
-                    <p className="text-sm text-neutral-400 max-w-md mb-6">{prizeText ? `Supera tu récord del mes. Premio: ${prizeText}.` : 'Supera tu propio récord. Se guarda en este dispositivo.'}</p>
+                    <p className="text-sm text-neutral-400 max-w-md mb-6">Supera tu propio récord. Se guarda en este dispositivo.</p>
                     <button onClick={startGameFlow} className="flex items-center gap-2 px-8 py-3.5 bg-yellow-400 text-black font-black rounded-full shadow-lg hover:scale-105 transition-all uppercase text-sm">
                       <Play className="w-5 h-5 fill-current" /> Jugar Ahora
                     </button>
