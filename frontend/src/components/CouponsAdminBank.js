@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { X, Plus, Edit2, Trash2, Tag, Clock, DollarSign, ExternalLink, ShieldCheck, Building2 } from 'lucide-react';
-import axios from 'axios';
 
 const getFutureDate30Hours = () => {
   const d = new Date(Date.now() + 30 * 60 * 60 * 1000);
@@ -99,7 +98,7 @@ export const decodeCoupon = (offer) => {
   return { ...offer, expires_at, description };
 };
 
-export default function BankCouponsAdmin({ API, adminPassword, getSafeId, loadPublicOffers }) {
+export default function BankCouponsAdmin({ adminHttp, getSafeId, loadPublicOffers }) {
   const [coupons, setCoupons] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState(null);
@@ -123,9 +122,7 @@ export default function BankCouponsAdmin({ API, adminPassword, getSafeId, loadPu
 
   const loadCoupons = async () => {
     try {
-      const response = await axios.get(`${API}/admin/offers`, {
-        params: { password: adminPassword },
-      });
+      const response = await adminHttp.get(`/admin/offers`);
       const bankCoupons = response.data.map(decodeCoupon).filter(o => o.type === 'bancario');
       setCoupons(bankCoupons);
     } catch (error) {}
@@ -154,9 +151,9 @@ export default function BankCouponsAdmin({ API, adminPassword, getSafeId, loadPu
 
       if (editingCoupon) {
         const couponId = getSafeId(editingCoupon);
-        await axios.patch(`${API}/admin/offers/${couponId}?password=${adminPassword}`, couponData);
+        await adminHttp.patch(`/admin/offers/${couponId}`, couponData);
       } else {
-        await axios.post(`${API}/admin/offers?password=${adminPassword}`, couponData);
+        await adminHttp.post(`/admin/offers`, couponData);
       }
 
       setShowModal(false);
@@ -183,7 +180,7 @@ export default function BankCouponsAdmin({ API, adminPassword, getSafeId, loadPu
     if (!couponId) return;
     if (window.confirm('¿Estás seguro de eliminar este cupón bancario?')) {
       try {
-        await axios.delete(`${API}/admin/offers/${couponId}?password=${adminPassword}`);
+        await adminHttp.delete(`/admin/offers/${couponId}`);
         loadCoupons();
         if (loadPublicOffers) loadPublicOffers();
       } catch (error) {

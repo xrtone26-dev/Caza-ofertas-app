@@ -387,7 +387,7 @@ const filterStrictCatalog = (userText, catalog) => {
   return { status: 'GENERAL_CHAT', items: [], budget, categoryLabel: '' };
 };
 
-export default function ChatbotWidget({ isLight, cupones = [], products = [], isMobileDevice = false }) {
+export default function ChatbotWidget({ isLight, cupones, products, isMobileDevice = false }) {
   const [showChatWindow, setShowChatWindow] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -406,11 +406,15 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
   ]);
 
   useEffect(() => {
+    // Si la App ya le pasa el catálogo por props, no se vuelve a descargar
+    // (antes /products —1.3 MB sin comprimir— se pedía dos veces al cargar).
+    if (Array.isArray(cupones) && Array.isArray(products)) return undefined;
+
     const syncCatalog = async () => {
       try {
         const [cupRes, prodRes] = await Promise.all([
-          axios.get(`${API}/offers?type=cupon&t=${Date.now()}`).catch(() => null),
-          axios.get(`${API}/products?t=${Date.now()}`).catch(() => null),
+          axios.get(`${API}/offers?type=cupon`).catch(() => null),
+          axios.get(`${API}/products`).catch(() => null),
         ]);
         if (cupRes && Array.isArray(cupRes.data)) {
           setLocalCupones(cupRes.data.map(decodeCouponIfNeeded));
@@ -1043,7 +1047,7 @@ export default function ChatbotWidget({ isLight, cupones = [], products = [], is
     let catalogToSearch = activeValidProducts;
     if (catalogToSearch.length === 0) {
       try {
-        const res = await axios.get(`${API}/products?t=${Date.now()}`, { timeout: 12000 });
+        const res = await axios.get(`${API}/products`, { timeout: 45000 });
         if (Array.isArray(res.data)) {
           setLocalProducts(res.data);
           catalogToSearch = res.data.filter((p) => p && p.active !== false);

@@ -65,6 +65,12 @@ import AdminDashboard, { decodeCoupon } from './components/AdminDashboard';
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+// Cada cuánto se refresca el catálogo mientras la pestaña está visible.
+// Antes eran 30 s (≈190 KB comprimidos por petición); el backend ya cachea 60 s.
+const CATALOG_REFRESH_MS = 5 * 60 * 1000;
+// Cuántos productos se pintan a la vez en el carrusel (antes se pintaban los ~1 900).
+const PRODUCTS_PAGE_SIZE = 12;
+const WHATSAPP_GROUP_URL = 'https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1';
 
 const QUICK_FILTERS = [
   { id: 'all', label: 'Todos', query: '', maxPrice: null },
@@ -861,6 +867,8 @@ function renderNewSection(products = []) {
                 <img 
                   src={promo.image_url} 
                   alt={promo.title} 
+                  loading="lazy"
+                  decoding="async"
                   className="w-full max-w-[280px] object-contain drop-shadow-2xl z-10 relative scale-110 mt-2" 
                 />
               )}
@@ -941,6 +949,74 @@ function renderNewSection(products = []) {
 }
 
 // ==========================================
+// ESTADO VACÍO / CARGANDO / ERROR
+// ==========================================
+function EmptyState({ isLight, status = 'empty', icon = '🐹', title, message, actions = [], onRetry }) {
+  const isLoading = status === 'loading';
+  const isError = status === 'error';
+  const heading = isLoading ? 'Cargando ofertas…' : isError ? 'No pudimos cargar las ofertas' : title;
+  const body = isLoading
+    ? 'Estamos despertando al servidor; la primera carga puede tardar hasta 30 segundos.'
+    : isError
+    ? 'Revisa tu conexión o vuelve a intentarlo en unos segundos.'
+    : message;
+
+  return (
+    <div
+      role={isError ? 'alert' : 'status'}
+      aria-live="polite"
+      className={`rounded-3xl border-2 border-dashed px-5 py-10 sm:py-12 text-center flex flex-col items-center gap-3 ${
+        isLight ? 'bg-white border-purple-200 text-gray-700' : 'bg-neutral-900/85 border-yellow-400/40 text-neutral-200'
+      }`}
+    >
+      <div className={`text-4xl ${isLoading ? 'animate-pulse' : ''}`} aria-hidden="true">
+        {isLoading ? '⏳' : isError ? '⚠️' : icon}
+      </div>
+      <p className={`text-base sm:text-lg font-black ${isLight ? 'text-gray-900' : 'text-yellow-400'}`}>{heading}</p>
+      {body && <p className="text-sm max-w-md leading-relaxed opacity-90">{body}</p>}
+      {isLoading && (
+        <div className="w-40 h-1.5 rounded-full bg-neutral-700/40 overflow-hidden mt-1">
+          <div className="h-full w-1/2 bg-yellow-400 rounded-full animate-pulse" />
+        </div>
+      )}
+      <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-2.5 mt-2 w-full sm:w-auto">
+        {isError && onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="min-h-[44px] px-5 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs uppercase border-2 border-black"
+          >
+            Reintentar
+          </button>
+        )}
+        {!isLoading && actions.map((action) =>
+          action.href ? (
+            <a
+              key={action.label}
+              href={action.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-xs uppercase border-2 border-black"
+            >
+              {action.label}
+            </a>
+          ) : (
+            <button
+              key={action.label}
+              type="button"
+              onClick={action.onClick}
+              className="min-h-[44px] px-5 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs uppercase border-2 border-black"
+            >
+              {action.label}
+            </button>
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
 // COMPONENTE PRINCIPAL APP
 // ==========================================
 function App() {
@@ -951,7 +1027,12 @@ function App() {
   const logoGlareRef = useRef(null);
 
   const [isMobileDevice, setIsMobileDevice] = useState(false);
-  const [mobileTab, setMobileTab] = useState('cupones');
+  const [mobileTab, setMobileTabState] = useState('cupones');
+  const userPickedTabRef = useRef(false);
+  const setMobileTab = (tab) => {
+    userPickedTabRef.current = true;
+    setMobileTabState(tab);
+  };
 
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -1099,6 +1180,10 @@ function App() {
   };
 
   const [products, setProducts] = useState([]);
+  // 'loading' | 'ready' | 'error' — evita pantallas en blanco mientras Render despierta
+  const [offersStatus, setOffersStatus] = useState('loading');
+  const [productsStatus, setProductsStatus] = useState('loading');
+  const [visibleProductCount, setVisibleProductCount] = useState(PRODUCTS_PAGE_SIZE);
   const [searchTerm, setSearchTerm] = useState('');
   const [productSearchInput, setProductSearchInput] = useState('');
   const [selectedQuickFilter, setSelectedQuickFilter] = useState('all');
@@ -1270,48 +1355,60 @@ function App() {
     loadPublicOffers();
     loadPublicProducts();
 
-    const botSyncInterval = setInterval(() => {
-      loadPublicOffers();
-      loadPublicProducts();
-    }, 30000); 
+    // Refresco periódico solo con la pestaña visible, y al volver a ella.
+    const refreshIfVisible = () => {
+      if (document.visibilityState === 'visible') {
+        loadPublicOffers();
+        loadPublicProducts();
+      }
+    };
+    const botSyncInterval = setInterval(refreshIfVisible, CATALOG_REFRESH_MS);
+    let lastVisibleRefresh = Date.now();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible' && Date.now() - lastVisibleRefresh > 60000) {
+        lastVisibleRefresh = Date.now();
+        refreshIfVisible();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
 
-    return () => clearInterval(botSyncInterval);
+    return () => {
+      clearInterval(botSyncInterval);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, []);
 
-  const loadPublicProducts = async () => {
+  // fresh=true salta la caché de 60 s del backend (se usa tras editar en el panel admin).
+  const loadPublicProducts = async (fresh = false) => {
     try {
-      const response = await axios.get(`${API}/products?t=${Date.now()}`);
+      const response = await axios.get(`${API}/products`, {
+        params: fresh ? { t: Date.now() } : undefined,
+        timeout: 60000,
+      });
       const allProducts = Array.isArray(response.data) ? response.data : [];
-
-      const freshProducts = allProducts.filter(isProductFresh);
-      const expiredProducts = allProducts.filter((p) => !isProductFresh(p));
-
-      setProducts(freshProducts);
-
-      if (isAuthenticated && adminPassword && expiredProducts.length > 0) {
-        expiredProducts.forEach((expProd) => {
-          const pId = getSafeId(expProd);
-          if (pId) {
-            axios
-              .delete(`${API}/products/${pId}?password=${adminPassword}`)
-              .catch(() => {});
-          }
-        });
-      }
-    } catch (error) {}
+      setProducts(allProducts.filter(isProductFresh));
+      setProductsStatus('ready');
+    } catch (error) {
+      // Si ya había datos, se conservan; solo se marca error si no hay nada que mostrar.
+      setProductsStatus((prev) => (prev === 'ready' ? 'ready' : 'error'));
+    }
   };
 
-  const loadPublicOffers = async () => {
+  const loadPublicOffers = async (fresh = false) => {
+    const params = fresh ? { t: Date.now() } : undefined;
     try {
       const [descResponse, cupResponse, bancarioResponse] = await Promise.all([
-        axios.get(`${API}/offers?type=descuento&t=${Date.now()}`),
-        axios.get(`${API}/offers?type=cupon&t=${Date.now()}`),
-        axios.get(`${API}/offers?type=bancario&t=${Date.now()}`).catch(() => ({ data: [] })),
+        axios.get(`${API}/offers`, { params: { type: 'descuento', ...params }, timeout: 60000 }),
+        axios.get(`${API}/offers`, { params: { type: 'cupon', ...params }, timeout: 60000 }),
+        axios.get(`${API}/offers`, { params: { type: 'bancario', ...params }, timeout: 60000 }).catch(() => ({ data: [] })),
       ]);
       setDescuentos(descResponse.data.map(decodeCoupon));
       setCupones(cupResponse.data.map(decodeCoupon));
       setCuponesBancarios(bancarioResponse.data.map(decodeCoupon));
-    } catch (error) {}
+      setOffersStatus('ready');
+    } catch (error) {
+      setOffersStatus((prev) => (prev === 'ready' ? 'ready' : 'error'));
+    }
   };
 
   const handleSearchOnMercadoLibre = () => {
@@ -1437,6 +1534,19 @@ function App() {
   }, [activeCuponesBancarios, bancarioSearchTerm]);
 
   const isLight = themeMode === 'light';
+
+  // En celular, si no hay cupones activos, abrir directamente en Productos
+  // (a menos que el usuario ya haya elegido una pestaña).
+  useEffect(() => {
+    if (userPickedTabRef.current) return;
+    if (offersStatus === 'ready' && activeCupones.length === 0 && mobileTab === 'cupones') {
+      setMobileTabState('productos');
+    }
+  }, [offersStatus, activeCupones.length, mobileTab]);
+
+  useEffect(() => {
+    setVisibleProductCount(PRODUCTS_PAGE_SIZE);
+  }, [searchTerm, selectedQuickFilter]);
   
   const exclusiveProducts = useMemo(() => {
     return products.filter(p => {
@@ -1492,12 +1602,39 @@ function App() {
     });
   }, [regularProducts, searchTerm, selectedQuickFilter]);
 
+  const visibleProducts = useMemo(
+    () => filteredProducts.slice(0, visibleProductCount),
+    [filteredProducts, visibleProductCount]
+  );
+
   const mainBgClass = isLight
     ? 'min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-800 relative overflow-x-hidden font-sans'
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
 
-  const renderCuponesSection = () => (
-    activeCupones.length > 0 && (
+  const renderCuponesSection = () => {
+    if (activeCupones.length === 0) {
+      // En escritorio la sección se oculta; en celular nunca se deja la pestaña en blanco.
+      if (!isMobileDevice) return null;
+      return (
+        <EmptyState
+          isLight={isLight}
+          status={offersStatus === 'ready' ? 'empty' : offersStatus}
+          onRetry={() => loadPublicOffers(true)}
+          icon="🎟️"
+          title="Hoy no hay cupones activos"
+          message="Los cupones de Mercado Libre se agotan rápido. Mientras tanto, revisa los productos en oferta o recibe los nuevos cupones al instante por WhatsApp."
+          actions={[
+            { label: '🔥 Ver productos en oferta', onClick: () => setMobileTab('productos') },
+            { label: 'Avisarme por WhatsApp', href: WHATSAPP_GROUP_URL },
+          ]}
+        />
+      );
+    }
+    return renderCuponesContent();
+  };
+
+  const renderCuponesContent = () => (
+    (
       <div className="container mx-auto px-3 sm:px-4 mb-12 relative z-25">
         <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
           isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
@@ -1832,11 +1969,26 @@ function App() {
         </div>
 
         {filteredCuponesBancarios.length === 0 ? (
-          <div className="text-center py-12">
-            <p className={`text-base mb-2 font-semibold ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-              No hay cupones bancarios activos en este momento. Agrégalos desde el panel de administración. 🏦
-            </p>
-          </div>
+          activeCuponesBancarios.length === 0 ? (
+            <EmptyState
+              isLight={isLight}
+              status={offersStatus === 'ready' ? 'empty' : offersStatus}
+              onRetry={() => loadPublicOffers(true)}
+              icon="🏦"
+              title="Sin promociones bancarias por ahora"
+              message="Cuando haya meses sin intereses o descuentos con tarjeta los verás aquí. Únete al grupo para enterarte primero."
+              actions={[
+                ...(isMobileDevice ? [{ label: '🔥 Ver productos en oferta', onClick: () => setMobileTab('productos') }] : []),
+                { label: 'Avisarme por WhatsApp', href: WHATSAPP_GROUP_URL },
+              ]}
+            />
+          ) : (
+            <div className="text-center py-12">
+              <p className={`text-base mb-2 font-semibold ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+                Ningún cupón bancario coincide con tu búsqueda.
+              </p>
+            </div>
+          )
         ) : (
           <div className="relative px-1 sm:px-10 lg:px-12">
             <div className="overflow-hidden py-4" ref={bancariosRef}>
@@ -2064,8 +2216,30 @@ function App() {
     </div>
   );
 
-  const renderProductosSection = () => (
-    regularProducts.length > 0 && (
+  const renderProductosSection = () => {
+    if (regularProducts.length === 0) {
+      return (
+        <div className="container mx-auto px-3 sm:px-4 mb-16 relative z-10">
+          <EmptyState
+            isLight={isLight}
+            status={productsStatus === 'ready' ? 'empty' : productsStatus}
+            onRetry={() => loadPublicProducts(true)}
+            icon="🛒"
+            title="Estamos cazando nuevas ofertas"
+            message="En este momento no hay productos destacados. Puedes buscar directamente en Mercado Libre o recibir las ofertas por WhatsApp."
+            actions={[
+              { label: 'Buscar en Mercado Libre 🚀', onClick: handleSearchOnMercadoLibre },
+              { label: 'Avisarme por WhatsApp', href: WHATSAPP_GROUP_URL },
+            ]}
+          />
+        </div>
+      );
+    }
+    return renderProductosContent();
+  };
+
+  const renderProductosContent = () => (
+    (
       <div className={`container mx-auto px-3 sm:px-4 mb-16 relative z-10`}>
         <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
           isLight ? 'bg-white border-gray-100' : 'bg-neutral-900/85 border-neutral-800'
@@ -2155,7 +2329,7 @@ function App() {
             <div className="relative px-2 sm:px-0">
               <div className="overflow-hidden" ref={emblaRef}>
                 <div className="flex gap-6">
-                  {filteredProducts.map((product) => {
+                  {visibleProducts.map((product) => {
                     const pId = getSafeId(product) || product.title;
                     const remainingDays = getRemainingDays(product);
                     const origPriceNum = Number(product.original_price || 0);
@@ -2183,7 +2357,7 @@ function App() {
                           )}
 
                           <div className="relative">
-                            <img src={product.image_url} alt={product.title} className="w-full h-56 sm:h-64 object-contain p-2" />
+                            <img src={product.image_url} alt={product.title} loading="lazy" decoding="async" width="400" height="256" className="w-full h-56 sm:h-64 object-contain p-2" />
                             {product.discount_percentage && (
                               <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-red-500 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-bold text-sm sm:text-lg shadow-lg">
                                 -{product.discount_percentage}%
@@ -2239,7 +2413,7 @@ function App() {
                 </div>
               </div>
 
-              {filteredProducts.length > 1 && (
+              {visibleProducts.length > 1 && (
                 <>
                   <button onClick={scrollPrev} className="absolute left-1 sm:-translate-x-4 top-[100px] sm:top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
                     <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 font-black" />
@@ -2248,6 +2422,22 @@ function App() {
                     <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 font-black" />
                   </button>
                 </>
+              )}
+            </div>
+          )}
+          {filteredProducts.length > 0 && (
+            <div className="mt-5 flex flex-col items-center gap-2">
+              <p className={`text-xs font-bold ${isLight ? 'text-gray-500' : 'text-neutral-400'}`}>
+                Mostrando {visibleProducts.length} de {filteredProducts.length} productos
+              </p>
+              {visibleProducts.length < filteredProducts.length && (
+                <button
+                  type="button"
+                  onClick={() => setVisibleProductCount((n) => n + PRODUCTS_PAGE_SIZE)}
+                  className="min-h-[44px] px-6 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs uppercase border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                >
+                  Ver {Math.min(PRODUCTS_PAGE_SIZE, filteredProducts.length - visibleProducts.length)} productos más
+                </button>
               )}
             </div>
           )}
@@ -2327,11 +2517,18 @@ function App() {
         </p>
 
         {exclusiveProducts.length === 0 ? (
-          <div className="text-center py-12 px-4 border-2 border-dashed border-yellow-400/40 rounded-2xl bg-yellow-400/5">
-            <p className={`text-sm sm:text-base font-bold mb-2 ${isLight ? 'text-gray-700' : 'text-yellow-400'}`}>
-              ⚠️ No hay productos exclusivos cargados todavía
-            </p>
-          </div>
+          <EmptyState
+            isLight={isLight}
+            status={productsStatus === 'ready' ? 'empty' : productsStatus}
+            onRetry={() => loadPublicProducts(true)}
+            icon="⭐"
+            title="Pronto llegan nuevas terminales exclusivas"
+            message="Mientras tanto puedes elegir tu terminal Point directamente en Mercado Pago."
+            actions={[
+              { label: 'Elegir terminal Point', href: 'https://www.mercadopago.com.mx/herramientas-para-vender/lectores-point?code=7XYVCUKISD' },
+              ...(isMobileDevice ? [{ label: '🔥 Ver productos en oferta', onClick: () => setMobileTab('productos') }] : []),
+            ]}
+          />
         ) : (
           <div className="relative px-2 sm:px-0">
             <div className="overflow-hidden" ref={exclusiveEmblaRef}>
@@ -2372,7 +2569,7 @@ function App() {
                         </span>
 
                         <div className="relative pt-6 px-4 pb-2 text-center bg-white flex justify-center items-center h-48">
-                          <img src={product.image_url} alt={product.title} className="max-h-full max-w-full object-contain drop-shadow-md" />
+                          <img src={product.image_url} alt={product.title} loading="lazy" decoding="async" className="max-h-full max-w-full object-contain drop-shadow-md" />
                         </div>
 
                         <div className="pb-3 text-center">
@@ -3041,8 +3238,8 @@ function App() {
         setIsAuthenticated={setIsAuthenticated}
         API={API}
         getSafeId={getSafeId}
-        loadPublicOffers={loadPublicOffers}
-        loadPublicProducts={loadPublicProducts}
+        loadPublicOffers={() => loadPublicOffers(true)}
+        loadPublicProducts={() => loadPublicProducts(true)}
         tiktokVideos={tiktokVideos}
         setTiktokVideos={setTiktokVideos}
       />
