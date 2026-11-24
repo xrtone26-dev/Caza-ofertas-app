@@ -47,7 +47,9 @@ import {
   Copy,
   Building2,
   Briefcase,
-  ArrowRight
+  ArrowRight,
+  Sun,
+  Moon
 } from 'lucide-react';
 import {
   FaWhatsapp,
@@ -61,6 +63,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ChatbotWidget from './components/ChatbotWidget';
 // import ProfileModal from './components/ProfileModal'; // COMENTADO: Módulo de perfil de usuario normal deshabilitado
 import AdminDashboard, { decodeCoupon } from './components/AdminDashboard'; 
+import {
+  SectionHeader,
+  AmountSearchInput,
+  CarouselArrows,
+  SwipeHint,
+  CouponCard,
+  CouponCopyDialog,
+  useDialogBehavior,
+  formatMoney,
+} from './components/ui';
 
 const BACKEND_URL = 'https://caza-ofertas-backend.onrender.com';
 const API = BACKEND_URL;
@@ -79,6 +91,16 @@ const QUICK_FILTERS = [
   { id: 'tv', label: 'Pantallas', query: 'smart tv televisor pantalla roku google tv', maxPrice: null },
   { id: 'under1k', label: 'Hasta $1,000', query: '', maxPrice: 1000 },
   { id: 'under3k', label: 'Hasta $3,000', query: '', maxPrice: 3000 },
+];
+
+// Navegación principal: etiqueta corta + qué encuentra el visitante en cada sección.
+const MOBILE_TABS = [
+  { id: 'cupones', icon: '🎟️', label: 'Cupones' },
+  { id: 'productos', icon: '🔥', label: 'Ofertas' },
+  { id: 'bancarios', icon: '💳', label: 'Bancos' },
+  { id: 'exclusivos', icon: '⭐', label: 'Terminales' },
+  { id: 'reels', icon: '📺', label: 'Videos' },
+  { id: 'trabaja', icon: '💼', label: 'Únete' },
 ];
 
 // ==========================================
@@ -655,7 +677,7 @@ function CountdownTimer({ expiresAt }) {
 
   useEffect(() => {
     if (!expiresAt) {
-      setTimeLeft('VENCE HOY');
+      setTimeLeft('Vigente');
       return;
     }
 
@@ -665,7 +687,7 @@ function CountdownTimer({ expiresAt }) {
       const diff = targetTime - currentTime;
 
       if (diff <= 0) {
-        setTimeLeft('EXPIRADO');
+        setTimeLeft('Expirado');
         return;
       }
 
@@ -674,11 +696,11 @@ function CountdownTimer({ expiresAt }) {
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
       if (days > 0) {
-        setTimeLeft(`VENCE EN ${days}D`);
+        setTimeLeft(`Vence en ${days} ${days === 1 ? 'día' : 'días'}`);
       } else if (hours > 0) {
-        setTimeLeft(`VENCE EN ${hours}H`);
+        setTimeLeft(`Vence en ${hours} h`);
       } else {
-        setTimeLeft('VENCE HOY');
+        setTimeLeft(`Vence en ${Math.max(1, minutes)} min`);
       }
     };
 
@@ -688,8 +710,8 @@ function CountdownTimer({ expiresAt }) {
   }, [expiresAt]);
 
   return (
-    <span className="text-[10px] sm:text-xs font-black tracking-widest text-amber-300 uppercase bg-black/40 px-2.5 py-1 rounded-full border border-amber-400/30 whitespace-nowrap">
-      {timeLeft || 'VENCE HOY'}
+    <span className="inline-flex items-center gap-1 text-xs font-black text-amber-200 bg-black/70 px-2.5 py-1 rounded-full border border-amber-400/40 whitespace-nowrap">
+      <span aria-hidden="true">⏱</span> {timeLeft || 'Vigente'}
     </span>
   );
 }
@@ -699,7 +721,7 @@ function CountdownTimer({ expiresAt }) {
 // ==========================================
 function renderWorkWithUsSection(isLight) {
   return (
-    <div className="container mx-auto px-4 mt-6 mb-12 relative z-20">
+    <div id="unete" className="container mx-auto px-4 mt-6 mb-12 relative z-20 scroll-mt-36">
       <div className={`rounded-3xl shadow-2xl p-6 sm:p-10 backdrop-blur-2xl border relative overflow-hidden ${
         isLight ? 'bg-white/90 border-cyan-200' : 'bg-neutral-900/90 border-cyan-500/30'
       }`}>
@@ -1032,6 +1054,13 @@ function App() {
   const setMobileTab = (tab) => {
     userPickedTabRef.current = true;
     setMobileTabState(tab);
+    // Si el usuario ya bajó, lo regresamos al inicio de la sección elegida.
+    requestAnimationFrame(() => {
+      const anchor = mobileNavAnchorRef.current;
+      if (anchor && anchor.getBoundingClientRect().top < 0) {
+        window.scrollTo({ top: anchor.getBoundingClientRect().top + window.scrollY - 60, behavior: 'smooth' });
+      }
+    });
   };
 
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
@@ -1104,6 +1133,10 @@ function App() {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
+  useDialogBehavior(showTutorialModal, () => setShowTutorialModal(false));
+  useDialogBehavior(showPrivacyModal, () => setShowPrivacyModal(false));
+  useDialogBehavior(showTermsModal, () => setShowTermsModal(false));
+  const mobileNavAnchorRef = useRef(null);
   
   const [tiktokVideos, setTiktokVideos] = useState(() => {
     try {
@@ -1435,22 +1468,29 @@ function App() {
     } catch (e) {}
   };
 
-  const handleCopiarIrMercadoLibre = (cupon) => {
-    if (cupon.code) {
-      navigator.clipboard.writeText(cupon.code);
-    }
-    playSniperSound();
-    setToastMessage(`Cupón ${cupon.code || ''} copiado al portapapeles. Pégalo antes de pagar en Mercado Libre; te llevamos al enlace directo.`);
-    setShowToast(true);
+  // Copiar cupón: se copia el código y se muestra un diálogo con los pasos y el
+  // botón para abrir Mercado Libre en otra pestaña (antes se redirigía la página
+  // completa a los 5 s, sin que el usuario pudiera leer ni decidir).
+  const [copyDialogCoupon, setCopyDialogCoupon] = useState(null);
+  const [copyStatus, setCopyStatus] = useState('idle');
 
-    setTimeout(() => {
-      setShowToast(false);
-      if (cupon.link) {
-        window.location.href = cupon.link;
-      } else {
-        window.location.href = 'https://www.mercadolibre.com.mx';
-      }
-    }, 5000);
+  const copyCouponCode = (code) => {
+    if (!code) return;
+    try {
+      navigator.clipboard
+        .writeText(String(code))
+        .then(() => setCopyStatus('copied'))
+        .catch(() => setCopyStatus('failed'));
+    } catch (e) {
+      setCopyStatus('failed');
+    }
+  };
+
+  const handleCopiarIrMercadoLibre = (cupon) => {
+    setCopyStatus('idle');
+    copyCouponCode(cupon.code);
+    playSniperSound();
+    setCopyDialogCoupon(cupon);
   };
 
   const activeCupones = useMemo(() => {
@@ -1608,8 +1648,8 @@ function App() {
   );
 
   const mainBgClass = isLight
-    ? 'min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-800 relative overflow-x-hidden font-sans'
-    : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-hidden font-sans';
+    ? 'min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-800 relative overflow-x-clip font-sans'
+    : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-clip font-sans';
 
   const renderCuponesSection = () => {
     if (activeCupones.length === 0) {
@@ -1633,340 +1673,143 @@ function App() {
     return renderCuponesContent();
   };
 
-  const renderCuponesContent = () => (
-    (
-      <div className="container mx-auto px-3 sm:px-4 mb-12 relative z-25">
-        <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
-          isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
-        }`}>
-          <div className="relative flex flex-col sm:flex-row items-center justify-between mb-6 gap-3 px-2">
-            <h2 className={`text-xl sm:text-2xl md:text-3xl font-black tracking-wide text-center sm:text-left flex items-center gap-2 ${
-              isLight ? 'text-purple-700' : 'text-neutral-100'
-            }`}>
-              <span>✨</span> Cupones Especiales del día
-            </h2>
-            
-            <div className="group relative self-end sm:self-auto">
-              <button
-                onClick={() => setShowTutorialModal(true)}
-                className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center border-2 transition-all hover:scale-110 shadow-lg ${
-                  isLight
-                    ? 'text-purple-600 border-purple-300 hover:bg-purple-100'
-                    : 'text-yellow-400 border-yellow-400/50 hover:bg-yellow-400/20'
-                }`}
-                aria-label="Ayuda con cupones"
+  const renderCouponCarousel = ({ list, emblaRefFn, onPrev, onNext, variant, gradients, noun }) => (
+    <div className="relative sm:px-10 lg:px-12">
+      <div className="overflow-hidden py-2" ref={emblaRefFn}>
+        <div className="flex gap-3 sm:gap-4 lg:gap-6 items-stretch">
+          {list.map((cupon, idx) => {
+            const cuponId = getSafeId(cupon) || cupon.title;
+            const counts = couponCounts[cuponId] || { like: 0, dislike: 0, heart: 0 };
+            return (
+              <div
+                key={cuponId}
+                className={`${list.length > 1 ? 'flex-[0_0_88%] sm:flex-[0_0_80%]' : 'flex-[0_0_100%]'} lg:flex-[0_0_calc(50%-12px)] min-w-0`}
               >
-                <HelpCircle className="w-5 h-5 md:w-6 md:h-6" />
-              </button>
-              
-              <div className={`absolute bottom-full right-0 mb-3 w-56 p-2.5 text-xs font-bold text-center rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none shadow-xl transform translate-y-2 group-hover:translate-y-0 z-30 ${
-                isLight ? 'bg-gray-800 text-white' : 'bg-neutral-800 text-neutral-200 border border-neutral-600'
-              }`}>
-                ¿Sabes como usar los cupones / Tienes dudas?
-                <div className={`absolute top-full right-4 -mt-1 border-4 border-transparent ${isLight ? 'border-t-gray-800' : 'border-t-neutral-800'}`}></div>
+                <CouponCard
+                  cupon={cupon}
+                  variant={variant}
+                  bank={variant === 'bank' ? getBankInfo(cupon.title) : undefined}
+                  gradientClass={gradients[idx % gradients.length]}
+                  expiryBadge={<CountdownTimer expiresAt={cupon.expires_at} />}
+                  reaction={userReactions[cuponId]}
+                  counts={counts}
+                  onReact={(type) => handleReaction(cuponId, type)}
+                  onCopy={() => handleCopiarIrMercadoLibre(cupon)}
+                />
               </div>
-            </div>
-          </div>
-
-          <div className="max-w-xl mx-auto mb-8 px-2">
-            <div className="relative flex-1">
-              <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 ${
-                isLight ? 'text-gray-400' : 'text-neutral-500'
-              }`} />
-              <input
-                type="text"
-                value={couponSearchTerm}
-                onChange={handleCouponSearchChange}
-                placeholder="¿Cuánto planeas gastar?"
-                className={`w-full pl-12 pr-4 py-4 rounded-2xl border focus:outline-none focus:border-yellow-400 text-xs sm:text-sm font-medium shadow-inner ${
-                  isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-800 text-neutral-100'
-                }`}
-              />
-            </div>
-          </div>
-
-          {filteredCupones.length === 0 ? (
-            <div className="text-center py-12">
-              <p className={`text-base mb-4 font-semibold ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-                Lo lamentamos, por el momento no tenemos un cupón para ese precio. ¡Regresa más tarde! 🕒
-              </p>
-            </div>
-          ) : (
-            <div className="relative px-1 sm:px-10 lg:px-12">
-              <div className="overflow-hidden py-4" ref={cuponesRef}>
-                <div className="flex gap-4 lg:gap-6 items-center">
-                  {filteredCupones.map((cupon, idx) => {
-                    const cuponId = getSafeId(cupon) || cupon.title;
-                    const currentReaction = userReactions[cuponId];
-                    const counts = couponCounts[cuponId] || { like: 0, dislike: 0, heart: 0 };
-
-                    const gradients = [
-                      'from-amber-400 via-yellow-400 to-amber-500',
-                      'from-emerald-400 via-teal-400 to-emerald-500',
-                      'from-pink-400 via-rose-400 to-pink-500',
-                      'from-sky-400 via-blue-400 to-indigo-500'
-                    ];
-                    const gradientClass = gradients[idx % gradients.length];
-                    const fechaActual = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
-
-                    return (
-                      <div key={cuponId} className="flex-[0_0_100%] lg:flex-[0_0_calc(50%-12px)] min-w-0 flex flex-col gap-2">
-                        
-                        {/* VISTA MÓVIL (< 768px) */}
-                        <div className="block md:hidden h-[450px] sm:h-[500px] my-1 flex justify-center items-center overflow-hidden">
-                          <div className="flex flex-col gap-2 -rotate-90 scale-[0.76] min-[375px]:scale-[0.84] sm:scale-95 transform-gpu origin-center">
-                            
-                            <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide self-start">
-                              {fechaActual}
-                            </span>
-
-                            <div 
-                              onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                              className="group relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer w-[460px] h-[220px] flex-shrink-0"
-                            >
-                              <div className="bg-white text-gray-900 p-4 flex flex-col justify-between items-center w-[145px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
-                                <div className="flex flex-col items-center justify-center my-auto">
-                                  <div className="w-20 h-20 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
-                                    <img 
-                                      src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolibre/logo__large_plus.png" 
-                                      alt="Mercado Libre" 
-                                      className="w-full h-full object-contain"
-                                      onError={(e) => {
-                                        e.target.onerror = null;
-                                        e.target.src = "https://http2.mlstatic.com/storage/mshops-client-resource/mshops/common/images/logo-ml.png";
-                                      }}
-                                    />
-                                  </div>
-                                  <span className="font-black text-[10px] uppercase tracking-widest text-slate-800 text-center leading-tight">
-                                    MERCADO LIBRE
-                                  </span>
-                                </div>
-
-                                <div className="w-full text-center mt-1 pt-1 border-t border-gray-100">
-                                  <span className="text-[9px] font-extrabold text-blue-600 tracking-tight block">
-                                    DESCUENTO ESPECIAL
-                                  </span>
-                                </div>
-
-                                <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
-                              </div>
-
-                              <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 text-black flex flex-col justify-between relative min-w-0`}>
-                                <div className="flex justify-between items-start gap-2">
-                                  <div className="flex flex-col min-w-0 pr-1">
-                                    <h3 className="text-base font-black uppercase tracking-tight drop-shadow-sm leading-tight truncate mb-1">
-                                      {cupon.title || '12% DE DESCUENTO'}
-                                    </h3>
-                                    <div className="text-sm font-black tracking-widest font-mono bg-black/15 py-0.5 px-2.5 rounded-lg border border-black/20 inline-block self-start select-all">
-                                      {cupon.code && String(cupon.code).length > 3
-                                        ? String(cupon.code).slice(0, 3) + '••••••'
-                                        : (cupon.code || 'CAPI••••')}
-                                    </div>
-                                  </div>
-
-                                  <div className="flex flex-col items-end gap-1 text-right shrink-0">
-                                    <CountdownTimer expiresAt={cupon.expires_at} />
-                                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                      <button
-                                        onClick={() => handleReaction(cuponId, 'like')}
-                                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-black/20 ${
-                                          currentReaction === 'like' ? 'bg-black text-white' : 'bg-white/60 text-black'
-                                        }`}
-                                      >
-                                        <ThumbsUp size={10} /> <span>{counts.like}</span>
-                                      </button>
-                                      <button
-                                        onClick={() => handleReaction(cuponId, 'heart')}
-                                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-black/20 ${
-                                          currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-white/60 text-black'
-                                        }`}
-                                      >
-                                        <Heart size={10} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="my-1.5">
-                                  <button
-                                    type="button"
-                                    className="w-full inline-flex items-center justify-center gap-2 bg-[#22a947] hover:bg-[#1c8e3b] text-white font-bold text-xs py-2 px-4 rounded-full shadow-md transition-all active:scale-95"
-                                  >
-                                    <span>Copiar cupón e ir a comprar</span>
-                                    <ExternalLink size={14} strokeWidth={2.3} className="shrink-0" />
-                                  </button>
-                                </div>
-
-                                <div className="pt-1 border-t border-black/15">
-                                  <span className="text-[9px] font-extrabold uppercase tracking-tight text-black/90 block leading-tight truncate">
-                                    {cupon.min_purchase ? `COMPRA MÍNIMA APLICABLE: $${cupon.min_purchase} | DESCUENTO MÁXIMO: $${cupon.max_discount || '180'}` : (cupon.description || 'COMPRA MÍNIMA APLICABLE')}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                          </div>
-                        </div>
-
-                        {/* Tarjeta de tablet y escritorio optimizada */}
-                        <div className="hidden md:flex flex-col gap-2 w-full">
-                          <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide">
-                            {fechaActual}
-                          </span>
-                          <div 
-                            onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                            className="group relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-amber-400 cursor-pointer h-full w-full"
-                          >
-                            <div className="bg-white text-gray-900 p-4 sm:p-5 flex flex-col justify-between items-center w-[190px] xl:w-[230px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
-                              <div className="flex flex-col items-center justify-center my-auto py-1">
-                                <div className="w-24 h-24 xl:w-32 xl:h-32 rounded-full bg-yellow-400 flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
-                                  <img 
-                                    src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolibre/logo__large_plus.png" 
-                                    alt="Mercado Libre" 
-                                    className="w-full h-full object-contain"
-                                    onError={(e) => {
-                                      e.target.onerror = null;
-                                      e.target.src = "https://http2.mlstatic.com/storage/mshops-client-resource/mshops/common/images/logo-ml.png";
-                                    }}
-                                  />
-                                </div>
-                                <span className="font-black text-[11px] sm:text-xs uppercase tracking-widest text-slate-800 text-center">
-                                  mercado libre
-                                </span>
-                              </div>
-
-                              <div className="w-full text-center mt-1 pt-2 border-t border-gray-100">
-                                <span className="text-[10px] sm:text-xs font-extrabold text-blue-600 tracking-tight block truncate">
-                                  {cupon.description && cupon.description.includes('MAX') 
-                                    ? cupon.description 
-                                    : (cupon.max_discount ? `DESC MAX: ${cupon.max_discount}` : 'DESCUENTO ESPECIAL')}
-                                </span>
-                              </div>
-
-                              <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
-                            </div>
-
-                            <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-black flex flex-col justify-between relative overflow-hidden min-w-0`}>
-                              <div className="flex justify-between items-start gap-2">
-                                <div className="flex flex-col min-w-0 pr-1">
-                                  <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm truncate mb-1">
-                                    {cupon.title || '10% DE DESCUENTO'}
-                                  </h3>
-                                  <div className="text-base xl:text-lg font-black tracking-widest font-mono bg-black/15 py-0.5 px-3 rounded-xl border border-black/20 inline-block self-start select-all">
-                                    {cupon.code && String(cupon.code).length > 3
-                                      ? String(cupon.code).slice(0, 3) + '••••••'
-                                      : (cupon.code || 'CAPI••••')}
-                                  </div>
-                                </div>
-
-                                <div className="flex flex-col items-end gap-1 text-right flex-shrink-0">
-                                  <CountdownTimer expiresAt={cupon.expires_at} />
-                                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                    <button
-                                      onClick={() => handleReaction(cuponId, 'like')}
-                                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-black/20 ${
-                                        currentReaction === 'like' ? 'bg-black text-white' : 'bg-white/60 hover:bg-white/80 text-black'
-                                      }`}
-                                      title="Me gusta"
-                                    >
-                                      <ThumbsUp size={10} /> <span>{counts.like}</span>
-                                    </button>
-                                    <button
-                                      onClick={() => handleReaction(cuponId, 'heart')}
-                                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-black/20 ${
-                                        currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-white/60 hover:bg-white/80 text-black'
-                                      }`}
-                                      title="Me encanta"
-                                    >
-                                      <Heart size={10} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="my-2.5">
-                                <button
-                                  type="button"
-                                  className="w-full inline-flex items-center justify-center gap-2 bg-[#22a947] group-hover:bg-[#1c8e3b] text-white font-bold text-xs xl:text-sm py-2.5 px-5 rounded-full shadow-md group-hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
-                                >
-                                  <span>Copiar cupón e ir a comprar</span>
-                                  <ExternalLink size={16} strokeWidth={2.3} className="shrink-0" />
-                                </button>
-                              </div>
-
-                              <div className="pt-2 border-t border-black/15 mt-auto">
-                                <span className="text-[10px] font-extrabold uppercase tracking-tight text-black/90 block leading-tight truncate">
-                                  {cupon.min_purchase ? `MÍN: $${cupon.min_purchase} | MÁX: $${cupon.max_discount || '150'}` : (cupon.description || 'COMPRA MÍNIMA APLICABLE')}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {filteredCupones.length > 1 && (
-                <>
-                  <button
-                    onClick={scrollPrevCupones}
-                    className="absolute -left-1 sm:-left-2 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
-                  >
-                    <ChevronLeft className="w-5 h-5 font-black" />
-                  </button>
-                  <button
-                    onClick={scrollNextCupones}
-                    className="absolute -right-1 sm:-right-2 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
-                  >
-                    <ChevronRight className="w-5 h-5 font-black" />
-                  </button>
-                </>
-              )}
-            </div>
-          )}
-
-          <div className={`mt-6 pt-4 border-t text-center text-xs md:text-sm font-medium ${
-            isLight ? 'border-purple-200 text-purple-900/70' : 'border-neutral-800 text-neutral-400'
-          }`}>
-            ℹ️ Nota informativa: Copia el código, agrégalo antes de pagar en Mercado Libre y recuerda que la disponibilidad y vigencia de cada cupón son estimadas y sujetas a un límite de redenciones.
-          </div>
+            );
+          })}
         </div>
       </div>
-    )
+      {list.length > 1 && <CarouselArrows onPrev={onPrev} onNext={onNext} label={noun === 'cupones' ? 'Cupón' : 'Promoción'} />}
+      <SwipeHint count={list.length} noun={noun} isLight={isLight} />
+    </div>
+  );
+
+  const renderNoMatch = (amount, onClear) => (
+    <div className="text-center py-10 px-3" role="status">
+      <p className={`text-base font-black mb-1 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}>
+        Ningún cupón aplica para {amount}
+      </p>
+      <p className={`text-sm mb-4 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+        Prueba con un monto mayor o quita el filtro para ver todos.
+      </p>
+      <button
+        type="button"
+        onClick={onClear}
+        className="min-h-[44px] px-5 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm border-2 border-black"
+      >
+        Ver todos
+      </button>
+    </div>
+  );
+
+  const renderCuponesContent = () => (
+    <section aria-labelledby="sec-cupones" id="cupones" className="container mx-auto px-0 sm:px-4 mb-12 relative z-20 scroll-mt-36">
+      <div className={`rounded-3xl shadow-xl p-3.5 sm:p-8 backdrop-blur-xl border ${
+        isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
+      }`}>
+        <SectionHeader
+          id="sec-cupones"
+          icon="🎟️"
+          title="Cupones de Mercado Libre"
+          subtitle="Copia el código y pégalo en “Agregar cupón” antes de pagar. Cada cupón tiene un límite de usos."
+          isLight={isLight}
+          action={
+            <button
+              type="button"
+              onClick={() => setShowTutorialModal(true)}
+              className={`self-start sm:self-auto min-h-[44px] inline-flex items-center gap-2 px-4 rounded-xl border-2 font-black text-sm transition ${
+                isLight
+                  ? 'text-purple-700 border-purple-300 hover:bg-purple-50'
+                  : 'text-yellow-400 border-yellow-400/50 hover:bg-yellow-400/10'
+              }`}
+            >
+              <HelpCircle className="w-5 h-5" aria-hidden="true" /> ¿Cómo se usan?
+            </button>
+          }
+        />
+
+        <AmountSearchInput
+          id="coupon-budget"
+          label="¿Cuánto vas a gastar?"
+          helper="Escribe el total de tu compra y te mostramos los cupones que aplican."
+          value={couponSearchTerm}
+          onChange={handleCouponSearchChange}
+          onClear={() => setCouponSearchTerm('')}
+          isLight={isLight}
+        />
+
+        {filteredCupones.length === 0
+          ? renderNoMatch(couponSearchTerm, () => setCouponSearchTerm(''))
+          : renderCouponCarousel({
+              list: filteredCupones,
+              emblaRefFn: cuponesRef,
+              onPrev: scrollPrevCupones,
+              onNext: scrollNextCupones,
+              variant: 'ml',
+              noun: 'cupones',
+              gradients: [
+                'from-amber-300 via-yellow-300 to-amber-400',
+                'from-emerald-300 via-teal-300 to-emerald-400',
+                'from-pink-300 via-rose-300 to-pink-400',
+                'from-sky-300 via-blue-300 to-indigo-300',
+              ],
+            })}
+
+        <p className={`mt-6 pt-4 border-t text-center text-xs sm:text-sm ${
+          isLight ? 'border-purple-200 text-gray-600' : 'border-neutral-800 text-neutral-400'
+        }`}>
+          ℹ️ La vigencia y el número de usos de cada cupón los define Mercado Libre y pueden terminar antes de lo indicado.
+        </p>
+      </div>
+    </section>
   );
 
   const renderCuponesBancariosSection = () => (
-    <div className="container mx-auto px-3 sm:px-4 mb-12 relative z-25">
-      <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
+    <section aria-labelledby="sec-bancos" id="bancos" className="container mx-auto px-0 sm:px-4 mb-12 relative z-20 scroll-mt-36">
+      <div className={`rounded-3xl shadow-xl p-3.5 sm:p-8 backdrop-blur-xl border ${
         isLight ? 'bg-white border-blue-200' : 'bg-neutral-900/85 border-neutral-800'
       }`}>
-        <div className="relative flex flex-col sm:flex-row items-center justify-between mb-6 gap-3 px-2">
-          <h2 className={`text-xl sm:text-2xl md:text-3xl font-black tracking-wide text-center sm:text-left flex items-center gap-2 ${
-            isLight ? 'text-blue-700' : 'text-neutral-100'
-          }`}>
-            <span>💳</span> Cupones Bancarios y Tarjetas
-          </h2>
-        </div>
+        <SectionHeader
+          id="sec-bancos"
+          icon="💳"
+          title="Promociones con tarjeta"
+          subtitle="Descuentos y meses sin intereses al pagar con tarjetas de bancos participantes."
+          isLight={isLight}
+        />
 
-        <div className="max-w-xl mx-auto mb-8 px-2">
-          <div className="relative flex-1">
-            <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 ${
-              isLight ? 'text-gray-400' : 'text-neutral-500'
-            }`} />
-            <input
-              type="text"
-              value={bancarioSearchTerm}
-              onChange={handleBancarioSearchChange}
-              placeholder="Buscar cupón bancario..."
-              className={`w-full pl-12 pr-4 py-4 rounded-2xl border focus:outline-none focus:border-blue-400 text-xs sm:text-sm font-medium shadow-inner ${
-                isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-800 text-neutral-100'
-              }`}
-            />
-          </div>
-        </div>
+        {activeCuponesBancarios.length > 0 && (
+          <AmountSearchInput
+            id="bank-budget"
+            label="¿De cuánto es tu compra?"
+            helper="Te mostramos las promociones bancarias que aplican a ese monto."
+            value={bancarioSearchTerm}
+            onChange={handleBancarioSearchChange}
+            onClear={() => setBancarioSearchTerm('')}
+            isLight={isLight}
+          />
+        )}
 
         {filteredCuponesBancarios.length === 0 ? (
           activeCuponesBancarios.length === 0 ? (
@@ -1978,248 +1821,42 @@ function App() {
               title="Sin promociones bancarias por ahora"
               message="Cuando haya meses sin intereses o descuentos con tarjeta los verás aquí. Únete al grupo para enterarte primero."
               actions={[
-                ...(isMobileDevice ? [{ label: '🔥 Ver productos en oferta', onClick: () => setMobileTab('productos') }] : []),
+                ...(isMobileDevice ? [{ label: '🔥 Ver ofertas', onClick: () => setMobileTab('productos') }] : []),
                 { label: 'Avisarme por WhatsApp', href: WHATSAPP_GROUP_URL },
               ]}
             />
           ) : (
-            <div className="text-center py-12">
-              <p className={`text-base mb-2 font-semibold ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-                Ningún cupón bancario coincide con tu búsqueda.
-              </p>
-            </div>
+            renderNoMatch(bancarioSearchTerm, () => setBancarioSearchTerm(''))
           )
         ) : (
-          <div className="relative px-1 sm:px-10 lg:px-12">
-            <div className="overflow-hidden py-4" ref={bancariosRef}>
-              <div className="flex gap-4 lg:gap-6 items-center">
-                {filteredCuponesBancarios.map((cupon, idx) => {
-                  const cuponId = getSafeId(cupon) || cupon.title;
-                  const currentReaction = userReactions[cuponId];
-                  const counts = couponCounts[cuponId] || { like: 0, dislike: 0, heart: 0 };
-                  const bank = getBankInfo(cupon.title);
-
-                  const gradients = [
-                    'from-blue-500 via-indigo-500 to-sky-600',
-                    'from-cyan-500 via-blue-600 to-indigo-700',
-                    'from-violet-500 via-purple-500 to-indigo-600'
-                  ];
-                  const gradientClass = gradients[idx % gradients.length];
-                  const fechaActual = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
-
-                  return (
-                    <div key={cuponId} className="flex-[0_0_100%] lg:flex-[0_0_calc(50%-12px)] min-w-0 flex flex-col gap-2">
-                      
-                      {/* VISTA MÓVIL (< 768px) */}
-                      <div className="block md:hidden h-[450px] sm:h-[500px] my-1 flex justify-center items-center overflow-hidden">
-                        <div className="flex flex-col gap-2 -rotate-90 scale-[0.76] min-[375px]:scale-[0.84] sm:scale-95 transform-gpu origin-center">
-                          <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide self-start">
-                            {fechaActual}
-                          </span>
-                          <div 
-                            onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                            className="group relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer w-[460px] h-[220px] flex-shrink-0"
-                          >
-                            <div className="bg-white text-gray-900 p-4 flex flex-col justify-between items-center w-[145px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
-                              <div className="flex flex-col items-center justify-center my-auto">
-                                <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-2">
-                                  {bank.logo ? (
-                                    <img src={bank.logo} alt={bank.name} className="w-full h-full object-contain" />
-                                  ) : (
-                                    <Building2 className="w-8 h-8 text-blue-600" />
-                                  )}
-                                </div>
-                                <span className="font-black text-[10px] uppercase tracking-widest text-slate-800 text-center leading-tight">
-                                  {bank.name}
-                                </span>
-                              </div>
-                              <div className="w-full text-center mt-1 pt-1 border-t border-gray-100">
-                                <span className="text-[9px] font-extrabold text-blue-600 tracking-tight block">
-                                  BENEFICIO BANCARIO
-                                </span>
-                              </div>
-                              <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
-                            </div>
-
-                            <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 text-white flex flex-col justify-between relative min-w-0`}>
-                              <div className="flex justify-between items-start gap-2">
-                                <div className="flex flex-col min-w-0 pr-1">
-                                  <h3 className="text-base font-black uppercase tracking-tight drop-shadow-sm leading-tight truncate mb-1">
-                                    {cupon.title || 'DESCUENTO BANCARIO'}
-                                  </h3>
-                                  <div className="text-sm font-black tracking-widest font-mono bg-black/25 py-0.5 px-2.5 rounded-lg border border-white/25 inline-block self-start select-all">
-                                    {cupon.code && String(cupon.code).length > 3
-                                      ? String(cupon.code).slice(0, 3) + '••••••'
-                                      : (cupon.code || 'BANC••••')}
-                                  </div>
-                                </div>
-
-                                <div className="flex flex-col items-end gap-1 text-right shrink-0">
-                                  <CountdownTimer expiresAt={cupon.expires_at} />
-                                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                    <button
-                                      onClick={() => handleReaction(cuponId, 'like')}
-                                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-white/20 ${
-                                        currentReaction === 'like' ? 'bg-white text-black' : 'bg-black/30 text-white'
-                                      }`}
-                                    >
-                                      <ThumbsUp size={10} /> <span>{counts.like}</span>
-                                    </button>
-                                    <button
-                                      onClick={() => handleReaction(cuponId, 'heart')}
-                                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-white/20 ${
-                                        currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-black/30 text-white'
-                                      }`}
-                                    >
-                                      <Heart size={10} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="my-1.5">
-                                <button
-                                  type="button"
-                                  className="w-full inline-flex items-center justify-center gap-2 bg-[#22a947] hover:bg-[#1c8e3b] text-white font-bold text-xs py-2 px-4 rounded-full shadow-md transition-all active:scale-95"
-                                >
-                                  <span>Copiar cupón e ir a comprar</span>
-                                  <ExternalLink size={14} strokeWidth={2.3} className="shrink-0" />
-                                </button>
-                              </div>
-
-                              <div className="pt-1 border-t border-white/20">
-                                <span className="text-[9px] font-extrabold uppercase tracking-tight text-white/90 block leading-tight truncate">
-                                  {cupon.description || 'BENEFICIOS EXCLUSIVOS CON TARJETA'}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Tarjeta bancaria de tablet y escritorio optimizada */}
-                      <div className="hidden md:flex flex-col gap-2 w-full">
-                        <span className="text-[11px] font-bold text-gray-400 px-2 tracking-wide">
-                          {fechaActual}
-                        </span>
-                        <div 
-                          onClick={() => handleCopiarIrMercadoLibre(cupon)}
-                          className="group relative rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden flex flex-row items-stretch transition-all hover:scale-[1.01] hover:border-blue-400 cursor-pointer h-full w-full"
-                        >
-                          <div className="bg-white text-gray-900 p-4 sm:p-5 flex flex-col justify-between items-center w-[190px] xl:w-[230px] flex-shrink-0 relative border-r-2 border-dashed border-slate-700">
-                            <div className="flex flex-col items-center justify-center my-auto py-1">
-                              <div className="w-24 h-24 xl:w-32 xl:h-32 rounded-full bg-white flex items-center justify-center shadow-md mb-2 border-2 border-black overflow-hidden p-3">
-                                {bank.logo ? (
-                                  <img src={bank.logo} alt={bank.name} className="w-full h-full object-contain" />
-                                ) : (
-                                  <Building2 className="w-10 h-10 text-blue-600" />
-                                )}
-                              </div>
-                              <span className="font-black text-[11px] sm:text-xs uppercase tracking-widest text-slate-800 text-center">
-                                {bank.name}
-                              </span>
-                            </div>
-                            <div className="w-full text-center mt-1 pt-2 border-t border-gray-100">
-                              <span className="text-[10px] sm:text-xs font-extrabold text-blue-600 tracking-tight block truncate">
-                                PROMOCIÓN BANCARIA
-                              </span>
-                            </div>
-                            <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900 rounded-full z-10"></div>
-                          </div>
-
-                          <div className={`flex-1 bg-gradient-to-r ${gradientClass} p-4 sm:p-5 text-white flex flex-col justify-between relative overflow-hidden min-w-0`}>
-                            <div className="flex justify-between items-start gap-2">
-                              <div className="flex flex-col min-w-0 pr-1">
-                                <h3 className="text-lg xl:text-xl font-black uppercase tracking-tight drop-shadow-sm truncate mb-1">
-                                  {cupon.title || 'DESCUENTO BANCARIO'}
-                                </h3>
-                                <div className="text-base xl:text-lg font-black tracking-widest font-mono bg-black/25 py-0.5 px-3 rounded-xl border border-white/25 inline-block self-start select-all">
-                                  {cupon.code && String(cupon.code).length > 3
-                                    ? String(cupon.code).slice(0, 3) + '••••••'
-                                    : (cupon.code || 'BANC••••')}
-                                </div>
-                              </div>
-
-                              <div className="flex flex-col items-end gap-1 text-right flex-shrink-0">
-                                <CountdownTimer expiresAt={cupon.expires_at} />
-                                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                  <button
-                                    onClick={() => handleReaction(cuponId, 'like')}
-                                    className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-white/20 ${
-                                      currentReaction === 'like' ? 'bg-white text-black' : 'bg-black/30 hover:bg-black/50 text-white'
-                                    }`}
-                                  >
-                                    <ThumbsUp size={10} /> <span>{counts.like}</span>
-                                  </button>
-                                  <button
-                                    onClick={() => handleReaction(cuponId, 'heart')}
-                                    className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-white/20 ${
-                                      currentReaction === 'heart' ? 'bg-pink-600 text-white' : 'bg-black/30 hover:bg-black/50 text-white'
-                                    }`}
-                                  >
-                                    <Heart size={10} className={currentReaction === 'heart' ? 'fill-current' : ''} /> <span>{counts.heart}</span>
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="my-2.5">
-                              <button
-                                type="button"
-                                className="w-full inline-flex items-center justify-center gap-2 bg-[#22a947] group-hover:bg-[#1c8e3b] text-white font-bold text-xs xl:text-sm py-2.5 px-5 rounded-full shadow-md group-hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
-                              >
-                                <span>Copiar cupón e ir a comprar</span>
-                                <ExternalLink size={16} strokeWidth={2.3} className="shrink-0" />
-                              </button>
-                            </div>
-
-                            <div className="pt-2 border-t border-white/20 mt-auto">
-                              <span className="text-[10px] font-extrabold uppercase tracking-tight text-white/90 block leading-tight truncate">
-                                {cupon.description || 'BENEFICIOS Y MESES SIN INTERESES'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {filteredCuponesBancarios.length > 1 && (
-              <>
-                <button
-                  onClick={scrollPrevBancarios}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
-                >
-                  <ChevronLeft className="w-5 h-5 font-black" />
-                </button>
-                <button
-                  onClick={scrollNextBancarios}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-2.5 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black"
-                >
-                  <ChevronRight className="w-5 h-5 font-black" />
-                </button>
-              </>
-            )}
-          </div>
+          renderCouponCarousel({
+            list: filteredCuponesBancarios,
+            emblaRefFn: bancariosRef,
+            onPrev: scrollPrevBancarios,
+            onNext: scrollNextBancarios,
+            variant: 'bank',
+            noun: 'promociones',
+            gradients: [
+              'from-blue-600 via-indigo-600 to-sky-700',
+              'from-cyan-600 via-blue-700 to-indigo-800',
+              'from-violet-600 via-purple-600 to-indigo-700',
+            ],
+          })
         )}
 
-        <div className={`mt-6 pt-4 border-t text-center text-xs md:text-sm font-medium ${
-          isLight ? 'border-blue-200 text-blue-900/70' : 'border-neutral-800 text-neutral-400'
+        <p className={`mt-6 pt-4 border-t text-center text-xs sm:text-sm ${
+          isLight ? 'border-blue-200 text-gray-600' : 'border-neutral-800 text-neutral-400'
         }`}>
-          ℹ️ Nota informativa: Los beneficios bancarios y MSI están sujetos a términos de cada institución financiera participante.
-        </div>
+          ℹ️ Los beneficios bancarios y meses sin intereses dependen de los términos de cada banco.
+        </p>
       </div>
-    </div>
+    </section>
   );
 
   const renderProductosSection = () => {
     if (regularProducts.length === 0) {
       return (
-        <div className="container mx-auto px-3 sm:px-4 mb-16 relative z-10">
+        <div className="container mx-auto px-0 sm:px-4 mb-16 relative z-10">
           <EmptyState
             isLight={isLight}
             status={productsStatus === 'ready' ? 'empty' : productsStatus}
@@ -2240,26 +1877,33 @@ function App() {
 
   const renderProductosContent = () => (
     (
-      <div className={`container mx-auto px-3 sm:px-4 mb-16 relative z-10`}>
-        <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
+      <section aria-labelledby="sec-ofertas" id="ofertas" className="container mx-auto px-0 sm:px-4 mb-16 relative z-10 scroll-mt-36">
+        <div className={`rounded-3xl shadow-xl p-3.5 sm:p-8 backdrop-blur-xl border ${
           isLight ? 'bg-white border-gray-100' : 'bg-neutral-900/85 border-neutral-800'
         }`}>
-          <div className="relative flex items-center justify-center mb-6 px-2">
-            <h2 className={`text-2xl sm:text-3xl font-bold text-center ${isLight ? 'text-gray-800' : 'text-neutral-100 font-black'}`}>
-              🔥 Productos Destacados
-            </h2>
-          </div>
+          <SectionHeader
+            id="sec-ofertas"
+            icon="🔥"
+            title="Ofertas destacadas"
+            subtitle="Precios rebajados en Mercado Libre. Elige una categoría o busca un producto."
+            isLight={isLight}
+          />
 
-          <div className="max-w-2xl mx-auto mb-8 flex flex-col gap-3 px-2">
-            <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
+          <div className="max-w-2xl mx-auto mb-6 flex flex-col gap-3 sm:px-2">
+            <div
+              role="group"
+              aria-label="Filtrar ofertas"
+              className="flex sm:flex-wrap sm:justify-center gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 pb-1"
+            >
               {QUICK_FILTERS.map((chip) => {
                 const isSelected = selectedQuickFilter === chip.id;
                 return (
                   <button
                     key={chip.id}
                     type="button"
+                    aria-pressed={isSelected}
                     onClick={() => setSelectedQuickFilter(chip.id)}
-                    className={`px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-black transition-all cursor-pointer border ${
+                    className={`shrink-0 min-h-[40px] px-4 rounded-full text-sm font-black transition-all cursor-pointer border-2 ${
                       isSelected
                         ? 'bg-yellow-400 text-black border-black shadow-sm scale-[1.02]'
                         : isLight
@@ -2273,56 +1917,83 @@ function App() {
               })}
             </div>
 
-            {(searchTerm || selectedQuickFilter !== 'all') && (
-              <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setProductSearchInput('');
-                  setSelectedQuickFilter('all');
-                }}
-                className="self-start flex items-center gap-1 px-3.5 py-2 rounded-xl font-black text-xs uppercase transition-transform hover:scale-105 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] bg-yellow-400 text-black border-2 border-black"
-                title="Regresar a todos los productos"
-              >
-                <ChevronLeft className="w-5 h-5" /> Regresar
-              </button>
-            )}
-            <div className="flex gap-2 w-full">
+            <form
+              role="search"
+              className="flex gap-2 w-full"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setSearchTerm(productSearchInput);
+              }}
+            >
+              <label htmlFor="product-search" className="sr-only">Buscar un producto</label>
               <div className="relative flex-1">
-                <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${isLight ? 'text-gray-400' : 'text-neutral-500'}`} />
+                <Search aria-hidden="true" className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 ${isLight ? 'text-gray-400' : 'text-neutral-500'}`} />
                 <input
+                  id="product-search"
                   type="text"
+                  enterKeyHint="search"
                   value={productSearchInput}
                   onChange={(e) => setProductSearchInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      setSearchTerm(productSearchInput);
-                    }
-                  }}
-                  placeholder={isMobileDevice ? "Buscar..." : "Busca un producto..."}
-                  className={`w-full pl-10 sm:pl-11 pr-3 sm:pr-4 py-2.5 sm:py-3 rounded-xl border focus:outline-none focus:border-yellow-400 text-xs sm:text-sm ${
+                  placeholder="Busca un producto: iPhone, audífonos, laptop…"
+                  className={`w-full min-h-[48px] pl-11 pr-10 rounded-xl border-2 focus:outline-none focus:border-yellow-400 text-base ${
                     isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-700 text-neutral-100'
                   }`}
                 />
+                {productSearchInput && (
+                  <button
+                    type="button"
+                    aria-label="Borrar búsqueda"
+                    onClick={() => {
+                      setProductSearchInput('');
+                      setSearchTerm('');
+                    }}
+                    className={`absolute right-1 top-1/2 -translate-y-1/2 w-10 h-10 rounded-lg flex items-center justify-center ${isLight ? 'text-gray-500 hover:bg-gray-200' : 'text-neutral-400 hover:bg-neutral-800'}`}
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
               </div>
               <button
-                onClick={() => setSearchTerm(productSearchInput)}
-                className={`px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl flex items-center justify-center transition-all font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
-                  isLight ? 'bg-yellow-400 text-black' : 'bg-[#FFEA00] text-black'
-                }`}
-                title="Buscar Producto"
+                type="submit"
+                className="min-h-[48px] px-4 rounded-xl flex items-center justify-center gap-2 font-black text-sm border-2 border-black bg-yellow-400 hover:bg-yellow-300 text-black"
               >
-                <Search className="w-4 h-4 sm:w-5 sm:h-5" />
+                <Search className="w-5 h-5" aria-hidden="true" />
+                <span className="hidden sm:inline">Buscar</span>
+                <span className="sr-only sm:hidden">Buscar</span>
               </button>
-            </div>
+            </form>
+
+            {(searchTerm || selectedQuickFilter !== 'all') && (
+              <div className={`flex flex-wrap items-center justify-between gap-2 text-sm ${isLight ? 'text-gray-700' : 'text-neutral-300'}`} role="status">
+                <span>
+                  <strong>{filteredProducts.length}</strong> {filteredProducts.length === 1 ? 'resultado' : 'resultados'}
+                  {searchTerm && <> para “<strong>{searchTerm}</strong>”</>}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setProductSearchInput('');
+                    setSelectedQuickFilter('all');
+                  }}
+                  className="min-h-[40px] inline-flex items-center gap-1 px-3 rounded-xl font-black text-sm bg-yellow-400 text-black border-2 border-black"
+                >
+                  <X className="w-4 h-4" aria-hidden="true" /> Quitar filtros
+                </button>
+              </div>
+            )}
           </div>
 
           {filteredProducts.length === 0 ? (
-            <div className="text-center py-12 px-2">
-              <p className={`text-sm sm:text-base mb-4 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-                No encontramos ningún producto local con ese filtro. ¿Quieres buscarlo directamente en Mercado Libre?
+            <div className="text-center py-10 px-2" role="status">
+              <p className={`text-base font-black mb-1 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}>
+                No encontramos ofertas con ese filtro
               </p>
-              <button onClick={handleSearchOnMercadoLibre} className="bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 rounded-xl font-black text-xs sm:text-sm uppercase transition-all shadow-lg">
-                Buscar {searchTerm ? `"${searchTerm}"` : 'ofertas'} en Mercado Libre 🚀
+              <p className={`text-sm mb-4 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+                Prueba con otra palabra, quita los filtros o búscalo directamente en Mercado Libre.
+              </p>
+              <button onClick={handleSearchOnMercadoLibre} className="min-h-[48px] bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 rounded-xl font-black text-sm border-2 border-black">
+                Buscar en Mercado Libre 🚀
               </button>
             </div>
           ) : (
@@ -2336,9 +2007,14 @@ function App() {
                     const formattedOriginalPrice = origPriceNum < 100 && origPriceNum > 0 
                       ? (origPriceNum * 1000).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
                       : origPriceNum.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                    // Solo presentación: el ahorro se muestra cuando el precio anterior es mayor al actual.
+                    const origDisplayNum = origPriceNum < 100 && origPriceNum > 0 ? origPriceNum * 1000 : origPriceNum;
+                    const priceNum = Number(product.discount_price);
+                    const showsSaving = origDisplayNum > 0 && priceNum > 0 && origDisplayNum > priceNum;
+                    const savingPct = product.discount_percentage || (showsSaving ? Math.round((1 - priceNum / origDisplayNum) * 100) : null);
 
                     return (
-                      <div key={pId} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
+                      <div key={pId} className="flex-[0_0_88%] sm:flex-[0_0_70%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
                         <div className={`rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden h-full flex flex-col relative ${
                           isLight ? 'bg-gradient-to-br from-gray-50 to-white' : 'bg-gradient-to-b from-neutral-900 to-neutral-950 border border-neutral-800'
                         }`}>
@@ -2356,54 +2032,54 @@ function App() {
                             </button>
                           )}
 
-                          <div className="relative">
-                            <img src={product.image_url} alt={product.title} loading="lazy" decoding="async" width="400" height="256" className="w-full h-56 sm:h-64 object-contain p-2" />
-                            {product.discount_percentage && (
-                              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-red-500 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-bold text-sm sm:text-lg shadow-lg">
-                                -{product.discount_percentage}%
+                          <div className="relative bg-white">
+                            <img src={product.image_url} alt={product.title} loading="lazy" decoding="async" width="400" height="256" className="w-full h-48 sm:h-60 object-contain p-3" />
+                            {savingPct > 0 && (
+                              <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full font-black text-sm shadow-lg">
+                                -{savingPct}%
                               </div>
                             )}
-                            <span
-                              className={`absolute bottom-2.5 right-3 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black select-none border ${
-                                isLight
-                                  ? 'bg-gray-100/90 text-gray-500 border-gray-300'
-                                  : 'bg-neutral-800/90 text-neutral-400 border-neutral-700'
-                              }`}
-                            >
-                              {remainingDays}
-                            </span>
                           </div>
-                          <div className="p-4 sm:p-6 flex flex-col flex-1">
-                            <h3 className={`text-lg sm:text-xl font-bold mb-2 line-clamp-2 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}>{product.title}</h3>
-                            <p className={`mb-4 line-clamp-3 text-xs sm:text-sm flex-1 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+                          <div className="p-4 sm:p-5 flex flex-col flex-1">
+                            <h3 className={`text-base sm:text-lg font-bold leading-snug mb-2 line-clamp-2 ${isLight ? 'text-gray-900' : 'text-neutral-100'}`}>{product.title}</h3>
+                            <p className={`mb-3 line-clamp-2 text-sm flex-1 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
                               {product.description}
                             </p>
-                            <div className="flex items-baseline gap-3 mb-4 mt-auto flex-wrap">
-                              <span className={`text-2xl sm:text-3xl font-black ${isLight ? 'text-green-600' : 'text-green-400'}`}>
-                                ${Number(product.discount_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </span>
-                              {origPriceNum > 0 && (
-                                <span className={`text-base sm:text-lg font-bold line-through ${isLight ? 'text-red-600' : 'text-red-400'}`}>
+                            <div className="mt-auto mb-3">
+                              {showsSaving && (
+                                <span className={`block text-sm line-through ${isLight ? 'text-gray-500' : 'text-neutral-500'}`}>
                                   Antes ${formattedOriginalPrice}
                                 </span>
                               )}
+                              <span className={`block text-3xl font-black leading-tight ${isLight ? 'text-green-700' : 'text-green-400'}`}>
+                                ${Number(product.discount_price).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                              </span>
+                              {showsSaving && (
+                                <span className={`block text-sm font-bold ${isLight ? 'text-green-700' : 'text-green-300'}`}>
+                                  Ahorras {formatMoney(origDisplayNum - priceNum)}
+                                </span>
+                              )}
+                              <span className={`block mt-1 text-xs ${isLight ? 'text-gray-500' : 'text-neutral-500'}`}>
+                                ⏳ Publicada aquí {remainingDays === 1 ? 'por 1 día más' : `por ${remainingDays} días más`}
+                              </span>
                             </div>
                             {product.coupon && (
                               <div className={`border-2 border-dashed rounded-lg p-2.5 sm:p-3 mb-4 ${
                                 isLight ? 'bg-yellow-50 border-yellow-400' : 'bg-yellow-400/15 border-yellow-400/60'
                               }`}>
-                                <p className={`text-[11px] sm:text-xs mb-1 ${isLight ? 'text-gray-600' : 'text-neutral-400 font-bold'}`}>
-                                  Cupón disponible:
+                                <p className={`text-xs mb-1 font-bold ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+                                  Cupón para este producto:
                                 </p>
                                 <p className={`text-base sm:text-lg font-bold ${isLight ? 'text-yellow-700' : 'text-yellow-400'}`}>
                                   {product.coupon}
                                 </p>
                               </div>
                             )}
-                            <a href={product.affiliate_link || product.link || product.url || '#'} target="_blank" rel="noopener noreferrer" className={`block w-full py-3 rounded-lg font-bold text-center transition-all flex items-center justify-center gap-2 text-xs sm:text-sm ${
-                              isLight ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:shadow-lg' : 'bg-yellow-400 hover:bg-yellow-300 text-black font-black'
+                            <a href={product.affiliate_link || product.link || product.url || '#'} target="_blank" rel="noopener noreferrer" className={`w-full min-h-[48px] rounded-xl font-black text-center transition-all flex items-center justify-center gap-2 text-sm border-2 border-black ${
+                              isLight ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:shadow-lg' : 'bg-yellow-400 hover:bg-yellow-300 text-black'
                             }`}>
-                              Ver Producto <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
+                              Ver en Mercado Libre <ExternalLink className="w-5 h-5" aria-hidden="true" />
+                              <span className="sr-only">(se abre en otra pestaña)</span>
                             </a>
                           </div>
                         </div>
@@ -2414,29 +2090,22 @@ function App() {
               </div>
 
               {visibleProducts.length > 1 && (
-                <>
-                  <button onClick={scrollPrev} className="absolute left-1 sm:-translate-x-4 top-[100px] sm:top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
-                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 font-black" />
-                  </button>
-                  <button onClick={scrollNext} className="absolute right-1 sm:translate-x-4 top-[100px] sm:top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
-                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 font-black" />
-                  </button>
-                </>
+                <CarouselArrows onPrev={scrollPrev} onNext={scrollNext} label="Oferta" topClass="top-[96px] sm:top-[120px]" />
               )}
             </div>
           )}
           {filteredProducts.length > 0 && (
             <div className="mt-5 flex flex-col items-center gap-2">
               <p className={`text-xs font-bold ${isLight ? 'text-gray-500' : 'text-neutral-400'}`}>
-                Mostrando {visibleProducts.length} de {filteredProducts.length} productos
+                Mostrando {visibleProducts.length} de {filteredProducts.length} ofertas · desliza o usa las flechas
               </p>
               {visibleProducts.length < filteredProducts.length && (
                 <button
                   type="button"
                   onClick={() => setVisibleProductCount((n) => n + PRODUCTS_PAGE_SIZE)}
-                  className="min-h-[44px] px-6 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs uppercase border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                  className="min-h-[48px] px-6 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
                 >
-                  Ver {Math.min(PRODUCTS_PAGE_SIZE, filteredProducts.length - visibleProducts.length)} productos más
+                  Cargar {Math.min(PRODUCTS_PAGE_SIZE, filteredProducts.length - visibleProducts.length)} ofertas más al carrusel
                 </button>
               )}
             </div>
@@ -2444,16 +2113,16 @@ function App() {
           <div className={`mt-6 pt-4 border-t text-center text-xs md:text-sm font-medium ${
             isLight ? 'border-gray-200 text-gray-600' : 'border-neutral-800 text-neutral-400'
           }`}>
-            ℹ️ Nota informativa: Los precios y la disponibilidad de los productos están sujetos a cambios sin previo aviso, ya que dependen directamente de cada vendedor o tienda asociada.
+            ℹ️ Precios y disponibilidad los define cada vendedor y pueden cambiar sin aviso. Confirma el precio final en Mercado Libre.
           </div>
         </div>
-      </div>
+      </section>
     )
   );
 
   const renderExclusiveProductsSection = () => (
-    <div className={`container mx-auto px-3 sm:px-4 mb-16 relative z-10`}>
-      <div className="bg-[#FFE600] rounded-3xl p-6 sm:p-10 mb-8 text-black shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border-4 border-black">
+    <section aria-labelledby="sec-terminales" id="terminales" className="container mx-auto px-0 sm:px-4 mb-16 relative z-10 scroll-mt-36">
+      <div className="bg-[#FFE600] rounded-3xl p-6 sm:p-10 mb-8 text-black shadow-xl relative overflow-hidden grid grid-cols-1 md:grid-cols-2 items-center gap-8 border-4 border-black">
         <div className="flex flex-col items-start text-left max-w-xl z-10">
           <h2 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight mb-4 leading-tight">
             Vende con terminal Point, recibe tu dinero al instante
@@ -2504,12 +2173,12 @@ function App() {
         </div>
       </div>
 
-      <div className={`rounded-3xl shadow-xl p-4 sm:p-8 backdrop-blur-xl border ${
+      <div className={`rounded-3xl shadow-xl p-3.5 sm:p-8 backdrop-blur-xl border ${
         isLight ? 'bg-white border-yellow-300' : 'bg-neutral-900/85 border-neutral-800'
       }`}>
         <div className="relative flex items-center justify-center mb-6 px-2">
-          <h2 className={`text-2xl sm:text-3xl font-black text-center flex items-center gap-2 ${isLight ? 'text-yellow-600' : 'text-yellow-400'}`}>
-              Terminales y Productos Exclusivos
+          <h2 id="sec-terminales" className={`text-2xl sm:text-3xl font-black text-center flex items-center gap-2 ${isLight ? 'text-yellow-700' : 'text-yellow-400'}`}>
+              ⭐ Terminales y productos exclusivos
           </h2>
         </div>
         <p className={`text-center text-xs sm:text-sm mb-8 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
@@ -2558,14 +2227,14 @@ function App() {
                         
                         <button
                           onClick={handleShareProduct}
-                          className="absolute top-3 left-3 z-20 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] px-2.5 py-1.5 rounded-lg border-2 border-white shadow-md flex items-center gap-1 transition-transform hover:scale-105"
-                          title="Compartir producto por WhatsApp o Redes Sociales"
+                          className="absolute top-3 left-3 z-20 min-h-[40px] bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-3 rounded-xl border-2 border-white shadow-md flex items-center gap-1.5"
+                          aria-label={`Compartir ${product.title || 'producto'}`}
                         >
-                          <Share2 size={12} /> Compartir
+                          <Share2 size={14} aria-hidden="true" /> Compartir
                         </button>
 
-                        <span className="absolute top-3 right-3 z-20 w-5 h-5 rounded-full bg-gray-100 text-gray-500 border border-gray-300 flex items-center justify-center text-[10px] font-black select-none">
-                          {remainingDays}
+                        <span className="absolute top-3 right-3 z-20 px-2 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-300 text-[11px] font-bold select-none">
+                          ⏳ {remainingDays} {remainingDays === 1 ? 'día' : 'días'}
                         </span>
 
                         <div className="relative pt-6 px-4 pb-2 text-center bg-white flex justify-center items-center h-48">
@@ -2609,7 +2278,7 @@ function App() {
                             rel="noopener noreferrer" 
                             className="w-full bg-[#3483fa] hover:bg-[#2968c8] text-white py-3 rounded-xl font-bold text-center block transition-all shadow-md text-sm uppercase tracking-wide"
                           >
-                            Comprar
+                            Comprar ahora
                           </a>
                         </div>
 
@@ -2659,17 +2328,6 @@ function App() {
                           </div>
                         </div>
 
-                        <div className="mt-auto pt-3">
-                          <a
-                            href={product.affiliate_link || product.link || product.url || '#'}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full bg-[#e8f0fe] hover:bg-[#d2e3fc] text-[#1a73e8] py-3 rounded-xl font-bold text-center block transition-all text-xs uppercase tracking-wide"
-                          >
-                            Más información
-                          </a>
-                        </div>
-
                       </div>
                     </div>
                   );
@@ -2678,24 +2336,17 @@ function App() {
             </div>
 
             {exclusiveProducts.length > 1 && (
-              <>
-                <button onClick={scrollPrevExclusive} className="absolute left-1 sm:-translate-x-4 top-[100px] sm:top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
-                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 font-black" />
-                </button>
-                <button onClick={scrollNextExclusive} className="absolute right-1 sm:translate-x-4 top-[100px] sm:top-1/2 -translate-y-1/2 bg-white rounded-full p-2 sm:p-3 shadow-xl hover:bg-gray-100 transition-all z-20 text-gray-800 border-2 border-black">
-                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 font-black" />
-                </button>
-              </>
+              <CarouselArrows onPrev={scrollPrevExclusive} onNext={scrollNextExclusive} label="Producto exclusivo" topClass="top-[120px]" />
             )}
           </div>
         )}
       </div>
 
-    </div>
+    </section>
   );
 
   const renderReelsSection = () => (
-    <div className="container mx-auto px-3 sm:px-4 mb-16 relative z-10">
+    <div id="videos" className="container mx-auto px-0 sm:px-4 mb-16 relative z-10 scroll-mt-36">
       <div className={`rounded-3xl shadow-xl p-5 sm:p-8 backdrop-blur-xl border ${
         isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
       }`}>
@@ -2703,12 +2354,12 @@ function App() {
           <h2 className={`text-2xl sm:text-3xl md:text-4xl font-black mb-3 flex items-center justify-center gap-3 ${
             isLight ? 'text-purple-700' : 'text-neutral-100'
           }`}>
-            <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-yellow-400 animate-pulse shrink-0" /> Productos puestos a prueba por influencers
+            <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-yellow-400 shrink-0" aria-hidden="true" /> Productos probados en video
           </h2>
           <p className={`text-sm md:text-base max-w-xl mx-auto font-medium ${
             isLight ? 'text-gray-600' : 'text-neutral-400'
           }`}>
-            Mira los productos in action y adquiere el artículo recomendado. 🚀
+            Mira cómo funciona cada producto y cómpralo con el botón amarillo debajo del video. Usa las flechas para cambiar de video.
           </p>
         </div>
         <YoutubeReelsPlayer 
@@ -2744,7 +2395,7 @@ function App() {
             href="https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1"
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 inline-flex items-center gap-1.5 bg-black hover:bg-neutral-800 text-white font-black text-[10px] sm:text-xs uppercase px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full border-2 border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,0.4)] transition-transform hover:scale-105 whitespace-nowrap"
+            className="shrink-0 min-h-[40px] inline-flex items-center gap-1.5 bg-black hover:bg-neutral-800 text-white font-black text-[11px] sm:text-xs uppercase px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full border-2 border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,0.4)] transition-transform hover:scale-105 whitespace-nowrap"
           >
             <FaWhatsapp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#25D366] shrink-0" />
             <span>Unirme al WhatsApp</span>
@@ -2754,6 +2405,10 @@ function App() {
       </div>
 
       <style>{`
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { scrollbar-width: none; }
+        html { scroll-behavior: smooth; }
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
         @media (max-width: 768px) {
           [class*="chat-window"], [class*="bot-container"] {
             width: 100vw !important;
@@ -2775,28 +2430,27 @@ function App() {
         </>
       )}
 
-      {/* MENÚ FLOTANTE DERECHO: BLINDADO PARA QUE NO SE ENCIME CON LA BARRA SUPERIOR NI CON TARJETAS */}
-      <div className={`fixed top-[60px] sm:top-16 ${isMobileDevice ? 'right-2' : 'right-4 lg:right-6'} z-[60] flex flex-col items-center gap-2 sm:gap-2.5 pointer-events-auto`}>
-        <VisitorCounter isLight={isLight} />
+      {/* Controles flotantes: en celular solo el chat, para no tapar contenido */}
+      {!isMobileDevice && (
+        <div className="fixed top-[132px] right-4 lg:right-6 z-[60] flex flex-col items-center gap-2.5">
+          <VisitorCounter isLight={isLight} />
+          <button
+            type="button"
+            onClick={() => setThemeMode(isLight ? 'dark' : 'light')}
+            className={`w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 border-2 ${
+              isLight ? 'bg-white text-purple-600 border-gray-200' : 'bg-neutral-900 text-yellow-400 border-neutral-700'
+            }`}
+            aria-label={isLight ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro'}
+            title={isLight ? 'Tema oscuro' : 'Tema claro'}
+          >
+            {isLight ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          </button>
+        </div>
+      )}
 
-        <button
-          onClick={() => setShowThemeModal(true)}
-          className={`w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 border-2 ${
-            isLight
-              ? 'bg-white text-gray-600 border-gray-200'
-              : 'bg-neutral-900 text-neutral-400 border-neutral-700'
-          }`}
-          title="Cambiar Tema"
-        >
-          <Settings className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
-        </button>
-
-        {isMobileDevice && (
-          <div className="mt-0.5">
-            <ChatbotWidget isLight={isLight} cupones={activeCupones} products={products} isMobileDevice={isMobileDevice} />
-          </div>
-        )}
-      </div>
+      {isMobileDevice && (
+        <ChatbotWidget isLight={isLight} cupones={activeCupones} products={products} isMobileDevice={isMobileDevice} />
+      )}
 
       <AnimatePresence>
         {showToast && (
@@ -2817,7 +2471,8 @@ function App() {
                 </div>
                 <button
                   onClick={() => setShowToast(false)}
-                  className="absolute top-4 right-4 text-black hover:text-gray-700 transition-colors bg-white rounded-full p-1 border-2 border-black"
+                  aria-label="Cerrar aviso"
+                  className="absolute top-3 right-3 w-10 h-10 flex items-center justify-center text-black hover:text-gray-700 transition-colors bg-white rounded-full border-2 border-black"
                 >
                   <X className="h-5 w-5 font-black" />
                 </button>
@@ -2835,7 +2490,19 @@ function App() {
         }`}
       >
         {!isLight && <div className="absolute inset-0 bg-black opacity-10" />}
-        <div className="relative container mx-auto px-4 pt-10 sm:pt-12 pb-4">
+        <div className="relative container mx-auto px-4 pt-6 sm:pt-12 pb-2 sm:pb-4">
+          {isMobileDevice && (
+            <button
+              type="button"
+              onClick={() => setThemeMode(isLight ? 'dark' : 'light')}
+              aria-label={isLight ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro'}
+              className={`absolute top-3 right-3 w-11 h-11 rounded-full flex items-center justify-center border-2 z-10 ${
+                isLight ? 'bg-white/90 text-purple-600 border-white' : 'bg-neutral-900 text-yellow-400 border-neutral-700'
+              }`}
+            >
+              {isLight ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+            </button>
+          )}
           <div className="flex flex-col items-center text-center">
             
             <div
@@ -2843,7 +2510,7 @@ function App() {
               onMouseMove={handleLogoMouseMove}
               onMouseLeave={handleLogoMouseLeave}
               onMouseEnter={handleLogoMouseEnter}
-              className="mb-6 cursor-pointer w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 mx-auto"
+              className="mb-4 sm:mb-6 cursor-pointer w-28 h-28 sm:w-48 sm:h-48 md:w-56 md:h-56 mx-auto"
               style={{ perspective: '800px' }}
             >
               <div
@@ -2880,8 +2547,8 @@ function App() {
             <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-2 drop-shadow-lg">
               CapiBaraML
             </h1>
-            <p className="text-white/95 font-bold text-xs sm:text-sm md:text-base mb-4 max-w-xl">
-              Cupones activos, remates y ofertas verificadas de Mercado Libre para ahorrar en cada compra.
+            <p className="text-white/95 font-bold text-sm md:text-base mb-3 sm:mb-4 max-w-xl">
+              Cupones, ofertas y promociones bancarias de Mercado Libre en un solo lugar. Elige una sección y ahorra en tu próxima compra.
             </p>
 
             {!isMobileDevice && (
@@ -2897,61 +2564,45 @@ function App() {
         </div>
       </div>
 
-      {!isMobileDevice && renderWorkWithUsSection(isLight)}
 
       {isMobileDevice ? (
-        <div className="container mx-auto px-3 sm:px-4 mt-6 mb-16 relative z-20">
-          <div className="bg-neutral-900/90 border border-neutral-800 p-2.5 sm:p-3 rounded-2xl mb-6 shadow-xl grid grid-cols-2 gap-2">
-            <button
-              onClick={() => setMobileTab('cupones')}
-              className={`py-3 px-2.5 sm:px-3 rounded-xl font-black text-[11px] sm:text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
-                mobileTab === 'cupones' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
-              }`}
-            >
-              🎟 Cupones
-            </button>
-            <button
-              onClick={() => setMobileTab('productos')}
-              className={`py-3 px-2.5 sm:px-3 rounded-xl font-black text-[11px] sm:text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
-                mobileTab === 'productos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
-              }`}
-            >
-              🔥 Productos
-            </button>
-            <button
-              onClick={() => setMobileTab('bancarios')}
-              className={`py-3 px-2.5 sm:px-3 rounded-xl font-black text-[11px] sm:text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
-                mobileTab === 'bancarios' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-yellow-400 hover:bg-neutral-700 border border-yellow-500/40'
-              }`}
-            >
-              💳 Cupones Bancarios
-            </button>
-            <button
-              onClick={() => setMobileTab('reels')}
-              className={`py-3 px-2.5 sm:px-3 rounded-xl font-black text-[11px] sm:text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
-                mobileTab === 'reels' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
-              }`}
-            >
-              📺 Pruebas
-            </button>
-            <button
-              onClick={() => setMobileTab('exclusivos')}
-              className={`col-span-2 py-3.5 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
-                mobileTab === 'exclusivos' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-yellow-400 hover:bg-neutral-700 border border-yellow-500/40'
-              }`}
-            >
-              ⭐ Productos Exclusivos
-            </button>
-            <button
-              onClick={() => setMobileTab('trabaja')}
-              className={`col-span-2 py-3.5 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
-                mobileTab === 'trabaja' ? 'bg-yellow-400 text-black shadow-md' : 'bg-neutral-800 text-yellow-400 hover:bg-neutral-700 border border-yellow-500/40'
-              }`}
-            >
-              💼 Trabaja con Nosotros
-            </button>
-          </div>
-
+        <div className="container mx-auto px-0 sm:px-4 mb-16 relative z-20">
+          <div ref={mobileNavAnchorRef} aria-hidden="true" />
+          {/* Pestañas fijas: siempre visibles para cambiar de sección */}
+          <nav
+            aria-label="Secciones"
+            className={`sticky top-[60px] z-[65] -mx-3 px-3 py-2 backdrop-blur border-b ${
+              isLight ? 'bg-white/95 border-gray-200' : 'bg-neutral-950/95 border-neutral-800'
+            }`}
+          >
+            <div role="tablist" aria-label="Secciones de CapiBaraML" className="flex gap-2 overflow-x-auto no-scrollbar">
+              {MOBILE_TABS.map((tab) => {
+                const selected = mobileTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    id={`tab-${tab.id}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    aria-controls="mobile-panel"
+                    onClick={() => setMobileTab(tab.id)}
+                    className={`shrink-0 min-h-[44px] px-4 rounded-full flex items-center gap-1.5 font-black text-sm border-2 transition ${
+                      selected
+                        ? 'bg-yellow-400 text-black border-black shadow-md'
+                        : isLight
+                        ? 'bg-gray-100 text-gray-800 border-gray-200'
+                        : 'bg-neutral-800 text-neutral-200 border-neutral-700'
+                    }`}
+                  >
+                    <span aria-hidden="true">{tab.icon}</span>
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
+          <div id="mobile-panel" className="pt-4" role="tabpanel" aria-labelledby={`tab-${mobileTab}`}>
           {mobileTab === 'cupones' && renderCuponesSection()}
           {mobileTab === 'bancarios' && renderCuponesBancariosSection()}
           {mobileTab === 'productos' && renderProductosSection()}
@@ -2963,46 +2614,97 @@ function App() {
               {renderNewSection(products)}
             </>
           )}
+          </div>
         </div>
       ) : (
         <>
+          {/* Barra de secciones en escritorio */}
+          <nav
+            aria-label="Secciones"
+            className={`sticky top-[64px] z-[65] mb-8 backdrop-blur border-b ${
+              isLight ? 'bg-white/90 border-gray-200' : 'bg-neutral-950/90 border-neutral-800'
+            }`}
+          >
+            <ul className="container mx-auto px-4 py-2.5 flex flex-wrap justify-center gap-2">
+              {[
+                ...(activeCupones.length > 0 ? [{ href: '#cupones', label: '🎟️ Cupones' }] : []),
+                { href: '#bancos', label: '💳 Promociones bancarias' },
+                { href: '#ofertas', label: '🔥 Ofertas' },
+                { href: '#terminales', label: '⭐ Terminales' },
+                { href: '#videos', label: '📺 Videos' },
+                { href: '#unete', label: '💼 Únete al equipo' },
+              ].map((item) => (
+                <li key={item.href}>
+                  <a
+                    href={item.href}
+                    className={`inline-flex items-center min-h-[40px] px-4 rounded-full text-sm font-black border-2 transition ${
+                      isLight
+                        ? 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-yellow-300 hover:border-black'
+                        : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-yellow-400 hover:text-black hover:border-black'
+                    }`}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
           {renderCuponesSection()}
           {renderCuponesBancariosSection()}
           {renderProductosSection()}
           {renderExclusiveProductsSection()}
           {renderReelsSection()}
           {renderNewSection(products)}
+          {renderWorkWithUsSection(isLight)}
         </>
       )}
 
       {showTutorialModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
-          <div className={`relative rounded-3xl p-5 sm:p-6 w-full max-w-3xl shadow-2xl border flex flex-col ${
-            isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'
-          }`}>
-            <button onClick={() => setShowTutorialModal(false)} className={`absolute top-4 right-4 rounded-full p-2 transition-colors z-10 ${
-              isLight ? 'hover:bg-gray-200 text-gray-600' : 'hover:bg-neutral-800 text-neutral-400'
-            }`}>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center z-[80] p-0 sm:p-4" onClick={() => setShowTutorialModal(false)}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tutorial-title"
+            onClick={(e) => e.stopPropagation()}
+            className={`relative rounded-t-3xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-lg shadow-2xl border max-h-[92dvh] overflow-y-auto ${
+              isLight ? 'bg-white border-gray-200 text-gray-800' : 'bg-neutral-900 border-neutral-800 text-neutral-100'
+            }`}
+          >
+            <button
+              onClick={() => setShowTutorialModal(false)}
+              aria-label="Cerrar"
+              className={`absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center ${
+                isLight ? 'hover:bg-gray-200 text-gray-600' : 'hover:bg-neutral-800 text-neutral-400'
+              }`}
+            >
               <X className="w-6 h-6" />
             </button>
-            <h3 className={`text-xl sm:text-2xl font-bold mb-4 text-center pr-8 ${isLight ? 'text-gray-800' : 'text-white'}`}>
-              🎓 ¿Cómo aplicar tus cupones?
+            <h3 id="tutorial-title" className="text-xl sm:text-2xl font-black mb-4 pr-10">
+              🎓 ¿Cómo usar un cupón?
             </h3>
-            <div className="aspect-video bg-black rounded-xl overflow-hidden relative border border-neutral-700">
-              <iframe
-                width="100%"
-                height="100%"
-                src="https://www.youtube.com/embed/TU_ID_DE_VIDEO_AQUI"
-                title="Tutorial de cupones"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 w-full h-full"
-              ></iframe>
-            </div>
-            <p className={`mt-4 text-center text-xs sm:text-base font-semibold ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-              Sigue estos sencillos pasos en el video para aprovechar tus descuentos al máximo. 💸
-            </p>
+            <ol className="space-y-3">
+              {[
+                ['Copia el código', 'Toca “Copiar código y usarlo” en el cupón que quieras.'],
+                ['Abre Mercado Libre', 'Usa el botón “Ir a Mercado Libre” y agrega tu producto al carrito.'],
+                ['Pega el cupón al pagar', 'Antes de confirmar, busca “Agregar cupón” y pega el código.'],
+                ['Revisa el total', 'El descuento debe aparecer antes de pagar. Si no aplica, puede que se haya agotado o que tu compra no llegue al mínimo.'],
+              ].map(([t, d], i) => (
+                <li key={t} className="flex gap-3">
+                  <span className="w-8 h-8 shrink-0 rounded-full bg-yellow-400 text-black font-black flex items-center justify-center">{i + 1}</span>
+                  <div>
+                    <p className="font-black">{t}</p>
+                    <p className={`text-sm ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>{d}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <button
+              type="button"
+              onClick={() => setShowTutorialModal(false)}
+              className="mt-6 w-full min-h-[48px] rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black border-2 border-black"
+            >
+              Entendido
+            </button>
           </div>
         </div>
       )}
@@ -3010,6 +2712,8 @@ function App() {
       {showPrivacyModal && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[90] p-4">
           <motion.div 
+            role="dialog"
+            aria-modal="true"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className={`relative rounded-3xl p-6 sm:p-8 max-w-2xl w-full max-h-[85vh] overflow-y-auto border-2 shadow-2xl ${
@@ -3018,7 +2722,8 @@ function App() {
           >
             <button 
               onClick={() => setShowPrivacyModal(false)} 
-              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors p-2"
+              aria-label="Cerrar"
+              className="absolute top-3 right-3 w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors"
             >
               <X className="w-6 h-6" />
             </button>
@@ -3060,6 +2765,8 @@ function App() {
       {showTermsModal && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[90] p-4">
           <motion.div 
+            role="dialog"
+            aria-modal="true"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className={`relative rounded-3xl p-6 sm:p-8 max-w-2xl w-full max-h-[85vh] overflow-y-auto border-2 shadow-2xl ${
@@ -3068,7 +2775,8 @@ function App() {
           >
             <button 
               onClick={() => setShowTermsModal(false)} 
-              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors p-2"
+              aria-label="Cerrar"
+              className="absolute top-3 right-3 w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors"
             >
               <X className="w-6 h-6" />
             </button>
@@ -3174,14 +2882,14 @@ function App() {
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 pt-3 border-t border-yellow-500/20">
               <button 
                 onClick={() => setShowPrivacyModal(true)} 
-                className={`font-black underline hover:scale-105 transition-transform ${isLight ? 'text-purple-700 hover:text-purple-900' : 'text-purple-400 hover:text-purple-300'}`}
+                className={`min-h-[44px] px-2 font-black underline ${isLight ? 'text-purple-700 hover:text-purple-900' : 'text-purple-300 hover:text-purple-200'}`}
               >
                 🔒 Política de Privacidad
               </button>
               <span className="opacity-50">|</span>
               <button 
                 onClick={() => setShowTermsModal(true)} 
-                className={`font-black underline hover:scale-105 transition-transform ${isLight ? 'text-purple-700 hover:text-purple-900' : 'text-purple-400 hover:text-purple-300'}`}
+                className={`min-h-[44px] px-2 font-black underline ${isLight ? 'text-purple-700 hover:text-purple-900' : 'text-purple-300 hover:text-purple-200'}`}
               >
                 📄 Términos y Condiciones
               </button>
@@ -3191,40 +2899,13 @@ function App() {
         </div>
       </footer>
 
-      {showThemeModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
-          <div className={`rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border ${
-            isLight ? 'bg-white text-gray-800 border-gray-200' : 'bg-neutral-900 text-neutral-100 border-neutral-800'
-          }`}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">⚙️ Tema de fondo</h2>
-              <button onClick={() => setShowThemeModal(false)} className="text-gray-500 hover:text-gray-700">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="space-y-3">
-              <button
-                onClick={() => { setThemeMode('light'); setShowThemeModal(false); }}
-                className={`w-full py-3.5 px-4 rounded-xl font-bold flex items-center justify-between border transition-all ${
-                  themeMode === 'light' ? 'bg-purple-500 text-white border-purple-500 shadow-md' : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700'
-                }`}
-              >
-                <span>☀ Tema Claro</span>
-                {themeMode === 'light' && <span className="font-black">✓</span>}
-              </button>
-              <button
-                onClick={() => { setThemeMode('dark'); setShowThemeModal(false); }}
-                className={`w-full py-3.5 px-4 rounded-xl font-bold flex items-center justify-between border transition-all ${
-                  themeMode === 'dark' ? 'bg-yellow-400 text-black border-yellow-400 shadow-md' : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700'
-                }`}
-              >
-                <span>🌙 Tema Oscuro</span>
-                {themeMode === 'dark' && <span className="font-black">✓</span>}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CouponCopyDialog
+        coupon={copyDialogCoupon}
+        copyStatus={copyStatus}
+        onClose={() => setCopyDialogCoupon(null)}
+        onRetryCopy={() => copyCouponCode(copyDialogCoupon?.code)}
+        fallbackLink="https://www.mercadolibre.com.mx"
+      />
 
       {/* PANEL DE ADMIN INTACTO */}
       <AdminDashboard
