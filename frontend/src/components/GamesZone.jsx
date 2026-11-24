@@ -1,8 +1,20 @@
-import React from 'react';
-
-/*
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Gamepad2, User, Trophy, Play, Pause, Sparkles, Volume2, VolumeX, RotateCcw, Clock, Lightbulb, Maximize, Minimize, Settings as SettingsIcon, Music, Zap, Award, BarChart3, Share2, Home, Calendar, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCw } from 'lucide-react';
+
+// ---------------------------------------------------------------------------
+// CONFIGURACIÓN GENERAL DE LA ZONA DE JUEGOS
+// ---------------------------------------------------------------------------
+const GAME_LABELS = {
+  '2048': '2048 Classic',
+  tetris: 'Cyber Tetris',
+  memory: 'Memoria Pro',
+  ninja: 'Ninja Cut',
+  clicker: 'Click Challenge'
+};
+const EMPTY_SCORES = { '2048': 0, tetris: 0, memory: 0, ninja: 0, clicker: 0 };
+// Premio mensual: se configura en frontend/.env con REACT_APP_GAMES_MONTHLY_PRIZE
+// (por ejemplo "Tarjeta de regalo de $200"). Si está vacío no se promete ningún premio.
+const DEFAULT_MONTHLY_PRIZE = (process.env.REACT_APP_GAMES_MONTHLY_PRIZE || '').trim();
 
 // ---------------------------------------------------------------------------
 // CONFIGURACIÓN DEL MEMORAMA
@@ -97,11 +109,13 @@ const TETRIS_SHAPES = {
   Z: { shape: [[1,1,0],[0,1,1],[0,0,0]], color: '#ef4444' }
 };
 
-export default function GamesZone({ currentUser, isLight }) {
+export default function GamesZone({ currentUser, isLight, monthlyPrize = DEFAULT_MONTHLY_PRIZE }) {
   const [activeGame, setActiveGame] = useState('2048'); 
   const [gamePhase, setGamePhase] = useState('menu'); 
   const [isEffectsMuted, setIsEffectsMuted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const playerName = (currentUser && String(currentUser).trim()) || 'Jugador';
+  const prizeText = (monthlyPrize || '').trim();
 
   // Detectar dispositivo móvil para ajustar controles
   useEffect(() => {
@@ -112,11 +126,11 @@ export default function GamesZone({ currentUser, isLight }) {
   }, []);
 
   // Estados de XP y Niveles
-  const [playerXP, setPlayerXP] = useState(() => Number(localStorage.getItem('caza_player_xp')) || 96);
-  const [playerLevel, setPlayerLevel] = useState(() => Number(localStorage.getItem('caza_player_level')) || 14);
-  const [playerCoins, setPlayerCoins] = useState(() => Number(localStorage.getItem('caza_player_coins')) || 2206);
+  const [playerXP, setPlayerXP] = useState(() => Number(localStorage.getItem('caza_player_xp')) || 0);
+  const [playerLevel, setPlayerLevel] = useState(() => Number(localStorage.getItem('caza_player_level')) || 1);
+  const [playerCoins, setPlayerCoins] = useState(() => Number(localStorage.getItem('caza_player_coins')) || 0);
   const [nextXpTarget, setNextXpTarget] = useState(() => {
-    const lvl = Number(localStorage.getItem('caza_player_level')) || 14;
+    const lvl = Number(localStorage.getItem('caza_player_level')) || 1;
     return 1000 + lvl * 500;
   });
 
@@ -128,9 +142,9 @@ export default function GamesZone({ currentUser, isLight }) {
   const [highScores, setHighScores] = useState(() => {
     try {
       const saved = localStorage.getItem('caza_arcade_highscores');
-      return saved ? JSON.parse(saved) : { '2048': 1972, 'tetris': 0, 'memory': 0, 'ninja': 0, 'clicker': 0 };
+      return saved ? { ...EMPTY_SCORES, ...JSON.parse(saved) } : { ...EMPTY_SCORES };
     } catch(e) {
-      return { '2048': 1972, 'tetris': 0, 'memory': 0, 'ninja': 0, 'clicker': 0 };
+      return { ...EMPTY_SCORES };
     }
   });
 
@@ -165,7 +179,7 @@ export default function GamesZone({ currentUser, isLight }) {
 
             const savedWinners = JSON.parse(localStorage.getItem('caza_monthly_winners')) || {};
             savedWinners[fullMonthKey] = {
-              user: currentUser || 'Xrtone26',
+              user: playerName,
               scores: { ...highScores }
             };
             
@@ -190,7 +204,7 @@ export default function GamesZone({ currentUser, isLight }) {
     updateTimer();
     const timerInterval = setInterval(updateTimer, 1000);
     return () => clearInterval(timerInterval);
-  }, [highScores, currentUser]);
+  }, [highScores, playerName]);
 
   const [score, setScore] = useState(0);
   const scoreRef = useRef(0);
@@ -275,13 +289,11 @@ export default function GamesZone({ currentUser, isLight }) {
   const gameIntervalRef = useRef(null);
   const touchStartRef = useRef({ x: 0, y: 0 });
 
-  const fullLeaderboard = [
-    { name: currentUser || 'Xrtone26', score: highScores[activeGame] || 0, isMe: true },
-    { name: 'OfertaKing', score: 1540 },
-    { name: 'Irving', score: 840 },
-    { name: 'LadyDescuentos', score: 620 },
-    { name: 'AhorroMax', score: 410 }
-  ];
+  // Récords reales guardados en este dispositivo (no hay servidor de ranking global).
+  const myRecords = Object.keys(GAME_LABELS)
+    .map((key) => ({ key, name: GAME_LABELS[key], score: Number(highScores[key]) || 0 }))
+    .sort((a, b) => b.score - a.score);
+  const hasAnyRecord = myRecords.some((r) => r.score > 0);
 
   useEffect(() => {
     localStorage.setItem('caza_arcade_highscores', JSON.stringify(highScores));
@@ -298,11 +310,28 @@ export default function GamesZone({ currentUser, isLight }) {
       if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
         const tag = e.target.tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+        // Solo se bloquea el scroll si el juego está a la vista; si el visitante bajó a ver ofertas, el teclado vuelve a funcionar normal.
+        const box = gameContainerRef.current;
+        if (box) {
+          const r = box.getBoundingClientRect();
+          if (r.bottom <= 0 || r.top >= window.innerHeight) return;
+        }
         e.preventDefault();
       }
     };
+    if (gamePhase !== 'playing') return undefined;
     window.addEventListener('keydown', preventDefaultScroll, { passive: false });
     return () => window.removeEventListener('keydown', preventDefaultScroll);
+  }, [gamePhase]);
+
+  // Al salir de la sección (p. ej. cambiar de pestaña en el celular) se detienen bucles y sonido.
+  useEffect(() => () => {
+    if (gameIntervalRef.current) clearInterval(gameIntervalRef.current);
+    if (ninjaGameLoopRef.current) cancelAnimationFrame(ninjaGameLoopRef.current);
+    if (ninjaTimerRef.current) clearInterval(ninjaTimerRef.current);
+    if (clickerGameLoopRef.current) cancelAnimationFrame(clickerGameLoopRef.current);
+    try { if (activeMusicRef.current) activeMusicRef.current.osc.stop(); } catch (e) { /* ya detenido */ }
+    try { if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') audioCtxRef.current.close(); } catch (e) { /* sin audio */ }
   }, []);
 
   const setNinjaPausedState = (paused) => {
@@ -1795,10 +1824,12 @@ export default function GamesZone({ currentUser, isLight }) {
           </div>
           <div>
             <h3 className="text-lg md:text-xl font-black text-white uppercase tracking-tight">
-              🎁 TORNEO MENSUAL ACTIVO
+              {prizeText ? '🎁 PREMIO DEL MES' : '🎮 RETO DEL MES'}
             </h3>
             <p className="text-xs text-neutral-400 mt-0.5">
-              Acumula la mejor puntuación, escala puestos, llega al primer puesto y gana tarjetas de regalo cada mes.
+              {prizeText
+                ? `Premio configurado para este mes: ${prizeText}.`
+                : 'Rompe tus propios récords este mes. El premio mensual aún no está configurado: lo anunciaremos en cuanto esté listo.'}
             </p>
           </div>
         </div>
@@ -1806,7 +1837,7 @@ export default function GamesZone({ currentUser, isLight }) {
         <div className="flex items-center gap-3 bg-black/60 px-6 py-3 rounded-2xl border border-yellow-400/30">
           <Clock className="w-5 h-5 text-yellow-400 animate-pulse" />
           <div className="text-left">
-            <span className="text-[10px] uppercase tracking-widest text-neutral-400 block font-bold">Tiempo restante de mes</span>
+            <span className="text-[10px] uppercase tracking-widest text-neutral-400 block font-bold">El mes termina en</span>
             <span className="text-sm font-black text-yellow-400">{timeLeftMonth}</span>
           </div>
         </div>
@@ -1814,7 +1845,7 @@ export default function GamesZone({ currentUser, isLight }) {
 
       <div className={`rounded-3xl shadow-xl p-4 md:p-8 backdrop-blur-xl border ${isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'}`}>
         <h2 className={`text-2xl sm:text-3xl font-bold text-center mb-6 flex items-center justify-center gap-2 ${isLight ? 'text-purple-700' : 'text-neutral-100 font-black'}`}>
-          <Gamepad2 className="w-8 h-8 text-yellow-400" /> ZONA DE RECREACIÓN CAZAOFERTAS
+          <Gamepad2 className="w-8 h-8 text-yellow-400" /> ZONA DE JUEGOS CAPIBARAML
         </h2>
 
         <div className="flex justify-center gap-2 mb-6 flex-wrap">
@@ -1833,7 +1864,7 @@ export default function GamesZone({ currentUser, isLight }) {
               <User className="w-4 h-4" /> PROGRESO GLOBAL
             </h3>
             <div className="bg-black/40 rounded-xl p-3 text-center space-y-2">
-              <p className="text-xs font-bold text-red-200 truncate">@{currentUser || 'Xrtone26'}</p>
+              <p className="text-xs font-bold text-red-200 truncate">@{playerName}</p>
               <div className="flex justify-around items-center pt-1 border-t border-red-500/30">
                 <div>
                   <span className="text-[10px] uppercase text-red-300 block">NIVEL</span>
@@ -1904,7 +1935,7 @@ export default function GamesZone({ currentUser, isLight }) {
                       {activeGame === 'ninja' && 'Ninja Cut HD'}
                       {activeGame === 'clicker' && 'Click Challenge'}
                     </h3>
-                    <p className="text-sm text-neutral-400 max-w-md mb-6">Compite en el Top Global mensual. ¡El mejor por mes en cada juego Gana tarjetas de regalo!</p>
+                    <p className="text-sm text-neutral-400 max-w-md mb-6">{prizeText ? `Supera tu récord del mes. Premio: ${prizeText}.` : 'Supera tu propio récord. Se guarda en este dispositivo.'}</p>
                     <button onClick={startGameFlow} className="flex items-center gap-2 px-8 py-3.5 bg-yellow-400 text-black font-black rounded-full shadow-lg hover:scale-105 transition-all uppercase text-sm">
                       <Play className="w-5 h-5 fill-current" /> Jugar Ahora
                     </button>
@@ -2536,34 +2567,41 @@ export default function GamesZone({ currentUser, isLight }) {
             {/* TOP GLOBAL MENSUAL */}
             <div className="bg-gradient-to-b from-blue-600 to-blue-950 rounded-2xl p-5 text-white shadow-lg border border-blue-500 flex flex-col gap-3">
               <h3 className="text-center font-black text-sm uppercase tracking-wider mb-2 flex items-center justify-center gap-2">
-                <Trophy className="w-4 h-4 text-yellow-400" /> TOP GLOBAL MENSUAL
+                <Trophy className="w-4 h-4 text-yellow-400" /> TUS RÉCORDS
               </h3>
-              <div className="space-y-2">
-                {fullLeaderboard.map((player, index) => (
-                  <div key={index} className={`flex justify-between items-center p-2 rounded-xl text-xs ${player.isMe ? 'bg-yellow-400 text-black font-bold shadow' : 'bg-black/30'}`}>
-                    <span>#{index + 1} {player.name}</span>
-                    <span className="font-black">{index === 0 ? (highScores[activeGame] || 0) : player.score}</span>
-                  </div>
-                ))}
-              </div>
+              {hasAnyRecord ? (
+                <div className="space-y-2">
+                  {myRecords.map((record, index) => (
+                    <div key={record.key} className={`flex justify-between items-center p-2 rounded-xl text-xs ${record.key === activeGame ? 'bg-yellow-400 text-black font-bold shadow' : 'bg-black/30'}`}>
+                      <span>#{index + 1} {record.name}</span>
+                      <span className="font-black">{record.score}</span>
+                    </div>
+                  ))}
+                  <p className="text-[10px] text-blue-200/80 text-center pt-1">Guardados en este dispositivo.</p>
+                </div>
+              ) : (
+                <p className="text-[11px] text-center text-blue-100/80 py-4 italic">
+                  Aún no tienes récords. Juega una partida y aquí verás tu mejor puntuación de cada juego.
+                </p>
+              )}
             </div>
 
             {/* APARTADO: GANADORES DEL MES */}
             <div className="bg-gradient-to-b from-purple-900 to-neutral-950 rounded-2xl p-5 text-white shadow-lg border border-purple-500 flex flex-col gap-3">
               <h3 className="text-center font-black text-sm uppercase tracking-wider mb-2 flex items-center justify-center gap-2">
-                <Calendar className="w-4 h-4 text-yellow-400" /> GANADORES DEL MES
+                <Calendar className="w-4 h-4 text-yellow-400" /> TUS MESES ANTERIORES
               </h3>
               
               {Object.keys(monthlyWinners).length === 0 ? (
                 <p className="text-[11px] text-center text-purple-300/70 py-4 italic">
-                  Aún no hay ganadores registrados de meses anteriores. Se registrarán automáticamente al finalizar cada mes.
+                  Aún no hay meses anteriores. Al terminar cada mes guardaremos aquí tus mejores puntuaciones.
                 </p>
               ) : (
                 <div className="space-y-3 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
                   {Object.entries(monthlyWinners).map(([monthName, data], idx) => (
                     <div key={idx} className="bg-black/40 rounded-xl p-3 border border-purple-500/30 text-xs">
                       <p className="font-black text-yellow-400 mb-1 border-b border-purple-500/20 pb-1">📅 {monthName}</p>
-                      <p className="text-[10px] text-purple-200 mb-2">Ganador: <span className="font-bold text-white">@{data.user}</span></p>
+                      <p className="text-[10px] text-purple-200 mb-2">Jugador: <span className="font-bold text-white">@{data.user}</span></p>
                       <div className="space-y-1">
                         {Object.entries(data.scores || {}).map(([gKey, gScore], sIdx) => (
                           <div key={sIdx} className="flex justify-between items-center text-[10px] text-purple-300">
@@ -2605,9 +2643,4 @@ export default function GamesZone({ currentUser, isLight }) {
       `}} />
     </div>
   );
-}
-*/
-
-export default function GamesZone({ currentUser, isLight }) {
-  return null;
 }

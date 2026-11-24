@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
 import './App.css';
 import {
   Sparkles,
@@ -98,10 +98,89 @@ const MOBILE_TABS = [
   { id: 'cupones', icon: '🎟️', label: 'Cupones' },
   { id: 'productos', icon: '🔥', label: 'Ofertas' },
   { id: 'bancarios', icon: '💳', label: 'Bancos' },
+  { id: 'juegos', icon: '🎮', label: 'Juegos' },
   { id: 'exclusivos', icon: '⭐', label: 'Terminales' },
   { id: 'reels', icon: '📺', label: 'Videos' },
   { id: 'trabaja', icon: '💼', label: 'Únete' },
 ];
+
+// La barra inferior del celular muestra estas 4 + "Más" (el resto va dentro de "Más").
+const MOBILE_PRIMARY_TAB_IDS = ['cupones', 'productos', 'bancarios', 'juegos'];
+const MOBILE_MORE_TABS = [
+  { id: 'exclusivos', icon: '⭐', label: 'Terminales', hint: 'Cobra con tarjeta y recibe tu dinero al instante' },
+  { id: 'reels', icon: '📺', label: 'Videos', hint: 'Productos probados en video' },
+  { id: 'trabaja', icon: '💼', label: 'Únete', hint: 'Trabaja con nosotros' },
+];
+
+// ==========================================
+// JUEGOS: CARGA DIFERIDA (no pesan hasta que alguien llega a la sección)
+// ==========================================
+const loadGamesZone = () => import('./components/GamesZone');
+let GamesZoneLazy = lazy(loadGamesZone);
+// Si la descarga falla (mala conexión o versión nueva publicada) se crea un lazy nuevo para reintentar.
+const resetGamesZone = () => { GamesZoneLazy = lazy(loadGamesZone); };
+
+class GamesErrorBoundary extends React.Component {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  retry = () => { resetGamesZone(); this.setState({ failed: false }); };
+  render() {
+    if (this.state.failed) return this.props.renderFallback(this.retry);
+    return this.props.children;
+  }
+}
+
+// Monta a sus hijos solo cuando el bloque está cerca de la pantalla.
+function LazyMount({ children, placeholder = null, rootMargin = '400px' }) {
+  const ref = useRef(null);
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    if (show) return undefined;
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setShow(true);
+      return undefined;
+    }
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        setShow(true);
+        io.disconnect();
+      }
+    }, { rootMargin });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [show, rootMargin]);
+  return <div ref={ref}>{show ? children : placeholder}</div>;
+}
+
+function GamesZoneLoader(props) {
+  const Comp = GamesZoneLazy;
+  return <Comp {...props} />;
+}
+
+function GamesPlaceholder({ isLight, status = 'loading', onRetry }) {
+  const isError = status === 'error';
+  return (
+    <div
+      role={isError ? 'alert' : 'status'}
+      aria-live="polite"
+      className={`rounded-lg border px-5 py-12 text-center flex flex-col items-center gap-3 min-h-[320px] justify-center ${
+        isLight ? 'bg-white border-gray-200 text-gray-700' : 'bg-neutral-900 border-neutral-800 text-neutral-200'
+      }`}
+    >
+      <div className={`text-4xl ${isError ? '' : 'animate-pulse'}`} aria-hidden="true">{isError ? '⚠️' : '🎮'}</div>
+      <p className="text-base font-bold">{isError ? 'No pudimos cargar los juegos' : 'Preparando los juegos…'}</p>
+      <p className="text-sm max-w-sm opacity-80">
+        {isError ? 'Revisa tu conexión e inténtalo de nuevo. Las ofertas siguen funcionando con normalidad.' : 'Solo tarda un momento.'}
+      </p>
+      {isError && onRetry && (
+        <button type="button" onClick={onRetry} className="min-h-[44px] px-5 rounded-md bg-[#3483FA] hover:bg-[#2968c8] text-white font-semibold text-sm">
+          Reintentar
+        </button>
+      )}
+    </div>
+  );
+}
 
 // ==========================================
 // FUNCIONES UTILITARIAS Y DE SEGURIDAD
@@ -721,7 +800,7 @@ function CountdownTimer({ expiresAt }) {
 // ==========================================
 function renderWorkWithUsSection(isLight) {
   return (
-    <div id="unete" className="container mx-auto px-4 mt-6 mb-12 relative z-20 scroll-mt-36">
+    <div id="unete" className="container mx-auto px-4 mt-6 mb-12 relative z-20 scroll-mt-44">
       <div className={`rounded-3xl shadow-2xl p-6 sm:p-10 backdrop-blur-2xl border relative overflow-hidden ${
         isLight ? 'bg-white/90 border-cyan-200' : 'bg-neutral-900/90 border-cyan-500/30'
       }`}>
@@ -1053,12 +1132,13 @@ function App() {
   const userPickedTabRef = useRef(false);
   const setMobileTab = (tab) => {
     userPickedTabRef.current = true;
+    setShowMoreSheet(false);
     setMobileTabState(tab);
     // Si el usuario ya bajó, lo regresamos al inicio de la sección elegida.
     requestAnimationFrame(() => {
       const anchor = mobileNavAnchorRef.current;
       if (anchor && anchor.getBoundingClientRect().top < 0) {
-        window.scrollTo({ top: anchor.getBoundingClientRect().top + window.scrollY - 60, behavior: 'smooth' });
+        window.scrollTo({ top: anchor.getBoundingClientRect().top + window.scrollY - 124, behavior: 'smooth' });
       }
     });
   };
@@ -1133,6 +1213,8 @@ function App() {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
+  const [showMoreSheet, setShowMoreSheet] = useState(false);
+  useDialogBehavior(showMoreSheet, () => setShowMoreSheet(false));
   useDialogBehavior(showTutorialModal, () => setShowTutorialModal(false));
   useDialogBehavior(showPrivacyModal, () => setShowPrivacyModal(false));
   useDialogBehavior(showTermsModal, () => setShowTermsModal(false));
@@ -1647,9 +1729,9 @@ function App() {
     [filteredProducts, visibleProductCount]
   );
 
-  const mainBgClass = isLight
+  const mainBgClass = `${isLight
     ? 'min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-800 relative overflow-x-clip font-sans'
-    : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-clip font-sans';
+    : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-clip font-sans'}${isMobileDevice ? ' pb-[72px]' : ''}`;
 
   const renderCuponesSection = () => {
     if (activeCupones.length === 0) {
@@ -1725,7 +1807,7 @@ function App() {
   );
 
   const renderCuponesContent = () => (
-    <section aria-labelledby="sec-cupones" id="cupones" className="container mx-auto px-0 sm:px-4 mb-12 relative z-20 scroll-mt-36">
+    <section aria-labelledby="sec-cupones" id="cupones" className="container mx-auto px-0 sm:px-4 mb-12 relative z-20 scroll-mt-44">
       <div className={`rounded-3xl shadow-xl p-3.5 sm:p-8 backdrop-blur-xl border ${
         isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
       }`}>
@@ -1787,7 +1869,7 @@ function App() {
   );
 
   const renderCuponesBancariosSection = () => (
-    <section aria-labelledby="sec-bancos" id="bancos" className="container mx-auto px-0 sm:px-4 mb-12 relative z-20 scroll-mt-36">
+    <section aria-labelledby="sec-bancos" id="bancos" className="container mx-auto px-0 sm:px-4 mb-12 relative z-20 scroll-mt-44">
       <div className={`rounded-3xl shadow-xl p-3.5 sm:p-8 backdrop-blur-xl border ${
         isLight ? 'bg-white border-blue-200' : 'bg-neutral-900/85 border-neutral-800'
       }`}>
@@ -1877,9 +1959,9 @@ function App() {
 
   const renderProductosContent = () => (
     (
-      <section aria-labelledby="sec-ofertas" id="ofertas" className="container mx-auto px-0 sm:px-4 mb-16 relative z-10 scroll-mt-36">
-        <div className={`rounded-3xl shadow-xl p-3.5 sm:p-8 backdrop-blur-xl border ${
-          isLight ? 'bg-white border-gray-100' : 'bg-neutral-900/85 border-neutral-800'
+      <section aria-labelledby="sec-ofertas" id="ofertas" className="container mx-auto px-0 sm:px-4 mb-16 relative z-10 scroll-mt-44">
+        <div className={`rounded-lg shadow-sm p-3.5 sm:p-6 border ${
+          isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'
         }`}>
           <SectionHeader
             id="sec-ofertas"
@@ -1889,11 +1971,11 @@ function App() {
             isLight={isLight}
           />
 
-          <div className="max-w-2xl mx-auto mb-6 flex flex-col gap-3 sm:px-2">
+          <div className="mb-5 flex flex-col gap-3">
             <div
               role="group"
               aria-label="Filtrar ofertas"
-              className="flex sm:flex-wrap sm:justify-center gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 pb-1"
+              className="flex sm:flex-wrap gap-2 overflow-x-auto no-scrollbar -mx-3.5 px-3.5 sm:mx-0 sm:px-0 pb-1"
             >
               {QUICK_FILTERS.map((chip) => {
                 const isSelected = selectedQuickFilter === chip.id;
@@ -1903,12 +1985,14 @@ function App() {
                     type="button"
                     aria-pressed={isSelected}
                     onClick={() => setSelectedQuickFilter(chip.id)}
-                    className={`shrink-0 min-h-[40px] px-4 rounded-full text-sm font-black transition-all cursor-pointer border-2 ${
+                    className={`shrink-0 min-h-[40px] px-4 rounded-full text-sm font-semibold transition-colors cursor-pointer border ${
                       isSelected
-                        ? 'bg-yellow-400 text-black border-black shadow-sm scale-[1.02]'
+                        ? isLight
+                          ? 'bg-[#e3edfb] text-[#3483FA] border-[#3483FA]'
+                          : 'bg-[#3483FA]/20 text-[#8dbdff] border-[#3483FA]'
                         : isLight
-                        ? 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
-                        : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700'
+                        ? 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                        : 'bg-neutral-900 text-neutral-300 border-neutral-700 hover:border-neutral-500'
                     }`}
                   >
                     {chip.label}
@@ -1916,52 +2000,6 @@ function App() {
                 );
               })}
             </div>
-
-            <form
-              role="search"
-              className="flex gap-2 w-full"
-              onSubmit={(e) => {
-                e.preventDefault();
-                setSearchTerm(productSearchInput);
-              }}
-            >
-              <label htmlFor="product-search" className="sr-only">Buscar un producto</label>
-              <div className="relative flex-1">
-                <Search aria-hidden="true" className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 ${isLight ? 'text-gray-400' : 'text-neutral-500'}`} />
-                <input
-                  id="product-search"
-                  type="text"
-                  enterKeyHint="search"
-                  value={productSearchInput}
-                  onChange={(e) => setProductSearchInput(e.target.value)}
-                  placeholder="Busca un producto: iPhone, audífonos, laptop…"
-                  className={`w-full min-h-[48px] pl-11 pr-10 rounded-xl border-2 focus:outline-none focus:border-yellow-400 text-base ${
-                    isLight ? 'bg-gray-50 border-gray-300 text-gray-800' : 'bg-neutral-950 border-neutral-700 text-neutral-100'
-                  }`}
-                />
-                {productSearchInput && (
-                  <button
-                    type="button"
-                    aria-label="Borrar búsqueda"
-                    onClick={() => {
-                      setProductSearchInput('');
-                      setSearchTerm('');
-                    }}
-                    className={`absolute right-1 top-1/2 -translate-y-1/2 w-10 h-10 rounded-lg flex items-center justify-center ${isLight ? 'text-gray-500 hover:bg-gray-200' : 'text-neutral-400 hover:bg-neutral-800'}`}
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
-              <button
-                type="submit"
-                className="min-h-[48px] px-4 rounded-xl flex items-center justify-center gap-2 font-black text-sm border-2 border-black bg-yellow-400 hover:bg-yellow-300 text-black"
-              >
-                <Search className="w-5 h-5" aria-hidden="true" />
-                <span className="hidden sm:inline">Buscar</span>
-                <span className="sr-only sm:hidden">Buscar</span>
-              </button>
-            </form>
 
             {(searchTerm || selectedQuickFilter !== 'all') && (
               <div className={`flex flex-wrap items-center justify-between gap-2 text-sm ${isLight ? 'text-gray-700' : 'text-neutral-300'}`} role="status">
@@ -1976,7 +2014,7 @@ function App() {
                     setProductSearchInput('');
                     setSelectedQuickFilter('all');
                   }}
-                  className="min-h-[40px] inline-flex items-center gap-1 px-3 rounded-xl font-black text-sm bg-yellow-400 text-black border-2 border-black"
+                  className="min-h-[40px] inline-flex items-center gap-1 px-3 rounded-md font-semibold text-sm text-[#3483FA] hover:bg-[#3483FA]/10"
                 >
                   <X className="w-4 h-4" aria-hidden="true" /> Quitar filtros
                 </button>
@@ -1992,14 +2030,14 @@ function App() {
               <p className={`text-sm mb-4 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
                 Prueba con otra palabra, quita los filtros o búscalo directamente en Mercado Libre.
               </p>
-              <button onClick={handleSearchOnMercadoLibre} className="min-h-[48px] bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 rounded-xl font-black text-sm border-2 border-black">
+              <button onClick={handleSearchOnMercadoLibre} className="min-h-[48px] bg-[#3483FA] hover:bg-[#2968c8] text-white px-6 py-3 rounded-md font-semibold text-sm">
                 Buscar en Mercado Libre 🚀
               </button>
             </div>
           ) : (
             <div className="relative px-2 sm:px-0">
               <div className="overflow-hidden" ref={emblaRef}>
-                <div className="flex gap-6">
+                <div className="flex gap-3 sm:gap-4">
                   {visibleProducts.map((product) => {
                     const pId = getSafeId(product) || product.title;
                     const remainingDays = getRemainingDays(product);
@@ -2014,9 +2052,9 @@ function App() {
                     const savingPct = product.discount_percentage || (showsSaving ? Math.round((1 - priceNum / origDisplayNum) * 100) : null);
 
                     return (
-                      <div key={pId} className="flex-[0_0_88%] sm:flex-[0_0_70%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(33.333%-16px)] min-w-0">
-                        <div className={`rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden h-full flex flex-col relative ${
-                          isLight ? 'bg-gradient-to-br from-gray-50 to-white' : 'bg-gradient-to-b from-neutral-900 to-neutral-950 border border-neutral-800'
+                      <div key={pId} className="flex-[0_0_64%] sm:flex-[0_0_44%] md:flex-[0_0_calc(33.333%-11px)] lg:flex-[0_0_calc(25%-12px)] min-w-0">
+                        <article className={`h-full flex flex-col relative rounded-lg overflow-hidden border transition-shadow hover:shadow-lg ${
+                          isLight ? 'bg-white border-gray-200 shadow-sm' : 'bg-neutral-900 border-neutral-800'
                         }`}>
                           {isAuthenticated && (
                             <button
@@ -2032,57 +2070,67 @@ function App() {
                             </button>
                           )}
 
-                          <div className="relative bg-white">
-                            <img src={product.image_url} alt={product.title} loading="lazy" decoding="async" width="400" height="256" className="w-full h-48 sm:h-60 object-contain p-3" />
-                            {savingPct > 0 && (
-                              <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full font-black text-sm shadow-lg">
-                                -{savingPct}%
-                              </div>
-                            )}
+                          <div className="relative bg-white border-b border-gray-100">
+                            <img src={product.image_url} alt={product.title} loading="lazy" decoding="async" width="400" height="256" className="w-full h-40 sm:h-48 object-contain p-3" />
                           </div>
-                          <div className="p-4 sm:p-5 flex flex-col flex-1">
-                            <h3 className={`text-base sm:text-lg font-bold leading-snug mb-2 line-clamp-2 ${isLight ? 'text-gray-900' : 'text-neutral-100'}`}>{product.title}</h3>
-                            <p className={`mb-3 line-clamp-2 text-sm flex-1 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-                              {product.description}
-                            </p>
-                            <div className="mt-auto mb-3">
-                              {showsSaving && (
-                                <span className={`block text-sm line-through ${isLight ? 'text-gray-500' : 'text-neutral-500'}`}>
-                                  Antes ${formattedOriginalPrice}
-                                </span>
-                              )}
-                              <span className={`block text-3xl font-black leading-tight ${isLight ? 'text-green-700' : 'text-green-400'}`}>
+
+                          <div className="p-3 sm:p-4 flex flex-col flex-1">
+                            <h3 className={`text-[13px] sm:text-sm leading-snug line-clamp-2 min-h-[2.5rem] mb-2 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}>
+                              {product.title}
+                            </h3>
+
+                            {showsSaving && (
+                              <span className={`text-xs line-through ${isLight ? 'text-gray-500' : 'text-neutral-500'}`}>
+                                <span className="sr-only">Precio anterior </span>${formattedOriginalPrice}
+                              </span>
+                            )}
+                            <div className="flex items-baseline flex-wrap gap-x-2">
+                              <span className={`text-xl sm:text-2xl font-normal leading-tight ${isLight ? 'text-gray-900' : 'text-neutral-50'}`}>
                                 ${Number(product.discount_price).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                               </span>
-                              {showsSaving && (
-                                <span className={`block text-sm font-bold ${isLight ? 'text-green-700' : 'text-green-300'}`}>
-                                  Ahorras {formatMoney(origDisplayNum - priceNum)}
+                              {savingPct > 0 && (
+                                <span className={`text-xs sm:text-sm font-semibold ${isLight ? 'text-[#00a650]' : 'text-[#3ddc84]'}`}>
+                                  {savingPct}% OFF
                                 </span>
                               )}
-                              <span className={`block mt-1 text-xs ${isLight ? 'text-gray-500' : 'text-neutral-500'}`}>
-                                ⏳ Publicada aquí {remainingDays === 1 ? 'por 1 día más' : `por ${remainingDays} días más`}
-                              </span>
                             </div>
+                            {showsSaving && (
+                              <p className={`text-xs font-medium ${isLight ? 'text-[#00a650]' : 'text-[#3ddc84]'}`}>
+                                Ahorras {formatMoney(origDisplayNum - priceNum)}
+                              </p>
+                            )}
+
                             {product.coupon && (
-                              <div className={`border-2 border-dashed rounded-lg p-2.5 sm:p-3 mb-4 ${
-                                isLight ? 'bg-yellow-50 border-yellow-400' : 'bg-yellow-400/15 border-yellow-400/60'
+                              <div className={`mt-2 rounded px-2 py-1.5 border border-dashed ${
+                                isLight ? 'bg-[#e8f5ee] border-[#00a650]/50 text-[#007a3d]' : 'bg-[#00a650]/15 border-[#00a650]/50 text-[#5fd99a]'
                               }`}>
-                                <p className={`text-xs mb-1 font-bold ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
-                                  Cupón para este producto:
-                                </p>
-                                <p className={`text-base sm:text-lg font-bold ${isLight ? 'text-yellow-700' : 'text-yellow-400'}`}>
-                                  {product.coupon}
-                                </p>
+                                <p className="text-[11px] leading-tight">Cupón para este producto:</p>
+                                <p className="text-sm font-bold break-all">{product.coupon}</p>
                               </div>
                             )}
-                            <a href={product.affiliate_link || product.link || product.url || '#'} target="_blank" rel="noopener noreferrer" className={`w-full min-h-[48px] rounded-xl font-black text-center transition-all flex items-center justify-center gap-2 text-sm border-2 border-black ${
-                              isLight ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:shadow-lg' : 'bg-yellow-400 hover:bg-yellow-300 text-black'
-                            }`}>
-                              Ver en Mercado Libre <ExternalLink className="w-5 h-5" aria-hidden="true" />
-                              <span className="sr-only">(se abre en otra pestaña)</span>
-                            </a>
+
+                            <p className={`mt-2 text-[11px] ${isLight ? 'text-gray-500' : 'text-neutral-500'}`}>
+                              ⏳ Publicada aquí {remainingDays === 1 ? 'por 1 día más' : `por ${remainingDays} días más`}
+                            </p>
+                            {product.description && (
+                              <p className={`mt-1 text-xs line-clamp-2 ${isLight ? 'text-gray-500' : 'text-neutral-400'}`}>
+                                {product.description}
+                              </p>
+                            )}
+
+                            <div className="mt-auto pt-3">
+                              <a
+                                href={product.affiliate_link || product.link || product.url || '#'}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full min-h-[44px] rounded-md bg-[#3483FA] hover:bg-[#2968c8] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
+                              >
+                                Ver en Mercado Libre <ExternalLink className="w-4 h-4" aria-hidden="true" />
+                                <span className="sr-only">(se abre en otra pestaña)</span>
+                              </a>
+                            </div>
                           </div>
-                        </div>
+                        </article>
                       </div>
                     );
                   })}
@@ -2090,7 +2138,7 @@ function App() {
               </div>
 
               {visibleProducts.length > 1 && (
-                <CarouselArrows onPrev={scrollPrev} onNext={scrollNext} label="Oferta" topClass="top-[96px] sm:top-[120px]" />
+                <CarouselArrows onPrev={scrollPrev} onNext={scrollNext} label="Oferta" topClass="top-[80px] sm:top-[96px]" />
               )}
             </div>
           )}
@@ -2103,7 +2151,7 @@ function App() {
                 <button
                   type="button"
                   onClick={() => setVisibleProductCount((n) => n + PRODUCTS_PAGE_SIZE)}
-                  className="min-h-[48px] px-6 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                  className="min-h-[48px] px-6 py-3 rounded-md bg-[#e3edfb] hover:bg-[#d3e3f8] text-[#3483FA] font-semibold text-sm"
                 >
                   Cargar {Math.min(PRODUCTS_PAGE_SIZE, filteredProducts.length - visibleProducts.length)} ofertas más al carrusel
                 </button>
@@ -2121,7 +2169,7 @@ function App() {
   );
 
   const renderExclusiveProductsSection = () => (
-    <section aria-labelledby="sec-terminales" id="terminales" className="container mx-auto px-0 sm:px-4 mb-16 relative z-10 scroll-mt-36">
+    <section aria-labelledby="sec-terminales" id="terminales" className="container mx-auto px-0 sm:px-4 mb-16 relative z-10 scroll-mt-44">
       <div className="bg-[#FFE600] rounded-3xl p-6 sm:p-10 mb-8 text-black shadow-xl relative overflow-hidden grid grid-cols-1 md:grid-cols-2 items-center gap-8 border-4 border-black">
         <div className="flex flex-col items-start text-left max-w-xl z-10">
           <h2 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight mb-4 leading-tight">
@@ -2346,7 +2394,7 @@ function App() {
   );
 
   const renderReelsSection = () => (
-    <div id="videos" className="container mx-auto px-0 sm:px-4 mb-16 relative z-10 scroll-mt-36">
+    <div id="videos" className="container mx-auto px-0 sm:px-4 mb-16 relative z-10 scroll-mt-44">
       <div className={`rounded-3xl shadow-xl p-5 sm:p-8 backdrop-blur-xl border ${
         isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
       }`}>
@@ -2371,6 +2419,238 @@ function App() {
         />
       </div>
     </div>
+  );
+
+  // ==========================================
+  // BUSCADOR GLOBAL Y ENCABEZADO (inspirado en Mercado Libre)
+  // ==========================================
+  const goToOffers = () => {
+    if (isMobileDevice) {
+      setMobileTab('productos');
+      return;
+    }
+    requestAnimationFrame(() => {
+      const el = document.getElementById('ofertas');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
+  const handleHeaderSearch = (e) => {
+    e.preventDefault();
+    setSearchTerm(productSearchInput);
+    goToOffers();
+  };
+
+  const clearHeaderSearch = () => {
+    setProductSearchInput('');
+    setSearchTerm('');
+  };
+
+  const renderHeaderSearch = () => (
+    <form role="search" onSubmit={handleHeaderSearch} className="flex-1 min-w-0 max-w-3xl">
+      <label htmlFor="product-search" className="sr-only">Buscar productos</label>
+      <div className="relative flex items-center bg-white rounded-md shadow-[0_1px_2px_rgba(0,0,0,0.25)] focus-within:ring-2 focus-within:ring-[#3483FA]">
+        <input
+          id="product-search"
+          type="text"
+          enterKeyHint="search"
+          autoComplete="off"
+          value={productSearchInput}
+          onChange={(e) => setProductSearchInput(e.target.value)}
+          placeholder="Buscar productos, marcas y más…"
+          className="w-full min-h-[44px] pl-4 pr-2 bg-transparent rounded-l-md text-base text-gray-900 placeholder:text-gray-400 focus:outline-none"
+        />
+        {productSearchInput && (
+          <button
+            type="button"
+            aria-label="Borrar búsqueda"
+            onClick={clearHeaderSearch}
+            className="shrink-0 w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-800"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
+        <button
+          type="submit"
+          aria-label="Buscar"
+          className="shrink-0 w-12 min-h-[44px] flex items-center justify-center border-l border-gray-200 text-gray-600 hover:text-[#3483FA] rounded-r-md"
+        >
+          <Search className="w-5 h-5" aria-hidden="true" />
+        </button>
+      </div>
+    </form>
+  );
+
+  const desktopNavLinks = [
+    ...(activeCupones.length > 0 ? [{ href: '#cupones', label: '🎟️ Cupones' }] : []),
+    { href: '#bancos', label: '💳 Promociones bancarias' },
+    { href: '#ofertas', label: '🔥 Ofertas' },
+    { href: '#terminales', label: '⭐ Terminales' },
+    { href: '#videos', label: '📺 Videos' },
+    { href: '#juegos', label: '🎮 Juegos' },
+    { href: '#unete', label: '💼 Únete al equipo' },
+  ];
+
+  const renderTopBar = () => (
+    isMobileDevice ? (
+      <header className="sticky top-[60px] z-[65] bg-[#FFE600] shadow-md">
+        <div className="flex items-center gap-2 px-3 py-2">
+          <img src={logoUrl} alt="CapiBaraML" className="w-9 h-9 rounded-full object-cover border border-black/20 shrink-0" />
+          {renderHeaderSearch()}
+        </div>
+      </header>
+    ) : (
+      <header className="sticky top-[64px] z-[65] bg-[#FFE600] shadow-md">
+        <div className="container mx-auto px-4 py-2.5 flex items-center gap-5">
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            aria-label="CapiBaraML, ir al inicio"
+            className="flex items-center gap-2 shrink-0"
+          >
+            <img src={logoUrl} alt="" className="w-10 h-10 rounded-full object-cover border border-black/20" />
+            <span className="text-lg font-black text-black tracking-tight">CapiBaraML</span>
+          </button>
+          {renderHeaderSearch()}
+        </div>
+        <nav aria-label="Secciones" className="border-t border-black/10">
+          <ul className="container mx-auto px-4 flex flex-wrap items-center gap-x-1">
+            {desktopNavLinks.map((item) => (
+              <li key={item.href}>
+                <a
+                  href={item.href}
+                  className="inline-flex items-center min-h-[40px] px-3 text-sm font-medium text-black/80 hover:text-black hover:underline underline-offset-4 decoration-2"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </header>
+    )
+  );
+
+  // ==========================================
+  // NAVEGACIÓN INFERIOR EN CELULAR (al alcance del pulgar)
+  // ==========================================
+  const renderMobileBottomNav = () => {
+    const primary = MOBILE_TABS.filter((t) => MOBILE_PRIMARY_TAB_IDS.includes(t.id));
+    const moreActive = MOBILE_MORE_TABS.some((t) => t.id === mobileTab);
+    const itemBase = 'relative w-full min-h-[56px] flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold transition-colors';
+    const itemColor = (active) => (active ? 'text-[#3483FA]' : isLight ? 'text-gray-600' : 'text-neutral-400');
+    const indicator = <span aria-hidden="true" className="absolute top-0 inset-x-4 h-0.5 rounded-b bg-[#3483FA]" />;
+    return (
+      <>
+        <nav
+          aria-label="Navegación principal"
+          className={`fixed bottom-0 inset-x-0 z-[70] border-t pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_8px_rgba(0,0,0,0.12)] ${
+            isLight ? 'bg-white border-gray-200' : 'bg-neutral-950 border-neutral-800'
+          }`}
+        >
+          <ul className="grid grid-cols-5">
+            {primary.map((tab) => {
+              const selected = mobileTab === tab.id;
+              return (
+                <li key={tab.id}>
+                  <button
+                    type="button"
+                    aria-current={selected ? 'page' : undefined}
+                    onClick={() => setMobileTab(tab.id)}
+                    className={`${itemBase} ${itemColor(selected)}`}
+                  >
+                    {selected && indicator}
+                    <span className={`text-xl leading-none ${selected ? '' : 'grayscale opacity-70'}`} aria-hidden="true">{tab.icon}</span>
+                    {tab.label}
+                  </button>
+                </li>
+              );
+            })}
+            <li>
+              <button
+                type="button"
+                aria-haspopup="dialog"
+                aria-expanded={showMoreSheet}
+                onClick={() => setShowMoreSheet(true)}
+                className={`${itemBase} ${itemColor(moreActive)}`}
+              >
+                {moreActive && indicator}
+                <span className={`text-xl leading-none ${moreActive ? '' : 'grayscale opacity-70'}`} aria-hidden="true">☰</span>
+                Más
+              </button>
+            </li>
+          </ul>
+        </nav>
+
+        {showMoreSheet && (
+          <div className="fixed inset-0 z-[80] bg-black/60 flex items-end" onClick={() => setShowMoreSheet(false)}>
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="more-sheet-title"
+              onClick={(e) => e.stopPropagation()}
+              className={`w-full rounded-t-2xl p-4 pb-[calc(env(safe-area-inset-bottom)+16px)] shadow-2xl ${
+                isLight ? 'bg-white text-gray-900' : 'bg-neutral-900 text-neutral-100'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h3 id="more-sheet-title" className="text-lg font-bold">Más secciones</h3>
+                <button
+                  type="button"
+                  aria-label="Cerrar"
+                  onClick={() => setShowMoreSheet(false)}
+                  className={`w-11 h-11 rounded-full flex items-center justify-center ${isLight ? 'hover:bg-gray-100' : 'hover:bg-neutral-800'}`}
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <ul className={`divide-y ${isLight ? 'divide-gray-100' : 'divide-neutral-800'}`}>
+                {MOBILE_MORE_TABS.map((tab) => (
+                  <li key={tab.id}>
+                    <button
+                      type="button"
+                      onClick={() => setMobileTab(tab.id)}
+                      className="w-full min-h-[56px] py-2 flex items-center gap-3 text-left"
+                    >
+                      <span className="text-2xl w-9 text-center" aria-hidden="true">{tab.icon}</span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block font-semibold">{tab.label}</span>
+                        <span className={`block text-xs ${isLight ? 'text-gray-500' : 'text-neutral-400'}`}>{tab.hint}</span>
+                      </span>
+                      <ChevronRight className={`w-5 h-5 shrink-0 ${isLight ? 'text-gray-400' : 'text-neutral-500'}`} aria-hidden="true" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+
+  // ==========================================
+  // ZONA DE JUEGOS (se descarga solo al llegar a la sección)
+  // ==========================================
+  const renderGamesSection = () => (
+    <section aria-labelledby="sec-juegos" id="juegos" className="container mx-auto px-0 sm:px-4 mb-16 relative z-10 scroll-mt-44">
+      <div className={`rounded-lg shadow-sm p-3.5 sm:p-8 border ${isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'}`}>
+        <SectionHeader
+          id="sec-juegos"
+          icon="🎮"
+          title="Zona de juegos"
+          subtitle="Cinco juegos gratis para relajarte entre ofertas. Tus récords se guardan en este dispositivo."
+          isLight={isLight}
+        />
+        <GamesErrorBoundary renderFallback={(retry) => <GamesPlaceholder isLight={isLight} status="error" onRetry={retry} />}>
+          <LazyMount placeholder={<GamesPlaceholder isLight={isLight} />}>
+            <Suspense fallback={<GamesPlaceholder isLight={isLight} />}>
+              <GamesZoneLoader isLight={isLight} />
+            </Suspense>
+          </LazyMount>
+        </GamesErrorBoundary>
+      </div>
+    </section>
   );
 
   return (
@@ -2432,7 +2712,7 @@ function App() {
 
       {/* Controles flotantes: en celular solo el chat, para no tapar contenido */}
       {!isMobileDevice && (
-        <div className="fixed top-[132px] right-4 lg:right-6 z-[60] flex flex-col items-center gap-2.5">
+        <div className="fixed top-[190px] right-4 lg:right-6 z-[60] flex flex-col items-center gap-2.5">
           <VisitorCounter isLight={isLight} />
           <button
             type="button"
@@ -2449,7 +2729,7 @@ function App() {
       )}
 
       {isMobileDevice && (
-        <ChatbotWidget isLight={isLight} cupones={activeCupones} products={products} isMobileDevice={isMobileDevice} />
+        <ChatbotWidget isLight={isLight} cupones={activeCupones} products={products} isMobileDevice={isMobileDevice} hasBottomNav />
       )}
 
       <AnimatePresence>
@@ -2481,6 +2761,8 @@ function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {renderTopBar()}
 
       <div
         className={`relative overflow-hidden border-b pb-8 ${
@@ -2568,44 +2850,12 @@ function App() {
       {isMobileDevice ? (
         <div className="container mx-auto px-0 sm:px-4 mb-16 relative z-20">
           <div ref={mobileNavAnchorRef} aria-hidden="true" />
-          {/* Pestañas fijas: siempre visibles para cambiar de sección */}
-          <nav
-            aria-label="Secciones"
-            className={`sticky top-[60px] z-[65] -mx-3 px-3 py-2 backdrop-blur border-b ${
-              isLight ? 'bg-white/95 border-gray-200' : 'bg-neutral-950/95 border-neutral-800'
-            }`}
-          >
-            <div role="tablist" aria-label="Secciones de CapiBaraML" className="flex gap-2 overflow-x-auto no-scrollbar">
-              {MOBILE_TABS.map((tab) => {
-                const selected = mobileTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    id={`tab-${tab.id}`}
-                    type="button"
-                    role="tab"
-                    aria-selected={selected}
-                    aria-controls="mobile-panel"
-                    onClick={() => setMobileTab(tab.id)}
-                    className={`shrink-0 min-h-[44px] px-4 rounded-full flex items-center gap-1.5 font-black text-sm border-2 transition ${
-                      selected
-                        ? 'bg-yellow-400 text-black border-black shadow-md'
-                        : isLight
-                        ? 'bg-gray-100 text-gray-800 border-gray-200'
-                        : 'bg-neutral-800 text-neutral-200 border-neutral-700'
-                    }`}
-                  >
-                    <span aria-hidden="true">{tab.icon}</span>
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-          </nav>
-          <div id="mobile-panel" className="pt-4" role="tabpanel" aria-labelledby={`tab-${mobileTab}`}>
+          {/* La navegación del celular es la barra inferior fija (ver renderMobileBottomNav) */}
+          <div id="mobile-panel" className="pt-4">
           {mobileTab === 'cupones' && renderCuponesSection()}
           {mobileTab === 'bancarios' && renderCuponesBancariosSection()}
           {mobileTab === 'productos' && renderProductosSection()}
+          {mobileTab === 'juegos' && renderGamesSection()}
           {mobileTab === 'exclusivos' && renderExclusiveProductsSection()}
           {mobileTab === 'trabaja' && renderWorkWithUsSection(isLight)}
           {mobileTab === 'reels' && (
@@ -2618,46 +2868,18 @@ function App() {
         </div>
       ) : (
         <>
-          {/* Barra de secciones en escritorio */}
-          <nav
-            aria-label="Secciones"
-            className={`sticky top-[64px] z-[65] mb-8 backdrop-blur border-b ${
-              isLight ? 'bg-white/90 border-gray-200' : 'bg-neutral-950/90 border-neutral-800'
-            }`}
-          >
-            <ul className="container mx-auto px-4 py-2.5 flex flex-wrap justify-center gap-2">
-              {[
-                ...(activeCupones.length > 0 ? [{ href: '#cupones', label: '🎟️ Cupones' }] : []),
-                { href: '#bancos', label: '💳 Promociones bancarias' },
-                { href: '#ofertas', label: '🔥 Ofertas' },
-                { href: '#terminales', label: '⭐ Terminales' },
-                { href: '#videos', label: '📺 Videos' },
-                { href: '#unete', label: '💼 Únete al equipo' },
-              ].map((item) => (
-                <li key={item.href}>
-                  <a
-                    href={item.href}
-                    className={`inline-flex items-center min-h-[40px] px-4 rounded-full text-sm font-black border-2 transition ${
-                      isLight
-                        ? 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-yellow-300 hover:border-black'
-                        : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-yellow-400 hover:text-black hover:border-black'
-                    }`}
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
           {renderCuponesSection()}
           {renderCuponesBancariosSection()}
           {renderProductosSection()}
           {renderExclusiveProductsSection()}
           {renderReelsSection()}
           {renderNewSection(products)}
+          {renderGamesSection()}
           {renderWorkWithUsSection(isLight)}
         </>
       )}
+
+      {isMobileDevice && renderMobileBottomNav()}
 
       {showTutorialModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center z-[80] p-0 sm:p-4" onClick={() => setShowTutorialModal(false)}>
