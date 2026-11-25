@@ -224,21 +224,21 @@ export function CouponCard({ cupon, variant = 'ml', bank, gradientClass, expiryB
               <span className="block text-[11px] font-black uppercase tracking-wider opacity-80">Código</span>
               <span className="block font-mono font-black text-lg tracking-widest truncate">{maskCode(cupon.code)}</span>
             </div>
-            <span className="text-[11px] font-bold opacity-80 text-right leading-tight">Se muestra completo<br />al copiarlo</span>
+            <span className="text-[11px] font-bold opacity-90 text-right leading-tight">Se muestra completo<br />al copiarlo</span>
           </div>
         )}
 
         <button
           type="button"
           onClick={onCopy}
-          className="w-full min-h-[48px] inline-flex items-center justify-center gap-2 bg-[#22a947] hover:bg-[#1c8e3b] active:scale-[0.98] text-white font-black text-sm py-3 px-4 rounded-2xl border-2 border-black shadow-md transition"
+          className="w-full min-h-[48px] inline-flex items-center justify-center gap-2 bg-[#16803f] hover:bg-[#126a35] active:scale-[0.98] text-white font-black text-sm py-3 px-4 rounded-2xl border-2 border-black shadow-md transition"
         >
           {cupon.code ? <Copy className="w-5 h-5 shrink-0" aria-hidden="true" /> : <ExternalLink className="w-5 h-5 shrink-0" aria-hidden="true" />}
           <span>{cupon.code ? 'Copiar código y usarlo' : 'Ver promoción'}</span>
         </button>
 
         <div className="flex items-center justify-between gap-2 pt-2 border-t" style={{ borderColor: isBank ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)' }}>
-          <span className="text-xs font-bold opacity-90">¿Te funcionó?</span>
+          <span className="text-xs font-bold">¿Te funcionó?</span>
           <div className="flex items-center gap-2">
             <button
               type="button"
