@@ -97,14 +97,38 @@ const TETRIS_COLS = 10;
 const TETRIS_ROWS = 20;
 const TETRIS_HIDDEN_ROWS = 2;
 const TETRIS_SHAPES = {
-  I: { shape: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], color: '#06b6d4' },
-  J: { shape: [[1,0,0],[1,1,1],[0,0,0]], color: '#3b82f6' },
-  L: { shape: [[0,0,1],[1,1,1],[0,0,0]], color: '#f97316' },
-  O: { shape: [[1,1],[1,1]], color: '#eab308' },
-  S: { shape: [[0,1,1],[1,1,0],[0,0,0]], color: '#22c55e' },
-  T: { shape: [[0,1,0],[1,1,1],[0,0,0]], color: '#a855f7' },
-  Z: { shape: [[1,1,0],[0,1,1],[0,0,0]], color: '#ef4444' }
+  I: { shape: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], color: '#4fb8c9' },
+  J: { shape: [[1,0,0],[1,1,1],[0,0,0]], color: '#5b83e6' },
+  L: { shape: [[0,0,1],[1,1,1],[0,0,0]], color: '#e8964f' },
+  O: { shape: [[1,1],[1,1]], color: '#e0bf4c' },
+  S: { shape: [[0,1,1],[1,1,0],[0,0,0]], color: '#5fc383' },
+  T: { shape: [[0,1,0],[1,1,1],[0,0,0]], color: '#a47be0' },
+  Z: { shape: [[1,1,0],[0,1,1],[0,0,0]], color: '#e06c6c' }
 };
+
+// Paleta descansada de 2048 (sin blancos quemados ni neones) con texto de buen contraste.
+const TILE_2048 = {
+  0: ['rgba(255,255,255,0.05)', 'transparent'],
+  2: ['#e3d9c6', '#34322d'], 4: ['#dccba4', '#34322d'], 8: ['#e5a066', '#ffffff'], 16: ['#df8853', '#ffffff'],
+  32: ['#d97060', '#ffffff'], 64: ['#d1564f', '#ffffff'], 128: ['#dfc169', '#2b2412'], 256: ['#dbb54a', '#2b2412'],
+  512: ['#d2aa38', '#2b2412'], 1024: ['#c79f2a', '#241d0a'], 2048: ['#eec23c', '#241d0a'],
+};
+const tile2048Style = (val) => {
+  const [bg, fg] = TILE_2048[val] || ['#7a70d8', '#ffffff'];
+  return { backgroundColor: bg, color: fg };
+};
+
+// Capa visual compartida de la zona de juegos (solo estilos; no toca la lógica).
+const GAMES_CSS = `
+.gz-stage{background:radial-gradient(120% 90% at 50% 0%,#1c2640 0%,#131a2b 55%,#0e131f 100%);border-color:#2b3550}
+@keyframes gz-pop{0%{transform:scale(.84)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
+.gz-pop{animation:gz-pop .16s ease-out}
+.gz-cell{box-shadow:inset 0 2px 0 rgba(255,255,255,.2),inset 0 -3px 0 rgba(0,0,0,.22),inset 0 0 0 1px rgba(0,0,0,.18)}
+.gz-pad{transition:transform .08s ease,background-color .15s ease;-webkit-tap-highlight-color:transparent}
+.gz-pad:active{transform:scale(.93)}
+.gz-hud{background:rgba(15,21,36,.72);border:1px solid #2b3550}
+@media (prefers-reduced-motion:reduce){.gz-pop{animation:none}.gz-pad{transition:none}}
+`;
 
 export default function GamesZone({ currentUser, isLight }) {
   const [activeGame, setActiveGame] = useState('2048'); 
@@ -1362,6 +1386,13 @@ export default function GamesZone({ currentUser, isLight }) {
           ctx.shadowColor = '#fb7185';
           ctx.shadowBlur = 18;
         }
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+        // Núcleo claro de la estela (efecto de filo)
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+        ctx.lineWidth = Math.max(2, ctx.lineWidth * 0.3);
         ctx.stroke();
         ctx.restore();
 
@@ -1398,6 +1429,12 @@ export default function GamesZone({ currentUser, isLight }) {
       grad.addColorStop(0, '#3f1a0d'); grad.addColorStop(0.5, '#2a1208'); grad.addColorStop(1, '#180a04');
     }
     ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+    // Viñeta suave: centra la vista y descansa los bordes.
+    const vg = ctx.createRadialGradient(width / 2, height * 0.45, Math.min(width, height) * 0.25, width / 2, height / 2, Math.max(width, height) * 0.75);
+    vg.addColorStop(0, 'rgba(255,255,255,0.04)');
+    vg.addColorStop(1, 'rgba(0,0,0,0.38)');
+    ctx.fillStyle = vg;
     ctx.fillRect(0, 0, width, height);
   };
 
@@ -1960,12 +1997,12 @@ export default function GamesZone({ currentUser, isLight }) {
     onContextMenu: (e) => e.preventDefault(),
     style: { touchAction: 'none' },
   });
-  const tcBtn = 'min-w-[48px] min-h-[52px] rounded-2xl border shadow-lg flex items-center justify-center select-none touch-none active:scale-95 transition-transform';
+  const tcBtn = 'gz-pad min-w-[48px] min-h-[52px] rounded-2xl border shadow-lg flex items-center justify-center select-none touch-none';
   const renderTetrisControls = (which) => {
     const moveBtns = (
       <div className={`flex ${which === 'left' ? 'flex-col' : 'flex-row'} gap-1.5 items-center`}>
         <div className="flex gap-1.5">
-          <button type="button" aria-label="Mover a la izquierda" {...repeatProps(() => moveTetrisSide(-1))} className={`${tcBtn} bg-neutral-800/90 border-neutral-700 text-yellow-400 active:bg-neutral-600`}><ArrowLeft size={22} /></button>
+          <button type="button" aria-label="Mover a la izquierda" {...repeatProps(() => moveTetrisSide(-1))} className={`${tcBtn} bg-[#222c44]/90 border-[#34415f] text-amber-300 active:bg-[#34415f]`}><ArrowLeft size={22} /></button>
           {which !== 'left' && (
             <button
               type="button"
@@ -1975,11 +2012,11 @@ export default function GamesZone({ currentUser, isLight }) {
               onPointerLeave={() => setIsFastDropping(false)}
               onPointerCancel={() => setIsFastDropping(false)}
               onContextMenu={(e) => e.preventDefault()}
-              className={`${tcBtn} bg-neutral-800/90 border-neutral-700 text-yellow-400 active:bg-neutral-600`}
+              className={`${tcBtn} bg-[#222c44]/90 border-[#34415f] text-amber-300 active:bg-[#34415f]`}
               style={{ touchAction: 'none' }}
             ><ArrowDown size={24} /></button>
           )}
-          <button type="button" aria-label="Mover a la derecha" {...repeatProps(() => moveTetrisSide(1))} className={`${tcBtn} bg-neutral-800/90 border-neutral-700 text-yellow-400 active:bg-neutral-600`}><ArrowRight size={24} /></button>
+          <button type="button" aria-label="Mover a la derecha" {...repeatProps(() => moveTetrisSide(1))} className={`${tcBtn} bg-[#222c44]/90 border-[#34415f] text-amber-300 active:bg-[#34415f]`}><ArrowRight size={24} /></button>
         </div>
         {which === 'left' && (
           <button
@@ -1990,7 +2027,7 @@ export default function GamesZone({ currentUser, isLight }) {
             onPointerLeave={() => setIsFastDropping(false)}
             onPointerCancel={() => setIsFastDropping(false)}
             onContextMenu={(e) => e.preventDefault()}
-            className={`${tcBtn} w-full bg-neutral-800/90 border-neutral-700 text-yellow-400 active:bg-neutral-600`}
+            className={`${tcBtn} w-full bg-[#222c44]/90 border-[#34415f] text-amber-300 active:bg-[#34415f]`}
             style={{ touchAction: 'none' }}
           ><ArrowDown size={24} /></button>
         )}
@@ -1998,8 +2035,8 @@ export default function GamesZone({ currentUser, isLight }) {
     );
     const actionBtns = (
       <div className={`flex ${which === 'right' ? 'flex-col' : 'flex-row'} gap-1.5 items-center`}>
-        <button type="button" aria-label="Rotar pieza" onPointerDown={(e) => { e.preventDefault(); rotateTetrisNow(); }} className={`${tcBtn} bg-blue-600/90 border-blue-500 text-white active:bg-blue-500`} style={{ touchAction: 'none' }}><RotateCw size={24} /></button>
-        <button type="button" aria-label="Guardar pieza (hold)" onPointerDown={(e) => { e.preventDefault(); holdTetrisPiece(); }} className={`${tcBtn} bg-green-600/90 border-green-500 text-white active:bg-green-500 font-black text-[11px]`} style={{ touchAction: 'none' }}>HOLD</button>
+        <button type="button" aria-label="Rotar pieza" onPointerDown={(e) => { e.preventDefault(); rotateTetrisNow(); }} className={`${tcBtn} bg-[#4a6fd0]/95 border-[#6b8ae0] text-white active:bg-[#5b7fe0]`} style={{ touchAction: 'none' }}><RotateCw size={24} /></button>
+        <button type="button" aria-label="Guardar pieza (hold)" onPointerDown={(e) => { e.preventDefault(); holdTetrisPiece(); }} className={`${tcBtn} bg-[#3f9a6a]/95 border-[#5cb887] text-white active:bg-[#4fae7b] font-black text-[11px]`} style={{ touchAction: 'none' }}>HOLD</button>
       </div>
     );
     if (which === 'left') return <div className="shrink-0 z-10">{moveBtns}</div>;
@@ -2075,10 +2112,11 @@ export default function GamesZone({ currentUser, isLight }) {
               ref={gameContainerRef} 
               data-game-full={pseudoFull ? 'true' : undefined}
               style={getContainerStyle()}
-              className={`${pseudoFull ? '' : 'relative'} w-full ${getContainerHeightClass()} bg-neutral-950 rounded-2xl border flex items-center justify-center shadow-2xl overflow-hidden ${
-                activeGame === 'clicker' ? getClickerThemeClasses() : 'border-neutral-800'
+              className={`${pseudoFull ? '' : 'relative'} w-full ${getContainerHeightClass()} ${activeGame === 'clicker' ? 'bg-neutral-950' : 'gz-stage'} rounded-2xl border flex items-center justify-center shadow-2xl overflow-hidden ${
+                activeGame === 'clicker' ? getClickerThemeClasses() : ''
               } ${screenRed ? 'ring-4 ring-red-600 animate-pulse' : ''}`}
             >
+              <style>{GAMES_CSS}</style>
               {/* BOTÓN DE PANTALLA COMPLETA */}
               <button
                 onClick={toggleFullscreen}
@@ -2427,9 +2465,9 @@ export default function GamesZone({ currentUser, isLight }) {
                     <span className="text-[10px] sm:text-xs font-bold text-neutral-400">{isWon ? '✨ ¡2048 Conseguido! (Infinito)' : 'Combina fichas iguales'}</span>
                     <button onClick={undo2048} className="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-xs font-bold text-yellow-400 rounded-lg flex items-center gap-1 shadow"><RotateCcw size={12} /> Deshacer</button>
                   </div>
-                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5 bg-neutral-900 p-2 sm:p-3 rounded-2xl border-2 border-neutral-800 shadow-2xl relative z-10 box-border" style={{ width: board2048, height: board2048 }}>
+                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5 bg-[#161e31] p-2 sm:p-3 rounded-2xl border-2 border-[#2b3550] shadow-2xl relative z-10 box-border touch-none" style={{ width: board2048, height: board2048 }}>
                     {grid2048.map((row, r) => row.map((val, c) => (
-                      <div key={`${r}-${c}`} style={{ fontSize: Math.max(12, Math.floor(board2048 / 4 * (val >= 1000 ? 0.26 : val >= 100 ? 0.31 : 0.4))) }} className={`w-full h-full min-w-0 rounded-xl flex items-center justify-center font-black transition-all shadow-inner ${val === 0 ? 'bg-neutral-800/40 text-transparent' : val === 2 ? 'bg-amber-100 text-neutral-800' : val === 4 ? 'bg-amber-200 text-neutral-800' : val === 8 ? 'bg-orange-400 text-white' : val === 16 ? 'bg-orange-500 text-white' : val === 32 ? 'bg-red-500 text-white' : val === 64 ? 'bg-red-600 text-white' : 'bg-yellow-400 text-black scale-105'}`}>
+                      <div key={`${r}-${c}-${val}`} style={{ ...tile2048Style(val), fontSize: Math.max(12, Math.floor(board2048 / 4 * (val >= 1000 ? 0.26 : val >= 100 ? 0.31 : 0.4))) }} className={`w-full h-full min-w-0 rounded-xl flex items-center justify-center font-black ${val === 0 ? '' : 'gz-pop gz-cell'}`}>
                         {val !== 0 ? val : ''}
                       </div>
                     )))}
@@ -2444,11 +2482,11 @@ export default function GamesZone({ currentUser, isLight }) {
                   {isMobile && (
                     <div className={`grid grid-cols-3 gap-2 w-[180px] z-10 shrink-0 ${landscape ? '' : 'mt-3'}`}>
                       <div />
-                      <button onClick={() => move2048('up')} className="bg-neutral-800/80 active:bg-neutral-600 border border-neutral-700 text-yellow-400 min-h-[52px] rounded-2xl flex items-center justify-center shadow-lg touch-manipulation"><ArrowUp size={24} /></button>
+                      <button onClick={() => move2048('up')} className="gz-pad bg-[#222c44]/90 active:bg-[#34415f] border border-[#34415f] text-amber-300 min-h-[56px] rounded-2xl flex items-center justify-center shadow-lg touch-manipulation"><ArrowUp size={24} /></button>
                       <div />
-                      <button onClick={() => move2048('left')} className="bg-neutral-800/80 active:bg-neutral-600 border border-neutral-700 text-yellow-400 min-h-[52px] rounded-2xl flex items-center justify-center shadow-lg touch-manipulation"><ArrowLeft size={24} /></button>
-                      <button onClick={() => move2048('down')} className="bg-neutral-800/80 active:bg-neutral-600 border border-neutral-700 text-yellow-400 min-h-[52px] rounded-2xl flex items-center justify-center shadow-lg touch-manipulation"><ArrowDown size={24} /></button>
-                      <button onClick={() => move2048('right')} className="bg-neutral-800/80 active:bg-neutral-600 border border-neutral-700 text-yellow-400 min-h-[52px] rounded-2xl flex items-center justify-center shadow-lg touch-manipulation"><ArrowRight size={24} /></button>
+                      <button onClick={() => move2048('left')} className="gz-pad bg-[#222c44]/90 active:bg-[#34415f] border border-[#34415f] text-amber-300 min-h-[56px] rounded-2xl flex items-center justify-center shadow-lg touch-manipulation"><ArrowLeft size={24} /></button>
+                      <button onClick={() => move2048('down')} className="gz-pad bg-[#222c44]/90 active:bg-[#34415f] border border-[#34415f] text-amber-300 min-h-[56px] rounded-2xl flex items-center justify-center shadow-lg touch-manipulation"><ArrowDown size={24} /></button>
+                      <button onClick={() => move2048('right')} className="gz-pad bg-[#222c44]/90 active:bg-[#34415f] border border-[#34415f] text-amber-300 min-h-[56px] rounded-2xl flex items-center justify-center shadow-lg touch-manipulation"><ArrowRight size={24} /></button>
                     </div>
                   )}
                 </div>
@@ -2493,7 +2531,7 @@ export default function GamesZone({ currentUser, isLight }) {
                     {isMobile && landscape && renderTetrisControls('left')}
                     <div className="flex flex-row items-stretch justify-center gap-1 sm:gap-6 max-w-full relative z-10 min-h-0">
                       {/* Panel Izquierdo (Hold) */}
-                      <div className="flex flex-col gap-2 w-14 sm:w-28 bg-neutral-900/90 p-1 sm:p-3 rounded-xl sm:rounded-2xl border border-neutral-800 text-white text-[10px] sm:text-xs">
+                      <div className="flex flex-col gap-2 w-14 sm:w-28 bg-[#161e31]/90 p-1 sm:p-3 rounded-xl sm:rounded-2xl border border-[#2b3550] text-white text-[10px] sm:text-xs">
                         <span className="font-black text-yellow-400 uppercase tracking-normal sm:tracking-widest text-center text-[9px] sm:text-xs w-full block">HOLD</span>
                         <div className="w-10 h-10 sm:w-20 sm:h-20 bg-black/50 rounded-lg sm:rounded-xl mx-auto flex items-center justify-center border border-neutral-800 p-1 sm:p-2">
                           {tetrisHold ? (
@@ -2513,9 +2551,9 @@ export default function GamesZone({ currentUser, isLight }) {
                       </div>
 
                       {/* Tablero Tetris Centrado */}
-                      <div className="bg-neutral-900 p-1 sm:p-2 rounded-2xl border-2 border-neutral-800 shadow-2xl flex flex-col justify-center shrink-0" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+                      <div className="bg-[#161e31] p-1 sm:p-2 rounded-2xl border-2 border-[#2b3550] shadow-2xl flex flex-col justify-center shrink-0 touch-none" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
                         <div 
-                          className="grid bg-black/80 rounded-xl overflow-hidden border border-neutral-800"
+                          className="grid bg-[#0c111c] rounded-xl overflow-hidden border border-[#243049]"
                           style={{ 
                             gridTemplateColumns: `repeat(${TETRIS_COLS}, minmax(0, 1fr))`, 
                             gridTemplateRows: `repeat(${TETRIS_ROWS}, minmax(0, 1fr))`,
@@ -2526,8 +2564,8 @@ export default function GamesZone({ currentUser, isLight }) {
                           {displayGrid.slice(TETRIS_HIDDEN_ROWS).map((row, r) => row.map((cell, c) => (
                             <div 
                               key={`${r}-${c}`} 
-                              className={`w-full h-full border border-neutral-900/30 ${
-                                cell === 'ghost' ? 'border border-dashed border-white/30 bg-white/5' : ''
+                              className={`w-full h-full ${
+                                cell === 'ghost' ? 'border border-dashed border-white/25 bg-white/5 rounded-[3px]' : cell ? 'gz-cell' : 'border border-white/[0.035]'
                               }`}
                               style={{ backgroundColor: cell && cell !== 'ghost' ? cell : undefined }}
                             />
@@ -2536,7 +2574,7 @@ export default function GamesZone({ currentUser, isLight }) {
                       </div>
 
                       {/* Panel Derecho (Next) */}
-                      <div className="flex flex-col gap-2 w-14 sm:w-28 bg-neutral-900/90 p-1 sm:p-3 rounded-xl sm:rounded-2xl border border-neutral-800 text-white text-[10px] sm:text-xs">
+                      <div className="flex flex-col gap-2 w-14 sm:w-28 bg-[#161e31]/90 p-1 sm:p-3 rounded-xl sm:rounded-2xl border border-[#2b3550] text-white text-[10px] sm:text-xs">
                         <span className="font-black text-yellow-400 uppercase tracking-normal sm:tracking-widest text-center text-[9px] sm:text-xs w-full block">NEXT</span>
                         <div className="flex flex-col gap-1 sm:gap-2 overflow-y-auto max-h-[220px] sm:max-h-[340px] pr-1 custom-scrollbar">
                           {tetrisQueue.slice(0, 4).map((piece, idx) => (
@@ -2561,7 +2599,7 @@ export default function GamesZone({ currentUser, isLight }) {
               {/* JUGANDO NINJA CUT */}
               {activeGame === 'ninja' && gamePhase === 'playing' && (
                 <div className="w-full h-full relative select-none touch-none overflow-hidden flex flex-col">
-                  <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-12 sm:right-16 z-20 flex justify-between items-center pointer-events-none px-3 sm:px-4 py-1.5 sm:py-2 bg-black/60 backdrop-blur-md rounded-xl border border-neutral-800 text-white font-bold text-[10px] sm:text-xs mt-12 sm:mt-0">
+                  <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-12 sm:right-16 z-20 flex justify-between items-center pointer-events-none px-3 sm:px-4 py-1.5 sm:py-2 gz-hud backdrop-blur-md rounded-xl text-white font-bold text-[10px] sm:text-xs mt-12 sm:mt-0">
                     <div>Puntos: <span className="text-yellow-400 text-xs sm:text-sm font-black">{score}</span></div>
                     {ninjaMode === 'classic' && (
                       <div className="flex gap-0.5 sm:gap-1 items-center">
@@ -2645,14 +2683,14 @@ export default function GamesZone({ currentUser, isLight }) {
                           <div key={card.id} 
                                onClick={() => handleFlipCard(idx)}
                                className={`w-full h-full cursor-pointer ${card.errorAnim ? 'animate-shake' : ''}`}
-                               style={{ perspective: '1000px' }}>
-                            <div className={`w-full h-full absolute transition-all duration-500 rounded-sm sm:rounded-md shadow-sm border ${memoryMatched.includes(idx) ? 'border-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)]' : 'border-neutral-700'}`}
+                               style={{ perspective: '1000px', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}>
+                            <div className={`w-full h-full absolute transition-all duration-500 rounded-sm sm:rounded-md shadow-sm border ${memoryMatched.includes(idx) ? 'border-emerald-300 shadow-[0_0_8px_rgba(110,231,183,0.45)]' : 'border-[#34415f]'}`}
                                  style={{ transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)', transformOrigin: 'center center' }}>
-                              <div className="absolute w-full h-full backface-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-sm sm:rounded-md flex items-center justify-center overflow-hidden hover:border-yellow-400 transition-colors"
+                              <div className="absolute w-full h-full backface-hidden bg-gradient-to-br from-[#27324d] to-[#161e31] rounded-sm sm:rounded-md flex items-center justify-center overflow-hidden hover:border-amber-300 transition-colors"
                                    style={{ backfaceVisibility: 'hidden' }}>
                                 <Sparkles className="absolute text-yellow-400/30 w-1/3 h-1/3" />
                               </div>
-                              <div className={`absolute w-full h-full backface-hidden rounded-sm sm:rounded-md flex items-center justify-center ${textSize} bg-neutral-100`}
+                              <div className={`absolute w-full h-full backface-hidden rounded-sm sm:rounded-md flex items-center justify-center ${textSize} bg-[#eee6d6] text-neutral-800`}
                                    style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
                                 <span className={memoryMatched.includes(idx) ? 'animate-bounce' : ''}>{card.content}</span>
                               </div>
