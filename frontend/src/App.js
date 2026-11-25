@@ -100,6 +100,9 @@ const SHOW_HOME_CATEGORY_GRID = false;
 const SHOW_HOME_OFFERS_PREVIEW = false;
 // Portada grande con logo 3D (diseño anterior). El inicio usa ahora un banner compacto estilo marketplace.
 const SHOW_FULL_HERO = false;
+// Accesos de WhatsApp redundantes (la barra verde superior ya los ofrece): ocultos tras banderas.
+const SHOW_HEADER_WHATSAPP = false;
+const SHOW_HERO_CTAS = false;
 
 const SORT_OPTIONS = [
   { id: 'relevance', label: 'Más relevantes' },
@@ -232,7 +235,7 @@ function GamesPlaceholder({ isLight, status = 'loading', onRetry }) {
         {isError ? 'Revisa tu conexión e inténtalo de nuevo. Las ofertas siguen funcionando con normalidad.' : 'Solo tarda un momento.'}
       </p>
       {isError && onRetry && (
-        <button type="button" onClick={onRetry} className="min-h-[44px] px-5 rounded-md bg-[#3483FA] hover:bg-[#2968c8] text-white font-semibold text-sm">
+        <button type="button" onClick={onRetry} className="min-h-[44px] px-5 rounded-md bg-[#2968C8] hover:bg-[#1f55a8] text-white font-semibold text-sm">
           Reintentar
         </button>
       )}
@@ -355,7 +358,7 @@ function VisitorCounter({ isLight }) {
     <div 
       className={`w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full shadow-2xl flex flex-col items-center justify-center border-2 transition-all hover:scale-110 cursor-default select-none ${
         isLight 
-          ? 'bg-white text-[#3483FA] border-gray-200' 
+          ? 'bg-white text-[#2968C8] border-gray-200' 
           : 'bg-neutral-900 text-yellow-400 border-yellow-400/50'
       }`}
       title={`Visitantes: ${count.toLocaleString()}`}
@@ -407,7 +410,7 @@ function FeatureCube({ isLight, isMobileDevice }) {
 
   const badgeClasses = `text-[8px] md:text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-full border self-start shadow-[0_0_8px_rgba(0,229,255,0.3)] ${
     isLight 
-      ? 'bg-[#e0ffff] text-[#008b99] border-[#00e5ff]' 
+      ? 'bg-[#e0ffff] text-[#00606b] border-[#00a9b8]' 
       : 'bg-[#00e5ff]/10 text-[#00e5ff] border-[#00e5ff]/30'
   }`;
 
@@ -708,7 +711,7 @@ function YoutubeReelsPlayer({ videos, setTiktokVideos, setToastMessage, setShowT
               <div className="flex flex-col gap-2.5 w-full max-w-[180px]">
                 <button 
                   onClick={() => handleShareOption('whatsapp')} 
-                  className="flex items-center justify-center gap-2 bg-[#25D366] text-white py-2.5 px-4 rounded-xl font-bold text-xs hover:scale-105 transition-transform border border-black shadow-md"
+                  className="flex items-center justify-center gap-2 bg-[#16803f] text-white py-2.5 px-4 rounded-xl font-bold text-xs hover:scale-105 transition-transform border border-black shadow-md"
                 >
                   <span>💬 WhatsApp</span>
                 </button>
@@ -887,7 +890,7 @@ function renderWorkWithUsSection(isLight) {
               href="https://wa.me/523312229710?text=Hola,%20quiero%20postularme%20para%20unirme%20al%20equipo%20y%20ganar%20dinero%20con%20CapiBaraML"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 sm:px-6 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-black rounded-2xl text-xs sm:text-sm uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black transition-all hover:scale-105"
+              className="inline-flex items-center gap-2 px-5 sm:px-6 py-3.5 bg-[#16803f] hover:bg-[#126a35] text-white font-black rounded-2xl text-xs sm:text-sm uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black transition-all hover:scale-105"
             >
               <FaWhatsapp size={20} /> POSTULARME POR WHATSAPP
             </a>
@@ -1155,7 +1158,7 @@ function EmptyState({ isLight, status = 'empty', icon = '🐹', title, message, 
               href={action.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-xs uppercase border-2 border-black"
+              className="min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#16803f] hover:bg-[#126a35] text-white font-black text-xs uppercase border-2 border-black"
             >
               {action.label}
             </a>
@@ -1525,7 +1528,7 @@ function App() {
       name: 'WhatsApp',
       icon: FaWhatsapp,
       url: 'https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1',
-      color: 'bg-[#25D366] hover:bg-[#20bd5a]',
+      color: 'bg-[#16803f] hover:bg-[#126a35]',
     },
     {
       name: 'Telegram',
@@ -1899,7 +1902,7 @@ function App() {
               onClick={() => setShowTutorialModal(true)}
               className={`self-start sm:self-auto min-h-[44px] inline-flex items-center gap-2 px-4 rounded-xl border-2 font-black text-sm transition ${
                 isLight
-                  ? 'text-[#3483FA] border-[#3483FA]/40 hover:bg-[#3483FA]/10'
+                  ? 'text-[#2968C8] border-[#3483FA]/40 hover:bg-[#3483FA]/10'
                   : 'text-yellow-400 border-yellow-400/50 hover:bg-yellow-400/10'
               }`}
             >
@@ -1996,7 +1999,7 @@ function App() {
             noun: 'promociones',
             gradients: [
               'from-blue-600 via-indigo-600 to-sky-700',
-              'from-cyan-600 via-blue-700 to-indigo-800',
+              'from-cyan-800 via-blue-800 to-indigo-900',
               'from-violet-600 via-purple-600 to-indigo-700',
             ],
           })
@@ -2066,14 +2069,14 @@ function App() {
                     className={`shrink-0 min-h-[40px] px-4 rounded-full text-sm font-semibold transition-colors cursor-pointer border ${
                       isSelected
                         ? isLight
-                          ? 'bg-[#e3edfb] text-[#3483FA] border-[#3483FA]'
+                          ? 'bg-[#e3edfb] text-[#2968C8] border-[#3483FA]'
                           : 'bg-[#3483FA]/20 text-[#8dbdff] border-[#3483FA]'
                         : isLight
                         ? 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
                         : 'bg-neutral-900 text-neutral-300 border-neutral-700 hover:border-neutral-500'
                     }`}
                   >
-                    <span aria-hidden="true" className="mr-1">{chip.icon}</span>{chip.short} <span className="opacity-60 font-medium">({chip.count})</span>
+                    <span aria-hidden="true" className="mr-1">{chip.icon}</span>{chip.short} <span className="font-medium">({chip.count})</span>
                   </button>
                 );
               })}
@@ -2165,7 +2168,7 @@ function App() {
                     setOnlyDiscount(false);
                     setOnlyCoupon(false);
                   }}
-                  className="min-h-[40px] inline-flex items-center gap-1 px-3 rounded-md font-semibold text-sm text-[#3483FA] hover:bg-[#3483FA]/10"
+                  className={`min-h-[40px] inline-flex items-center gap-1 px-3 rounded-md font-semibold text-sm ${isLight ? 'text-[#2968C8]' : 'text-[#8dbdff]'} hover:bg-[#3483FA]/10`}
                 >
                   <X className="w-4 h-4" aria-hidden="true" /> Quitar filtros
                 </button>
@@ -2181,7 +2184,7 @@ function App() {
               <p className={`text-sm mb-4 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
                 Prueba con otra palabra, quita los filtros o búscalo directamente en Mercado Libre.
               </p>
-              <button onClick={handleSearchOnMercadoLibre} className="min-h-[48px] bg-[#3483FA] hover:bg-[#2968c8] text-white px-6 py-3 rounded-md font-semibold text-sm">
+              <button onClick={handleSearchOnMercadoLibre} className="min-h-[48px] bg-[#2968C8] hover:bg-[#1f55a8] text-white px-6 py-3 rounded-md font-semibold text-sm">
                 Buscar en Mercado Libre 🚀
               </button>
             </div>
@@ -2231,7 +2234,7 @@ function App() {
                             </h3>
 
                             {showsSaving && (
-                              <span className={`text-xs line-through ${isLight ? 'text-gray-500' : 'text-neutral-500'}`}>
+                              <span className={`text-xs line-through ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
                                 <span className="sr-only">Precio anterior </span>${formattedOriginalPrice}
                               </span>
                             )}
@@ -2240,13 +2243,13 @@ function App() {
                                 ${Number(product.discount_price).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                               </span>
                               {savingPct > 0 && (
-                                <span className={`text-xs sm:text-sm font-semibold ${isLight ? 'text-[#00a650]' : 'text-[#3ddc84]'}`}>
+                                <span className={`text-xs sm:text-sm font-semibold ${isLight ? 'text-[#00783a]' : 'text-[#3ddc84]'}`}>
                                   {savingPct}% OFF
                                 </span>
                               )}
                             </div>
                             {showsSaving && (
-                              <p className={`text-xs font-medium ${isLight ? 'text-[#00a650]' : 'text-[#3ddc84]'}`}>
+                              <p className={`text-xs font-medium ${isLight ? 'text-[#00783a]' : 'text-[#3ddc84]'}`}>
                                 Ahorras {formatMoney(origDisplayNum - priceNum)}
                               </p>
                             )}
@@ -2260,7 +2263,7 @@ function App() {
                               </div>
                             )}
 
-                            <p className={`mt-2 text-[11px] ${isLight ? 'text-gray-500' : 'text-neutral-500'}`}>
+                            <p className={`mt-2 text-[11px] ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
                               ⏳ Publicada aquí {remainingDays === 1 ? 'por 1 día más' : `por ${remainingDays} días más`}
                             </p>
                             {product.description && (
@@ -2274,7 +2277,7 @@ function App() {
                                 href={product.affiliate_link || product.link || product.url || '#'}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-full min-h-[44px] rounded-md bg-[#3483FA] hover:bg-[#2968c8] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
+                                className="w-full min-h-[44px] rounded-md bg-[#2968C8] hover:bg-[#1f55a8] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
                               >
                                 Ver en Mercado Libre <ExternalLink className="w-4 h-4" aria-hidden="true" />
                                 <span className="sr-only">(se abre en otra pestaña)</span>
@@ -2321,7 +2324,7 @@ function App() {
               href="https://www.mercadopago.com.mx/herramientas-para-vender/lectores-point?code=7XYVCUKISD" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="bg-[#3483fa] hover:bg-[#2968c8] text-white font-black px-5 sm:px-6 py-3.5 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black text-xs sm:text-sm uppercase transition-transform hover:scale-105"
+              className="bg-[#2968C8] hover:bg-[#1f55a8] text-white font-black px-5 sm:px-6 py-3.5 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black text-xs sm:text-sm uppercase transition-transform hover:scale-105"
             >
               Elegir terminal
             </a>
@@ -2442,7 +2445,7 @@ function App() {
                               </span>
                             )}
                             {(product.discount_percentage || product.descuento) && (
-                              <span className="bg-[#00a650] text-white px-2 py-0.5 rounded-md font-bold text-[11px] tracking-wide">
+                              <span className="bg-[#00783a] text-white px-2 py-0.5 rounded-md font-bold text-[11px] tracking-wide">
                                 {product.discount_percentage ? `${product.discount_percentage}% OFF` : product.descuento}
                               </span>
                             )}
@@ -2462,7 +2465,7 @@ function App() {
                             href={product.affiliate_link || product.link || product.url || '#'} 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            className="w-full bg-[#3483fa] hover:bg-[#2968c8] text-white py-3 rounded-xl font-bold text-center block transition-all shadow-md text-sm uppercase tracking-wide"
+                            className="w-full bg-[#2968C8] hover:bg-[#1f55a8] text-white py-3 rounded-xl font-bold text-center block transition-all shadow-md text-sm uppercase tracking-wide"
                           >
                             Comprar ahora
                           </a>
@@ -2470,19 +2473,19 @@ function App() {
 
                         <div className="w-full border-t border-gray-200 pt-4 pb-3 bg-white text-left flex flex-col gap-2.5">
                           <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
-                            <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
+                            <span className="text-[#2968C8] text-base flex-shrink-0">✔</span>
                             <span className="leading-tight">Acepta débito, crédito y vales.</span>
                           </div>
                           <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
-                            <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
+                            <span className="text-[#2968C8] text-base flex-shrink-0">✔</span>
                             <span className="leading-tight">Incluye cuenta digital y tarjeta gratuita.</span>
                           </div>
                           <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
-                            <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
+                            <span className="text-[#2968C8] text-base flex-shrink-0">✔</span>
                             <span className="leading-tight">1 año de garantía.</span>
                           </div>
                           <div className="flex items-center gap-2.5 text-xs font-medium text-gray-700">
-                            <span className="text-[#3483fa] text-base flex-shrink-0">✔</span>
+                            <span className="text-[#2968C8] text-base flex-shrink-0">✔</span>
                             <span className="leading-tight">Envío gratis en 2 hs.</span>
                           </div>
                         </div>
@@ -2591,7 +2594,7 @@ function App() {
       navigate('productos');
     };
     return (
-    <form role="search" onSubmit={(e) => { setSearchFocused(false); handleHeaderSearch(e); }} className="flex-1 min-w-0 max-w-3xl relative">
+    <form role="search" onSubmit={(e) => { setSearchFocused(false); handleHeaderSearch(e); }} className="flex-1 min-w-0 max-w-3xl mx-auto relative">
       <label htmlFor="product-search" className="sr-only">Buscar productos</label>
       <div className="relative flex items-center bg-white rounded-md shadow-[0_1px_2px_rgba(0,0,0,0.25)] focus-within:ring-2 focus-within:ring-[#3483FA]">
         <input
@@ -2605,7 +2608,7 @@ function App() {
           onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
           onKeyDown={(e) => { if (e.key === 'Escape') setSearchFocused(false); }}
           placeholder="Buscar productos, marcas y más…"
-          className="w-full min-h-[44px] pl-4 pr-2 bg-transparent rounded-l-md text-base text-gray-900 placeholder:text-gray-400 focus:outline-none"
+          className="w-full min-h-[44px] pl-4 pr-2 bg-transparent rounded-l-md text-base text-gray-900 placeholder:text-gray-500 focus:outline-none"
         />
         {productSearchInput && (
           <button
@@ -2620,7 +2623,7 @@ function App() {
         <button
           type="submit"
           aria-label="Buscar"
-          className="shrink-0 w-12 min-h-[44px] flex items-center justify-center border-l border-gray-200 text-gray-600 hover:text-[#3483FA] rounded-r-md"
+          className="shrink-0 w-12 min-h-[44px] flex items-center justify-center border-l border-gray-200 text-gray-600 hover:text-[#2968C8] rounded-r-md"
         >
           <Search className="w-5 h-5" aria-hidden="true" />
         </button>
@@ -2716,7 +2719,7 @@ function App() {
       <section aria-labelledby="home-destacadas">
         <div className="flex items-end justify-between gap-2 mb-3">
           <h2 id="home-destacadas" className={`text-lg sm:text-xl font-bold ${isLight ? 'text-gray-900' : 'text-neutral-100'}`}>Ofertas destacadas</h2>
-          <button type="button" onClick={() => navigate('productos')} className="min-h-[40px] px-2 text-sm font-semibold text-[#3483FA] hover:underline">Ver todas las ofertas</button>
+          <button type="button" onClick={() => navigate('productos')} className={`min-h-[40px] px-2 text-sm font-semibold ${isLight ? 'text-[#2968C8]' : 'text-[#8dbdff]'} hover:underline`}>Ver todas las ofertas</button>
         </div>
         {regularProducts.length === 0 ? (
           <p className={`text-sm ${isLight ? 'text-gray-600' : 'text-neutral-400'}`} role="status">
@@ -2748,7 +2751,7 @@ function App() {
       <section aria-labelledby="home-categorias">
         <div className="flex items-end justify-between gap-2 mb-3">
           <h2 id="home-categorias" className={`text-lg sm:text-xl font-bold ${isLight ? 'text-gray-900' : 'text-neutral-100'}`}>Categorías</h2>
-          <button type="button" onClick={() => navigate('productos')} className="min-h-[40px] px-2 text-sm font-semibold text-[#3483FA] hover:underline">Ver todas las ofertas</button>
+          <button type="button" onClick={() => navigate('productos')} className={`min-h-[40px] px-2 text-sm font-semibold ${isLight ? 'text-[#2968C8]' : 'text-[#8dbdff]'} hover:underline`}>Ver todas las ofertas</button>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2.5 sm:gap-3">
           {ML_CATEGORIES.filter((c) => (categoryCounts[c.id] || 0) > 0).map((c) => (
@@ -2791,7 +2794,7 @@ function App() {
             onClick={() => setThemeMode(isLight ? 'dark' : 'light')}
             aria-label={isLight ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro'}
             className={`absolute top-2 right-2 w-11 h-11 rounded-full flex items-center justify-center border ${
-              isLight ? 'bg-white text-[#3483FA] border-gray-200' : 'bg-neutral-900 text-yellow-400 border-neutral-700'
+              isLight ? 'bg-white text-[#2968C8] border-gray-200' : 'bg-neutral-900 text-yellow-400 border-neutral-700'
             }`}
           >
             {isLight ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
@@ -2817,7 +2820,7 @@ function App() {
                   type="button"
                   onClick={() => navigate(c.id)}
                   className={`min-h-[36px] px-3 rounded-full text-xs sm:text-sm font-semibold border ${
-                    isLight ? 'bg-[#e3edfb] text-[#3483FA] border-transparent hover:border-[#3483FA]' : 'bg-[#3483FA]/20 text-[#8dbdff] border-transparent'
+                    isLight ? 'bg-[#e3edfb] text-[#2968C8] border-transparent hover:border-[#3483FA]' : 'bg-[#3483FA]/20 text-[#8dbdff] border-transparent'
                   }`}
                 >
                   {c.n} {c.label}
@@ -2826,12 +2829,13 @@ function App() {
             ))}
           </ul>
         </div>
+        {SHOW_HERO_CTAS && (
         <div className="flex flex-wrap gap-2 sm:flex-col sm:w-52 shrink-0">
           <a
             href={WHATSAPP_GROUP_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 min-h-[44px] px-4 rounded-md bg-[#25D366] hover:bg-[#1fb957] text-white font-semibold text-sm flex items-center justify-center gap-2"
+            className="flex-1 min-h-[44px] px-4 rounded-md bg-[#16803f] hover:bg-[#126a35] text-white font-semibold text-sm flex items-center justify-center gap-2"
           >
             <span aria-hidden="true">📲</span> Unirme al WhatsApp
           </a>
@@ -2839,12 +2843,13 @@ function App() {
             <button
               type="button"
               onClick={() => navigate('cupones')}
-              className="flex-1 min-h-[44px] px-4 rounded-md bg-[#3483FA] hover:bg-[#2968c8] text-white font-semibold text-sm"
+              className="flex-1 min-h-[44px] px-4 rounded-md bg-[#2968C8] hover:bg-[#1f55a8] text-white font-semibold text-sm"
             >
               Ver cupones
             </button>
           )}
         </div>
+        )}
       </div>
     </section>
   );
@@ -2852,7 +2857,7 @@ function App() {
   const renderBreadcrumb = () => {
     const sectionTitle = (MOBILE_TABS.find((t) => t.id === route.section) || {}).label;
     const cat = route.category ? getCategoryById(route.category) : null;
-    const linkCls = 'inline-flex items-center min-h-[40px] px-1 font-semibold text-[#3483FA] hover:underline';
+    const linkCls = `inline-flex items-center min-h-[40px] px-1 font-semibold ${isLight ? 'text-[#2968C8]' : 'text-[#8dbdff]'} hover:underline`;
     return (
       <nav aria-label="Ruta de navegación" className="container mx-auto px-3 sm:px-4 pt-3 pb-3 text-sm">
         <ol className="flex flex-wrap items-center gap-x-1.5">
@@ -2861,7 +2866,7 @@ function App() {
               <ChevronLeft className="w-4 h-4" aria-hidden="true" /> Inicio
             </button>
           </li>
-          <li aria-hidden="true" className={isLight ? 'text-gray-400' : 'text-neutral-600'}>›</li>
+          <li aria-hidden="true" className={isLight ? 'text-gray-600' : 'text-neutral-400'}>›</li>
           <li>
             {cat ? (
               <button type="button" onClick={() => navigate('productos')} className={linkCls}>Ofertas</button>
@@ -2871,7 +2876,7 @@ function App() {
           </li>
           {cat && (
             <>
-              <li aria-hidden="true" className={isLight ? 'text-gray-400' : 'text-neutral-600'}>›</li>
+              <li aria-hidden="true" className={isLight ? 'text-gray-600' : 'text-neutral-400'}>›</li>
               <li><span aria-current="page" className={`font-semibold ${isLight ? 'text-gray-800' : 'text-neutral-200'}`}>{cat.short}</span></li>
             </>
           )}
@@ -2988,6 +2993,7 @@ function App() {
             <span className="text-lg font-black text-[#333333] tracking-tight">CapiBaraML</span>
           </button>
           {renderHeaderSearch()}
+          {SHOW_HEADER_WHATSAPP && (
           <a
             href={WHATSAPP_GROUP_URL}
             target="_blank"
@@ -2996,6 +3002,7 @@ function App() {
           >
             <span aria-hidden="true">📲</span> Ofertas por WhatsApp
           </a>
+          )}
         </div>
         <nav aria-label="Secciones">
           <ul className="container mx-auto px-4 flex flex-wrap items-stretch gap-x-1">
@@ -3026,8 +3033,8 @@ function App() {
     const primary = MOBILE_TABS.filter((t) => MOBILE_PRIMARY_TAB_IDS.includes(t.id));
     const moreActive = MOBILE_MORE_TABS.some((t) => t.id === mobileTab);
     const itemBase = 'relative w-full min-h-[56px] flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold transition-colors';
-    const itemColor = (active) => (active ? 'text-[#3483FA]' : isLight ? 'text-gray-600' : 'text-neutral-400');
-    const indicator = <span aria-hidden="true" className="absolute top-0 inset-x-4 h-0.5 rounded-b bg-[#3483FA]" />;
+    const itemColor = (active) => (active ? (isLight ? 'text-[#2968C8]' : 'text-[#8dbdff]') : isLight ? 'text-gray-600' : 'text-neutral-400');
+    const indicator = <span aria-hidden="true" className="absolute top-0 inset-x-4 h-0.5 rounded-b bg-[#2968C8]" />;
     return (
       <>
         <nav
@@ -3206,7 +3213,7 @@ function App() {
             type="button"
             onClick={() => setThemeMode(isLight ? 'dark' : 'light')}
             className={`w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 border-2 ${
-              isLight ? 'bg-white text-[#3483FA] border-gray-200' : 'bg-neutral-900 text-yellow-400 border-neutral-700'
+              isLight ? 'bg-white text-[#2968C8] border-gray-200' : 'bg-neutral-900 text-yellow-400 border-neutral-700'
             }`}
             aria-label={isLight ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro'}
             title={isLight ? 'Tema oscuro' : 'Tema claro'}
@@ -3592,7 +3599,7 @@ function App() {
               >
                 🔒 Política de Privacidad
               </button>
-              <span className="opacity-50">|</span>
+              <span>|</span>
               <button 
                 onClick={() => setShowTermsModal(true)} 
                 className={`min-h-[44px] px-2 font-black underline ${isLight ? 'text-purple-700 hover:text-purple-900' : 'text-purple-300 hover:text-purple-200'}`}

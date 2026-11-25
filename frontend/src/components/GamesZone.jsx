@@ -2068,21 +2068,21 @@ export default function GamesZone({ currentUser, isLight }) {
               <User className="w-4 h-4" /> PROGRESO GLOBAL
             </h3>
             <div className="bg-black/40 rounded-xl p-3 text-center space-y-2">
-              <p className="text-xs font-bold text-red-200 truncate">@{playerName}</p>
+              <p className="text-xs font-bold text-red-100 truncate">@{playerName}</p>
               <div className="flex justify-around items-center pt-1 border-t border-red-500/30">
                 <div>
-                  <span className="text-[10px] uppercase text-red-300 block">NIVEL</span>
+                  <span className="text-[10px] uppercase text-red-100 block">NIVEL</span>
                   <span className="text-lg font-black text-yellow-300">{playerLevel}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase text-red-300 block">MONEDAS</span>
+                  <span className="text-[10px] uppercase text-red-100 block">MONEDAS</span>
                   <span className="text-lg font-black text-yellow-300">💰 {playerCoins}</span>
                 </div>
               </div>
               <div className="w-full bg-black/50 h-2 rounded-full overflow-hidden mt-1">
                 <div className="bg-yellow-400 h-full transition-all duration-300" style={{ width: `${Math.min(100, (playerXP / nextXpTarget) * 100)}%` }} />
               </div>
-              <span className="text-[10px] text-red-200 block">XP: {playerXP} / {nextXpTarget} (Difícil)</span>
+              <span className="text-[10px] text-red-100 block">XP: {playerXP} / {nextXpTarget} (Difícil)</span>
               <div className="pt-2 text-[11px] text-yellow-300 font-bold border-t border-red-500/30">
                 🏆 Récord Mes: {highScores[activeGame] || 0} pts
               </div>
@@ -2752,7 +2752,7 @@ export default function GamesZone({ currentUser, isLight }) {
                   <p className="text-[10px] text-blue-200/80 text-center pt-1">Guardados en este dispositivo.</p>
                 </div>
               ) : (
-                <p className="text-[11px] text-center text-blue-100/80 py-4 italic">
+                <p className="text-[11px] text-center text-blue-50 py-4 italic">
                   Aún no tienes récords. Juega una partida y aquí verás tu mejor puntuación de cada juego.
                 </p>
               )}
@@ -2765,7 +2765,7 @@ export default function GamesZone({ currentUser, isLight }) {
               </h3>
               
               {Object.keys(monthlyWinners).length === 0 ? (
-                <p className="text-[11px] text-center text-purple-300/70 py-4 italic">
+                <p className="text-[11px] text-center text-purple-100 py-4 italic">
                   Aún no hay meses anteriores. Al terminar cada mes guardaremos aquí tus mejores puntuaciones.
                 </p>
               ) : (

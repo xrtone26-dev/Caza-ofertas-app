@@ -727,7 +727,7 @@ export default function ChatbotWidget({ isLight, cupones, products, isMobileDevi
                       </span>
                     )}
                     {prod.discount_percentage && (
-                      <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md">
+                      <span className="bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md">
                         -{prod.discount_percentage}%
                       </span>
                     )}
@@ -1266,7 +1266,7 @@ export default function ChatbotWidget({ isLight, cupones, products, isMobileDevi
               <button
                 type="button"
                 onClick={() => processAndSendMessage('Muéstrame las ofertas top')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-red-500 text-white font-black text-[11px] hover:bg-red-600 transition shadow-sm cursor-pointer shrink-0 flex items-center gap-1"
+                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-red-600 text-white font-black text-[11px] hover:bg-red-700 transition shadow-sm cursor-pointer shrink-0 flex items-center gap-1"
               >
                 <Flame size={12} /> Ofertas Top
               </button>
