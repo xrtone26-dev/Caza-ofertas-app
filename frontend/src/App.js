@@ -91,6 +91,11 @@ const WHATSAPP_GROUP_URL = 'https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mod
 //   #/ofertas           todas         #/terminales  #/videos  #/juegos  #/unete
 // Se usa hash para que funcione sin configurar el servidor y el botón "atrás" del navegador funcione.
 // ==========================================
+// Bloques del inicio que se conservan en el código pero ya no se dibujan:
+// las secciones se abren desde la barra amarilla y las categorías desde el menú "Categorías".
+const SHOW_HOME_SECTION_TILES = false;
+const SHOW_HOME_CATEGORY_GRID = false;
+
 const SECTION_SLUGS = {
   inicio: '',
   cupones: 'cupones',
@@ -1153,10 +1158,14 @@ function App() {
   const logoGlareRef = useRef(null);
 
   const [isMobileDevice, setIsMobileDevice] = useState(false);
+  const [showCategoriesMenu, setShowCategoriesMenu] = useState(false);
+  const categoriesMenuRef = useRef(null);
+  const categoriesHoverAtRef = useRef(0);
   const [route, setRoute] = useState(() => parseHash(window.location.hash));
   const mobileTab = route.section;
   const navigate = (section, category = null) => {
     setShowMoreSheet(false);
+    setShowCategoriesMenu(false);
     const target = buildHash(section, category);
     if (window.location.hash === target || (target === '#/' && !window.location.hash)) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1165,6 +1174,22 @@ function App() {
     window.location.hash = target; // dispara hashchange (ver efecto de abajo)
   };
   const setMobileTab = (tab) => navigate(tab);
+  // El menú de categorías se cierra con clic fuera o con Escape.
+  useEffect(() => {
+    if (!showCategoriesMenu) return undefined;
+    const onDown = (e) => {
+      if (categoriesMenuRef.current && !categoriesMenuRef.current.contains(e.target)) setShowCategoriesMenu(false);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') setShowCategoriesMenu(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('touchstart', onDown, { passive: true });
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('touchstart', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [showCategoriesMenu]);
   useEffect(() => {
     const onHash = () => {
       setRoute(parseHash(window.location.hash));
@@ -2456,14 +2481,14 @@ function App() {
   );
 
   const desktopNavLinks = [
-    { id: 'inicio', label: '🏠 Inicio' },
-    ...(activeCupones.length > 0 ? [{ id: 'cupones', label: '🎟️ Cupones' }] : []),
-    { id: 'bancarios', label: '💳 Promociones bancarias' },
-    { id: 'productos', label: '🔥 Ofertas' },
-    { id: 'exclusivos', label: '⭐ Terminales' },
-    { id: 'reels', label: '📺 Videos' },
-    { id: 'juegos', label: '🎮 Juegos' },
-    { id: 'trabaja', label: '💼 Únete al equipo' },
+    { id: 'inicio', label: 'Inicio' },
+    ...(activeCupones.length > 0 ? [{ id: 'cupones', label: 'Cupones' }] : []),
+    { id: 'bancarios', label: 'Promociones bancarias' },
+    { id: 'productos', label: 'Ofertas' },
+    { id: 'exclusivos', label: 'Terminales' },
+    { id: 'reels', label: 'Videos' },
+    { id: 'juegos', label: 'Juegos' },
+    { id: 'trabaja', label: 'Únete al equipo' },
   ];
 
   // ==========================================
@@ -2485,6 +2510,7 @@ function App() {
 
   const renderHome = () => (
     <div className="container mx-auto px-3 sm:px-4 mb-16 relative z-10 space-y-8">
+      {SHOW_HOME_SECTION_TILES && (
       <section aria-labelledby="home-secciones">
         <h2 id="home-secciones" className={`text-lg sm:text-xl font-bold mb-3 ${isLight ? 'text-gray-900' : 'text-neutral-100'}`}>¿Qué quieres hacer hoy?</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
@@ -2501,7 +2527,39 @@ function App() {
           ))}
         </div>
       </section>
+      )}
 
+      <section aria-labelledby="home-destacadas">
+        <div className="flex items-end justify-between gap-2 mb-3">
+          <h2 id="home-destacadas" className={`text-lg sm:text-xl font-bold ${isLight ? 'text-gray-900' : 'text-neutral-100'}`}>Ofertas destacadas</h2>
+          <button type="button" onClick={() => navigate('productos')} className="min-h-[40px] px-2 text-sm font-semibold text-[#3483FA] hover:underline">Ver todas las ofertas</button>
+        </div>
+        {regularProducts.length === 0 ? (
+          <p className={`text-sm ${isLight ? 'text-gray-600' : 'text-neutral-400'}`} role="status">
+            {productsStatus === 'loading' ? 'Cargando ofertas…' : 'Aún no hay ofertas. Vuelve en unos minutos o revisa los cupones.'}
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2.5 sm:gap-3">
+            {regularProducts.slice(0, 6).map((p) => (
+              <a
+                key={getSafeId(p) || p.title}
+                href={p.affiliate_link || p.link || p.url || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${tileClass} !min-h-0 gap-2`}
+              >
+                <img src={p.image_url} alt="" loading="lazy" decoding="async" className="w-full h-28 object-contain bg-white rounded" />
+                <span className={`block text-xs leading-snug line-clamp-2 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}>{p.title}</span>
+                <span className={`block text-base font-semibold ${isLight ? 'text-gray-900' : 'text-neutral-50'}`}>
+                  ${Number(p.discount_price).toLocaleString('en-US', { maximumFractionDigits: 2 })}
+                </span>
+              </a>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {SHOW_HOME_CATEGORY_GRID && (
       <section aria-labelledby="home-categorias">
         <div className="flex items-end justify-between gap-2 mb-3">
           <h2 id="home-categorias" className={`text-lg sm:text-xl font-bold ${isLight ? 'text-gray-900' : 'text-neutral-100'}`}>Categorías</h2>
@@ -2524,6 +2582,7 @@ function App() {
           </p>
         )}
       </section>
+      )}
     </div>
   );
 
@@ -2558,19 +2617,104 @@ function App() {
     );
   };
 
+  // ==========================================
+  // MENÚ "CATEGORÍAS" (desplegable de la barra amarilla)
+  // ==========================================
+  const renderCategoriesMenu = (compact = false) => {
+    const listed = ML_CATEGORIES.filter((c) => (categoryCounts[c.id] || 0) > 0);
+    const activeCat = route.section === 'productos' && route.category;
+    const itemCls = 'w-full min-h-[44px] flex items-center justify-between gap-3 px-3 py-2 text-left text-sm rounded-md text-white/90 hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none';
+    return (
+      <div
+        ref={categoriesMenuRef}
+        className={compact ? 'relative' : 'relative self-stretch flex'}
+        onMouseEnter={compact ? undefined : () => { categoriesHoverAtRef.current = Date.now(); setShowCategoriesMenu(true); }}
+        onMouseLeave={compact ? undefined : () => setShowCategoriesMenu(false)}
+      >
+        <button
+          type="button"
+          aria-haspopup="true"
+          aria-expanded={showCategoriesMenu}
+          aria-controls="categorias-menu"
+          onClick={() => {
+            if (!compact && Date.now() - categoriesHoverAtRef.current < 400) { setShowCategoriesMenu(true); return; }
+            setShowCategoriesMenu((v) => !v);
+          }}
+          className={`inline-flex items-center gap-1 min-h-[40px] px-3 text-sm font-semibold text-[#333333] hover:text-black ${
+            activeCat ? 'border-b-2 border-black' : 'border-b-2 border-transparent'
+          }`}
+        >
+          Categorías
+          <ChevronDown className={`w-4 h-4 transition-transform ${showCategoriesMenu ? 'rotate-180' : ''}`} aria-hidden="true" />
+        </button>
+
+        {showCategoriesMenu && (
+          <div
+            id="categorias-menu"
+            role="menu"
+            aria-label="Categorías de ofertas"
+            className={`absolute z-[75] bg-neutral-900 text-white shadow-2xl border border-white/10 overflow-y-auto ${
+              compact
+                ? 'left-0 top-full mt-1 w-[min(92vw,360px)] max-h-[60vh] rounded-lg p-2'
+                : 'left-0 top-full w-[min(720px,90vw)] max-h-[70vh] rounded-b-lg p-3'
+            }`}
+          >
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => navigate('productos')}
+              className={`${itemCls} font-semibold text-[#FFE600] ${compact ? '' : 'mb-1'}`}
+            >
+              <span>Ver todas las ofertas</span>
+              <span className="text-xs text-white/60">({regularProducts.length})</span>
+            </button>
+            <div className={compact ? 'grid grid-cols-1' : 'grid grid-cols-2 lg:grid-cols-3 gap-x-2'}>
+              {listed.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => navigate('productos', c.id)}
+                  className={`${itemCls} ${activeCat === c.id ? 'bg-white/10 font-semibold' : ''}`}
+                >
+                  <span className="flex items-center gap-2 min-w-0">
+                    <span aria-hidden="true">{c.icon}</span>
+                    <span className="truncate">{c.short}</span>
+                  </span>
+                  <span className="text-xs text-white/60 shrink-0">({categoryCounts[c.id]})</span>
+                </button>
+              ))}
+            </div>
+            {listed.length === 0 && (
+              <p className="px-3 py-2 text-sm text-white/60" role="status">
+                {productsStatus === 'loading' ? 'Cargando categorías…' : 'Aún no hay ofertas por categoría.'}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderTopBar = () => (
     isMobileDevice ? (
-      <header className="sticky top-[60px] z-[65] bg-[#FFE600] shadow-md">
-        <div className="flex items-center gap-2 px-3 py-2">
+      <header className="sticky top-[60px] z-[65] bg-[#FFE600] shadow-sm">
+        <div className="flex items-center gap-2 px-3 pt-2 pb-1">
           <button type="button" onClick={() => navigate('inicio')} aria-label="CapiBaraML, ir al inicio" className="shrink-0">
             <img src={logoUrl} alt="" className="w-9 h-9 rounded-full object-cover border border-black/20" />
           </button>
           {renderHeaderSearch()}
         </div>
+        <div className="px-2 pb-1 flex items-center justify-between">
+          {renderCategoriesMenu(true)}
+          <span className="text-xs font-medium text-[#333333]/80 pr-1 truncate">
+            {(MOBILE_TABS.find((t) => t.id === route.section) || {}).label}
+          </span>
+        </div>
       </header>
     ) : (
-      <header className="sticky top-[64px] z-[65] bg-[#FFE600] shadow-md">
-        <div className="container mx-auto px-4 py-2.5 flex items-center gap-5">
+      <header className="sticky top-[64px] z-[65] bg-[#FFE600] shadow-sm">
+        <div className="container mx-auto px-4 pt-2.5 pb-1.5 flex items-center gap-6">
           <button
             type="button"
             onClick={() => navigate('inicio')}
@@ -2578,19 +2722,28 @@ function App() {
             className="flex items-center gap-2 shrink-0"
           >
             <img src={logoUrl} alt="" className="w-10 h-10 rounded-full object-cover border border-black/20" />
-            <span className="text-lg font-black text-black tracking-tight">CapiBaraML</span>
+            <span className="text-lg font-black text-[#333333] tracking-tight">CapiBaraML</span>
           </button>
           {renderHeaderSearch()}
+          <a
+            href={WHATSAPP_GROUP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden lg:flex shrink-0 items-center gap-2 min-h-[40px] px-3 rounded-md text-sm font-semibold text-[#333333] hover:bg-black/5"
+          >
+            <span aria-hidden="true">📲</span> Ofertas por WhatsApp
+          </a>
         </div>
-        <nav aria-label="Secciones" className="border-t border-black/10">
-          <ul className="container mx-auto px-4 flex flex-wrap items-center gap-x-1">
+        <nav aria-label="Secciones">
+          <ul className="container mx-auto px-4 flex flex-wrap items-stretch gap-x-1">
+            <li className="flex">{renderCategoriesMenu(false)}</li>
             {desktopNavLinks.map((item) => (
-              <li key={item.id}>
+              <li key={item.id} className="flex">
                 <a
                   href={buildHash(item.id)}
-                  aria-current={route.section === item.id ? 'page' : undefined}
-                  className={`inline-flex items-center min-h-[40px] px-3 text-sm hover:text-black hover:underline underline-offset-4 decoration-2 ${
-                    route.section === item.id ? 'font-bold text-black underline' : 'font-medium text-black/80'
+                  aria-current={route.section === item.id && !route.category ? 'page' : undefined}
+                  className={`inline-flex items-center min-h-[40px] px-3 text-sm text-[#333333] hover:text-black border-b-2 ${
+                    route.section === item.id && !route.category ? 'font-semibold border-black' : 'font-medium border-transparent'
                   }`}
                 >
                   {item.label}
