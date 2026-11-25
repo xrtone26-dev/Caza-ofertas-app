@@ -143,6 +143,8 @@ export default function GamesZone({ currentUser, isLight }) {
   // Pantalla completa "simulada" para navegadores sin Fullscreen API (iPhone/Safari): cubre toda la ventana.
   const [pseudoFull, setPseudoFull] = useState(false);
   const fullActive = isFullscreen || pseudoFull;
+  const autoFullRef = useRef(false);
+  const dismissedRef = useRef(false);
   // Tamaño real del área de juego: los tableros se calculan a partir de aquí para no desbordar nunca.
   const [box, setBox] = useState({ w: 0, h: 0 });
   const [, setTimeLeftMonth] = useState('0d 0h 0m 0s');
@@ -354,7 +356,7 @@ export default function GamesZone({ currentUser, isLight }) {
   };
 
   const toggleFullscreen = () => {
-    if (pseudoFull) { setPseudoFull(false); return; }
+    if (pseudoFull) { autoFullRef.current = false; dismissedRef.current = true; setPseudoFull(false); return; }
     if (document.fullscreenElement || document.webkitFullscreenElement) {
       const exit = document.exitFullscreen || document.webkitExitFullscreen;
       if (exit) exit.call(document);
@@ -396,7 +398,7 @@ export default function GamesZone({ currentUser, isLight }) {
     if (!pseudoFull) return undefined;
     const root = document.documentElement;
     root.classList.add('games-full');
-    const onKey = (e) => { if (e.key === 'Escape') setPseudoFull(false); };
+    const onKey = (e) => { if (e.key === 'Escape') { autoFullRef.current = false; dismissedRef.current = true; setPseudoFull(false); } };
     window.addEventListener('keydown', onKey);
     return () => {
       root.classList.remove('games-full');
@@ -1866,6 +1868,18 @@ export default function GamesZone({ currentUser, isLight }) {
   );
 
   const shortLandscape = vp.w > vp.h && vp.h < 520;
+  // Celular en horizontal: al jugar se usa toda la pantalla (si no, las barras fijas dejan muy poco alto).
+  useEffect(() => {
+    const want = isMobile && shortLandscape && gamePhase === 'playing';
+    if (!want) dismissedRef.current = false;
+    if (want && !pseudoFull && !isFullscreen && !dismissedRef.current) {
+      autoFullRef.current = true;
+      setPseudoFull(true);
+    } else if (!want && pseudoFull && autoFullRef.current) {
+      autoFullRef.current = false;
+      setPseudoFull(false);
+    }
+  }, [isMobile, shortLandscape, gamePhase, pseudoFull, isFullscreen]);
   const getContainerHeightClass = () => {
     if (pseudoFull) return 'fixed inset-0 z-[100] w-screen rounded-none border-none';
     if (isFullscreen) return 'h-screen w-screen rounded-none border-none max-h-none min-h-screen';
@@ -1946,12 +1960,12 @@ export default function GamesZone({ currentUser, isLight }) {
     onContextMenu: (e) => e.preventDefault(),
     style: { touchAction: 'none' },
   });
-  const tcBtn = 'min-w-[56px] min-h-[56px] rounded-2xl border shadow-lg flex items-center justify-center select-none touch-none active:scale-95 transition-transform';
+  const tcBtn = 'min-w-[48px] min-h-[52px] rounded-2xl border shadow-lg flex items-center justify-center select-none touch-none active:scale-95 transition-transform';
   const renderTetrisControls = (which) => {
     const moveBtns = (
-      <div className={`flex ${which === 'left' ? 'flex-col' : 'flex-row'} gap-2 items-center`}>
-        <div className="flex gap-2">
-          <button type="button" aria-label="Mover a la izquierda" {...repeatProps(() => moveTetrisSide(-1))} className={`${tcBtn} bg-neutral-800/90 border-neutral-700 text-yellow-400 active:bg-neutral-600`}><ArrowLeft size={24} /></button>
+      <div className={`flex ${which === 'left' ? 'flex-col' : 'flex-row'} gap-1.5 items-center`}>
+        <div className="flex gap-1.5">
+          <button type="button" aria-label="Mover a la izquierda" {...repeatProps(() => moveTetrisSide(-1))} className={`${tcBtn} bg-neutral-800/90 border-neutral-700 text-yellow-400 active:bg-neutral-600`}><ArrowLeft size={22} /></button>
           {which !== 'left' && (
             <button
               type="button"
@@ -1983,20 +1997,20 @@ export default function GamesZone({ currentUser, isLight }) {
       </div>
     );
     const actionBtns = (
-      <div className={`flex ${which === 'right' ? 'flex-col' : 'flex-row'} gap-2 items-center`}>
+      <div className={`flex ${which === 'right' ? 'flex-col' : 'flex-row'} gap-1.5 items-center`}>
         <button type="button" aria-label="Rotar pieza" onPointerDown={(e) => { e.preventDefault(); rotateTetrisNow(); }} className={`${tcBtn} bg-blue-600/90 border-blue-500 text-white active:bg-blue-500`} style={{ touchAction: 'none' }}><RotateCw size={24} /></button>
         <button type="button" aria-label="Guardar pieza (hold)" onPointerDown={(e) => { e.preventDefault(); holdTetrisPiece(); }} className={`${tcBtn} bg-green-600/90 border-green-500 text-white active:bg-green-500 font-black text-[11px]`} style={{ touchAction: 'none' }}>HOLD</button>
       </div>
     );
     if (which === 'left') return <div className="shrink-0 z-10">{moveBtns}</div>;
     if (which === 'right') return <div className="shrink-0 z-10">{actionBtns}</div>;
-    return <div className="w-full flex justify-between items-center px-1 gap-2 z-10 mt-2 shrink-0">{moveBtns}{actionBtns}</div>;
+    return <div className="w-full flex flex-wrap justify-between items-center px-1 gap-1.5 z-10 mt-2 shrink-0">{moveBtns}{actionBtns}</div>;
   };
 
   return (
-    <div className="container mx-auto px-4 mb-16 relative z-10">
+    <div className="container mx-auto px-1 sm:px-4 mb-16 relative z-10">
       
-      <div className={`rounded-3xl shadow-xl p-4 md:p-8 border ${isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'}`}>
+      <div className={`rounded-3xl shadow-xl p-2 sm:p-4 md:p-8 border ${isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'}`}>
         <h2 className={`text-2xl sm:text-3xl font-bold text-center mb-6 flex items-center justify-center gap-2 ${isLight ? 'text-purple-700' : 'text-neutral-100 font-black'}`}>
           <Gamepad2 className="w-8 h-8 text-yellow-400" /> ZONA DE JUEGOS CAPIBARAML
         </h2>
@@ -2061,7 +2075,7 @@ export default function GamesZone({ currentUser, isLight }) {
               ref={gameContainerRef} 
               data-game-full={pseudoFull ? 'true' : undefined}
               style={getContainerStyle()}
-              className={`relative w-full ${getContainerHeightClass()} bg-neutral-950 rounded-2xl border flex items-center justify-center shadow-2xl overflow-hidden ${
+              className={`${pseudoFull ? '' : 'relative'} w-full ${getContainerHeightClass()} bg-neutral-950 rounded-2xl border flex items-center justify-center shadow-2xl overflow-hidden ${
                 activeGame === 'clicker' ? getClickerThemeClasses() : 'border-neutral-800'
               } ${screenRed ? 'ring-4 ring-red-600 animate-pulse' : ''}`}
             >
