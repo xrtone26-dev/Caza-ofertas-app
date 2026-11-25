@@ -59,6 +59,7 @@ import {
 } from "react-icons/fa";
 import axios from 'axios';
 import useEmblaCarousel from 'embla-carousel-react';
+import { ML_CATEGORIES, classifyProduct, getCategoryById } from './utils/categories';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChatbotWidget from './components/ChatbotWidget';
 // import ProfileModal from './components/ProfileModal'; // COMENTADO: Módulo de perfil de usuario normal deshabilitado
@@ -81,28 +82,43 @@ const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 // Antes eran 30 s (≈190 KB comprimidos por petición); el backend ya cachea 60 s.
 const CATALOG_REFRESH_MS = 5 * 60 * 1000;
 // Cuántos productos se pintan a la vez en el carrusel (antes se pintaban los ~1 900).
-const PRODUCTS_PAGE_SIZE = 12;
 const WHATSAPP_GROUP_URL = 'https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mode=hqrt1';
 
-const QUICK_FILTERS = [
-  { id: 'all', label: 'Todos', query: '', maxPrice: null },
-  { id: 'phones', label: 'Celulares', query: 'iphone galaxy redmi poco moto celular smartphone', maxPrice: null },
-  { id: 'laptops', label: 'Laptops', query: 'laptop macbook portatil notebook', maxPrice: null },
-  { id: 'tv', label: 'Pantallas', query: 'smart tv televisor pantalla roku google tv', maxPrice: null },
-  { id: 'audio', label: 'Audio', query: 'audifonos audífonos bocina bluetooth earbuds airpods soundbar', maxPrice: null },
-  { id: 'gaming', label: 'Gaming', query: 'gamer gaming playstation ps5 xbox nintendo switch consola', maxPrice: null },
-  { id: 'home', label: 'Hogar y cocina', query: 'cocina hogar sartén licuadora cafetera freidora colchon colchón mueble', maxPrice: null },
-  { id: 'appliances', label: 'Electrodomésticos', query: 'refrigerador lavadora microondas estufa aspiradora robot ventilador', maxPrice: null },
-  { id: 'sports', label: 'Deportes', query: 'deporte bicicleta pesas gimnasio tenis balón futbol fitness yoga', maxPrice: null },
-  { id: 'fashion', label: 'Moda y calzado', query: 'zapatos tenis calzado playera pantalón camisa reloj bolsa mochila', maxPrice: null },
-  { id: 'beauty', label: 'Belleza', query: 'belleza perfume maquillaje shampoo crema cabello skincare', maxPrice: null },
-  { id: 'toys', label: 'Juguetes', query: 'juguete lego muñeca niños bebé peluche', maxPrice: null },
-  { id: 'under1k', label: 'Hasta $1,000', query: '', maxPrice: 1000 },
-  { id: 'under3k', label: 'Hasta $3,000', query: '', maxPrice: 3000 },
-];
+// ==========================================
+// RUTAS (hash): cada apartado y cada categoría tienen su propia vista.
+//   #/                  inicio        #/ofertas/celulares  ofertas de una categoría
+//   #/cupones           cupones       #/bancos             promociones bancarias
+//   #/ofertas           todas         #/terminales  #/videos  #/juegos  #/unete
+// Se usa hash para que funcione sin configurar el servidor y el botón "atrás" del navegador funcione.
+// ==========================================
+const SECTION_SLUGS = {
+  inicio: '',
+  cupones: 'cupones',
+  bancarios: 'bancos',
+  productos: 'ofertas',
+  exclusivos: 'terminales',
+  reels: 'videos',
+  juegos: 'juegos',
+  trabaja: 'unete',
+};
+const SLUG_TO_SECTION = Object.fromEntries(Object.entries(SECTION_SLUGS).map(([k, v]) => [v, k]));
+
+function parseHash(hash) {
+  const parts = String(hash || '').replace(/^#\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
+  const section = SLUG_TO_SECTION[parts[0] || ''] || 'inicio';
+  const category = section === 'productos' && parts[1] && getCategoryById(parts[1]) ? parts[1] : null;
+  return { section, category };
+}
+
+function buildHash(section, category) {
+  const slug = SECTION_SLUGS[section] || '';
+  if (!slug) return '#/';
+  return category && section === 'productos' ? `#/${slug}/${category}` : `#/${slug}`;
+}
 
 // Navegación principal: etiqueta corta + qué encuentra el visitante en cada sección.
 const MOBILE_TABS = [
+  { id: 'inicio', icon: '🏠', label: 'Inicio' },
   { id: 'cupones', icon: '🎟️', label: 'Cupones' },
   { id: 'productos', icon: '🔥', label: 'Ofertas' },
   { id: 'bancarios', icon: '💳', label: 'Bancos' },
@@ -113,8 +129,9 @@ const MOBILE_TABS = [
 ];
 
 // La barra inferior del celular muestra estas 4 + "Más" (el resto va dentro de "Más").
-const MOBILE_PRIMARY_TAB_IDS = ['cupones', 'productos', 'bancarios', 'juegos'];
+const MOBILE_PRIMARY_TAB_IDS = ['inicio', 'productos', 'cupones', 'juegos'];
 const MOBILE_MORE_TABS = [
+  { id: 'bancarios', icon: '💳', label: 'Bancos', hint: 'Promociones y meses sin intereses con tu banco' },
   { id: 'exclusivos', icon: '⭐', label: 'Terminales', hint: 'Cobra con tarjeta y recibe tu dinero al instante' },
   { id: 'reels', icon: '📺', label: 'Videos', hint: 'Productos probados en video' },
   { id: 'trabaja', icon: '💼', label: 'Únete', hint: 'Trabaja con nosotros' },
@@ -1136,20 +1153,26 @@ function App() {
   const logoGlareRef = useRef(null);
 
   const [isMobileDevice, setIsMobileDevice] = useState(false);
-  const [mobileTab, setMobileTabState] = useState('cupones');
-  const userPickedTabRef = useRef(false);
-  const setMobileTab = (tab) => {
-    userPickedTabRef.current = true;
+  const [route, setRoute] = useState(() => parseHash(window.location.hash));
+  const mobileTab = route.section;
+  const navigate = (section, category = null) => {
     setShowMoreSheet(false);
-    setMobileTabState(tab);
-    // Si el usuario ya bajó, lo regresamos al inicio de la sección elegida.
-    requestAnimationFrame(() => {
-      const anchor = mobileNavAnchorRef.current;
-      if (anchor && anchor.getBoundingClientRect().top < 0) {
-        window.scrollTo({ top: anchor.getBoundingClientRect().top + window.scrollY - 124, behavior: 'smooth' });
-      }
-    });
+    const target = buildHash(section, category);
+    if (window.location.hash === target || (target === '#/' && !window.location.hash)) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    window.location.hash = target; // dispara hashchange (ver efecto de abajo)
   };
+  const setMobileTab = (tab) => navigate(tab);
+  useEffect(() => {
+    const onHash = () => {
+      setRoute(parseHash(window.location.hash));
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
 
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -1226,7 +1249,6 @@ function App() {
   useDialogBehavior(showTutorialModal, () => setShowTutorialModal(false));
   useDialogBehavior(showPrivacyModal, () => setShowPrivacyModal(false));
   useDialogBehavior(showTermsModal, () => setShowTermsModal(false));
-  const mobileNavAnchorRef = useRef(null);
   
   const [tiktokVideos, setTiktokVideos] = useState(() => {
     try {
@@ -1306,10 +1328,11 @@ function App() {
   // 'loading' | 'ready' | 'error' — evita pantallas en blanco mientras Render despierta
   const [offersStatus, setOffersStatus] = useState('loading');
   const [productsStatus, setProductsStatus] = useState('loading');
-  const [visibleProductCount, setVisibleProductCount] = useState(PRODUCTS_PAGE_SIZE);
   const [searchTerm, setSearchTerm] = useState('');
   const [productSearchInput, setProductSearchInput] = useState('');
-  const [selectedQuickFilter, setSelectedQuickFilter] = useState('all');
+  // La categoría activa vive en la URL (#/ofertas/<categoria>), así cada categoría es su propia vista.
+  const selectedQuickFilter = route.section === 'productos' && route.category ? route.category : 'all';
+  const setSelectedQuickFilter = (id) => navigate('productos', id === 'all' ? null : id);
   const [couponSearchTerm, setCouponSearchTerm] = useState(''); 
   const [bancarioSearchTerm, setBancarioSearchTerm] = useState('');
   const [showToast, setShowToast] = useState(false);
@@ -1378,7 +1401,6 @@ function App() {
     }
   };
 
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
   const [cuponesRef, cuponesApi] = useEmblaCarousel({ loop: true, align: 'start' });
   const [bancariosRef, bancariosApi] = useEmblaCarousel({ loop: true, align: 'start' });
   const [exclusiveEmblaRef, exclusiveEmblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
@@ -1400,28 +1422,12 @@ function App() {
   }, [bancariosApi]);
 
   useEffect(() => {
-    if (!emblaApi) return;
-    const autoplay = setInterval(() => {
-      emblaApi.scrollNext();
-    }, 5000);
-    return () => clearInterval(autoplay);
-  }, [emblaApi]);
-
-  useEffect(() => {
     if (!exclusiveEmblaApi) return;
     const autoplay = setInterval(() => {
       exclusiveEmblaApi.scrollNext();
     }, 5000);
     return () => clearInterval(autoplay);
   }, [exclusiveEmblaApi]);
-
-  const scrollPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
-  }, [emblaApi]);
-
-  const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
-  }, [emblaApi]);
 
   const scrollPrevCupones = useCallback(() => {
     if (cuponesApi) cuponesApi.scrollPrev();
@@ -1665,19 +1671,6 @@ function App() {
 
   const isLight = themeMode === 'light';
 
-  // En celular, si no hay cupones activos, abrir directamente en Productos
-  // (a menos que el usuario ya haya elegido una pestaña).
-  useEffect(() => {
-    if (userPickedTabRef.current) return;
-    if (offersStatus === 'ready' && activeCupones.length === 0 && mobileTab === 'cupones') {
-      setMobileTabState('productos');
-    }
-  }, [offersStatus, activeCupones.length, mobileTab]);
-
-  useEffect(() => {
-    setVisibleProductCount(PRODUCTS_PAGE_SIZE);
-  }, [searchTerm, selectedQuickFilter]);
-  
   const exclusiveProducts = useMemo(() => {
     return products.filter(p => {
       if (!isProductFresh(p)) return false;
@@ -1707,35 +1700,30 @@ function App() {
     });
   }, [products, exclusiveProducts]);
 
+  // Clasificación automática (categorías de Mercado Libre): se calcula una vez por producto.
+  const categoryById = useMemo(() => {
+    const map = new Map();
+    regularProducts.forEach((p) => map.set(getSafeId(p) || p.title, classifyProduct(p)));
+    return map;
+  }, [regularProducts]);
+
+  const categoryCounts = useMemo(() => {
+    const counts = {};
+    categoryById.forEach((cat) => { counts[cat] = (counts[cat] || 0) + 1; });
+    return counts;
+  }, [categoryById]);
+
   const filteredProducts = useMemo(() => {
-    const activeChip = QUICK_FILTERS.find((f) => f.id === selectedQuickFilter) || QUICK_FILTERS[0];
     const lowerSearch = searchTerm.trim().toLowerCase();
 
     return regularProducts.filter((p) => {
+      if (selectedQuickFilter !== 'all' && categoryById.get(getSafeId(p) || p.title) !== selectedQuickFilter) return false;
+      if (!lowerSearch) return true;
       const titleLower = p.title ? String(p.title).toLowerCase() : '';
       const descLower = p.description ? String(p.description).toLowerCase() : '';
-      const combined = `${titleLower} ${descLower}`;
-
-      if (activeChip.id !== 'all') {
-        if (activeChip.maxPrice) {
-          const price = Number(p.discount_price || p.precio || 0);
-          if (!(price > 0 && price <= activeChip.maxPrice)) return false;
-        } else if (activeChip.query) {
-          const keywords = activeChip.query.split(' ');
-          const matchesChip = keywords.some((kw) => combined.includes(kw));
-          if (!matchesChip) return false;
-        }
-      }
-
-      if (!lowerSearch) return true;
       return titleLower.includes(lowerSearch) || descLower.includes(lowerSearch);
     });
-  }, [regularProducts, searchTerm, selectedQuickFilter]);
-
-  const visibleProducts = useMemo(
-    () => filteredProducts.slice(0, visibleProductCount),
-    [filteredProducts, visibleProductCount]
-  );
+  }, [regularProducts, searchTerm, selectedQuickFilter, categoryById]);
 
   const mainBgClass = `${isLight
     ? 'min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-800 relative overflow-x-clip font-sans'
@@ -1743,8 +1731,6 @@ function App() {
 
   const renderCuponesSection = () => {
     if (activeCupones.length === 0) {
-      // En escritorio la sección se oculta; en celular nunca se deja la pestaña en blanco.
-      if (!isMobileDevice) return null;
       return (
         <EmptyState
           isLight={isLight}
@@ -1974,7 +1960,7 @@ function App() {
           <SectionHeader
             id="sec-ofertas"
             icon="🔥"
-            title="Ofertas destacadas"
+            title={selectedQuickFilter !== 'all' ? (getCategoryById(selectedQuickFilter)?.label || 'Ofertas destacadas') : 'Ofertas destacadas'}
             subtitle="Precios rebajados en Mercado Libre. Elige una categoría o busca un producto."
             isLight={isLight}
           />
@@ -1985,7 +1971,9 @@ function App() {
               aria-label="Filtrar ofertas"
               className="flex sm:flex-wrap gap-2 overflow-x-auto no-scrollbar -mx-3.5 px-3.5 sm:mx-0 sm:px-0 pb-1"
             >
-              {QUICK_FILTERS.map((chip) => {
+              {[{ id: 'all', short: 'Todas', icon: '🛒', count: regularProducts.length },
+                ...ML_CATEGORIES.filter((c) => (categoryCounts[c.id] || 0) > 0 || c.id === selectedQuickFilter).map((c) => ({ ...c, count: categoryCounts[c.id] || 0 })),
+              ].map((chip) => {
                 const isSelected = selectedQuickFilter === chip.id;
                 return (
                   <button
@@ -2003,7 +1991,7 @@ function App() {
                         : 'bg-neutral-900 text-neutral-300 border-neutral-700 hover:border-neutral-500'
                     }`}
                   >
-                    {chip.label}
+                    <span aria-hidden="true" className="mr-1">{chip.icon}</span>{chip.short} <span className="opacity-60 font-medium">({chip.count})</span>
                   </button>
                 );
               })}
@@ -2043,10 +2031,10 @@ function App() {
               </button>
             </div>
           ) : (
-            <div className="relative px-2 sm:px-0">
-              <div className="overflow-hidden" ref={emblaRef}>
-                <div className="flex gap-3 sm:gap-4">
-                  {visibleProducts.map((product) => {
+            <div className="relative">
+              <div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-4">
+                  {filteredProducts.map((product) => {
                     const pId = getSafeId(product) || product.title;
                     const remainingDays = getRemainingDays(product);
                     const origPriceNum = Number(product.original_price || 0);
@@ -2060,7 +2048,7 @@ function App() {
                     const savingPct = product.discount_percentage || (showsSaving ? Math.round((1 - priceNum / origDisplayNum) * 100) : null);
 
                     return (
-                      <div key={pId} className="flex-[0_0_64%] sm:flex-[0_0_44%] md:flex-[0_0_calc(33.333%-11px)] lg:flex-[0_0_calc(25%-12px)] min-w-0">
+                      <div key={pId} className="min-w-0" style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 380px' }}>
                         <article className={`h-full flex flex-col relative rounded-lg overflow-hidden border transition-shadow hover:shadow-lg ${
                           isLight ? 'bg-white border-gray-200 shadow-sm' : 'bg-neutral-900 border-neutral-800'
                         }`}>
@@ -2079,7 +2067,7 @@ function App() {
                           )}
 
                           <div className="relative bg-white border-b border-gray-100">
-                            <img src={product.image_url} alt={product.title} loading="lazy" decoding="async" width="400" height="256" className="w-full h-40 sm:h-48 object-contain p-3" />
+                            <img src={product.image_url} alt={product.title} loading="lazy" decoding="async" width="400" height="256" className="w-full h-32 sm:h-44 object-contain p-2 sm:p-3" />
                           </div>
 
                           <div className="p-3 sm:p-4 flex flex-col flex-1">
@@ -2145,26 +2133,13 @@ function App() {
                 </div>
               </div>
 
-              {visibleProducts.length > 1 && (
-                <CarouselArrows onPrev={scrollPrev} onNext={scrollNext} label="Oferta" topClass="top-[80px] sm:top-[96px]" />
-              )}
             </div>
           )}
           {filteredProducts.length > 0 && (
-            <div className="mt-5 flex flex-col items-center gap-2">
-              <p className={`text-xs font-bold ${isLight ? 'text-gray-500' : 'text-neutral-400'}`}>
-                Mostrando {visibleProducts.length} de {filteredProducts.length} ofertas · desliza o usa las flechas
-              </p>
-              {visibleProducts.length < filteredProducts.length && (
-                <button
-                  type="button"
-                  onClick={() => setVisibleProductCount((n) => n + PRODUCTS_PAGE_SIZE)}
-                  className="min-h-[48px] px-6 py-3 rounded-md bg-[#e3edfb] hover:bg-[#d3e3f8] text-[#3483FA] font-semibold text-sm"
-                >
-                  Cargar {Math.min(PRODUCTS_PAGE_SIZE, filteredProducts.length - visibleProducts.length)} ofertas más al carrusel
-                </button>
-              )}
-            </div>
+            <p className={`mt-5 text-center text-xs font-bold ${isLight ? 'text-gray-500' : 'text-neutral-400'}`} role="status">
+              {filteredProducts.length} {filteredProducts.length === 1 ? 'oferta' : 'ofertas'}
+              {selectedQuickFilter !== 'all' && ` en ${getCategoryById(selectedQuickFilter)?.short || 'esta categoría'}`}
+            </p>
           )}
           <div className={`mt-6 pt-4 border-t text-center text-xs md:text-sm font-medium ${
             isLight ? 'border-gray-200 text-gray-600' : 'border-neutral-800 text-neutral-400'
@@ -2432,16 +2407,7 @@ function App() {
   // ==========================================
   // BUSCADOR GLOBAL Y ENCABEZADO (inspirado en Mercado Libre)
   // ==========================================
-  const goToOffers = () => {
-    if (isMobileDevice) {
-      setMobileTab('productos');
-      return;
-    }
-    requestAnimationFrame(() => {
-      const el = document.getElementById('ofertas');
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  };
+  const goToOffers = () => navigate('productos');
 
   const handleHeaderSearch = (e) => {
     e.preventDefault();
@@ -2490,20 +2456,115 @@ function App() {
   );
 
   const desktopNavLinks = [
-    ...(activeCupones.length > 0 ? [{ href: '#cupones', label: '🎟️ Cupones' }] : []),
-    { href: '#bancos', label: '💳 Promociones bancarias' },
-    { href: '#ofertas', label: '🔥 Ofertas' },
-    { href: '#terminales', label: '⭐ Terminales' },
-    { href: '#videos', label: '📺 Videos' },
-    { href: '#juegos', label: '🎮 Juegos' },
-    { href: '#unete', label: '💼 Únete al equipo' },
+    { id: 'inicio', label: '🏠 Inicio' },
+    ...(activeCupones.length > 0 ? [{ id: 'cupones', label: '🎟️ Cupones' }] : []),
+    { id: 'bancarios', label: '💳 Promociones bancarias' },
+    { id: 'productos', label: '🔥 Ofertas' },
+    { id: 'exclusivos', label: '⭐ Terminales' },
+    { id: 'reels', label: '📺 Videos' },
+    { id: 'juegos', label: '🎮 Juegos' },
+    { id: 'trabaja', label: '💼 Únete al equipo' },
   ];
+
+  // ==========================================
+  // INICIO LIMPIO + MIGAS DE PAN
+  // ==========================================
+  const SECTION_TILES = [
+    { id: 'cupones', icon: '🎟️', title: 'Cupones', desc: 'Códigos de descuento activos', count: activeCupones.length, noun: 'activos' },
+    { id: 'bancarios', icon: '💳', title: 'Promociones bancarias', desc: 'Meses sin intereses y bonificaciones', count: activeCuponesBancarios.length, noun: 'promos' },
+    { id: 'productos', icon: '🔥', title: 'Ofertas destacadas', desc: 'Todas las ofertas, por categoría', count: regularProducts.length, noun: 'ofertas' },
+    { id: 'exclusivos', icon: '⭐', title: 'Terminales', desc: 'Cobra con tarjeta al instante' },
+    { id: 'reels', icon: '📺', title: 'Videos', desc: 'Productos probados en video' },
+    { id: 'juegos', icon: '🎮', title: 'Zona de juegos', desc: 'Cinco juegos gratis' },
+    { id: 'trabaja', icon: '💼', title: 'Únete al equipo', desc: 'Trabaja con nosotros' },
+  ];
+
+  const tileClass = `group text-left rounded-lg border p-3.5 min-h-[88px] flex flex-col justify-between transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3483FA] ${
+    isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'
+  }`;
+
+  const renderHome = () => (
+    <div className="container mx-auto px-3 sm:px-4 mb-16 relative z-10 space-y-8">
+      <section aria-labelledby="home-secciones">
+        <h2 id="home-secciones" className={`text-lg sm:text-xl font-bold mb-3 ${isLight ? 'text-gray-900' : 'text-neutral-100'}`}>¿Qué quieres hacer hoy?</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
+          {SECTION_TILES.map((t) => (
+            <button key={t.id} type="button" onClick={() => navigate(t.id)} className={tileClass}>
+              <span className="text-2xl" aria-hidden="true">{t.icon}</span>
+              <span>
+                <span className={`block font-bold text-sm sm:text-base leading-tight ${isLight ? 'text-gray-900' : 'text-neutral-100'}`}>{t.title}</span>
+                <span className={`block text-xs mt-0.5 ${isLight ? 'text-gray-500' : 'text-neutral-400'}`}>
+                  {typeof t.count === 'number' ? (t.count > 0 ? `${t.count} ${t.noun}` : 'Sin novedades hoy') : t.desc}
+                </span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="home-categorias">
+        <div className="flex items-end justify-between gap-2 mb-3">
+          <h2 id="home-categorias" className={`text-lg sm:text-xl font-bold ${isLight ? 'text-gray-900' : 'text-neutral-100'}`}>Categorías</h2>
+          <button type="button" onClick={() => navigate('productos')} className="min-h-[40px] px-2 text-sm font-semibold text-[#3483FA] hover:underline">Ver todas las ofertas</button>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2.5 sm:gap-3">
+          {ML_CATEGORIES.filter((c) => (categoryCounts[c.id] || 0) > 0).map((c) => (
+            <button key={c.id} type="button" onClick={() => navigate('productos', c.id)} className={`${tileClass} min-h-[80px]`}>
+              <span className="text-2xl" aria-hidden="true">{c.icon}</span>
+              <span>
+                <span className={`block font-semibold text-sm leading-tight ${isLight ? 'text-gray-900' : 'text-neutral-100'}`}>{c.short}</span>
+                <span className={`block text-xs ${isLight ? 'text-gray-500' : 'text-neutral-400'}`}>{categoryCounts[c.id]} {categoryCounts[c.id] === 1 ? 'oferta' : 'ofertas'}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+        {regularProducts.length === 0 && (
+          <p className={`text-sm mt-2 ${isLight ? 'text-gray-600' : 'text-neutral-400'}`} role="status">
+            {productsStatus === 'loading' ? 'Cargando ofertas…' : 'Aún no hay ofertas por categoría. Vuelve en unos minutos o revisa los cupones.'}
+          </p>
+        )}
+      </section>
+    </div>
+  );
+
+  const renderBreadcrumb = () => {
+    const sectionTitle = (MOBILE_TABS.find((t) => t.id === route.section) || {}).label;
+    const cat = route.category ? getCategoryById(route.category) : null;
+    const linkCls = 'inline-flex items-center min-h-[40px] px-1 font-semibold text-[#3483FA] hover:underline';
+    return (
+      <nav aria-label="Ruta de navegación" className="container mx-auto px-3 sm:px-4 pt-3 pb-3 text-sm">
+        <ol className="flex flex-wrap items-center gap-x-1.5">
+          <li>
+            <button type="button" onClick={() => navigate('inicio')} className={linkCls}>
+              <ChevronLeft className="w-4 h-4" aria-hidden="true" /> Inicio
+            </button>
+          </li>
+          <li aria-hidden="true" className={isLight ? 'text-gray-400' : 'text-neutral-600'}>›</li>
+          <li>
+            {cat ? (
+              <button type="button" onClick={() => navigate('productos')} className={linkCls}>Ofertas</button>
+            ) : (
+              <span aria-current="page" className={`font-semibold ${isLight ? 'text-gray-800' : 'text-neutral-200'}`}>{sectionTitle}</span>
+            )}
+          </li>
+          {cat && (
+            <>
+              <li aria-hidden="true" className={isLight ? 'text-gray-400' : 'text-neutral-600'}>›</li>
+              <li><span aria-current="page" className={`font-semibold ${isLight ? 'text-gray-800' : 'text-neutral-200'}`}>{cat.short}</span></li>
+            </>
+          )}
+        </ol>
+      </nav>
+    );
+  };
 
   const renderTopBar = () => (
     isMobileDevice ? (
       <header className="sticky top-[60px] z-[65] bg-[#FFE600] shadow-md">
         <div className="flex items-center gap-2 px-3 py-2">
-          <img src={logoUrl} alt="CapiBaraML" className="w-9 h-9 rounded-full object-cover border border-black/20 shrink-0" />
+          <button type="button" onClick={() => navigate('inicio')} aria-label="CapiBaraML, ir al inicio" className="shrink-0">
+            <img src={logoUrl} alt="" className="w-9 h-9 rounded-full object-cover border border-black/20" />
+          </button>
           {renderHeaderSearch()}
         </div>
       </header>
@@ -2512,7 +2573,7 @@ function App() {
         <div className="container mx-auto px-4 py-2.5 flex items-center gap-5">
           <button
             type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            onClick={() => navigate('inicio')}
             aria-label="CapiBaraML, ir al inicio"
             className="flex items-center gap-2 shrink-0"
           >
@@ -2524,10 +2585,13 @@ function App() {
         <nav aria-label="Secciones" className="border-t border-black/10">
           <ul className="container mx-auto px-4 flex flex-wrap items-center gap-x-1">
             {desktopNavLinks.map((item) => (
-              <li key={item.href}>
+              <li key={item.id}>
                 <a
-                  href={item.href}
-                  className="inline-flex items-center min-h-[40px] px-3 text-sm font-medium text-black/80 hover:text-black hover:underline underline-offset-4 decoration-2"
+                  href={buildHash(item.id)}
+                  aria-current={route.section === item.id ? 'page' : undefined}
+                  className={`inline-flex items-center min-h-[40px] px-3 text-sm hover:text-black hover:underline underline-offset-4 decoration-2 ${
+                    route.section === item.id ? 'font-bold text-black underline' : 'font-medium text-black/80'
+                  }`}
                 >
                   {item.label}
                 </a>
@@ -2772,6 +2836,7 @@ function App() {
 
       {renderTopBar()}
 
+      {route.section === 'inicio' && (
       <div
         className={`relative overflow-hidden border-b pb-8 ${
           isLight
@@ -2853,37 +2918,26 @@ function App() {
           </div>
         </div>
       </div>
+      )}
 
-
-      {isMobileDevice ? (
-        <div className="container mx-auto px-0 sm:px-4 mb-16 relative z-20">
-          <div ref={mobileNavAnchorRef} aria-hidden="true" />
-          {/* La navegación del celular es la barra inferior fija (ver renderMobileBottomNav) */}
-          <div id="mobile-panel" className="pt-4">
-          {mobileTab === 'cupones' && renderCuponesSection()}
-          {mobileTab === 'bancarios' && renderCuponesBancariosSection()}
-          {mobileTab === 'productos' && renderProductosSection()}
-          {mobileTab === 'juegos' && renderGamesSection()}
-          {mobileTab === 'exclusivos' && renderExclusiveProductsSection()}
-          {mobileTab === 'trabaja' && renderWorkWithUsSection(isLight)}
-          {mobileTab === 'reels' && (
-            <>
-              {renderReelsSection()}
-              {renderNewSection(products)}
-            </>
-          )}
-          </div>
-        </div>
-      ) : (
+      {route.section === 'inicio' && <div className="h-4" />}
+      {route.section === 'inicio' ? renderHome() : (
         <>
-          {renderCuponesSection()}
-          {renderCuponesBancariosSection()}
-          {renderProductosSection()}
-          {renderExclusiveProductsSection()}
-          {renderReelsSection()}
-          {renderNewSection(products)}
-          {renderGamesSection()}
-          {renderWorkWithUsSection(isLight)}
+          {renderBreadcrumb()}
+          <main id="vista" className="relative z-20 pt-1">
+            {route.section === 'cupones' && renderCuponesSection()}
+            {route.section === 'bancarios' && renderCuponesBancariosSection()}
+            {route.section === 'productos' && renderProductosSection()}
+            {route.section === 'juegos' && renderGamesSection()}
+            {route.section === 'exclusivos' && renderExclusiveProductsSection()}
+            {route.section === 'trabaja' && renderWorkWithUsSection(isLight)}
+            {route.section === 'reels' && (
+              <>
+                {renderReelsSection()}
+                {renderNewSection(products)}
+              </>
+            )}
+          </main>
         </>
       )}
 

@@ -111,14 +111,22 @@ export default function GamesZone({ currentUser, isLight }) {
   const [gamePhase, setGamePhase] = useState('menu'); 
   const [isEffectsMuted, setIsEffectsMuted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [vp, setVp] = useState(() => ({ w: typeof window !== 'undefined' ? window.innerWidth : 1024, h: typeof window !== 'undefined' ? window.innerHeight : 768 }));
   const playerName = (currentUser && String(currentUser).trim()) || 'Jugador';
 
   // Detectar dispositivo móvil para ajustar controles
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768 || ('ontouchstart' in window));
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || ('ontouchstart' in window) || (navigator.maxTouchPoints || 0) > 0);
+      setVp({ w: window.innerWidth, h: window.innerHeight });
+    };
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener('orientationchange', checkMobile);
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('orientationchange', checkMobile);
+    };
   }, []);
 
   // Estados de XP y Niveles
@@ -132,6 +140,11 @@ export default function GamesZone({ currentUser, isLight }) {
 
   const gameContainerRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // Pantalla completa "simulada" para navegadores sin Fullscreen API (iPhone/Safari): cubre toda la ventana.
+  const [pseudoFull, setPseudoFull] = useState(false);
+  const fullActive = isFullscreen || pseudoFull;
+  // Tamaño real del área de juego: los tableros se calculan a partir de aquí para no desbordar nunca.
+  const [box, setBox] = useState({ w: 0, h: 0 });
   const [, setTimeLeftMonth] = useState('0d 0h 0m 0s');
 
   // Récords independientes
@@ -341,18 +354,55 @@ export default function GamesZone({ currentUser, isLight }) {
   };
 
   const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      if (gameContainerRef.current?.requestFullscreen) {
-        gameContainerRef.current.requestFullscreen();
-      } else if (gameContainerRef.current?.webkitRequestFullscreen) {
-        gameContainerRef.current.webkitRequestFullscreen();
+    if (pseudoFull) { setPseudoFull(false); return; }
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exit) exit.call(document);
+      return;
+    }
+    const el = gameContainerRef.current;
+    const req = el && (el.requestFullscreen || el.webkitRequestFullscreen);
+    if (req) {
+      try {
+        const r = req.call(el);
+        if (r && typeof r.catch === 'function') r.catch(() => setPseudoFull(true));
+      } catch (err) {
+        setPseudoFull(true);
       }
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
+      setPseudoFull(true);
     }
   };
+
+  useEffect(() => {
+    const el = gameContainerRef.current;
+    if (!el) return undefined;
+    const measure = () => setBox({ w: Math.floor(el.clientWidth), h: Math.floor(el.clientHeight) });
+    measure();
+    let ro;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(measure);
+      ro.observe(el);
+    }
+    window.addEventListener('resize', measure);
+    return () => {
+      if (ro) ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
+
+  // Pantalla completa simulada: bloquea el scroll de la página, oculta barras fijas y se cierra con Escape.
+  useEffect(() => {
+    if (!pseudoFull) return undefined;
+    const root = document.documentElement;
+    root.classList.add('games-full');
+    const onKey = (e) => { if (e.key === 'Escape') setPseudoFull(false); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      root.classList.remove('games-full');
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [pseudoFull]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -1815,19 +1865,138 @@ export default function GamesZone({ currentUser, isLight }) {
     </div>
   );
 
+  const shortLandscape = vp.w > vp.h && vp.h < 520;
   const getContainerHeightClass = () => {
+    if (pseudoFull) return 'fixed inset-0 z-[100] w-screen rounded-none border-none';
     if (isFullscreen) return 'h-screen w-screen rounded-none border-none max-h-none min-h-screen';
+    return '';
+  };
+  // El alto sigue a la ventana visible (dvh): ni se sale de la pantalla ni deja el tablero diminuto.
+  const getContainerStyle = () => {
+    if (pseudoFull) return { height: '100dvh' };
+    if (isFullscreen) return undefined;
     if (isMobile) {
-       if (activeGame === 'tetris' || activeGame === '2048') return 'h-auto min-h-[65vh] py-4';
-       return 'h-[65vh] min-h-[480px]';
+      return shortLandscape
+        ? { height: 'clamp(300px, calc(100dvh - 150px), 520px)' }
+        : { height: 'clamp(420px, calc(100dvh - 210px), 760px)' };
     }
-    return 'h-[65vh] min-h-[450px] max-h-[520px] sm:h-[520px]';
+    return { height: 'clamp(470px, calc(100dvh - 250px), 640px)' };
+  };
+
+  // ---- Medidas derivadas del área de juego real ----
+  const clampN = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const bw = box.w || Math.min(vp.w - 32, 840);
+  const bh = box.h || 520;
+  const landscape = isMobile && bw > bh * 1.1;
+
+  // Tetris: celdas cuadradas calculadas con el espacio libre (paneles laterales y botones incluidos).
+  const tetrisWide = vp.w >= 640;
+  const tetrisSides = (tetrisWide ? 2 * 112 + 2 * 24 : 2 * 56 + 2 * 6) + (landscape ? 2 * 76 : 0);
+  const tetrisCtrlH = isMobile && !landscape ? 80 : 0;
+  const tetrisCell = clampN(
+    Math.floor(Math.min((bw - 16 - tetrisSides - 20) / TETRIS_COLS, (bh - 56 - tetrisCtrlH - 14 - 20) / TETRIS_ROWS)),
+    9, 30
+  );
+
+  // 2048: tablero cuadrado que cabe junto al D-pad (abajo en vertical, al costado en horizontal).
+  const board2048 = clampN(
+    Math.floor(Math.min(bw - 16 - (landscape ? 200 : 0), bh - 56 - 44 - 14 - (isMobile && !landscape ? 150 : 28))),
+    150, 480
+  );
+
+  // Memorama: cuadrado que cabe bajo la barra de estado.
+  const memorySize = clampN(Math.floor(Math.min(bw - 24, bh - 56 - 52 - 24)), 150, 560);
+
+  // Click Challenge: botón proporcional al espacio disponible.
+  const clickerSize = clampN(Math.floor(Math.min(bw * 0.62, bh - 56 - 80 - 40 - 50)), 104, 260);
+
+  // Controles táctiles de Tetris con repetición al mantener pulsado.
+  const tetrisLiveRef = useRef({});
+  tetrisLiveRef.current = { cur: tetrisCurrent, grid: tetrisGrid, paused: isTetrisPaused };
+  const repeatTimerRef = useRef({ t: null, i: null });
+  const stopRepeat = () => {
+    clearTimeout(repeatTimerRef.current.t);
+    clearInterval(repeatTimerRef.current.i);
+  };
+  useEffect(() => stopRepeat, []);
+  const moveTetrisSide = (dir) => {
+    const { cur, grid, paused } = tetrisLiveRef.current;
+    if (!cur || paused) return;
+    if (!checkTetrisCollision(cur, grid, dir, 0)) {
+      playSoundEffect('move');
+      setTetrisCurrent((prev) => (prev ? { ...prev, x: prev.x + dir } : prev));
+    }
+  };
+  const rotateTetrisNow = () => {
+    const { cur, paused } = tetrisLiveRef.current;
+    if (!cur || paused) return;
+    playSoundEffect('rotate');
+    setTetrisCurrent((prev) => (prev ? rotateTetrisPiece(prev) : prev));
+  };
+  const repeatProps = (fn) => ({
+    onPointerDown: (e) => {
+      e.preventDefault();
+      stopRepeat();
+      fn();
+      repeatTimerRef.current.t = setTimeout(() => { repeatTimerRef.current.i = setInterval(fn, 55); }, 170);
+    },
+    onPointerUp: stopRepeat,
+    onPointerLeave: stopRepeat,
+    onPointerCancel: stopRepeat,
+    onContextMenu: (e) => e.preventDefault(),
+    style: { touchAction: 'none' },
+  });
+  const tcBtn = 'min-w-[56px] min-h-[56px] rounded-2xl border shadow-lg flex items-center justify-center select-none touch-none active:scale-95 transition-transform';
+  const renderTetrisControls = (which) => {
+    const moveBtns = (
+      <div className={`flex ${which === 'left' ? 'flex-col' : 'flex-row'} gap-2 items-center`}>
+        <div className="flex gap-2">
+          <button type="button" aria-label="Mover a la izquierda" {...repeatProps(() => moveTetrisSide(-1))} className={`${tcBtn} bg-neutral-800/90 border-neutral-700 text-yellow-400 active:bg-neutral-600`}><ArrowLeft size={24} /></button>
+          {which !== 'left' && (
+            <button
+              type="button"
+              aria-label="Bajar"
+              onPointerDown={(e) => { e.preventDefault(); setIsFastDropping(true); softDropTetris(); }}
+              onPointerUp={() => setIsFastDropping(false)}
+              onPointerLeave={() => setIsFastDropping(false)}
+              onPointerCancel={() => setIsFastDropping(false)}
+              onContextMenu={(e) => e.preventDefault()}
+              className={`${tcBtn} bg-neutral-800/90 border-neutral-700 text-yellow-400 active:bg-neutral-600`}
+              style={{ touchAction: 'none' }}
+            ><ArrowDown size={24} /></button>
+          )}
+          <button type="button" aria-label="Mover a la derecha" {...repeatProps(() => moveTetrisSide(1))} className={`${tcBtn} bg-neutral-800/90 border-neutral-700 text-yellow-400 active:bg-neutral-600`}><ArrowRight size={24} /></button>
+        </div>
+        {which === 'left' && (
+          <button
+            type="button"
+            aria-label="Bajar"
+            onPointerDown={(e) => { e.preventDefault(); setIsFastDropping(true); softDropTetris(); }}
+            onPointerUp={() => setIsFastDropping(false)}
+            onPointerLeave={() => setIsFastDropping(false)}
+            onPointerCancel={() => setIsFastDropping(false)}
+            onContextMenu={(e) => e.preventDefault()}
+            className={`${tcBtn} w-full bg-neutral-800/90 border-neutral-700 text-yellow-400 active:bg-neutral-600`}
+            style={{ touchAction: 'none' }}
+          ><ArrowDown size={24} /></button>
+        )}
+      </div>
+    );
+    const actionBtns = (
+      <div className={`flex ${which === 'right' ? 'flex-col' : 'flex-row'} gap-2 items-center`}>
+        <button type="button" aria-label="Rotar pieza" onPointerDown={(e) => { e.preventDefault(); rotateTetrisNow(); }} className={`${tcBtn} bg-blue-600/90 border-blue-500 text-white active:bg-blue-500`} style={{ touchAction: 'none' }}><RotateCw size={24} /></button>
+        <button type="button" aria-label="Guardar pieza (hold)" onPointerDown={(e) => { e.preventDefault(); holdTetrisPiece(); }} className={`${tcBtn} bg-green-600/90 border-green-500 text-white active:bg-green-500 font-black text-[11px]`} style={{ touchAction: 'none' }}>HOLD</button>
+      </div>
+    );
+    if (which === 'left') return <div className="shrink-0 z-10">{moveBtns}</div>;
+    if (which === 'right') return <div className="shrink-0 z-10">{actionBtns}</div>;
+    return <div className="w-full flex justify-between items-center px-1 gap-2 z-10 mt-2 shrink-0">{moveBtns}{actionBtns}</div>;
   };
 
   return (
     <div className="container mx-auto px-4 mb-16 relative z-10">
       
-      <div className={`rounded-3xl shadow-xl p-4 md:p-8 backdrop-blur-xl border ${isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'}`}>
+      <div className={`rounded-3xl shadow-xl p-4 md:p-8 border ${isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'}`}>
         <h2 className={`text-2xl sm:text-3xl font-bold text-center mb-6 flex items-center justify-center gap-2 ${isLight ? 'text-purple-700' : 'text-neutral-100 font-black'}`}>
           <Gamepad2 className="w-8 h-8 text-yellow-400" /> ZONA DE JUEGOS CAPIBARAML
         </h2>
@@ -1870,7 +2039,7 @@ export default function GamesZone({ currentUser, isLight }) {
           </div>
 
           {/* CONTENEDOR CENTRAL DEL JUEGO */}
-          <div className="flex flex-col gap-3 w-full max-w-[840px] order-1 xl:order-2">
+          <div className="flex flex-col gap-3 w-full min-w-0 max-w-[840px] order-1 xl:order-2">
             {gamePhase === 'playing' && activeGame !== 'memory' && activeGame !== 'ninja' && activeGame !== 'clicker' && activeGame !== 'tetris' && (
               <div className="w-full flex flex-wrap justify-between items-center gap-2 bg-neutral-900 border border-neutral-800 px-4 py-2 rounded-xl shadow-md text-white text-xs font-bold">
                 <div>Puntos: <span className="text-yellow-400 text-sm font-black">{score}</span></div>
@@ -1890,6 +2059,8 @@ export default function GamesZone({ currentUser, isLight }) {
 
             <div 
               ref={gameContainerRef} 
+              data-game-full={pseudoFull ? 'true' : undefined}
+              style={getContainerStyle()}
               className={`relative w-full ${getContainerHeightClass()} bg-neutral-950 rounded-2xl border flex items-center justify-center shadow-2xl overflow-hidden ${
                 activeGame === 'clicker' ? getClickerThemeClasses() : 'border-neutral-800'
               } ${screenRed ? 'ring-4 ring-red-600 animate-pulse' : ''}`}
@@ -1898,9 +2069,10 @@ export default function GamesZone({ currentUser, isLight }) {
               <button
                 onClick={toggleFullscreen}
                 className={`absolute top-3 right-3 z-[60] p-2 rounded-xl backdrop-blur-sm border shadow-lg transition-all ${activeGame === 'clicker' ? 'bg-black/10 hover:bg-black/20 border-transparent' : 'bg-neutral-800/80 hover:bg-neutral-700 text-yellow-400 border-neutral-700'}`}
-                title="Pantalla Completa"
+                title={fullActive ? 'Salir de pantalla completa' : 'Pantalla completa'}
+                aria-label={fullActive ? 'Salir de pantalla completa' : 'Pantalla completa'}
               >
-                {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+                {fullActive ? <Minimize size={18} /> : <Maximize size={18} />}
               </button>
 
               {/* INDICADOR FPS (Clicker) */}
@@ -2154,8 +2326,8 @@ export default function GamesZone({ currentUser, isLight }) {
 
               {/* JUGANDO CLICKER */}
               {activeGame === 'clicker' && gamePhase === 'playing' && (
-                <div className="w-full h-full flex flex-col items-center justify-between py-4 relative z-20">
-                  <div className="w-full flex justify-between items-start px-4 sm:px-6 pt-16 sm:pt-16">
+                <div className="w-full h-full flex flex-col items-center justify-between py-2 relative z-20 min-h-0">
+                  <div className="w-full flex justify-between items-start px-4 sm:px-6 pt-12 sm:pt-14 shrink-0">
                     <div className="flex flex-col items-start bg-black/10 p-2 sm:p-3 rounded-xl min-w-[100px] sm:min-w-[120px] backdrop-blur-md">
                       <span className="text-[9px] sm:text-[10px] uppercase font-bold opacity-60">Tiempo</span>
                       <span ref={timerTextRef} className="text-3xl sm:text-4xl font-black font-mono tracking-tighter">01:00</span>
@@ -2165,7 +2337,7 @@ export default function GamesZone({ currentUser, isLight }) {
                       <span ref={clicksTextRef} className="text-3xl sm:text-4xl font-black font-mono tracking-tighter text-blue-500">0</span>
                     </div>
                   </div>
-                  <div className="w-full max-w-md px-4 sm:px-6 absolute top-[140px] sm:top-[150px] left-1/2 -translate-x-1/2 pointer-events-none">
+                  <div className="w-full max-w-md px-4 sm:px-6 relative shrink-0 mx-auto pointer-events-none">
                     <div className="flex justify-between text-[9px] sm:text-[10px] font-bold uppercase opacity-60 mb-1">
                       <span>Velocidad Actual</span>
                       <span><span ref={cpsTextRef}>0</span> CPS</span>
@@ -2174,16 +2346,16 @@ export default function GamesZone({ currentUser, isLight }) {
                       <div ref={cpsBarRef} className="h-full bg-blue-500 w-0 transition-all duration-100 ease-linear"></div>
                     </div>
                   </div>
-                  <div className="flex-1 flex items-center justify-center w-full touch-none select-none my-4">
+                  <div className="flex-1 min-h-0 flex items-center justify-center w-full touch-none select-none my-2">
                     <button
                       onPointerDown={handleMainClickerAction}
-                      className={`w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 rounded-full font-black text-xl sm:text-2xl md:text-3xl text-white outline-none px-4 text-center
+                      className={`rounded-full font-black text-xl sm:text-2xl md:text-3xl text-white outline-none px-4 text-center
                         bg-gradient-to-br ${getClickerButtonColorClasses()} 
                         shadow-[0_20px_50px_rgba(0,0,0,0.4)]
                         hover:brightness-110 active:brightness-90
                         active:scale-95 transition-all duration-75 cursor-pointer 
                         flex items-center justify-center flex-col gap-2 relative group focus-visible:ring-8 focus-visible:ring-blue-400`}
-                      style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
+                      style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation', width: clickerSize, height: clickerSize }}
                     >
                       <span className="pointer-events-none drop-shadow-md leading-tight">{clickerButtonText}</span>
                       <div className="absolute inset-0 rounded-full shadow-[inset_0_5px_15px_rgba(255,255,255,0.4)] pointer-events-none"></div>
@@ -2234,34 +2406,36 @@ export default function GamesZone({ currentUser, isLight }) {
 
               {/* JUGANDO 2048 */}
               {activeGame === '2048' && gamePhase === 'playing' && (
-                <div className="w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 pt-14 sm:pt-16 select-none touch-none relative" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+                <div className={`w-full h-full flex ${landscape ? 'flex-row gap-4' : 'flex-col'} items-center justify-center p-2 pt-12 sm:pt-14 select-none touch-none relative`} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
                   {is2048Paused && renderUnifiedPauseOverlay(() => setIs2048Paused(false), () => setGamePhase('menu'))}
-                  <div className="flex justify-between items-center w-full max-w-[340px] mb-2 sm:mb-3 px-2">
+                  <div className="flex flex-col items-center">
+                  <div className="flex justify-between items-center mb-2 px-1" style={{ width: board2048 }}>
                     <span className="text-[10px] sm:text-xs font-bold text-neutral-400">{isWon ? '✨ ¡2048 Conseguido! (Infinito)' : 'Combina fichas iguales'}</span>
                     <button onClick={undo2048} className="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-xs font-bold text-yellow-400 rounded-lg flex items-center gap-1 shadow"><RotateCcw size={12} /> Deshacer</button>
                   </div>
-                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5 bg-neutral-900 p-2 sm:p-3.5 rounded-2xl border-2 border-neutral-800 shadow-2xl relative z-10">
+                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5 bg-neutral-900 p-2 sm:p-3 rounded-2xl border-2 border-neutral-800 shadow-2xl relative z-10 box-border" style={{ width: board2048, height: board2048 }}>
                     {grid2048.map((row, r) => row.map((val, c) => (
-                      <div key={`${r}-${c}`} className={`w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-xl flex items-center justify-center font-black text-lg sm:text-xl md:text-3xl transition-all shadow-inner ${val === 0 ? 'bg-neutral-800/40 text-transparent' : val === 2 ? 'bg-amber-100 text-neutral-800' : val === 4 ? 'bg-amber-200 text-neutral-800' : val === 8 ? 'bg-orange-400 text-white' : val === 16 ? 'bg-orange-500 text-white' : val === 32 ? 'bg-red-500 text-white' : val === 64 ? 'bg-red-600 text-white' : 'bg-yellow-400 text-black scale-105'}`}>
+                      <div key={`${r}-${c}`} style={{ fontSize: Math.max(12, Math.floor(board2048 / 4 * (val >= 1000 ? 0.26 : val >= 100 ? 0.31 : 0.4))) }} className={`w-full h-full min-w-0 rounded-xl flex items-center justify-center font-black transition-all shadow-inner ${val === 0 ? 'bg-neutral-800/40 text-transparent' : val === 2 ? 'bg-amber-100 text-neutral-800' : val === 4 ? 'bg-amber-200 text-neutral-800' : val === 8 ? 'bg-orange-400 text-white' : val === 16 ? 'bg-orange-500 text-white' : val === 32 ? 'bg-red-500 text-white' : val === 64 ? 'bg-red-600 text-white' : 'bg-yellow-400 text-black scale-105'}`}>
                         {val !== 0 ? val : ''}
                       </div>
                     )))}
                   </div>
                   
+                  {!isMobile && (
+                    <p className="text-[10px] sm:text-[11px] text-neutral-500 mt-2 font-medium px-4 text-center">💡 En PC usa Teclas de Flecha / WASD</p>
+                  )}
+                  </div>
+
                   {/* ON-SCREEN BUTTONS 2048 MOBILE */}
                   {isMobile && (
-                    <div className="grid grid-cols-3 gap-2 w-[180px] mt-6 z-10">
+                    <div className={`grid grid-cols-3 gap-2 w-[180px] z-10 shrink-0 ${landscape ? '' : 'mt-3'}`}>
                       <div />
-                      <button onClick={() => move2048('up')} className="bg-neutral-800/80 active:bg-neutral-600 border border-neutral-700 text-yellow-400 p-3 rounded-2xl flex justify-center shadow-lg"><ArrowUp size={24} /></button>
+                      <button onClick={() => move2048('up')} className="bg-neutral-800/80 active:bg-neutral-600 border border-neutral-700 text-yellow-400 min-h-[52px] rounded-2xl flex items-center justify-center shadow-lg touch-manipulation"><ArrowUp size={24} /></button>
                       <div />
-                      <button onClick={() => move2048('left')} className="bg-neutral-800/80 active:bg-neutral-600 border border-neutral-700 text-yellow-400 p-3 rounded-2xl flex justify-center shadow-lg"><ArrowLeft size={24} /></button>
-                      <button onClick={() => move2048('down')} className="bg-neutral-800/80 active:bg-neutral-600 border border-neutral-700 text-yellow-400 p-3 rounded-2xl flex justify-center shadow-lg"><ArrowDown size={24} /></button>
-                      <button onClick={() => move2048('right')} className="bg-neutral-800/80 active:bg-neutral-600 border border-neutral-700 text-yellow-400 p-3 rounded-2xl flex justify-center shadow-lg"><ArrowRight size={24} /></button>
+                      <button onClick={() => move2048('left')} className="bg-neutral-800/80 active:bg-neutral-600 border border-neutral-700 text-yellow-400 min-h-[52px] rounded-2xl flex items-center justify-center shadow-lg touch-manipulation"><ArrowLeft size={24} /></button>
+                      <button onClick={() => move2048('down')} className="bg-neutral-800/80 active:bg-neutral-600 border border-neutral-700 text-yellow-400 min-h-[52px] rounded-2xl flex items-center justify-center shadow-lg touch-manipulation"><ArrowDown size={24} /></button>
+                      <button onClick={() => move2048('right')} className="bg-neutral-800/80 active:bg-neutral-600 border border-neutral-700 text-yellow-400 min-h-[52px] rounded-2xl flex items-center justify-center shadow-lg touch-manipulation"><ArrowRight size={24} /></button>
                     </div>
-                  )}
-
-                  {!isMobile && (
-                    <p className="text-[10px] sm:text-[11px] text-neutral-500 mt-3 sm:mt-4 font-medium px-4 text-center">💡 En PC usa Teclas de Flecha / WASD</p>
                   )}
                 </div>
               )}
@@ -2299,10 +2473,11 @@ export default function GamesZone({ currentUser, isLight }) {
                 }
 
                 return (
-                  <div className="w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 pt-14 sm:pt-16 select-none touch-none relative" onTouchStart={!isMobile ? handleTouchStart : undefined} onTouchEnd={!isMobile ? handleTouchEnd : undefined}>
+                  <div className={`w-full h-full flex ${landscape ? 'flex-row' : 'flex-col'} items-center justify-center gap-2 px-2 pb-2 pt-12 sm:pt-14 select-none touch-none relative`}>
                     {isTetrisPaused && renderUnifiedPauseOverlay(() => setIsTetrisPaused(false), () => setGamePhase('menu'))}
                     
-                    <div className="flex flex-row items-stretch justify-center gap-1 sm:gap-6 w-full max-w-full mb-2 relative z-10 px-1">
+                    {isMobile && landscape && renderTetrisControls('left')}
+                    <div className="flex flex-row items-stretch justify-center gap-1 sm:gap-6 max-w-full relative z-10 min-h-0">
                       {/* Panel Izquierdo (Hold) */}
                       <div className="flex flex-col gap-2 w-14 sm:w-28 bg-neutral-900/90 p-1 sm:p-3 rounded-xl sm:rounded-2xl border border-neutral-800 text-white text-[10px] sm:text-xs">
                         <span className="font-black text-yellow-400 uppercase tracking-normal sm:tracking-widest text-center text-[9px] sm:text-xs w-full block">HOLD</span>
@@ -2324,14 +2499,14 @@ export default function GamesZone({ currentUser, isLight }) {
                       </div>
 
                       {/* Tablero Tetris Centrado */}
-                      <div className="bg-neutral-900 p-1 sm:p-2 rounded-2xl border-2 border-neutral-800 shadow-2xl flex flex-col justify-center max-h-[380px] sm:max-h-[420px]">
+                      <div className="bg-neutral-900 p-1 sm:p-2 rounded-2xl border-2 border-neutral-800 shadow-2xl flex flex-col justify-center shrink-0" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
                         <div 
                           className="grid bg-black/80 rounded-xl overflow-hidden border border-neutral-800"
                           style={{ 
                             gridTemplateColumns: `repeat(${TETRIS_COLS}, minmax(0, 1fr))`, 
                             gridTemplateRows: `repeat(${TETRIS_ROWS}, minmax(0, 1fr))`,
-                            width: isMobile ? '150px' : '200px',
-                            height: isMobile ? '300px' : '400px'
+                            width: `${tetrisCell * TETRIS_COLS}px`,
+                            height: `${tetrisCell * TETRIS_ROWS}px`
                           }}
                         >
                           {displayGrid.slice(TETRIS_HIDDEN_ROWS).map((row, r) => row.map((cell, c) => (
@@ -2363,48 +2538,8 @@ export default function GamesZone({ currentUser, isLight }) {
                       </div>
                     </div>
 
-                    {/* ON-SCREEN BUTTONS TETRIS MOBILE */}
-                    {isMobile && (
-                      <div className="w-full flex justify-between px-2 gap-2 z-10 mt-2">
-                        {/* Controles de movimiento */}
-                        <div className="flex gap-1 flex-1 justify-start">
-                          <button onClick={() => {
-                            if (!checkTetrisCollision(tetrisCurrent, tetrisGrid, -1, 0)) {
-                              playSoundEffect('move');
-                              setTetrisCurrent(prev => ({ ...prev, x: prev.x - 1 }));
-                            }
-                          }} className="bg-neutral-800/90 border border-neutral-700 text-yellow-400 p-3.5 rounded-xl shadow-lg active:bg-neutral-600"><ArrowLeft size={22} /></button>
-                          
-                          <button 
-                            onPointerDown={(e) => { e.preventDefault(); setIsFastDropping(true); softDropTetris(); }}
-                            onPointerUp={(e) => { e.preventDefault(); setIsFastDropping(false); }}
-                            onPointerLeave={(e) => { e.preventDefault(); setIsFastDropping(false); }}
-                            onPointerCancel={(e) => { e.preventDefault(); setIsFastDropping(false); }}
-                            className="bg-neutral-800/90 border border-neutral-700 text-yellow-400 p-3.5 rounded-xl shadow-lg active:bg-neutral-600"
-                            style={{ touchAction: 'none' }}
-                          >
-                            <ArrowDown size={22} />
-                          </button>
-                          
-                          <button onClick={() => {
-                            if (!checkTetrisCollision(tetrisCurrent, tetrisGrid, 1, 0)) {
-                              playSoundEffect('move');
-                              setTetrisCurrent(prev => ({ ...prev, x: prev.x + 1 }));
-                            }
-                          }} className="bg-neutral-800/90 border border-neutral-700 text-yellow-400 p-3.5 rounded-xl shadow-lg active:bg-neutral-600"><ArrowRight size={22} /></button>
-                        </div>
-                        
-                        {/* Controles de Acción */}
-                        <div className="flex gap-1 flex-1 justify-end">
-                          <button onClick={() => {
-                            playSoundEffect('rotate');
-                            setTetrisCurrent(prev => rotateTetrisPiece(prev));
-                          }} className="bg-blue-600/90 border border-blue-500 text-white p-3.5 rounded-xl shadow-lg active:bg-blue-500"><RotateCw size={22} /></button>
-                          
-                          <button onClick={holdTetrisPiece} className="bg-green-600/90 border border-green-500 text-white p-3.5 rounded-xl shadow-lg active:bg-green-500 flex flex-col items-center justify-center font-black text-[10px] w-[52px]">HOLD</button>
-                        </div>
-                      </div>
-                    )}
+                    {isMobile && landscape && renderTetrisControls('right')}
+                    {isMobile && !landscape && renderTetrisControls('both')}
                   </div>
                 );
               })()}
@@ -2481,8 +2616,9 @@ export default function GamesZone({ currentUser, isLight }) {
 
                   {/* CAJA DE MEMORAMA CON GRID DINÁMICO RESTRINGIDO PARA EVITAR DESBORDES */}
                   <div className="flex-1 w-full flex items-center justify-center min-h-0 overflow-hidden my-auto p-1">
-                    <div className="grid gap-1 sm:gap-1.5 w-[280px] h-[280px] sm:w-[360px] sm:h-[360px] aspect-square mx-auto"
+                     <div className="grid gap-1 sm:gap-1.5 mx-auto"
                          style={{ 
+                            width: memorySize, height: memorySize,
                             gridTemplateColumns: `repeat(${MEMORY_DIFFICULTIES[memSettings.diff].cols}, minmax(0, 1fr))`, 
                             gridTemplateRows: `repeat(${MEMORY_DIFFICULTIES[memSettings.diff].rows}, minmax(0, 1fr))` 
                          }}>
@@ -2621,6 +2757,8 @@ export default function GamesZone({ currentUser, isLight }) {
           -webkit-backface-visibility: hidden;
         }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        html.games-full, html.games-full body { overflow: hidden !important; }
+        html.games-full .fixed:not([data-game-full]), html.games-full .sticky, html.games-full header, html.games-full nav { visibility: hidden !important; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(150,150,150,0.3); border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(150,150,150,0.5); }
