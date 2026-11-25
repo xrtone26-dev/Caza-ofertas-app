@@ -95,6 +95,8 @@ const WHATSAPP_GROUP_URL = 'https://chat.whatsapp.com/IRASJWGThXcLi0VcBLolUi?mod
 // las secciones se abren desde la barra amarilla y las categorías desde el menú "Categorías".
 const SHOW_HOME_SECTION_TILES = false;
 const SHOW_HOME_CATEGORY_GRID = false;
+// Vista previa corta de 6 ofertas; en el inicio ahora se muestra la sección completa de Ofertas.
+const SHOW_HOME_OFFERS_PREVIEW = false;
 
 const SECTION_SLUGS = {
   inicio: '',
@@ -2529,6 +2531,7 @@ function App() {
       </section>
       )}
 
+      {SHOW_HOME_OFFERS_PREVIEW && (
       <section aria-labelledby="home-destacadas">
         <div className="flex items-end justify-between gap-2 mb-3">
           <h2 id="home-destacadas" className={`text-lg sm:text-xl font-bold ${isLight ? 'text-gray-900' : 'text-neutral-100'}`}>Ofertas destacadas</h2>
@@ -2558,6 +2561,7 @@ function App() {
           </div>
         )}
       </section>
+      )}
 
       {SHOW_HOME_CATEGORY_GRID && (
       <section aria-labelledby="home-categorias">
@@ -2584,6 +2588,15 @@ function App() {
       </section>
       )}
     </div>
+  );
+
+  // Inicio: cupones, promociones bancarias y ofertas son el gancho principal (misma lógica y componentes de sus vistas).
+  const renderHomeFeatured = () => (
+    <>
+      {(activeCupones.length > 0 || offersStatus !== 'ready') && renderCuponesSection()}
+      {activeCuponesBancarios.length > 0 && renderCuponesBancariosSection()}
+      {renderProductosSection()}
+    </>
   );
 
   const renderBreadcrumb = () => {
@@ -3074,7 +3087,12 @@ function App() {
       )}
 
       {route.section === 'inicio' && <div className="h-4" />}
-      {route.section === 'inicio' ? renderHome() : (
+      {route.section === 'inicio' ? (
+        <>
+          {(SHOW_HOME_SECTION_TILES || SHOW_HOME_CATEGORY_GRID || SHOW_HOME_OFFERS_PREVIEW) && renderHome()}
+          {renderHomeFeatured()}
+        </>
+      ) : (
         <>
           {renderBreadcrumb()}
           <main id="vista" className="relative z-20 pt-1">
