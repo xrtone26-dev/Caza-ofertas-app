@@ -7,6 +7,7 @@ import {
   X,
   Lock,
   ChevronLeft,
+  SlidersHorizontal,
   ChevronRight,
   ExternalLink,
   Settings,
@@ -97,6 +98,31 @@ const SHOW_HOME_SECTION_TILES = false;
 const SHOW_HOME_CATEGORY_GRID = false;
 // Vista previa corta de 6 ofertas; en el inicio ahora se muestra la sección completa de Ofertas.
 const SHOW_HOME_OFFERS_PREVIEW = false;
+// Portada grande con logo 3D (diseño anterior). El inicio usa ahora un banner compacto estilo marketplace.
+const SHOW_FULL_HERO = false;
+
+const SORT_OPTIONS = [
+  { id: 'relevance', label: 'Más relevantes' },
+  { id: 'price_asc', label: 'Menor precio' },
+  { id: 'price_desc', label: 'Mayor precio' },
+  { id: 'discount', label: 'Mayor descuento' },
+];
+
+const toNumber = (v) => {
+  const n = Number(String(v == null ? '' : v).replace(/[^\d.]/g, ''));
+  return Number.isFinite(n) ? n : 0;
+};
+
+// Mismo cálculo de descuento que usa la tarjeta (precio anterior < 100 se interpreta en miles).
+const getProductDiscountPct = (p) => {
+  const orig = Number(p && p.original_price) || 0;
+  const origNum = orig < 100 && orig > 0 ? orig * 1000 : orig;
+  const price = Number(p && p.discount_price) || 0;
+  if (p && p.discount_percentage) return Number(p.discount_percentage) || 0;
+  return origNum > price && price > 0 ? Math.round((1 - price / origNum) * 100) : 0;
+};
+
+const stripAccents = (v) => String(v == null ? '' : v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
 const SECTION_SLUGS = {
   inicio: '',
@@ -329,7 +355,7 @@ function VisitorCounter({ isLight }) {
     <div 
       className={`w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full shadow-2xl flex flex-col items-center justify-center border-2 transition-all hover:scale-110 cursor-default select-none ${
         isLight 
-          ? 'bg-white text-purple-600 border-purple-200' 
+          ? 'bg-white text-[#3483FA] border-gray-200' 
           : 'bg-neutral-900 text-yellow-400 border-yellow-400/50'
       }`}
       title={`Visitantes: ${count.toLocaleString()}`}
@@ -1099,7 +1125,7 @@ function EmptyState({ isLight, status = 'empty', icon = '🐹', title, message, 
       role={isError ? 'alert' : 'status'}
       aria-live="polite"
       className={`rounded-3xl border-2 border-dashed px-5 py-10 sm:py-12 text-center flex flex-col items-center gap-3 ${
-        isLight ? 'bg-white border-purple-200 text-gray-700' : 'bg-neutral-900/85 border-yellow-400/40 text-neutral-200'
+        isLight ? 'bg-white border-gray-200 text-gray-700' : 'bg-neutral-900/85 border-yellow-400/40 text-neutral-200'
       }`}
     >
       <div className={`text-4xl ${isLoading ? 'animate-pulse' : ''}`} aria-hidden="true">
@@ -1301,7 +1327,13 @@ function App() {
     localStorage.setItem('CapiBaraVideos', JSON.stringify(tiktokVideos));
   }, [tiktokVideos]);
 
-  const [themeMode, setThemeMode] = useState('dark');
+  const [themeMode, setThemeMode] = useState(() => {
+    try { return localStorage.getItem('capibara_theme') || 'light'; } catch (e) { return 'light'; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('capibara_theme', themeMode); } catch (e) { /* sin almacenamiento */ }
+    document.body.style.backgroundColor = themeMode === 'light' ? '#EBEBEB' : '#0a0a0a';
+  }, [themeMode]);
   const [adminPassword, setAdminPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [descuentos, setDescuentos] = useState([]);
@@ -1357,6 +1389,14 @@ function App() {
   const [productsStatus, setProductsStatus] = useState('loading');
   const [searchTerm, setSearchTerm] = useState('');
   const [productSearchInput, setProductSearchInput] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [sortMode, setSortMode] = useState('relevance');
+  const [onlyDiscount, setOnlyDiscount] = useState(false);
+  const [onlyCoupon, setOnlyCoupon] = useState(false);
+  const [priceMin, setPriceMin] = useState('');
+  const [priceMax, setPriceMax] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const hasExtraFilters = onlyDiscount || onlyCoupon || priceMin !== '' || priceMax !== '';
   // La categoría activa vive en la URL (#/ofertas/<categoria>), así cada categoría es su propia vista.
   const selectedQuickFilter = route.section === 'productos' && route.category ? route.category : 'all';
   const setSelectedQuickFilter = (id) => navigate('productos', id === 'all' ? null : id);
@@ -1745,15 +1785,30 @@ function App() {
 
     return regularProducts.filter((p) => {
       if (selectedQuickFilter !== 'all' && categoryById.get(getSafeId(p) || p.title) !== selectedQuickFilter) return false;
+      const price = Number(p.discount_price) || 0;
+      if (priceMin !== '' && price < toNumber(priceMin)) return false;
+      if (priceMax !== '' && toNumber(priceMax) > 0 && price > toNumber(priceMax)) return false;
+      if (onlyDiscount && getProductDiscountPct(p) <= 0) return false;
+      if (onlyCoupon && !p.coupon) return false;
       if (!lowerSearch) return true;
       const titleLower = p.title ? String(p.title).toLowerCase() : '';
       const descLower = p.description ? String(p.description).toLowerCase() : '';
       return titleLower.includes(lowerSearch) || descLower.includes(lowerSearch);
     });
-  }, [regularProducts, searchTerm, selectedQuickFilter, categoryById]);
+  }, [regularProducts, searchTerm, selectedQuickFilter, categoryById, priceMin, priceMax, onlyDiscount, onlyCoupon]);
+
+  // Orden estilo marketplace (el orden original del catálogo es "Más relevantes").
+  const sortedProducts = useMemo(() => {
+    if (sortMode === 'relevance') return filteredProducts;
+    const list = [...filteredProducts];
+    if (sortMode === 'price_asc') list.sort((a, b) => (Number(a.discount_price) || 0) - (Number(b.discount_price) || 0));
+    if (sortMode === 'price_desc') list.sort((a, b) => (Number(b.discount_price) || 0) - (Number(a.discount_price) || 0));
+    if (sortMode === 'discount') list.sort((a, b) => getProductDiscountPct(b) - getProductDiscountPct(a));
+    return list;
+  }, [filteredProducts, sortMode]);
 
   const mainBgClass = `${isLight
-    ? 'min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-800 relative overflow-x-clip font-sans'
+    ? 'min-h-screen bg-[#EBEBEB] text-gray-800 relative overflow-x-clip font-sans'
     : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-clip font-sans'}${isMobileDevice ? ' pb-[72px]' : ''}`;
 
   const renderCuponesSection = () => {
@@ -1829,8 +1884,8 @@ function App() {
 
   const renderCuponesContent = () => (
     <section aria-labelledby="sec-cupones" id="cupones" className="container mx-auto px-0 sm:px-4 mb-12 relative z-20 scroll-mt-44">
-      <div className={`rounded-3xl shadow-xl p-3.5 sm:p-8 backdrop-blur-xl border ${
-        isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
+      <div className={`rounded-lg shadow-sm p-3.5 sm:p-6 border ${
+        isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'
       }`}>
         <SectionHeader
           id="sec-cupones"
@@ -1844,7 +1899,7 @@ function App() {
               onClick={() => setShowTutorialModal(true)}
               className={`self-start sm:self-auto min-h-[44px] inline-flex items-center gap-2 px-4 rounded-xl border-2 font-black text-sm transition ${
                 isLight
-                  ? 'text-purple-700 border-purple-300 hover:bg-purple-50'
+                  ? 'text-[#3483FA] border-[#3483FA]/40 hover:bg-[#3483FA]/10'
                   : 'text-yellow-400 border-yellow-400/50 hover:bg-yellow-400/10'
               }`}
             >
@@ -1881,7 +1936,7 @@ function App() {
             })}
 
         <p className={`mt-6 pt-4 border-t text-center text-xs sm:text-sm ${
-          isLight ? 'border-purple-200 text-gray-600' : 'border-neutral-800 text-neutral-400'
+          isLight ? 'border-gray-200 text-gray-600' : 'border-neutral-800 text-neutral-400'
         }`}>
           ℹ️ La vigencia y el número de usos de cada cupón los define Mercado Libre y pueden terminar antes de lo indicado.
         </p>
@@ -1891,8 +1946,8 @@ function App() {
 
   const renderCuponesBancariosSection = () => (
     <section aria-labelledby="sec-bancos" id="bancos" className="container mx-auto px-0 sm:px-4 mb-12 relative z-20 scroll-mt-44">
-      <div className={`rounded-3xl shadow-xl p-3.5 sm:p-8 backdrop-blur-xl border ${
-        isLight ? 'bg-white border-blue-200' : 'bg-neutral-900/85 border-neutral-800'
+      <div className={`rounded-lg shadow-sm p-3.5 sm:p-6 border ${
+        isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'
       }`}>
         <SectionHeader
           id="sec-bancos"
@@ -2024,7 +2079,76 @@ function App() {
               })}
             </div>
 
-            {(searchTerm || selectedQuickFilter !== 'all') && (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <button
+                type="button"
+                aria-expanded={showFilters}
+                aria-controls="filtros-ofertas"
+                onClick={() => setShowFilters((v) => !v)}
+                className={`min-h-[40px] inline-flex items-center gap-2 px-3 rounded-md border text-sm font-semibold ${
+                  isLight ? 'bg-white border-gray-300 text-gray-800 hover:border-gray-400' : 'bg-neutral-900 border-neutral-700 text-neutral-200'
+                }`}
+              >
+                <SlidersHorizontal className="w-4 h-4" aria-hidden="true" /> Filtros{hasExtraFilters ? ' •' : ''}
+              </button>
+              <label className={`inline-flex items-center gap-2 text-sm ${isLight ? 'text-gray-700' : 'text-neutral-300'}`}>
+                <span className="font-medium">Ordenar por</span>
+                <select
+                  value={sortMode}
+                  onChange={(e) => setSortMode(e.target.value)}
+                  className={`min-h-[40px] rounded-md border px-2 text-sm font-semibold ${
+                    isLight ? 'bg-white border-gray-300 text-gray-900' : 'bg-neutral-900 border-neutral-700 text-neutral-100'
+                  }`}
+                >
+                  {SORT_OPTIONS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+                </select>
+              </label>
+            </div>
+
+            {showFilters && (
+              <div
+                id="filtros-ofertas"
+                className={`rounded-lg border p-3 grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center ${
+                  isLight ? 'bg-gray-50 border-gray-200' : 'bg-neutral-950 border-neutral-800'
+                }`}
+              >
+                <fieldset className="flex items-center gap-2">
+                  <legend className="sr-only">Rango de precio</legend>
+                  <span className={`text-sm font-semibold ${isLight ? 'text-gray-800' : 'text-neutral-200'}`}>Precio</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    aria-label="Precio mínimo"
+                    placeholder="Mínimo"
+                    value={priceMin}
+                    onChange={(e) => setPriceMin(e.target.value.replace(/[^\d]/g, ''))}
+                    className="w-24 min-h-[40px] rounded-md border border-gray-300 px-2 text-sm text-gray-900 bg-white"
+                  />
+                  <span aria-hidden="true">–</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    aria-label="Precio máximo"
+                    placeholder="Máximo"
+                    value={priceMax}
+                    onChange={(e) => setPriceMax(e.target.value.replace(/[^\d]/g, ''))}
+                    className="w-24 min-h-[40px] rounded-md border border-gray-300 px-2 text-sm text-gray-900 bg-white"
+                  />
+                </fieldset>
+                <div className={`flex flex-wrap items-center gap-x-4 gap-y-1 text-sm ${isLight ? 'text-gray-800' : 'text-neutral-200'}`}>
+                  <label className="inline-flex items-center gap-2 min-h-[40px] cursor-pointer">
+                    <input type="checkbox" checked={onlyDiscount} onChange={(e) => setOnlyDiscount(e.target.checked)} className="w-4 h-4 accent-[#3483FA]" />
+                    Solo con descuento
+                  </label>
+                  <label className="inline-flex items-center gap-2 min-h-[40px] cursor-pointer">
+                    <input type="checkbox" checked={onlyCoupon} onChange={(e) => setOnlyCoupon(e.target.checked)} className="w-4 h-4 accent-[#3483FA]" />
+                    Con cupón
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {(searchTerm || selectedQuickFilter !== 'all' || hasExtraFilters) && (
               <div className={`flex flex-wrap items-center justify-between gap-2 text-sm ${isLight ? 'text-gray-700' : 'text-neutral-300'}`} role="status">
                 <span>
                   <strong>{filteredProducts.length}</strong> {filteredProducts.length === 1 ? 'resultado' : 'resultados'}
@@ -2036,6 +2160,10 @@ function App() {
                     setSearchTerm('');
                     setProductSearchInput('');
                     setSelectedQuickFilter('all');
+                    setPriceMin('');
+                    setPriceMax('');
+                    setOnlyDiscount(false);
+                    setOnlyCoupon(false);
                   }}
                   className="min-h-[40px] inline-flex items-center gap-1 px-3 rounded-md font-semibold text-sm text-[#3483FA] hover:bg-[#3483FA]/10"
                 >
@@ -2061,7 +2189,7 @@ function App() {
             <div className="relative">
               <div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-4">
-                  {filteredProducts.map((product) => {
+                  {sortedProducts.map((product) => {
                     const pId = getSafeId(product) || product.title;
                     const remainingDays = getRemainingDays(product);
                     const origPriceNum = Number(product.original_price || 0);
@@ -2231,8 +2359,8 @@ function App() {
         </div>
       </div>
 
-      <div className={`rounded-3xl shadow-xl p-3.5 sm:p-8 backdrop-blur-xl border ${
-        isLight ? 'bg-white border-yellow-300' : 'bg-neutral-900/85 border-neutral-800'
+      <div className={`rounded-lg shadow-sm p-3.5 sm:p-6 border ${
+        isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'
       }`}>
         <div className="relative flex items-center justify-center mb-6 px-2">
           <h2 id="sec-terminales" className={`text-2xl sm:text-3xl font-black text-center flex items-center gap-2 ${isLight ? 'text-yellow-700' : 'text-yellow-400'}`}>
@@ -2406,11 +2534,11 @@ function App() {
   const renderReelsSection = () => (
     <div id="videos" className="container mx-auto px-0 sm:px-4 mb-16 relative z-10 scroll-mt-44">
       <div className={`rounded-3xl shadow-xl p-5 sm:p-8 backdrop-blur-xl border ${
-        isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'
+        isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'
       }`}>
         <div className="text-center mb-8">
           <h2 className={`text-2xl sm:text-3xl md:text-4xl font-black mb-3 flex items-center justify-center gap-3 ${
-            isLight ? 'text-purple-700' : 'text-neutral-100'
+            isLight ? 'text-gray-900' : 'text-neutral-100'
           }`}>
             <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-yellow-400 shrink-0" aria-hidden="true" /> Productos probados en video
           </h2>
@@ -2447,8 +2575,23 @@ function App() {
     setSearchTerm('');
   };
 
-  const renderHeaderSearch = () => (
-    <form role="search" onSubmit={handleHeaderSearch} className="flex-1 min-w-0 max-w-3xl">
+  const renderHeaderSearch = () => {
+    const term = stripAccents(productSearchInput).trim();
+    const showSuggest = searchFocused && term.length >= 2;
+    const catSuggest = showSuggest
+      ? ML_CATEGORIES.filter((c) => (categoryCounts[c.id] || 0) > 0 && (stripAccents(c.label).includes(term) || stripAccents(c.short).includes(term))).slice(0, 3)
+      : [];
+    const prodSuggest = showSuggest
+      ? regularProducts.filter((p) => stripAccents(p.title).includes(term)).slice(0, 5)
+      : [];
+    const pickSearch = (text) => {
+      setProductSearchInput(text);
+      setSearchTerm(text);
+      setSearchFocused(false);
+      navigate('productos');
+    };
+    return (
+    <form role="search" onSubmit={(e) => { setSearchFocused(false); handleHeaderSearch(e); }} className="flex-1 min-w-0 max-w-3xl relative">
       <label htmlFor="product-search" className="sr-only">Buscar productos</label>
       <div className="relative flex items-center bg-white rounded-md shadow-[0_1px_2px_rgba(0,0,0,0.25)] focus-within:ring-2 focus-within:ring-[#3483FA]">
         <input
@@ -2458,6 +2601,9 @@ function App() {
           autoComplete="off"
           value={productSearchInput}
           onChange={(e) => setProductSearchInput(e.target.value)}
+          onFocus={() => setSearchFocused(true)}
+          onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
+          onKeyDown={(e) => { if (e.key === 'Escape') setSearchFocused(false); }}
           placeholder="Buscar productos, marcas y más…"
           className="w-full min-h-[44px] pl-4 pr-2 bg-transparent rounded-l-md text-base text-gray-900 placeholder:text-gray-400 focus:outline-none"
         />
@@ -2479,8 +2625,43 @@ function App() {
           <Search className="w-5 h-5" aria-hidden="true" />
         </button>
       </div>
+
+      {showSuggest && (catSuggest.length > 0 || prodSuggest.length > 0) && (
+        <ul
+          id="sugerencias-busqueda"
+          aria-label="Sugerencias de búsqueda"
+          className="absolute left-0 right-0 top-full mt-1 z-[80] bg-white text-gray-800 rounded-md shadow-xl border border-gray-200 overflow-hidden"
+        >
+          {catSuggest.map((c) => (
+            <li key={c.id}>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => { setSearchFocused(false); navigate('productos', c.id); }}
+                className="w-full min-h-[44px] px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+              >
+                <span aria-hidden="true">{c.icon}</span> {c.short} <span className="text-gray-400">en Categorías</span>
+              </button>
+            </li>
+          ))}
+          {prodSuggest.map((p) => (
+            <li key={getSafeId(p) || p.title}>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => pickSearch(p.title)}
+                className="w-full min-h-[44px] px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+              >
+                <Search className="w-4 h-4 text-gray-400 shrink-0" aria-hidden="true" />
+                <span className="line-clamp-1">{p.title}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </form>
-  );
+    );
+  };
 
   const desktopNavLinks = [
     { id: 'inicio', label: 'Inicio' },
@@ -2597,6 +2778,75 @@ function App() {
       {activeCuponesBancarios.length > 0 && renderCuponesBancariosSection()}
       {renderProductosSection()}
     </>
+  );
+
+  const renderCompactHero = () => (
+    <section aria-label="CapiBaraML" className="container mx-auto px-3 sm:px-4 pt-4 pb-4">
+      <div className={`relative rounded-lg border shadow-sm p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4 ${
+        isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'
+      }`}>
+        {isMobileDevice && (
+          <button
+            type="button"
+            onClick={() => setThemeMode(isLight ? 'dark' : 'light')}
+            aria-label={isLight ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro'}
+            className={`absolute top-2 right-2 w-11 h-11 rounded-full flex items-center justify-center border ${
+              isLight ? 'bg-white text-[#3483FA] border-gray-200' : 'bg-neutral-900 text-yellow-400 border-neutral-700'
+            }`}
+          >
+            {isLight ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          </button>
+        )}
+        <img src={logoUrl} alt="CapiBaraML Logo" className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-[#FFE600] shrink-0" />
+        <div className="min-w-0 flex-1 pr-10 sm:pr-0">
+          <h1 className={`text-2xl sm:text-3xl font-bold leading-tight ${isLight ? 'text-gray-900' : 'text-neutral-50'}`}>CapiBaraML</h1>
+          <p className={`text-sm sm:text-base ${isLight ? 'text-gray-700' : 'text-neutral-300'}`}>
+            Cupones, ofertas y promociones bancarias de Mercado Libre en un solo lugar.
+          </p>
+          <p className={`text-xs sm:text-sm font-semibold mt-0.5 ${isLight ? 'text-gray-500' : 'text-neutral-400'}`}>
+            "No compres caro, Nosotros ya hicimos la busqueda por ti"
+          </p>
+          <ul className="flex flex-wrap gap-2 mt-3">
+            {[
+              { id: 'cupones', n: activeCupones.length, label: 'cupones activos' },
+              { id: 'bancarios', n: activeCuponesBancarios.length, label: 'promos bancarias' },
+              { id: 'productos', n: regularProducts.length, label: 'ofertas' },
+            ].filter((c) => c.n > 0).map((c) => (
+              <li key={c.id}>
+                <button
+                  type="button"
+                  onClick={() => navigate(c.id)}
+                  className={`min-h-[36px] px-3 rounded-full text-xs sm:text-sm font-semibold border ${
+                    isLight ? 'bg-[#e3edfb] text-[#3483FA] border-transparent hover:border-[#3483FA]' : 'bg-[#3483FA]/20 text-[#8dbdff] border-transparent'
+                  }`}
+                >
+                  {c.n} {c.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="flex flex-wrap gap-2 sm:flex-col sm:w-52 shrink-0">
+          <a
+            href={WHATSAPP_GROUP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 min-h-[44px] px-4 rounded-md bg-[#25D366] hover:bg-[#1fb957] text-white font-semibold text-sm flex items-center justify-center gap-2"
+          >
+            <span aria-hidden="true">📲</span> Unirme al WhatsApp
+          </a>
+          {activeCupones.length > 0 && (
+            <button
+              type="button"
+              onClick={() => navigate('cupones')}
+              className="flex-1 min-h-[44px] px-4 rounded-md bg-[#3483FA] hover:bg-[#2968c8] text-white font-semibold text-sm"
+            >
+              Ver cupones
+            </button>
+          )}
+        </div>
+      </div>
+    </section>
   );
 
   const renderBreadcrumb = () => {
@@ -2956,7 +3206,7 @@ function App() {
             type="button"
             onClick={() => setThemeMode(isLight ? 'dark' : 'light')}
             className={`w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 border-2 ${
-              isLight ? 'bg-white text-purple-600 border-gray-200' : 'bg-neutral-900 text-yellow-400 border-neutral-700'
+              isLight ? 'bg-white text-[#3483FA] border-gray-200' : 'bg-neutral-900 text-yellow-400 border-neutral-700'
             }`}
             aria-label={isLight ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro'}
             title={isLight ? 'Tema oscuro' : 'Tema claro'}
@@ -3002,7 +3252,8 @@ function App() {
 
       {renderTopBar()}
 
-      {route.section === 'inicio' && (
+      {route.section === 'inicio' && !SHOW_FULL_HERO && renderCompactHero()}
+      {route.section === 'inicio' && SHOW_FULL_HERO && (
       <div
         className={`relative overflow-hidden border-b pb-8 ${
           isLight
@@ -3086,7 +3337,7 @@ function App() {
       </div>
       )}
 
-      {route.section === 'inicio' && <div className="h-4" />}
+      {route.section === 'inicio' && SHOW_FULL_HERO && <div className="h-4" />}
       {route.section === 'inicio' ? (
         <>
           {(SHOW_HOME_SECTION_TILES || SHOW_HOME_CATEGORY_GRID || SHOW_HOME_OFFERS_PREVIEW) && renderHome()}
@@ -3272,7 +3523,7 @@ function App() {
 
       <section className={`relative overflow-hidden py-20 sm:py-24 px-4 border-b ${
         isLight 
-          ? 'bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/50 border-gray-200 text-gray-800' 
+          ? 'bg-gradient-to-br from-gray-50 via-white to-gray-50 border-gray-200 text-gray-800' 
           : 'bg-gradient-to-br from-neutral-950 via-neutral-900 to-black border-neutral-800 text-neutral-100'
       }`}>
         <div className="relative container mx-auto max-w-7xl z-10 flex flex-col items-center">
