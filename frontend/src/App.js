@@ -104,6 +104,16 @@ const SHOW_FULL_HERO = false;
 const SHOW_HEADER_WHATSAPP = false;
 const SHOW_HERO_CTAS = false;
 
+const PRODUCTS_PAGE_SIZE = 12;
+const DISCOUNT_STEPS = [70, 60, 50, 40, 30, 25];
+const BUDGET_RANGES = [
+  { id: 'b1', label: 'Hasta $500', min: '', max: '500' },
+  { id: 'b2', label: '$500 a $1,000', min: '500', max: '1000' },
+  { id: 'b3', label: '$1,000 a $5,000', min: '1000', max: '5000' },
+  { id: 'b4', label: 'Más de $5,000', min: '5000', max: '' },
+];
+const MSI_RE = /sin intereses|msi/i;
+
 const SORT_OPTIONS = [
   { id: 'relevance', label: 'Más relevantes' },
   { id: 'price_asc', label: 'Menor precio' },
@@ -859,23 +869,101 @@ function CountdownTimer({ expiresAt }) {
 // ==========================================
 // SECCIÓN TRABAJA CON NOSOTROS
 // ==========================================
+const TEAM_STEPS = [
+  {
+    title: 'Cómo funciona el rol',
+    body: 'Como promotor de CapiBaraML difundes en tus propios canales las ofertas y los cupones que publicamos. Tú compartes, tu audiencia compra en Mercado Libre y nosotros nos encargamos de encontrar y verificar las ofertas.',
+  },
+  {
+    title: 'Herramientas y etiquetas',
+    body: 'Te asignamos un rol y etiquetas exclusivas para identificar tus publicaciones, además de herramientas automatizadas que te ayudan a preparar y compartir ofertas y cupones sin empezar desde cero.',
+  },
+  {
+    title: 'Comisiones y qué esperar',
+    body: 'Las comisiones vienen del programa de afiliados de Mercado Libre y se generan cuando una compra se concreta desde tu enlace. No hay ingreso garantizado: depende de tus ventas y de los términos del programa. Te lo explicamos con detalle por WhatsApp.',
+  },
+];
+
+function WorkWithUsTutorial({ isLight, whatsappUrl }) {
+  const [step, setStep] = useState(0);
+  const last = step === TEAM_STEPS.length - 1;
+  const cur = TEAM_STEPS[step];
+  const btnGhost = `min-h-[44px] px-4 rounded-md border text-sm font-semibold ${
+    isLight ? 'bg-white border-gray-300 text-gray-800 hover:border-gray-400' : 'bg-neutral-900 border-neutral-700 text-neutral-100'
+  }`;
+  return (
+    <div
+      role="group"
+      aria-label="Guía para unirte al equipo"
+      className={`w-full rounded-lg border p-4 sm:p-5 ${isLight ? 'bg-white border-[#E6E6E6]' : 'bg-neutral-950 border-neutral-800'}`}
+    >
+      <ol className="flex items-center gap-2 mb-4" aria-label="Progreso de la guía">
+        {TEAM_STEPS.map((t, i) => (
+          <li key={t.title} className="flex-1">
+            <button
+              type="button"
+              onClick={() => setStep(i)}
+              aria-current={i === step ? 'step' : undefined}
+              aria-label={`Paso ${i + 1}: ${t.title}`}
+              className={`w-full h-2 rounded-full ${i <= step ? 'bg-[#3483FA]' : isLight ? 'bg-gray-200' : 'bg-neutral-700'}`}
+            />
+          </li>
+        ))}
+      </ol>
+
+      <div aria-live="polite">
+        <p className={`text-xs font-semibold uppercase tracking-wide ${isLight ? 'text-[#2968C8]' : 'text-[#8dbdff]'}`}>
+          Paso {step + 1} de {TEAM_STEPS.length}
+        </p>
+        <h3 className={`text-lg sm:text-xl font-semibold mt-1 ${isLight ? 'text-[#333333]' : 'text-neutral-50'}`}>{cur.title}</h3>
+        <p className={`text-sm sm:text-base leading-relaxed mt-2 ${isLight ? 'text-[#666666]' : 'text-neutral-300'}`}>{cur.body}</p>
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center gap-2">
+        {step > 0 && (
+          <button type="button" onClick={() => setStep(step - 1)} className={btnGhost}>Anterior</button>
+        )}
+        {!last ? (
+          <button
+            type="button"
+            onClick={() => setStep(step + 1)}
+            className="min-h-[44px] px-5 rounded-md bg-[#2968C8] hover:bg-[#1f55a8] text-white text-sm font-semibold transition-colors"
+          >
+            Siguiente
+          </button>
+        ) : (
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="min-h-[44px] inline-flex items-center gap-2 px-5 rounded-md bg-[#16803f] hover:bg-[#126a35] text-white text-sm font-semibold transition-colors"
+          >
+            <FaWhatsapp size={18} /> Postularme por WhatsApp
+            <span className="sr-only">(se abre en otra pestaña)</span>
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function renderWorkWithUsSection(isLight) {
   return (
     <div id="unete" className="container mx-auto px-4 mt-6 mb-12 relative z-20 scroll-mt-44">
-      <div className={`rounded-3xl shadow-2xl p-6 sm:p-10 backdrop-blur-2xl border relative overflow-hidden ${
-        isLight ? 'bg-white/90 border-cyan-200' : 'bg-neutral-900/90 border-cyan-500/30'
+      <div className={`rounded-lg shadow-sm p-5 sm:p-8 border relative overflow-hidden ${
+        isLight ? 'bg-white border-[#E6E6E6]' : 'bg-neutral-900 border-neutral-800'
       }`}>
         <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col lg:flex-row items-center justify-between gap-10 relative z-10">
           
           <div className="flex flex-col items-start text-left max-w-xl">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1 bg-cyan-400 text-black font-black text-xs uppercase rounded-full shadow-md mb-4 border border-black">
+            <span className="inline-flex items-center gap-2 px-3 py-1 bg-[#FFE600] text-[#333333] font-semibold text-xs uppercase rounded-full mb-4">
               🚀 OPORTUNIDAD DE COLABORACIÓN
             </span>
 
             <h2 className={`text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-4 leading-tight ${
-              isLight ? 'text-cyan-950' : 'text-white'
+              isLight ? 'text-[#333333]' : 'text-white'
             }`}>
               ¿Quieres ganar dinero con nosotros y unirte al equipo?
             </h2>
@@ -886,14 +974,7 @@ function renderWorkWithUsSection(isLight) {
               Súmate a nuestra red de promotores oficiales de CapiBaraML. Te asignamos un rol, etiquetas exclusivas y herramientas automatizadas para que generes comisiones promocionando los mejores productos y cupones de Mercado Libre. ¡Trabaja con nosotros y crece con el proyecto!
             </p>
 
-            <a
-              href="https://wa.me/523312229710?text=Hola,%20quiero%20postularme%20para%20unirme%20al%20equipo%20y%20ganar%20dinero%20con%20CapiBaraML"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 sm:px-6 py-3.5 bg-[#16803f] hover:bg-[#126a35] text-white font-black rounded-2xl text-xs sm:text-sm uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black transition-all hover:scale-105"
-            >
-              <FaWhatsapp size={20} /> POSTULARME POR WHATSAPP
-            </a>
+            <WorkWithUsTutorial isLight={isLight} whatsappUrl="https://wa.me/523312229710?text=Hola,%20quiero%20postularme%20para%20unirme%20al%20equipo%20y%20ganar%20dinero%20con%20CapiBaraML" />
           </div>
 
           <div className="flex items-center justify-center gap-2 sm:gap-6 shrink-0 py-4 max-w-full">
@@ -1399,7 +1480,11 @@ function App() {
   const [priceMin, setPriceMin] = useState('');
   const [priceMax, setPriceMax] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const hasExtraFilters = onlyDiscount || onlyCoupon || priceMin !== '' || priceMax !== '';
+  const [discountMin, setDiscountMin] = useState(0);
+  const [payFilter, setPayFilter] = useState('');
+  const [visibleCount, setVisibleCount] = useState(PRODUCTS_PAGE_SIZE);
+  const [showAllCats, setShowAllCats] = useState(false);
+  const hasExtraFilters = onlyDiscount || onlyCoupon || priceMin !== '' || priceMax !== '' || discountMin > 0 || payFilter !== '';
   // La categoría activa vive en la URL (#/ofertas/<categoria>), así cada categoría es su propia vista.
   const selectedQuickFilter = route.section === 'productos' && route.category ? route.category : 'all';
   const setSelectedQuickFilter = (id) => navigate('productos', id === 'all' ? null : id);
@@ -1793,12 +1878,15 @@ function App() {
       if (priceMax !== '' && toNumber(priceMax) > 0 && price > toNumber(priceMax)) return false;
       if (onlyDiscount && getProductDiscountPct(p) <= 0) return false;
       if (onlyCoupon && !p.coupon) return false;
+      if (discountMin > 0 && getProductDiscountPct(p) < discountMin) return false;
+      if (payFilter === 'msi' && !MSI_RE.test(p.installments_text || '')) return false;
+      if (payFilter === 'cuotas' && !p.installments_text) return false;
       if (!lowerSearch) return true;
       const titleLower = p.title ? String(p.title).toLowerCase() : '';
       const descLower = p.description ? String(p.description).toLowerCase() : '';
       return titleLower.includes(lowerSearch) || descLower.includes(lowerSearch);
     });
-  }, [regularProducts, searchTerm, selectedQuickFilter, categoryById, priceMin, priceMax, onlyDiscount, onlyCoupon]);
+  }, [regularProducts, searchTerm, selectedQuickFilter, categoryById, priceMin, priceMax, onlyDiscount, onlyCoupon, discountMin, payFilter]);
 
   // Orden estilo marketplace (el orden original del catálogo es "Más relevantes").
   const sortedProducts = useMemo(() => {
@@ -1809,6 +1897,38 @@ function App() {
     if (sortMode === 'discount') list.sort((a, b) => getProductDiscountPct(b) - getProductDiscountPct(a));
     return list;
   }, [filteredProducts, sortMode]);
+
+  // Carga progresiva: solo se renderiza un lote; "Mostrar más productos" agrega el siguiente.
+  useEffect(() => {
+    setVisibleCount(PRODUCTS_PAGE_SIZE);
+  }, [searchTerm, selectedQuickFilter, sortMode, priceMin, priceMax, onlyDiscount, onlyCoupon, discountMin, payFilter]);
+  const shownProducts = useMemo(() => sortedProducts.slice(0, visibleCount), [sortedProducts, visibleCount]);
+
+  // Conteos de las opciones laterales (Pago y Descuentos).
+  const filterCounts = useMemo(() => {
+    const discount = {};
+    DISCOUNT_STEPS.forEach((d) => { discount[d] = 0; });
+    let msi = 0;
+    let cuotas = 0;
+    regularProducts.forEach((p) => {
+      const pct = getProductDiscountPct(p);
+      DISCOUNT_STEPS.forEach((d) => { if (pct >= d) discount[d] += 1; });
+      if (p.installments_text) { cuotas += 1; if (MSI_RE.test(p.installments_text)) msi += 1; }
+    });
+    return { discount, msi, cuotas };
+  }, [regularProducts]);
+
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setProductSearchInput('');
+    setSelectedQuickFilter('all');
+    setPriceMin('');
+    setPriceMax('');
+    setOnlyDiscount(false);
+    setOnlyCoupon(false);
+    setDiscountMin(0);
+    setPayFilter('');
+  };
 
   const mainBgClass = `${isLight
     ? 'min-h-screen bg-[#EBEBEB] text-gray-800 relative overflow-x-clip font-sans'
@@ -2037,6 +2157,144 @@ function App() {
     return renderProductosContent();
   };
 
+  const renderFiltersPanel = () => {
+    const cats = ML_CATEGORIES.filter((c) => (categoryCounts[c.id] || 0) > 0 || c.id === selectedQuickFilter);
+    const catsShown = showAllCats ? cats : cats.slice(0, 8);
+    const heading = `text-sm font-semibold mb-1.5 ${isLight ? 'text-[#333333]' : 'text-neutral-100'}`;
+    const opt = (active) => `w-full text-left min-h-[36px] px-2 py-1.5 rounded text-sm flex items-center justify-between gap-2 transition-colors ${
+      active
+        ? (isLight ? 'font-semibold text-[#2968C8] bg-[#e3edfb]' : 'font-semibold text-[#8dbdff] bg-[#3483FA]/20')
+        : (isLight ? 'text-[#666666] hover:text-[#2968C8]' : 'text-neutral-300 hover:text-[#8dbdff]')
+    }`;
+    const count = (n) => <span className={`text-xs ${isLight ? 'text-[#666666]' : 'text-neutral-400'}`}>({n})</span>;
+    const divider = `border-t ${isLight ? 'border-[#E6E6E6]' : 'border-neutral-800'}`;
+    return (
+      <div className="flex flex-col gap-4">
+        {(searchTerm || selectedQuickFilter !== 'all' || hasExtraFilters) && (
+          <button
+            type="button"
+            onClick={clearAllFilters}
+            className={`self-start min-h-[36px] inline-flex items-center gap-1 px-2 rounded font-semibold text-sm ${isLight ? 'text-[#2968C8]' : 'text-[#8dbdff]'} hover:bg-[#3483FA]/10`}
+          >
+            <X className="w-4 h-4" aria-hidden="true" /> Quitar filtros
+          </button>
+        )}
+
+        <div>
+          <h3 className={heading}>Categorías</h3>
+          <ul>
+            <li>
+              <button type="button" aria-pressed={selectedQuickFilter === 'all'} onClick={() => setSelectedQuickFilter('all')} className={opt(selectedQuickFilter === 'all')}>
+                <span>Ver todas</span>{count(regularProducts.length)}
+              </button>
+            </li>
+            {catsShown.map((c) => (
+              <li key={c.id}>
+                <button type="button" aria-pressed={selectedQuickFilter === c.id} onClick={() => setSelectedQuickFilter(c.id)} className={opt(selectedQuickFilter === c.id)}>
+                  <span>{c.short}</span>{count(categoryCounts[c.id] || 0)}
+                </button>
+              </li>
+            ))}
+          </ul>
+          {cats.length > 8 && (
+            <button
+              type="button"
+              onClick={() => setShowAllCats((v) => !v)}
+              aria-expanded={showAllCats}
+              className={`mt-1 min-h-[36px] px-2 text-sm font-semibold ${isLight ? 'text-[#2968C8]' : 'text-[#8dbdff]'} hover:underline`}
+            >
+              {showAllCats ? 'Mostrar menos' : 'Mostrar más'}
+            </button>
+          )}
+        </div>
+
+        {(filterCounts.msi > 0 || filterCounts.cuotas > 0 || payFilter) && (
+          <div className={`pt-3 ${divider}`}>
+            <h3 className={heading}>Pago</h3>
+            <ul>
+              {[{ id: 'msi', label: 'Meses sin intereses', n: filterCounts.msi }, { id: 'cuotas', label: 'En cuotas', n: filterCounts.cuotas }]
+                .filter((o) => o.n > 0 || payFilter === o.id)
+                .map((o) => (
+                  <li key={o.id}>
+                    <button type="button" aria-pressed={payFilter === o.id} onClick={() => setPayFilter(payFilter === o.id ? '' : o.id)} className={opt(payFilter === o.id)}>
+                      <span>{o.label}</span>{count(o.n)}
+                    </button>
+                  </li>
+                ))}
+            </ul>
+          </div>
+        )}
+
+        <div className={`pt-3 ${divider}`}>
+          <h3 className={heading}>Descuentos</h3>
+          <ul>
+            {DISCOUNT_STEPS.filter((d) => filterCounts.discount[d] > 0 || discountMin === d).map((d) => (
+              <li key={d}>
+                <button type="button" aria-pressed={discountMin === d} onClick={() => setDiscountMin(discountMin === d ? 0 : d)} className={opt(discountMin === d)}>
+                  <span>Desde {d}% OFF</span>{count(filterCounts.discount[d])}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className={`pt-3 ${divider}`}>
+          <h3 className={heading}>Precio</h3>
+          <ul>
+            {BUDGET_RANGES.map((b) => {
+              const active = priceMin === b.min && priceMax === b.max;
+              return (
+                <li key={b.id}>
+                  <button
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => { setPriceMin(active ? '' : b.min); setPriceMax(active ? '' : b.max); }}
+                    className={opt(active)}
+                  >
+                    <span>{b.label}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <fieldset className="mt-2 flex items-center gap-1.5">
+            <legend className="sr-only">Rango de precio personalizado</legend>
+            <input
+              type="text"
+              inputMode="numeric"
+              aria-label="Precio mínimo"
+              placeholder="Mínimo"
+              value={priceMin}
+              onChange={(e) => setPriceMin(e.target.value.replace(/[^\d]/g, ''))}
+              className="w-full min-w-0 min-h-[36px] rounded-md border border-gray-300 px-2 text-sm text-gray-900 bg-white placeholder:text-gray-500"
+            />
+            <span aria-hidden="true">–</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              aria-label="Precio máximo"
+              placeholder="Máximo"
+              value={priceMax}
+              onChange={(e) => setPriceMax(e.target.value.replace(/[^\d]/g, ''))}
+              className="w-full min-w-0 min-h-[36px] rounded-md border border-gray-300 px-2 text-sm text-gray-900 bg-white placeholder:text-gray-500"
+            />
+          </fieldset>
+        </div>
+
+        <div className={`pt-3 ${divider} ${isLight ? 'text-gray-800' : 'text-neutral-200'}`}>
+          <label className="flex items-center gap-2 min-h-[36px] text-sm cursor-pointer">
+            <input type="checkbox" checked={onlyDiscount} onChange={(e) => setOnlyDiscount(e.target.checked)} className="w-4 h-4 accent-[#3483FA]" />
+            Solo con descuento
+          </label>
+          <label className="flex items-center gap-2 min-h-[36px] text-sm cursor-pointer">
+            <input type="checkbox" checked={onlyCoupon} onChange={(e) => setOnlyCoupon(e.target.checked)} className="w-4 h-4 accent-[#3483FA]" />
+            Con cupón
+          </label>
+        </div>
+      </div>
+    );
+  };
+
   const renderProductosContent = () => (
     (
       <section aria-labelledby="sec-ofertas" id="ofertas" className="container mx-auto px-0 sm:px-4 mb-16 relative z-10 scroll-mt-44">
@@ -2051,6 +2309,11 @@ function App() {
             isLight={isLight}
           />
 
+          <div className="lg:grid lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-6 lg:items-start">
+          <aside aria-label="Filtros de ofertas" className={`hidden lg:block rounded-lg border p-4 sticky top-44 max-h-[calc(100vh-12rem)] overflow-y-auto ${isLight ? 'bg-white border-[#E6E6E6]' : 'bg-neutral-950 border-neutral-800'}`}>
+            {renderFiltersPanel()}
+          </aside>
+          <div className="min-w-0">
           <div className="mb-5 flex flex-col gap-3">
             <div
               role="group"
@@ -2083,13 +2346,13 @@ function App() {
               })}
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between lg:justify-end gap-2">
               <button
                 type="button"
                 aria-expanded={showFilters}
                 aria-controls="filtros-ofertas"
                 onClick={() => setShowFilters((v) => !v)}
-                className={`min-h-[40px] inline-flex items-center gap-2 px-3 rounded-md border text-sm font-semibold ${
+                className={`lg:hidden min-h-[40px] inline-flex items-center gap-2 px-3 rounded-md border text-sm font-semibold ${
                   isLight ? 'bg-white border-gray-300 text-gray-800 hover:border-gray-400' : 'bg-neutral-900 border-neutral-700 text-neutral-200'
                 }`}
               >
@@ -2112,43 +2375,9 @@ function App() {
             {showFilters && (
               <div
                 id="filtros-ofertas"
-                className={`rounded-lg border p-3 grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center ${
-                  isLight ? 'bg-gray-50 border-gray-200' : 'bg-neutral-950 border-neutral-800'
-                }`}
+                className={`lg:hidden rounded-lg border p-3 ${isLight ? 'bg-white border-[#E6E6E6]' : 'bg-neutral-950 border-neutral-800'}`}
               >
-                <fieldset className="flex items-center gap-2">
-                  <legend className="sr-only">Rango de precio</legend>
-                  <span className={`text-sm font-semibold ${isLight ? 'text-gray-800' : 'text-neutral-200'}`}>Precio</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    aria-label="Precio mínimo"
-                    placeholder="Mínimo"
-                    value={priceMin}
-                    onChange={(e) => setPriceMin(e.target.value.replace(/[^\d]/g, ''))}
-                    className="w-24 min-h-[40px] rounded-md border border-gray-300 px-2 text-sm text-gray-900 bg-white"
-                  />
-                  <span aria-hidden="true">–</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    aria-label="Precio máximo"
-                    placeholder="Máximo"
-                    value={priceMax}
-                    onChange={(e) => setPriceMax(e.target.value.replace(/[^\d]/g, ''))}
-                    className="w-24 min-h-[40px] rounded-md border border-gray-300 px-2 text-sm text-gray-900 bg-white"
-                  />
-                </fieldset>
-                <div className={`flex flex-wrap items-center gap-x-4 gap-y-1 text-sm ${isLight ? 'text-gray-800' : 'text-neutral-200'}`}>
-                  <label className="inline-flex items-center gap-2 min-h-[40px] cursor-pointer">
-                    <input type="checkbox" checked={onlyDiscount} onChange={(e) => setOnlyDiscount(e.target.checked)} className="w-4 h-4 accent-[#3483FA]" />
-                    Solo con descuento
-                  </label>
-                  <label className="inline-flex items-center gap-2 min-h-[40px] cursor-pointer">
-                    <input type="checkbox" checked={onlyCoupon} onChange={(e) => setOnlyCoupon(e.target.checked)} className="w-4 h-4 accent-[#3483FA]" />
-                    Con cupón
-                  </label>
-                </div>
+                {renderFiltersPanel()}
               </div>
             )}
 
@@ -2160,15 +2389,7 @@ function App() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => {
-                    setSearchTerm('');
-                    setProductSearchInput('');
-                    setSelectedQuickFilter('all');
-                    setPriceMin('');
-                    setPriceMax('');
-                    setOnlyDiscount(false);
-                    setOnlyCoupon(false);
-                  }}
+                  onClick={clearAllFilters}
                   className={`min-h-[40px] inline-flex items-center gap-1 px-3 rounded-md font-semibold text-sm ${isLight ? 'text-[#2968C8]' : 'text-[#8dbdff]'} hover:bg-[#3483FA]/10`}
                 >
                   <X className="w-4 h-4" aria-hidden="true" /> Quitar filtros
@@ -2192,8 +2413,8 @@ function App() {
           ) : (
             <div className="relative">
               <div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-4">
-                  {sortedProducts.map((product) => {
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4">
+                  {shownProducts.map((product) => {
                     const pId = getSafeId(product) || product.title;
                     const remainingDays = getRemainingDays(product);
                     const origPriceNum = Number(product.original_price || 0);
@@ -2304,9 +2525,24 @@ function App() {
 
             </div>
           )}
+          {sortedProducts.length > shownProducts.length && (
+            <div className="mt-6 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setVisibleCount((c) => c + PRODUCTS_PAGE_SIZE)}
+                className={`min-h-[48px] px-8 rounded-md border font-semibold text-sm transition-colors ${
+                  isLight ? 'bg-white border-[#3483FA] text-[#2968C8] hover:bg-[#e3edfb]' : 'bg-neutral-900 border-[#8dbdff] text-[#8dbdff] hover:bg-[#3483FA]/20'
+                }`}
+              >
+                Mostrar más productos
+              </button>
+            </div>
+          )}
+          </div>
+          </div>
           {filteredProducts.length > 0 && (
-            <p className={`mt-5 text-center text-xs font-bold ${isLight ? 'text-gray-500' : 'text-neutral-400'}`} role="status">
-              {filteredProducts.length} {filteredProducts.length === 1 ? 'oferta' : 'ofertas'}
+            <p className={`mt-5 text-center text-xs font-bold ${isLight ? 'text-gray-600' : 'text-neutral-400'}`} role="status">
+              Mostrando {shownProducts.length} de {filteredProducts.length} {filteredProducts.length === 1 ? 'oferta' : 'ofertas'}
               {selectedQuickFilter !== 'all' && ` en ${getCategoryById(selectedQuickFilter)?.short || 'esta categoría'}`}
             </p>
           )}
@@ -3650,7 +3886,7 @@ function App() {
       />
 
       {!isMobileDevice && (
-        <div className="fixed bottom-4 right-4 z-50 pointer-events-auto">
+        <div className="fixed bottom-4 right-4 z-[96] pointer-events-auto">
           <ChatbotWidget isLight={isLight} cupones={activeCupones} products={products} isMobileDevice={isMobileDevice} />
         </div>
       )}
