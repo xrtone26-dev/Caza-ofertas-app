@@ -29,6 +29,8 @@ export default function AdminDashboard({
   loadPublicProducts,
   tiktokVideos,
   setTiktokVideos,
+  maintenanceOn = false,
+  setMaintenanceOn = () => {},
 }) {
   // Sesión del panel: el backend entrega un token firmado al iniciar sesión.
   // La contraseña ya nunca viaja en la URL; el token se guarda solo en memoria.
@@ -60,6 +62,21 @@ export default function AdminDashboard({
   const [allOffers, setAllOffers] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [adminSection, setAdminSection] = useState('offers');
+  const [maintenanceBusy, setMaintenanceBusy] = useState(false);
+
+  const toggleMaintenance = async () => {
+    if (maintenanceBusy) return;
+    const next = !maintenanceOn;
+    setMaintenanceBusy(true);
+    try {
+      const { data } = await adminHttp.put('/admin/maintenance', { enabled: next });
+      setMaintenanceOn(Boolean(data?.maintenance));
+    } catch (error) {
+      if (error?.response?.status !== 401) alert('No se pudo cambiar el modo mantenimiento. Intenta de nuevo.');
+    } finally {
+      setMaintenanceBusy(false);
+    }
+  };
   const [showAddOfferModal, setShowAddOfferModal] = useState(false);
   const [editingOffer, setEditingOffer] = useState(null);
   
@@ -570,6 +587,29 @@ export default function AdminDashboard({
               </button>
             </div>
             
+            <div
+              data-testid="maintenance-switch-row"
+              className={`flex items-center justify-between gap-3 mb-5 rounded-xl border-2 px-4 py-3 ${maintenanceOn ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-200'}`}
+            >
+              <div className="min-w-0">
+                <p className="font-bold text-sm text-gray-900">🚧 Página en mantenimiento</p>
+                <p className="text-xs text-gray-600">
+                  {maintenanceOn ? 'ACTIVO: los visitantes ven la pantalla de mantenimiento. Tú sigues entrando normal.' : 'Desactivado: la página es visible para todos.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={maintenanceOn}
+                aria-label="Página en mantenimiento"
+                disabled={maintenanceBusy}
+                onClick={toggleMaintenance}
+                className={`relative shrink-0 w-14 h-8 rounded-full transition-colors disabled:opacity-60 ${maintenanceOn ? 'bg-amber-500' : 'bg-gray-400'}`}
+              >
+                <span className={`absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow transition-transform ${maintenanceOn ? 'translate-x-6' : ''}`} />
+              </button>
+            </div>
+
             <div className="flex flex-wrap gap-3 mb-6">
               <button
                 onClick={() => setAdminSection('offers')}
