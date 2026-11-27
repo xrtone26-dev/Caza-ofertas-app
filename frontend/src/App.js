@@ -229,13 +229,13 @@ function GamesZoneLoader(props) {
   return <Comp {...props} />;
 }
 
-function GamesPlaceholder({ isLight, status = 'loading', onRetry }) {
+function GamesPlaceholder({ isLight, status = 'loading', onRetry, fill = false }) {
   const isError = status === 'error';
   return (
     <div
       role={isError ? 'alert' : 'status'}
       aria-live="polite"
-      className={`rounded-lg border px-5 py-12 text-center flex flex-col items-center gap-3 min-h-[320px] justify-center ${
+      className={`rounded-lg border px-5 py-12 text-center flex flex-col items-center gap-3 justify-center ${fill ? 'flex-1 min-h-0' : 'min-h-[320px]'} ${
         isLight ? 'bg-white border-gray-200 text-gray-700' : 'bg-neutral-900 border-neutral-800 text-neutral-200'
       }`}
     >
@@ -871,16 +871,16 @@ function CountdownTimer({ expiresAt }) {
 // ==========================================
 const TEAM_STEPS = [
   {
-    title: 'Cómo funciona el rol',
-    body: 'Como promotor de CapiBaraML difundes en tus propios canales las ofertas y los cupones que publicamos. Tú compartes, tu audiencia compra en Mercado Libre y nosotros nos encargamos de encontrar y verificar las ofertas.',
+    title: 'Qué hace un colaborador',
+    body: 'Un colaborador (o promotor) de CapiBaraML recomienda a su comunidad ofertas, cupones y novedades de Mercado Libre que nuestro equipo ya revisó. Tú pones la confianza de tu audiencia: grupos de WhatsApp o Telegram, redes sociales, familia y amigos. Nosotros ponemos el catálogo verificado.',
   },
   {
-    title: 'Herramientas y etiquetas',
-    body: 'Te asignamos un rol y etiquetas exclusivas para identificar tus publicaciones, además de herramientas automatizadas que te ayudan a preparar y compartir ofertas y cupones sin empezar desde cero.',
+    title: 'Cómo compartes y tu día a día',
+    body: 'Cada día eliges las ofertas y cupones que mejor le sirvan a tu comunidad, los compartes con tu propio enlace y tu propio estilo, y respondes dudas sencillas (cómo canjear un cupón, qué banco aplica). Solo se comparte información real y vigente: nada de precios inventados ni promesas falsas. Con 20 a 30 minutos al día puedes mantener tu canal activo.',
   },
   {
-    title: 'Comisiones y qué esperar',
-    body: 'Las comisiones vienen del programa de afiliados de Mercado Libre y se generan cuando una compra se concreta desde tu enlace. No hay ingreso garantizado: depende de tus ventas y de los términos del programa. Te lo explicamos con detalle por WhatsApp.',
+    title: 'Comisiones y resultados, con transparencia',
+    body: 'Las comisiones vienen del programa de afiliados de Mercado Libre y se generan cuando una compra se concreta desde tu enlace. No existe un ingreso fijo ni garantizado: tus resultados dependen del tamaño y la confianza de tu comunidad, de la temporada y de los términos vigentes del programa. Te explicamos todo con detalle por WhatsApp antes de empezar.',
   },
 ];
 
@@ -971,7 +971,7 @@ function renderWorkWithUsSection(isLight) {
             <p className={`text-xs sm:text-sm font-medium leading-relaxed mb-6 ${
               isLight ? 'text-gray-600' : 'text-neutral-300'
             }`}>
-              Súmate a nuestra red de promotores oficiales de CapiBaraML. Te asignamos un rol, etiquetas exclusivas y herramientas automatizadas para que generes comisiones promocionando los mejores productos y cupones de Mercado Libre. ¡Trabaja con nosotros y crece con el proyecto!
+              Únete como colaborador de CapiBaraML y comparte con tu comunidad ofertas, cupones y novedades verificadas de Mercado Libre. Te acompañamos desde el primer día y, cuando una compra se concreta desde tu enlace, puedes ganar una comisión. Sin ingresos garantizados: aquí te explicamos cómo funciona antes de que decidas.
             </p>
 
             <WorkWithUsTutorial isLight={isLight} whatsappUrl="https://wa.me/523312229710?text=Hola,%20quiero%20postularme%20para%20unirme%20al%20equipo%20y%20ganar%20dinero%20con%20CapiBaraML" />
@@ -1420,6 +1420,27 @@ function App() {
   }, [themeMode]);
   const [adminPassword, setAdminPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Modo mantenimiento: lo activa el admin y se lee del backend al cargar (y cada minuto).
+  const [maintenanceOn, setMaintenanceOn] = useState(() => {
+    try { return localStorage.getItem('capibara_maintenance') === '1'; } catch (e) { return false; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('capibara_maintenance', maintenanceOn ? '1' : '0'); } catch (e) { /* sin almacenamiento */ }
+  }, [maintenanceOn]);
+  useEffect(() => {
+    let alive = true;
+    const check = () => {
+      fetch(`${API}/maintenance`, { cache: 'no-store' })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => { if (alive && data && typeof data.maintenance === 'boolean') setMaintenanceOn(data.maintenance); })
+        .catch(() => { /* sin conexión: se conserva el último valor conocido */ });
+    };
+    check();
+    const id = setInterval(check, 60000);
+    return () => { alive = false; clearInterval(id); };
+  }, []);
+  const showMaintenanceCover = maintenanceOn && !isAuthenticated;
   const [descuentos, setDescuentos] = useState([]);
   const [cupones, setCupones] = useState([]);
   const [cuponesBancarios, setCuponesBancarios] = useState([]);
@@ -1930,9 +1951,22 @@ function App() {
     setPayFilter('');
   };
 
+  const isGamesView = route.section === 'juegos';
   const mainBgClass = `${isLight
     ? 'min-h-screen bg-[#EBEBEB] text-gray-800 relative overflow-x-clip font-sans'
-    : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-clip font-sans'}${isMobileDevice ? ' pb-[72px]' : ''}`;
+    : 'min-h-screen bg-neutral-950 text-neutral-100 relative overflow-x-clip font-sans'}${isMobileDevice ? ' pb-[72px]' : ''}${isGamesView ? ' h-[100dvh] max-h-[100dvh] !min-h-0 overflow-hidden flex flex-col' : ''}`;
+
+  // Vista Juegos exclusiva (y pantalla de mantenimiento): la página no hace scroll.
+  useEffect(() => {
+    if (!isGamesView && !showMaintenanceCover) return undefined;
+    const html = document.documentElement;
+    const body = document.body;
+    const prev = { h: html.style.overflow, b: body.style.overflow };
+    html.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    if (isGamesView) window.scrollTo(0, 0);
+    return () => { html.style.overflow = prev.h; body.style.overflow = prev.b; };
+  }, [isGamesView, showMaintenanceCover]);
 
   const renderCuponesSection = () => {
     if (activeCupones.length === 0) {
@@ -3213,14 +3247,14 @@ function App() {
 
   const renderTopBar = () => (
     isMobileDevice ? (
-      <header className="sticky top-[60px] z-[65] bg-[#FFE600] shadow-sm">
+      <header className={`sticky ${isGamesView ? 'top-0' : 'top-[60px]'} z-[65] bg-[#FFE600] shadow-sm shrink-0`}>
         <div className="flex items-center gap-2 px-3 pt-2 pb-1">
           <button type="button" onClick={() => navigate('inicio')} aria-label="CapiBaraML, ir al inicio" className="shrink-0">
             <img src={logoUrl} alt="" className="w-9 h-9 rounded-full object-cover border border-black/20" />
           </button>
           {renderHeaderSearch()}
         </div>
-        <div className="px-2 pb-1 flex items-center justify-between">
+        <div className={`px-2 pb-1 flex items-center justify-between ${isGamesView ? '[@media(max-height:700px)]:hidden' : ''}`}>
           {renderCategoriesMenu(true)}
           <span className="text-xs font-medium text-[#333333]/80 pr-1 truncate">
             {(MOBILE_TABS.find((t) => t.id === route.section) || {}).label}
@@ -3228,7 +3262,7 @@ function App() {
         </div>
       </header>
     ) : (
-      <header className="sticky top-[64px] z-[65] bg-[#FFE600] shadow-sm">
+      <header className={`sticky ${isGamesView ? 'top-0' : 'top-[64px]'} z-[65] bg-[#FFE600] shadow-sm shrink-0`}>
         <div className="container mx-auto px-4 pt-2.5 pb-1.5 flex items-center gap-6">
           <button
             type="button"
@@ -3251,7 +3285,7 @@ function App() {
           </a>
           )}
         </div>
-        <nav aria-label="Secciones">
+        <nav aria-label="Secciones" className={isGamesView ? '[@media(max-height:560px)]:hidden' : undefined}>
           <ul className="container mx-auto px-4 flex flex-wrap items-stretch gap-x-1">
             <li className="flex">{renderCategoriesMenu(false)}</li>
             {desktopNavLinks.map((item) => (
@@ -3375,23 +3409,12 @@ function App() {
   // ZONA DE JUEGOS (se descarga solo al llegar a la sección)
   // ==========================================
   const renderGamesSection = () => (
-    <section aria-labelledby="sec-juegos" id="juegos" className="container mx-auto px-0 sm:px-4 mb-16 relative z-10 scroll-mt-44">
-      <div className={`rounded-lg shadow-sm p-3.5 sm:p-8 border ${isLight ? 'bg-white border-gray-200' : 'bg-neutral-900 border-neutral-800'}`}>
-        <SectionHeader
-          id="sec-juegos"
-          icon="🎮"
-          title="Zona de juegos"
-          subtitle="Cinco juegos gratis para relajarte entre ofertas. Tus récords se guardan en este dispositivo."
-          isLight={isLight}
-        />
-        <GamesErrorBoundary renderFallback={(retry) => <GamesPlaceholder isLight={isLight} status="error" onRetry={retry} />}>
-          <LazyMount placeholder={<GamesPlaceholder isLight={isLight} />}>
-            <Suspense fallback={<GamesPlaceholder isLight={isLight} />}>
-              <GamesZoneLoader isLight={isLight} />
-            </Suspense>
-          </LazyMount>
-        </GamesErrorBoundary>
-      </div>
+    <section aria-label="Zona de juegos" id="juegos" className="flex-1 min-h-0 flex flex-col w-full">
+      <GamesErrorBoundary renderFallback={(retry) => <GamesPlaceholder isLight={isLight} status="error" onRetry={retry} />}>
+        <Suspense fallback={<GamesPlaceholder isLight={isLight} fill />}>
+          <GamesZoneLoader isLight={isLight} exclusive />
+        </Suspense>
+      </GamesErrorBoundary>
     </section>
   );
 
@@ -3401,7 +3424,7 @@ function App() {
       {/* ========================================== */}
       {/* BARRA SUPERIOR DE WHATSAPP (BLINDADA ADS)  */}
       {/* ========================================== */}
-      <div className="sticky top-0 z-[75] w-full bg-[#25D366] border-b-4 border-black shadow-xl">
+      <div className={`${isGamesView ? 'hidden' : 'sticky'} top-0 z-[75] w-full bg-[#25D366] border-b-4 border-black shadow-xl`}>
         <div className="container mx-auto px-2.5 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between sm:justify-center gap-2 sm:gap-5">
           <div className="flex items-center gap-1.5 sm:gap-2 text-black min-w-0">
             <span className="relative flex h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0">
@@ -3453,7 +3476,7 @@ function App() {
       )}
 
       {/* Controles flotantes: en celular solo el chat, para no tapar contenido */}
-      {!isMobileDevice && (
+      {!isMobileDevice && !isGamesView && (
         <div className="fixed top-[190px] right-4 lg:right-6 z-[60] flex flex-col items-center gap-2.5">
           <VisitorCounter isLight={isLight} />
           <button
@@ -3471,7 +3494,7 @@ function App() {
       )}
 
       {isMobileDevice && (
-        <ChatbotWidget isLight={isLight} cupones={activeCupones} products={products} isMobileDevice={isMobileDevice} hasBottomNav />
+        <ChatbotWidget isLight={isLight} cupones={activeCupones} products={products} isMobileDevice={isMobileDevice} hasBottomNav compact={isGamesView} />
       )}
 
       <AnimatePresence>
@@ -3599,8 +3622,8 @@ function App() {
         </>
       ) : (
         <>
-          {renderBreadcrumb()}
-          <main id="vista" className="relative z-20 pt-1">
+          {!isGamesView && renderBreadcrumb()}
+          <main id="vista" className={isGamesView ? 'flex-1 min-h-0 flex flex-col pt-1 pb-1' : 'relative z-20 pt-1'}>
             {route.section === 'cupones' && renderCuponesSection()}
             {route.section === 'bancarios' && renderCuponesBancariosSection()}
             {route.section === 'productos' && renderProductosSection()}
@@ -3775,6 +3798,7 @@ function App() {
         </div>
       )}
 
+      {!isGamesView && (<>
       <section className={`relative overflow-hidden py-20 sm:py-24 px-4 border-b ${
         isLight 
           ? 'bg-gradient-to-br from-gray-50 via-white to-gray-50 border-gray-200 text-gray-800' 
@@ -3858,6 +3882,7 @@ function App() {
 
         </div>
       </footer>
+      </>)}
 
       <CouponCopyDialog
         coupon={copyDialogCoupon}
@@ -3883,11 +3908,54 @@ function App() {
         loadPublicProducts={() => loadPublicProducts(true)}
         tiktokVideos={tiktokVideos}
         setTiktokVideos={setTiktokVideos}
+        maintenanceOn={maintenanceOn}
+        setMaintenanceOn={setMaintenanceOn}
       />
+
+      {/* Indicador discreto para el admin: el modo mantenimiento está activo para los visitantes */}
+      {maintenanceOn && isAuthenticated && (
+        <button
+          type="button"
+          onClick={() => setShowAdminPanel(true)}
+          data-testid="maintenance-badge"
+          title="Abrir el panel para desactivarlo"
+          className="fixed left-3 bottom-[76px] md:bottom-4 z-[66] max-w-[calc(100vw-6rem)] min-h-[40px] px-3 rounded-full bg-amber-400 text-black text-[11px] sm:text-xs font-black border-2 border-black shadow-lg flex items-center gap-1.5"
+        >
+          <span aria-hidden="true">🚧</span> <span className="truncate">Mantenimiento activo para visitantes</span>
+        </button>
+      )}
+
+      {/* Pantalla de mantenimiento para todos los que no son admin autenticado */}
+      {showMaintenanceCover && (
+        <div
+          role="alert"
+          data-testid="maintenance-screen"
+          className={`fixed inset-0 z-[97] flex flex-col items-center justify-center gap-5 px-6 text-center overflow-y-auto ${
+            isLight ? 'bg-[#FFE600] text-[#333333]' : 'bg-neutral-950 text-neutral-100'
+          }`}
+        >
+          <img src="./logo.png" alt="CapiBaraML" className="w-28 h-28 sm:w-36 sm:h-36 rounded-full object-cover border-4 border-black shadow-xl bg-black" />
+          <div className="max-w-md">
+            <h1 className="text-2xl sm:text-4xl font-black tracking-tight mb-3">Página en mantenimiento</h1>
+            <p className={`text-base sm:text-lg font-medium leading-relaxed ${isLight ? 'text-[#333333]' : 'text-neutral-300'}`}>
+              Estamos haciendo mejoras para ti. Vuelve en unos minutos y encontrarás tus ofertas y cupones de siempre.
+            </p>
+          </div>
+          {isAdminVisible && (
+            <button
+              type="button"
+              onClick={() => setShowAdminLogin(true)}
+              className="mt-2 min-h-[44px] px-4 rounded-full text-xs font-bold border border-current opacity-70 hover:opacity-100"
+            >
+              <Lock className="w-3 h-3 inline mr-1" /> Acceso administrador
+            </button>
+          )}
+        </div>
+      )}
 
       {!isMobileDevice && (
         <div className="fixed bottom-4 right-4 z-[96] pointer-events-auto">
-          <ChatbotWidget isLight={isLight} cupones={activeCupones} products={products} isMobileDevice={isMobileDevice} />
+          <ChatbotWidget isLight={isLight} cupones={activeCupones} products={products} isMobileDevice={isMobileDevice} compact={isGamesView} />
         </div>
       )}
     </div>

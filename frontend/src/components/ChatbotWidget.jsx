@@ -387,7 +387,7 @@ const filterStrictCatalog = (userText, catalog) => {
   return { status: 'GENERAL_CHAT', items: [], budget, categoryLabel: '' };
 };
 
-export default function ChatbotWidget({ isLight, cupones, products, isMobileDevice = false, hasBottomNav = false }) {
+export default function ChatbotWidget({ isLight, cupones, products, isMobileDevice = false, hasBottomNav = false, compact = false }) {
   const [showChatWindow, setShowChatWindow] = useState(false);
   // Cierre con Escape y sin scroll de fondo mientras el chat ocupa la pantalla en móvil.
   useEffect(() => {
@@ -1229,15 +1229,15 @@ export default function ChatbotWidget({ isLight, cupones, products, isMobileDevi
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.94 }}
             transition={{ type: 'spring', damping: 24, stiffness: 300 }}
-            className={`fixed inset-x-2 bottom-2 top-[56px] sm:inset-auto sm:right-5 sm:bottom-24 z-[96] w-auto sm:w-[390px] md:w-[410px] h-[calc(100dvh-64px)] sm:h-[600px] sm:max-h-[82vh] rounded-3xl shadow-2xl border-2 overflow-hidden flex flex-col ${
+            className={`fixed inset-x-2 bottom-2 top-[56px] sm:inset-auto sm:right-5 sm:bottom-24 z-[96] w-auto sm:w-[390px] md:w-[410px] sm:max-w-[calc(100vw-2rem)] h-[calc(100dvh-64px)] sm:h-[600px] sm:max-h-[calc(100dvh-7.5rem)] rounded-3xl shadow-2xl border-2 overflow-hidden flex flex-col ${
               isLight
                 ? 'bg-white border-[#E6E6E6] text-gray-800'
                 : 'bg-neutral-900 border-neutral-700 text-neutral-100'
             }`}
           >
             {/* ENCABEZADO DEL CHAT CON LOGO DE CAPIBARA */}
-            <div className="relative z-30 bg-[#FFE600] px-3.5 py-2.5 sm:p-3.5 text-[#333333] flex items-center justify-between font-bold border-b border-black/20 shadow-sm shrink-0">
-              <div className="flex items-center gap-2.5 min-w-0">
+            <div className="relative z-30 bg-[#FFE600] px-3 py-2 sm:p-3 gap-2 text-[#333333] flex items-center justify-between font-bold border-b border-black/20 shadow-sm shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black border-2 border-black overflow-hidden flex items-center justify-center shadow-inner shrink-0">
                   <img
                     src={LOGO_URL}
@@ -1245,7 +1245,7 @@ export default function ChatbotWidget({ isLight, cupones, products, isMobileDevi
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="text-xs sm:text-sm font-black uppercase tracking-tight leading-tight truncate">
                     Asistente CapiBara IA 🐹
                   </p>
@@ -1255,7 +1255,7 @@ export default function ChatbotWidget({ isLight, cupones, products, isMobileDevi
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-1 shrink-0 relative z-40">
+              <div className="flex items-center gap-0.5 shrink-0 relative z-40">
                 <button
                   type="button"
                   onClick={() => setShowChatWindow(false)}
@@ -1279,35 +1279,35 @@ export default function ChatbotWidget({ isLight, cupones, products, isMobileDevi
 
             {/* BARRA DE ACCIONES RÁPIDAS (CHIPS TÁCTILES) */}
             <div
-              className={`px-2.5 py-2 border-b flex gap-1.5 overflow-x-auto no-scrollbar shrink-0 ${
+              className={`px-2.5 py-2 border-b flex flex-wrap gap-1.5 shrink-0 ${
                 isLight ? 'bg-yellow-50 border-gray-200' : 'bg-neutral-900 border-neutral-800'
               }`}
             >
               <button
                 type="button"
                 onClick={() => processAndSendMessage('¡Quiero un cupón de descuento urgente!')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-yellow-400 text-black font-black text-[11px] hover:bg-yellow-300 transition shadow-sm cursor-pointer shrink-0"
+                className="flex-1 basis-[calc(50%-0.25rem)] min-h-[36px] text-center justify-center px-2 py-1.5 rounded-full bg-yellow-400 text-black font-black text-[11px] hover:bg-yellow-300 transition shadow-sm cursor-pointer inline-flex items-center justify-center"
               >
                 🎟️ Cupones Hoy
               </button>
               <button
                 type="button"
                 onClick={() => processAndSendMessage('Muéstrame las ofertas top')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-red-600 text-white font-black text-[11px] hover:bg-red-700 transition shadow-sm cursor-pointer shrink-0 flex items-center gap-1"
+                className="flex-1 basis-[calc(50%-0.25rem)] min-h-[36px] text-center justify-center px-2 py-1.5 rounded-full bg-red-600 text-white font-black text-[11px] hover:bg-red-700 transition shadow-sm cursor-pointer flex items-center gap-1"
               >
                 <Flame size={12} /> Ofertas Top
               </button>
               <button
                 type="button"
                 onClick={() => processAndSendMessage('¿Qué terminales Point de Mercado Pago me recomiendas?')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-blue-600 text-white font-black text-[11px] hover:bg-blue-500 transition shadow-sm cursor-pointer shrink-0"
+                className="flex-1 basis-[calc(50%-0.25rem)] min-h-[36px] text-center justify-center px-2 py-1.5 rounded-full bg-blue-600 text-white font-black text-[11px] hover:bg-blue-500 transition shadow-sm cursor-pointer inline-flex items-center justify-center"
               >
                 💳 Terminales Point
               </button>
               <button
                 type="button"
                 onClick={() => processAndSendMessage('Pásame sus redes oficiales y WhatsApp')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-[#25D366] text-black font-black text-[11px] hover:bg-[#20bd5a] transition shadow-sm cursor-pointer shrink-0"
+                className="flex-1 basis-[calc(50%-0.25rem)] min-h-[36px] text-center justify-center px-2 py-1.5 rounded-full bg-[#25D366] text-black font-black text-[11px] hover:bg-[#20bd5a] transition shadow-sm cursor-pointer inline-flex items-center justify-center"
               >
                 💬 WhatsApp y Redes
               </button>
@@ -1390,7 +1390,7 @@ export default function ChatbotWidget({ isLight, cupones, products, isMobileDevi
       </AnimatePresence>
 
       {/* GLOBO DE SALUDO FLOTANTE (se oculta solo para no tapar contenido) */}
-      {!showChatWindow && showGreeting && (
+      {!showChatWindow && showGreeting && !compact && (
         <motion.div
           initial={{ opacity: 0, x: 20, scale: 0.8 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -1416,7 +1416,7 @@ export default function ChatbotWidget({ isLight, cupones, products, isMobileDevi
         id="chatbot-fab"
         data-chatbot-slot="customer-service"
         onClick={() => setShowChatWindow(!showChatWindow)}
-        className={`fixed right-3.5 sm:right-5 ${hasBottomNav ? 'bottom-[76px]' : 'bottom-4'} sm:bottom-5 z-50 group cursor-pointer pointer-events-auto`}
+        className={`fixed right-3.5 sm:right-5 ${hasBottomNav ? 'bottom-[76px]' : 'bottom-4'} sm:bottom-5 z-50 group cursor-pointer pointer-events-auto ${compact ? 'scale-75 origin-bottom-right' : ''}`}
         aria-label="Abrir chat de atención"
       >
         <span className="absolute inset-0 rounded-full bg-yellow-400/40 blur-xl group-hover:blur-2xl transition" />

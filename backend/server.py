@@ -150,6 +150,10 @@ class OfferUpdate(OfferFields):
     pass
 
 
+class MaintenanceRequest(BaseModel):
+    enabled: bool
+
+
 class AdminLoginRequest(BaseModel):
     password: str
 
@@ -393,6 +397,23 @@ def _serialize_docs(docs):
 # ==========================================================================
 # ENDPOINTS PÚBLICOS
 # ==========================================================================
+@api_router.get("/maintenance")
+async def get_maintenance(response: Response):
+    doc = await db.config.find_one({"_id": "site_settings"}) or {}
+    response.headers["Cache-Control"] = "no-store"
+    return {"maintenance": bool(doc.get("maintenance", False))}
+
+
+@api_router.put("/admin/maintenance", dependencies=admin_only)
+async def set_maintenance(payload: MaintenanceRequest):
+    await db.config.update_one(
+        {"_id": "site_settings"},
+        {"$set": {"maintenance": payload.enabled, "maintenance_updated_at": datetime.utcnow()}},
+        upsert=True,
+    )
+    return {"maintenance": payload.enabled}
+
+
 @api_router.get("/products")
 async def get_products(response: Response):
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)

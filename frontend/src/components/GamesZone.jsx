@@ -11,6 +11,13 @@ const GAME_LABELS = {
   ninja: 'Ninja Cut',
   clicker: 'Click Challenge'
 };
+const GAME_CARDS = [
+  { key: '2048', icon: '🔢', title: '2048 Classic', desc: 'Une números y llega a 2048', grad: 'from-amber-400 via-orange-500 to-red-600' },
+  { key: 'tetris', icon: '🧱', title: 'Cyber Tetris', desc: 'Encaja piezas y limpia líneas', grad: 'from-cyan-400 via-blue-600 to-indigo-800' },
+  { key: 'memory', icon: '🎴', title: 'Memoria Pro', desc: 'Encuentra todas las parejas', grad: 'from-fuchsia-500 via-purple-600 to-indigo-700' },
+  { key: 'ninja', icon: '⚔️', title: 'Ninja Cut', desc: 'Corta frutas, esquiva bombas', grad: 'from-emerald-400 via-green-600 to-teal-800' },
+  { key: 'clicker', icon: '⚡', title: 'Click Challenge', desc: 'Toca lo más rápido que puedas', grad: 'from-yellow-300 via-yellow-500 to-orange-600' },
+];
 const EMPTY_SCORES = { '2048': 0, tetris: 0, memory: 0, ninja: 0, clicker: 0 };
 
 // ---------------------------------------------------------------------------
@@ -130,7 +137,24 @@ const GAMES_CSS = `
 @media (prefers-reduced-motion:reduce){.gz-pop{animation:none}.gz-pad{transition:none}}
 `;
 
-export default function GamesZone({ currentUser, isLight }) {
+export default function GamesZone({ currentUser, isLight, exclusive = false }) {
+  // Modo exclusivo (vista Juegos a pantalla completa): carga -> catálogo -> carga del juego -> juego.
+  const [view, setView] = useState(exclusive ? 'loading' : 'game');
+  const [loadingTarget, setLoadingTarget] = useState(null);
+  const [showRank, setShowRank] = useState(false);
+  useEffect(() => {
+    if (!exclusive || view !== 'loading') return undefined;
+    let reduce = false;
+    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { /* sin matchMedia */ }
+    const t = setTimeout(() => setView(loadingTarget ? 'game' : 'hub'), reduce ? 300 : (loadingTarget ? 800 : 1100));
+    return () => clearTimeout(t);
+  }, [exclusive, view, loadingTarget]);
+  useEffect(() => {
+    if (!showRank) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setShowRank(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showRank]);
   const [activeGame, setActiveGame] = useState('2048'); 
   const [gamePhase, setGamePhase] = useState('menu'); 
   const [isEffectsMuted, setIsEffectsMuted] = useState(false);
@@ -703,6 +727,27 @@ export default function GamesZone({ currentUser, isLight }) {
     setGamePhase('menu'); 
     updateScore(0);
     setIsWon(false);
+  };
+
+  const openGameFromHub = (gameKey) => {
+    handleSelectGame(gameKey);
+    setShowRank(false);
+    setLoadingTarget(gameKey);
+    setView('loading');
+  };
+
+  const backToHub = () => {
+    handleSelectGame(activeGame);
+    try {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        const exit = document.exitFullscreen || document.webkitExitFullscreen;
+        if (exit) exit.call(document);
+      }
+    } catch (e) { /* sin fullscreen */ }
+    setPseudoFull(false);
+    setShowRank(false);
+    setLoadingTarget(null);
+    setView('hub');
   };
 
   const startGameFlow = () => { 
@@ -1926,6 +1971,7 @@ export default function GamesZone({ currentUser, isLight }) {
   const getContainerStyle = () => {
     if (pseudoFull) return { height: '100dvh' };
     if (isFullscreen) return undefined;
+    if (exclusive) return { flex: '1 1 0%', minHeight: 0 };
     if (isMobile) {
       return shortLandscape
         ? { height: 'clamp(300px, calc(100dvh - 150px), 520px)' }
@@ -1952,7 +1998,7 @@ export default function GamesZone({ currentUser, isLight }) {
   // 2048: tablero cuadrado que cabe junto al D-pad (abajo en vertical, al costado en horizontal).
   const board2048 = clampN(
     Math.floor(Math.min(bw - 16 - (landscape ? 200 : 0), bh - 56 - 44 - 14 - (isMobile && !landscape ? 150 : 28))),
-    150, 480
+    exclusive ? 110 : 150, 480
   );
 
   // Memorama: cuadrado que cabe bajo la barra de estado.
@@ -2044,15 +2090,107 @@ export default function GamesZone({ currentUser, isLight }) {
     return <div className="w-full flex flex-wrap justify-between items-center px-1 gap-1.5 z-10 mt-2 shrink-0">{moveBtns}{actionBtns}</div>;
   };
 
+  const EXCL_CSS = `
+    @keyframes gz-bar { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+    @keyframes gz-bob { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-10px) rotate(4deg); } }
+    @keyframes gz-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .gz-bar-fill { animation: gz-bar 1s ease-out forwards; }
+    .gz-bob { animation: gz-bob 1.1s ease-in-out infinite; }
+    .gz-in { animation: gz-in .35s ease-out both; }
+    @media (prefers-reduced-motion: reduce) { .gz-bar-fill, .gz-bob, .gz-in { animation: none; transform: none; } }
+  `;
+
+  const renderLoadingScreen = () => {
+    const target = GAME_CARDS.find((g) => g.key === loadingTarget);
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        data-testid="games-loading"
+        className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-4 px-6 text-center rounded-2xl bg-gradient-to-b from-neutral-950 via-neutral-900 to-black text-white gz-in"
+      >
+        <style>{EXCL_CSS}</style>
+        <div className="gz-bob w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-yellow-400 text-black flex items-center justify-center shadow-[0_0_40px_rgba(250,204,21,.45)]">
+          <Gamepad2 className="w-14 h-14 sm:w-16 sm:h-16" aria-hidden="true" />
+        </div>
+        <div>
+          <p className="text-xl sm:text-2xl font-black tracking-tight">{target ? target.title : 'Zona de juegos'}</p>
+          <p className="text-sm text-neutral-300 mt-1">{target ? `Cargando ${target.title}…` : 'Preparando tus juegos…'}</p>
+        </div>
+        <div className="w-56 sm:w-72 h-2 rounded-full bg-white/15 overflow-hidden" aria-hidden="true">
+          <div className="gz-bar-fill h-full w-full rounded-full bg-yellow-400" />
+        </div>
+      </div>
+    );
+  };
+
+  const renderHub = () => (
+    <div
+      data-testid="games-hub"
+      className={`absolute inset-0 z-30 flex flex-col gap-2 sm:gap-3 p-2 sm:p-4 rounded-2xl gz-in overflow-hidden ${isLight ? 'bg-white' : 'bg-neutral-900'}`}
+    >
+      <style>{EXCL_CSS}</style>
+      <div className="shrink-0 flex items-center gap-2 sm:gap-3">
+        <div className="w-10 h-10 shrink-0 rounded-xl bg-yellow-400 text-black flex items-center justify-center" aria-hidden="true"><Gamepad2 className="w-6 h-6" /></div>
+        <div className="min-w-0 flex-1">
+          <h2 className={`text-base sm:text-xl font-black leading-tight truncate ${isLight ? 'text-gray-900' : 'text-neutral-100'}`}>Zona de juegos CapiBaraML</h2>
+          <p className={`text-[11px] sm:text-xs truncate ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>@{playerName} · Nv {playerLevel} · 💰 {playerCoins} · XP {playerXP}/{nextXpTarget}</p>
+        </div>
+        <button type="button" onClick={() => setShowRank(true)} aria-label="Ver ranking y récords" className="min-h-[44px] min-w-[44px] px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs flex items-center justify-center gap-1.5">
+          <Trophy className="w-4 h-4 text-yellow-300" /> <span className="hidden sm:inline">Ranking</span>
+        </button>
+      </div>
+      <div className="flex-1 min-h-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 content-center auto-rows-fr lg:auto-rows-auto lg:max-h-[460px] lg:my-auto" role="list" aria-label="Catálogo de juegos">
+        {GAME_CARDS.map((g, i) => (
+          <button
+            key={g.key}
+            type="button"
+            role="listitem"
+            data-game={g.key}
+            onClick={() => openGameFromHub(g.key)}
+            aria-label={`Jugar ${g.title}`}
+            className={`group relative min-h-[96px] lg:min-h-[260px] rounded-2xl overflow-hidden border text-left flex flex-col shadow-md hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] transition ${i === GAME_CARDS.length - 1 ? 'col-span-2 sm:col-span-1' : ''} ${isLight ? 'bg-white border-gray-200' : 'bg-neutral-950 border-neutral-800'}`}
+          >
+            <div className={`flex-1 min-h-0 bg-gradient-to-br ${g.grad} flex items-center justify-center text-4xl sm:text-5xl lg:text-6xl`} aria-hidden="true">
+              <span className="drop-shadow-lg group-hover:scale-110 transition-transform">{g.icon}</span>
+            </div>
+            <div className="shrink-0 px-2.5 py-2">
+              <p className={`text-[13px] sm:text-sm font-black leading-tight truncate ${isLight ? 'text-gray-900' : 'text-neutral-100'}`}>{g.title}</p>
+              <p className={`hidden sm:block text-[11px] leading-snug truncate ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>{g.desc}</p>
+              <p className={`text-[11px] font-bold mt-0.5 ${isLight ? 'text-[#2968C8]' : 'text-yellow-300'}`}>🏆 {highScores[g.key] || 0} pts</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="container mx-auto px-1 sm:px-4 mb-16 relative z-10">
+    <div className={exclusive ? 'w-full flex-1 min-h-0 relative flex flex-col px-1 sm:px-3' : 'container mx-auto px-1 sm:px-4 mb-16 relative z-10'} data-games-exclusive={exclusive ? 'true' : undefined}>
+      {exclusive && view === 'loading' && renderLoadingScreen()}
+      {exclusive && view === 'hub' && renderHub()}
       
-      <div className={`rounded-3xl shadow-xl p-2 sm:p-4 md:p-8 border ${isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'}`}>
-        <h2 className={`text-2xl sm:text-3xl font-bold text-center mb-6 flex items-center justify-center gap-2 ${isLight ? 'text-purple-700' : 'text-neutral-100 font-black'}`}>
+      <div className={`${exclusive ? `flex-1 min-h-0 flex flex-col p-1.5 sm:p-3 rounded-2xl ${view !== 'game' ? 'invisible' : ''}` : 'rounded-3xl p-2 sm:p-4 md:p-8'} shadow-xl border ${isLight ? 'bg-white border-purple-200' : 'bg-neutral-900/85 border-neutral-800'}`}>
+        {exclusive && (
+          <div className="shrink-0 flex items-center gap-2 mb-2">
+            <button type="button" onClick={backToHub} aria-label="Volver al catálogo de juegos" className="min-h-[44px] px-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-yellow-400 font-black text-xs flex items-center gap-1.5 border border-neutral-700">
+              <span aria-hidden="true">←</span> Catálogo
+            </button>
+            <div className={`min-w-0 flex-1 flex items-center gap-2 font-black text-sm sm:text-base ${isLight ? 'text-gray-900' : 'text-neutral-100'}`}>
+              <span aria-hidden="true">{(GAME_CARDS.find((g) => g.key === activeGame) || {}).icon}</span>
+              <span className="truncate">{GAME_LABELS[activeGame]}</span>
+            </div>
+            <span className="hidden sm:flex items-center gap-2 px-3 min-h-[36px] rounded-full bg-neutral-900 text-yellow-300 text-xs font-black border border-neutral-700">Nv {playerLevel} · 💰 {playerCoins}</span>
+            <button type="button" onClick={() => setShowRank(true)} aria-label="Ver ranking y récords" className="min-h-[44px] min-w-[44px] px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs flex items-center justify-center gap-1.5">
+              <Trophy className="w-4 h-4 text-yellow-300" /> <span className="hidden sm:inline">Ranking</span>
+            </button>
+          </div>
+        )}
+        <h2 className={`${exclusive ? 'hidden ' : ''}text-2xl sm:text-3xl font-bold text-center mb-6 flex items-center justify-center gap-2 ${isLight ? 'text-purple-700' : 'text-neutral-100 font-black'}`}>
           <Gamepad2 className="w-8 h-8 text-yellow-400" /> ZONA DE JUEGOS CAPIBARAML
         </h2>
 
-        <div className="flex justify-center gap-2 mb-6 flex-wrap">
+        <div className={`${exclusive ? 'hidden' : 'flex'} justify-center gap-2 mb-6 flex-wrap`}>
           <button onClick={() => handleSelectGame('2048')} className={`px-4 py-2 rounded-full font-bold text-xs transition-all border ${activeGame === '2048' ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg scale-105' : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700'}`}>🔢 2048 Classic</button>
           <button onClick={() => handleSelectGame('tetris')} className={`px-4 py-2 rounded-full font-bold text-xs transition-all border ${activeGame === 'tetris' ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg scale-105' : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700'}`}>🧱 Cyber Tetris</button>
           <button onClick={() => handleSelectGame('memory')} className={`px-4 py-2 rounded-full font-bold text-xs transition-all border ${activeGame === 'memory' ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg scale-105' : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700'}`}>🎴 Memoria Pro</button>
@@ -2060,10 +2198,10 @@ export default function GamesZone({ currentUser, isLight }) {
           <button onClick={() => handleSelectGame('clicker')} className={`px-4 py-2 rounded-full font-bold text-xs transition-all border ${activeGame === 'clicker' ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg scale-105' : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700'}`}>⚡ Click Challenge</button>
         </div>
 
-        <div className="flex flex-col xl:flex-row gap-6 items-center xl:items-start justify-center w-full">
+        <div className={exclusive ? 'flex-1 min-h-0 flex flex-col gap-2 w-full' : 'flex flex-col xl:flex-row gap-6 items-center xl:items-start justify-center w-full'}>
           
           {/* PROGRESO GLOBAL */}
-          <div className="w-full max-w-sm xl:w-64 shrink-0 bg-gradient-to-b from-red-600 to-red-900 rounded-2xl p-5 text-white shadow-lg border border-red-500 relative overflow-hidden order-2 xl:order-1">
+          <div className={`w-full max-w-sm xl:w-64 shrink-0 bg-gradient-to-b from-red-600 to-red-900 rounded-2xl p-5 text-white shadow-lg border border-red-500 relative overflow-hidden order-2 xl:order-1 ${exclusive ? 'hidden' : ''}`}>
             <h3 className="text-center font-black text-sm uppercase tracking-wider mb-3 flex items-center justify-center gap-2">
               <User className="w-4 h-4" /> PROGRESO GLOBAL
             </h3>
@@ -2090,7 +2228,7 @@ export default function GamesZone({ currentUser, isLight }) {
           </div>
 
           {/* CONTENEDOR CENTRAL DEL JUEGO */}
-          <div className="flex flex-col gap-3 w-full min-w-0 max-w-[840px] order-1 xl:order-2">
+          <div className={`flex flex-col gap-3 w-full min-w-0 order-1 xl:order-2 ${exclusive ? 'flex-1 min-h-0 max-w-[1100px] mx-auto gap-2' : 'max-w-[840px]'}`}>
             {gamePhase === 'playing' && activeGame !== 'memory' && activeGame !== 'ninja' && activeGame !== 'clicker' && activeGame !== 'tetris' && (
               <div className="w-full flex flex-wrap justify-between items-center gap-2 bg-neutral-900 border border-neutral-800 px-4 py-2 rounded-xl shadow-md text-white text-xs font-bold">
                 <div>Puntos: <span className="text-yellow-400 text-sm font-black">{score}</span></div>
@@ -2734,7 +2872,18 @@ export default function GamesZone({ currentUser, isLight }) {
           </div>
 
           {/* COLUMNA DERECHA: TOP GLOBAL + GANADORES DEL MES */}
-          <div className="w-full max-w-sm xl:w-64 shrink-0 flex flex-col gap-6 order-3">
+          <div
+            role={exclusive ? 'dialog' : undefined}
+            aria-label={exclusive ? 'Ranking y récords' : undefined}
+            className={exclusive
+              ? (showRank
+                ? 'visible fixed inset-x-2 top-16 bottom-16 sm:inset-auto sm:right-4 sm:top-20 sm:bottom-4 sm:w-80 z-[98] overflow-y-auto overscroll-contain rounded-2xl bg-neutral-950 border border-neutral-700 p-3 flex flex-col gap-4 shadow-2xl'
+                : 'hidden')
+              : 'w-full max-w-sm xl:w-64 shrink-0 flex flex-col gap-6 order-3'}
+          >
+            {exclusive && showRank && (
+              <button type="button" onClick={() => setShowRank(false)} aria-label="Cerrar ranking" className="self-end min-h-[44px] px-4 rounded-xl bg-neutral-800 text-white font-black text-xs border border-neutral-600">✕ Cerrar</button>
+            )}
             
             {/* TOP GLOBAL MENSUAL */}
             <div className="bg-gradient-to-b from-blue-600 to-blue-950 rounded-2xl p-5 text-white shadow-lg border border-blue-500 flex flex-col gap-3">
