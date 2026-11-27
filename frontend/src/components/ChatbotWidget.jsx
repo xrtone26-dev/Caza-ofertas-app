@@ -389,6 +389,19 @@ const filterStrictCatalog = (userText, catalog) => {
 
 export default function ChatbotWidget({ isLight, cupones, products, isMobileDevice = false, hasBottomNav = false }) {
   const [showChatWindow, setShowChatWindow] = useState(false);
+  // Cierre con Escape y sin scroll de fondo mientras el chat ocupa la pantalla en móvil.
+  useEffect(() => {
+    if (!showChatWindow) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setShowChatWindow(false); };
+    window.addEventListener('keydown', onKey);
+    const small = window.matchMedia && window.matchMedia('(max-width: 639px)').matches;
+    const prev = document.body.style.overflow;
+    if (small) document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [showChatWindow]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [localCupones, setLocalCupones] = useState([]);
@@ -1199,19 +1212,31 @@ export default function ChatbotWidget({ isLight, cupones, products, isMobileDevi
         )}
 
         {showChatWindow && (
+          <div
+            key="chat-backdrop"
+            aria-hidden="true"
+            onClick={() => setShowChatWindow(false)}
+            className="sm:hidden fixed inset-0 z-[94] bg-black/40"
+          />
+        )}
+
+        {showChatWindow && (
           <motion.div
+            key="chat-window"
+            role="dialog"
+            aria-label="Asistente CapiBara IA"
             initial={{ opacity: 0, y: 30, scale: 0.94 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.94 }}
             transition={{ type: 'spring', damping: 24, stiffness: 300 }}
-            className={`fixed inset-x-2 bottom-2 top-[56px] sm:inset-auto sm:right-5 sm:bottom-24 z-[95] w-auto sm:w-[390px] md:w-[410px] h-[calc(100dvh-64px)] sm:h-[600px] sm:max-h-[82vh] rounded-3xl shadow-2xl border-2 overflow-hidden flex flex-col ${
+            className={`fixed inset-x-2 bottom-2 top-[56px] sm:inset-auto sm:right-5 sm:bottom-24 z-[96] w-auto sm:w-[390px] md:w-[410px] h-[calc(100dvh-64px)] sm:h-[600px] sm:max-h-[82vh] rounded-3xl shadow-2xl border-2 overflow-hidden flex flex-col ${
               isLight
-                ? 'bg-white border-yellow-400 text-gray-800'
-                : 'bg-neutral-900 border-yellow-400/60 text-neutral-100'
+                ? 'bg-white border-[#E6E6E6] text-gray-800'
+                : 'bg-neutral-900 border-neutral-700 text-neutral-100'
             }`}
           >
             {/* ENCABEZADO DEL CHAT CON LOGO DE CAPIBARA */}
-            <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 px-3.5 py-3 sm:p-4 text-black flex items-center justify-between font-bold border-b-2 border-black shadow-sm shrink-0">
+            <div className="relative z-30 bg-[#FFE600] px-3.5 py-2.5 sm:p-3.5 text-[#333333] flex items-center justify-between font-bold border-b border-black/20 shadow-sm shrink-0">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black border-2 border-black overflow-hidden flex items-center justify-center shadow-inner shrink-0">
                   <img
@@ -1230,22 +1255,24 @@ export default function ChatbotWidget({ isLight, cupones, products, isMobileDevi
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-1 shrink-0">
+              <div className="flex items-center gap-1 shrink-0 relative z-40">
                 <button
                   type="button"
                   onClick={() => setShowChatWindow(false)}
                   title="Minimizar"
-                  className="text-black hover:bg-black/10 rounded-full p-1.5 transition-colors flex items-center justify-center cursor-pointer"
+                  aria-label="Minimizar chat"
+                  className="w-11 h-11 text-black bg-black/5 hover:bg-black/15 rounded-full transition-colors flex items-center justify-center cursor-pointer"
                 >
-                  <Minus className="w-5 h-5" />
+                  <Minus className="w-6 h-6" />
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowChatWindow(false)}
                   title="Cerrar"
-                  className="text-black hover:bg-black/10 rounded-full p-1.5 transition-colors cursor-pointer"
+                  aria-label="Cerrar chat"
+                  className="w-11 h-11 text-black bg-black/5 hover:bg-black/15 rounded-full transition-colors flex items-center justify-center cursor-pointer"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-6 h-6" />
                 </button>
               </div>
             </div>
