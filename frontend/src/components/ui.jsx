@@ -151,11 +151,20 @@ const maskCode = (code, fallback) => {
   return str.length > 3 ? `${str.slice(0, 3)}••••` : str;
 };
 
-export function CouponCard({ cupon, variant = 'ml', bank, gradientClass, expiryBadge, reaction, counts, onReact, onCopy }) {
-  const isBank = variant === 'bank';
-  const textTone = isBank ? 'text-white' : 'text-black';
-  const softBg = isBank ? 'bg-black/25 border-white/30' : 'bg-white/55 border-black/20';
+// Solo presentación: extrae del texto ya existente el beneficio principal (%, monto o MSI) para destacarlo.
+const getBenefitBadge = (cupon) => {
+  const text = `${cupon.title || ''} ${cupon.description || ''}`;
+  const msi = text.match(/(\d{1,2})\s*(?:MSI|meses sin intereses)/i);
+  if (msi) return Number(msi[1]) === 1 ? '1 mes sin intereses' : `${msi[1]} meses sin intereses`;
+  const pct = text.match(/(\d{1,3})\s*%/);
+  if (pct) return `${pct[1]}% OFF`;
+  const amt = text.match(/\$\s?([\d.,]+)/);
+  if (amt) return `$${amt[1]} de descuento`;
+  return null;
+};
 
+export function CouponCard({ cupon, variant = 'ml', bank, gradientClass, expiryBadge, reaction, counts, onReact, onCopy, isLight = true }) {
+  const isBank = variant === 'bank';
   const minPurchase = formatMoney(cupon.min_purchase);
   const maxDiscount = formatMoney(cupon.max_discount);
   const conditions = [];
@@ -164,24 +173,49 @@ export function CouponCard({ cupon, variant = 'ml', bank, gradientClass, expiryB
 
   const title = cupon.title || (isBank ? 'Promoción bancaria' : 'Cupón de descuento');
   const brandName = isBank ? bank?.name || 'Banco' : 'Mercado Libre';
+  const benefit = getBenefitBadge(cupon);
+
+  const t = isLight
+    ? {
+        card: 'bg-white border-[#E6E6E6] hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)]',
+        title: 'text-[#333333]',
+        muted: 'text-[#666666]',
+        line: 'border-[#E6E6E6]',
+        box: 'bg-[#F5F5F5] border-[#E6E6E6]',
+        logo: 'bg-white border-[#E6E6E6]',
+        link: 'text-[#2968C8]',
+        green: 'text-[#00783a] bg-[#E8F5EE]',
+        react: 'bg-white border-[#E6E6E6] text-[#333333] hover:border-[#3483FA]',
+        like: 'bg-[#E3EDFB] border-[#3483FA] text-[#1f55a8]',
+        heart: 'bg-[#FDEBF0] border-[#E0457B] text-[#B3265A]',
+      }
+    : {
+        card: 'bg-neutral-900 border-neutral-700 hover:shadow-lg',
+        title: 'text-neutral-50',
+        muted: 'text-neutral-400',
+        line: 'border-neutral-700',
+        box: 'bg-neutral-800 border-neutral-700',
+        logo: 'bg-white border-neutral-600',
+        link: 'text-[#8dbdff]',
+        green: 'text-[#3ddc84] bg-[#3ddc84]/10',
+        react: 'bg-neutral-800 border-neutral-700 text-neutral-100 hover:border-[#8dbdff]',
+        like: 'bg-[#3483FA]/20 border-[#8dbdff] text-[#cfe3ff]',
+        heart: 'bg-pink-500/15 border-pink-400 text-pink-200',
+      };
 
   return (
     <article
       aria-label={`${title} — ${brandName}`}
-      className="h-full rounded-3xl overflow-hidden border-2 border-slate-700 bg-slate-900 shadow-2xl flex flex-col sm:flex-row"
+      className={`h-full rounded-lg overflow-hidden border flex flex-col transition-shadow ${t.card}`}
     >
-      {/* Marca */}
-      <div className="bg-white text-gray-900 px-4 py-3 sm:p-5 flex sm:flex-col items-center sm:justify-center gap-3 sm:w-44 xl:w-52 shrink-0 border-b-2 sm:border-b-0 sm:border-r-2 border-dashed border-slate-300">
-        <div
-          className={`w-12 h-12 sm:w-20 sm:h-20 rounded-full flex items-center justify-center border-2 border-black overflow-hidden p-1.5 sm:p-2 shrink-0 ${
-            isBank ? 'bg-white' : 'bg-yellow-400'
-          }`}
-        >
+      {/* Marca + vigencia */}
+      <div className="flex items-center gap-3 px-4 pt-4">
+        <div className={`w-12 h-12 rounded-full border flex items-center justify-center overflow-hidden p-1.5 shrink-0 ${t.logo}`}>
           {isBank ? (
             bank?.logo ? (
               <img src={bank.logo} alt="" className="w-full h-full object-contain" loading="lazy" />
             ) : (
-              <Building2 className="w-7 h-7 text-blue-600" aria-hidden="true" />
+              <Building2 className="w-6 h-6 text-[#2968C8]" aria-hidden="true" />
             )
           ) : (
             <img
@@ -196,81 +230,72 @@ export function CouponCard({ cupon, variant = 'ml', bank, gradientClass, expiryB
             />
           )}
         </div>
-        <div className="flex flex-col sm:items-center min-w-0">
-          <span className="font-black text-sm uppercase tracking-wide text-slate-900 truncate">{brandName}</span>
-          <span className="text-xs font-bold text-blue-600">{isBank ? 'Promoción con tarjeta' : 'Cupón de descuento'}</span>
+        <div className="min-w-0 flex-1">
+          <span className={`block text-xs font-semibold uppercase tracking-wide truncate ${t.muted}`}>{brandName}</span>
+          <span className={`block text-xs font-semibold ${t.link}`}>{isBank ? 'Promoción con tarjeta' : 'Cupón de descuento'}</span>
         </div>
+        <div className="shrink-0">{expiryBadge}</div>
       </div>
 
       {/* Detalle */}
-      <div className={`flex-1 min-w-0 bg-gradient-to-br ${gradientClass} ${textTone} p-4 sm:p-5 flex flex-col gap-3`}>
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="text-lg sm:text-xl font-black leading-tight line-clamp-2">{title}</h3>
-          <div className="shrink-0">{expiryBadge}</div>
-        </div>
+      <div className="flex-1 min-w-0 px-4 pt-3 pb-4 flex flex-col gap-3">
+        <h3 className={`text-base font-semibold leading-snug line-clamp-2 ${t.title}`}>{title}</h3>
+
+        {benefit && (
+          <span className={`self-start inline-flex items-center px-2 py-0.5 rounded text-sm font-semibold ${t.green}`}>{benefit}</span>
+        )}
 
         {(conditions.length > 0 || cupon.description) && (
-          <ul className={`text-xs sm:text-sm font-bold leading-snug space-y-0.5 ${isBank ? 'text-white/95' : 'text-black/85'}`}>
+          <ul className={`text-sm leading-snug space-y-0.5 ${t.muted}`}>
             {conditions.map((c) => (
-              <li key={c}>• {c}</li>
+              <li key={c}>{c}</li>
             ))}
-            {cupon.description && <li className="line-clamp-2 font-semibold">{cupon.description}</li>}
+            {cupon.description && <li className="line-clamp-2">{cupon.description}</li>}
           </ul>
         )}
 
         {cupon.code && (
-          <div className={`rounded-2xl border-2 border-dashed px-3 py-2 flex items-center justify-between gap-2 ${softBg}`}>
+          <div className={`rounded-md border border-dashed px-3 py-2 flex items-center justify-between gap-2 ${t.box}`}>
             <div className="min-w-0">
-              <span className="block text-[11px] font-black uppercase tracking-wider opacity-80">Código</span>
-              <span className="block font-mono font-black text-lg tracking-widest truncate">{maskCode(cupon.code)}</span>
+              <span className={`block text-[11px] font-semibold uppercase tracking-wider ${t.muted}`}>Código</span>
+              <span className={`block font-mono font-bold text-lg tracking-widest truncate ${t.title}`}>{maskCode(cupon.code)}</span>
             </div>
-            <span className="text-[11px] font-bold opacity-90 text-right leading-tight">Se muestra completo<br />al copiarlo</span>
+            <span className={`text-[11px] text-right leading-tight ${t.muted}`}>Se muestra completo<br />al copiarlo</span>
           </div>
         )}
 
         <button
           type="button"
           onClick={onCopy}
-          className="w-full min-h-[48px] inline-flex items-center justify-center gap-2 bg-[#16803f] hover:bg-[#126a35] active:scale-[0.98] text-white font-black text-sm py-3 px-4 rounded-2xl border-2 border-black shadow-md transition"
+          className="mt-auto w-full min-h-[44px] inline-flex items-center justify-center gap-2 bg-[#3483FA] hover:bg-[#2968C8] active:scale-[0.99] text-white font-semibold text-sm py-2.5 px-4 rounded-md transition-colors"
         >
-          {cupon.code ? <Copy className="w-5 h-5 shrink-0" aria-hidden="true" /> : <ExternalLink className="w-5 h-5 shrink-0" aria-hidden="true" />}
+          {cupon.code ? <Copy className="w-4 h-4 shrink-0" aria-hidden="true" /> : <ExternalLink className="w-4 h-4 shrink-0" aria-hidden="true" />}
           <span>{cupon.code ? 'Copiar código y usarlo' : 'Ver promoción'}</span>
         </button>
+      </div>
 
-        <div className="flex items-center justify-between gap-2 pt-2 border-t" style={{ borderColor: isBank ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)' }}>
-          <span className="text-xs font-bold">¿Te funcionó?</span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => onReact('like')}
-              aria-pressed={reaction === 'like'}
-              aria-label={`Me funcionó (${counts.like})`}
-              className={`min-h-[40px] min-w-[52px] px-3 rounded-xl text-sm font-black flex items-center justify-center gap-1.5 border-2 transition ${
-                reaction === 'like'
-                  ? 'bg-black text-white border-black'
-                  : isBank
-                  ? 'bg-black/25 text-white border-white/30'
-                  : 'bg-white/60 text-black border-black/20'
-              }`}
-            >
-              <ThumbsUp className="w-4 h-4" aria-hidden="true" /> {counts.like}
-            </button>
-            <button
-              type="button"
-              onClick={() => onReact('heart')}
-              aria-pressed={reaction === 'heart'}
-              aria-label={`Me encanta (${counts.heart})`}
-              className={`min-h-[40px] min-w-[52px] px-3 rounded-xl text-sm font-black flex items-center justify-center gap-1.5 border-2 transition ${
-                reaction === 'heart'
-                  ? 'bg-pink-600 text-white border-pink-700'
-                  : isBank
-                  ? 'bg-black/25 text-white border-white/30'
-                  : 'bg-white/60 text-black border-black/20'
-              }`}
-            >
-              <Heart className={`w-4 h-4 ${reaction === 'heart' ? 'fill-current' : ''}`} aria-hidden="true" /> {counts.heart}
-            </button>
-          </div>
+      {/* Reacciones */}
+      <div className={`flex items-center justify-between gap-2 px-4 py-2.5 border-t ${t.line}`}>
+        <span className={`text-xs ${t.muted}`}>¿Te funcionó?</span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onReact('like')}
+            aria-pressed={reaction === 'like'}
+            aria-label={`Me funcionó (${counts.like})`}
+            className={`min-h-[40px] min-w-[52px] px-3 rounded-md text-sm font-semibold flex items-center justify-center gap-1.5 border transition ${reaction === 'like' ? t.like : t.react}`}
+          >
+            <ThumbsUp className="w-4 h-4" aria-hidden="true" /> {counts.like}
+          </button>
+          <button
+            type="button"
+            onClick={() => onReact('heart')}
+            aria-pressed={reaction === 'heart'}
+            aria-label={`Me encanta (${counts.heart})`}
+            className={`min-h-[40px] min-w-[52px] px-3 rounded-md text-sm font-semibold flex items-center justify-center gap-1.5 border transition ${reaction === 'heart' ? t.heart : t.react}`}
+          >
+            <Heart className={`w-4 h-4 ${reaction === 'heart' ? 'fill-current' : ''}`} aria-hidden="true" /> {counts.heart}
+          </button>
         </div>
       </div>
     </article>

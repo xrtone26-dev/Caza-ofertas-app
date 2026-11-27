@@ -1844,13 +1844,14 @@ function App() {
             return (
               <div
                 key={cuponId}
-                className={`${list.length > 1 ? 'flex-[0_0_88%] sm:flex-[0_0_80%]' : 'flex-[0_0_100%]'} lg:flex-[0_0_calc(50%-12px)] min-w-0`}
+                className={`${list.length > 1 ? 'flex-[0_0_88%] sm:flex-[0_0_80%]' : 'flex-[0_0_100%]'} lg:flex-[0_0_calc(50%-12px)] xl:flex-[0_0_calc(33.333%-16px)] min-w-0`}
               >
                 <CouponCard
                   cupon={cupon}
                   variant={variant}
                   bank={variant === 'bank' ? getBankInfo(cupon.title) : undefined}
                   gradientClass={gradients[idx % gradients.length]}
+                  isLight={isLight}
                   expiryBadge={<CountdownTimer expiresAt={cupon.expires_at} />}
                   reaction={userReactions[cuponId]}
                   counts={counts}
@@ -2207,8 +2208,8 @@ function App() {
 
                     return (
                       <div key={pId} className="min-w-0" style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 380px' }}>
-                        <article className={`h-full flex flex-col relative rounded-lg overflow-hidden border transition-shadow hover:shadow-lg ${
-                          isLight ? 'bg-white border-gray-200 shadow-sm' : 'bg-neutral-900 border-neutral-800'
+                        <article className={`h-full flex flex-col relative rounded-lg overflow-hidden border transition-shadow ${
+                          isLight ? 'bg-white border-[#E6E6E6] hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)]' : 'bg-neutral-900 border-neutral-800 hover:shadow-lg'
                         }`}>
                           {isAuthenticated && (
                             <button
@@ -2224,39 +2225,49 @@ function App() {
                             </button>
                           )}
 
-                          <div className="relative bg-white border-b border-gray-100">
-                            <img src={product.image_url} alt={product.title} loading="lazy" decoding="async" width="400" height="256" className="w-full h-32 sm:h-44 object-contain p-2 sm:p-3" />
+                          <div className="relative bg-white">
+                            <img src={product.image_url} alt={product.title} loading="lazy" decoding="async" width="400" height="256" className="w-full h-36 sm:h-48 object-contain p-3 sm:p-4" />
                           </div>
 
                           <div className="p-3 sm:p-4 flex flex-col flex-1">
-                            <h3 className={`text-[13px] sm:text-sm leading-snug line-clamp-2 min-h-[2.5rem] mb-2 ${isLight ? 'text-gray-800' : 'text-neutral-100'}`}>
+                            <h3 className={`text-sm leading-snug line-clamp-2 min-h-[2.5rem] mb-2 ${isLight ? 'text-[#333333]' : 'text-neutral-100'}`}>
                               {product.title}
                             </h3>
 
                             {showsSaving && (
-                              <span className={`text-xs line-through ${isLight ? 'text-gray-600' : 'text-neutral-400'}`}>
+                              <span className={`text-xs line-through ${isLight ? 'text-[#999999]' : 'text-neutral-400'}`}>
                                 <span className="sr-only">Precio anterior </span>${formattedOriginalPrice}
                               </span>
                             )}
                             <div className="flex items-baseline flex-wrap gap-x-2">
-                              <span className={`text-xl sm:text-2xl font-normal leading-tight ${isLight ? 'text-gray-900' : 'text-neutral-50'}`}>
+                              <span className={`text-xl sm:text-2xl font-normal leading-tight ${isLight ? 'text-[#333333]' : 'text-neutral-50'}`}>
                                 ${Number(product.discount_price).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                               </span>
                               {savingPct > 0 && (
-                                <span className={`text-xs sm:text-sm font-semibold ${isLight ? 'text-[#00783a]' : 'text-[#3ddc84]'}`}>
+                                <span className={`text-xs sm:text-sm font-semibold ${isLight ? 'text-[#00863F]' : 'text-[#3ddc84]'}`}>
                                   {savingPct}% OFF
                                 </span>
                               )}
                             </div>
                             {showsSaving && (
-                              <p className={`text-xs font-medium ${isLight ? 'text-[#00783a]' : 'text-[#3ddc84]'}`}>
+                              <p className={`text-xs font-medium ${isLight ? 'text-[#00863F]' : 'text-[#3ddc84]'}`}>
                                 Ahorras {formatMoney(origDisplayNum - priceNum)}
+                              </p>
+                            )}
+                            {product.installments_text && (
+                              <p className={`mt-0.5 text-xs font-medium ${isLight ? 'text-[#00863F]' : 'text-[#3ddc84]'}`}>
+                                {product.installments_text}
+                              </p>
+                            )}
+                            {product.shipping_text && (
+                              <p className={`mt-0.5 text-xs font-semibold ${isLight ? 'text-[#00863F]' : 'text-[#3ddc84]'}`}>
+                                {product.shipping_text}
                               </p>
                             )}
 
                             {product.coupon && (
                               <div className={`mt-2 rounded px-2 py-1.5 border border-dashed ${
-                                isLight ? 'bg-[#e8f5ee] border-[#00a650]/50 text-[#007a3d]' : 'bg-[#00a650]/15 border-[#00a650]/50 text-[#5fd99a]'
+                                isLight ? 'bg-[#E8F5EE] border-[#00A650]/50 text-[#00663a]' : 'bg-[#00a650]/15 border-[#00a650]/50 text-[#5fd99a]'
                               }`}>
                                 <p className="text-[11px] leading-tight">Cupón para este producto:</p>
                                 <p className="text-sm font-bold break-all">{product.coupon}</p>
@@ -2277,7 +2288,7 @@ function App() {
                                 href={product.affiliate_link || product.link || product.url || '#'}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-full min-h-[44px] rounded-md bg-[#2968C8] hover:bg-[#1f55a8] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
+                                className="w-full min-h-[44px] rounded-md bg-[#3483FA] hover:bg-[#2968C8] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
                               >
                                 Ver en Mercado Libre <ExternalLink className="w-4 h-4" aria-hidden="true" />
                                 <span className="sr-only">(se abre en otra pestaña)</span>
